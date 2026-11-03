@@ -16,7 +16,7 @@ Node.js 24, npm 11. `npm ci`, sau đó `npm run dev`. `npm run build` kiểm tra
 - `src/game/ocean/boat.ts`: model thuyền thủ tục, tài nguyên do scene sở hữu.
 - `src/platform/physics.ts` và `src/game/playground.ts`: nền Havok và scene va chạm được giữ để phát triển gameplay sau này; scene biển không cần tải WASM vật lý.
 
-Sóng lớn biến dạng mesh bằng GPU, gợn nhỏ làm thay đổi pháp tuyến. Lưới gần có độ chi tiết cao hơn mặt biển xa. Thuyền lấy độ cao và độ nghiêng từ cùng hàm sóng; đây là chuyển động nổi mô phỏng bằng toán, chưa phải lực nổi thủy động lực học Havok. Scene.dispose dọn mesh/material; app dọn loop, listener và engine. Không thêm singleton, event bus hay ECS trước khi có nhu cầu thực tế.
+Sóng Gerstner dịch chuyển đỉnh lưới theo cả chiều ngang và chiều cao. Pháp tuyến giải tích kết hợp gợn giao thoa biến dạng; phản xạ Fresnel, tán xạ nước, bọt ở đỉnh sóng và giới hạn phơi sáng. Một lưới liên tục với mật độ giảm theo khoảng cách thay cho hai mặt biển có đường nối. CPU đảo dịch chuyển ngang để lấy độ cao nổi của thuyền. Thuyền lấy độ cao và độ nghiêng từ cùng hàm sóng; đây là chuyển động nổi mô phỏng bằng toán, chưa phải lực nổi thủy động lực học Havok. Scene.dispose dọn mesh/material; app dọn loop, listener và engine. Không thêm singleton, event bus hay ECS trước khi có nhu cầu thực tế.
 
 ## Kiểm tra
 

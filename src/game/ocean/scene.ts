@@ -12,6 +12,7 @@ import {
   sunDirection,
 } from "./materials";
 import { createBoat } from "./boat";
+import { createOceanSurface } from "./surface";
 import { heightAt } from "./waves";
 
 export function createOceanScene(engine: Engine, canvas: HTMLCanvasElement) {
@@ -49,26 +50,11 @@ export function createOceanScene(engine: Engine, canvas: HTMLCanvasElement) {
   sky.material = createSkyMaterial(scene);
   sky.isPickable = false;
   sky.infiniteDistance = true;
-  const water = MeshBuilder.CreateGround(
-    "ocean",
-    { width: 160, height: 160, subdivisions: 180 },
-    scene,
-  );
+  const water = createOceanSurface(scene);
   const material = createOceanMaterial(scene);
   water.material = material;
-  water.isPickable = false;
   material.setVector3("sunDirection", sunDirection);
   material.setFloat("innerCutout", 0);
-  const horizon = MeshBuilder.CreateGround(
-    "distant-ocean",
-    { width: 1400, height: 1400, subdivisions: 120 },
-    scene,
-  );
-  const horizonMaterial = createOceanMaterial(scene);
-  horizon.material = horizonMaterial;
-  horizon.isPickable = false;
-  horizonMaterial.setFloat("innerCutout", 79.9);
-  horizonMaterial.setVector3("sunDirection", sunDirection);
   const boat = createBoat(scene);
   boat.rotation.y = 0.55;
   boat.position.x = mobile ? 0 : 3.5;
@@ -78,7 +64,7 @@ export function createOceanScene(engine: Engine, canvas: HTMLCanvasElement) {
   const observer = scene.onBeforeRenderObservable.add(() => {
     time += Math.min(engine.getDeltaTime() / 1000, 0.05);
     strength += ((rough ? 1.5 : 0.8) - strength) * 0.025;
-    for (const surface of [material, horizonMaterial]) {
+    for (const surface of [material]) {
       surface.setFloat("time", time);
       surface.setVector3("boatPosition", boat.position);
       surface.setFloat("strength", strength);

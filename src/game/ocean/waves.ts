@@ -1,11 +1,9 @@
-// Shared wave field: visuals and floating objects sample the same surface.
+// Shared Gerstner field. CPU sampling inverts horizontal displacement for buoyancy.
 export const waves = [
-  { x: 0.94, z: 0.34, frequency: 0.31, speed: 0.91, amplitude: 0.32 },
-  { x: 0.77, z: 0.64, frequency: 0.53, speed: 1.18, amplitude: 0.17 },
-  { x: -0.42, z: 0.91, frequency: 0.83, speed: 1.43, amplitude: 0.095 },
-  { x: 0.98, z: -0.21, frequency: 1.37, speed: 1.81, amplitude: 0.048 },
-  { x: 0.61, z: 0.79, frequency: 2.13, speed: 2.28, amplitude: 0.022 },
-  { x: -0.71, z: 0.7, frequency: 3.21, speed: 2.77, amplitude: 0.01 },
+  { x: 0.94, z: 0.34, frequency: 0.42, speed: 1.15, amplitude: 0.46 },
+  { x: 0.73, z: 0.68, frequency: 0.79, speed: 1.63, amplitude: 0.2 },
+  { x: -0.52, z: 0.85, frequency: 1.14, speed: 1.93, amplitude: 0.1 },
+  { x: 0.97, z: -0.24, frequency: 1.91, speed: 2.49, amplitude: 0.038 },
 ] as const;
 export function heightAt(
   x: number,
@@ -13,18 +11,29 @@ export function heightAt(
   time: number,
   strength: number,
 ): number {
+  let px = x,
+    pz = z;
+  for (let i = 0; i < 4; i++) {
+    let dx = 0,
+      dz = 0;
+    for (const w of waves) {
+      const len = Math.hypot(w.x, w.z);
+      const a =
+        ((px * w.x) / len + (pz * w.z) / len) * w.frequency + time * w.speed;
+      dx += (w.x / len) * 0.65 * w.amplitude * strength * Math.cos(a);
+      dz += (w.z / len) * 0.65 * w.amplitude * strength * Math.cos(a);
+    }
+    px = x - dx;
+    pz = z - dz;
+  }
   return waves.reduce(
-    (height, wave) =>
-      height +
-      (Math.sin(
-        (x * wave.x + z * wave.z) * wave.frequency + time * wave.speed,
-      ) +
-        0.16 *
-          Math.cos(
-            2 *
-              ((x * wave.x + z * wave.z) * wave.frequency + time * wave.speed),
-          )) *
-        wave.amplitude *
+    (h, w) =>
+      h +
+      Math.sin(
+        ((px * w.x + pz * w.z) / Math.hypot(w.x, w.z)) * w.frequency +
+          time * w.speed,
+      ) *
+        w.amplitude *
         strength,
     0,
   );
