@@ -16,8 +16,6 @@ sources:
     resource: repo://docs/game/plans/01-rules.md
   - id: openwiki-source-03d3729a6d1fb321fab7b6df
     resource: repo://docs/game/README.md
-  - id: openwiki-source-c7bf72666669afd9b48e6ca6
-    resource: repo://docs/game/rules/board-and-properties.md
   - id: openwiki-source-c932588d9fa043f7688a8026
     resource: repo://docs/game/rules/property-economics.md
   - id: openwiki-source-ded398e81c989f91c49f987f
@@ -42,10 +40,10 @@ sources:
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
     resource: repo://src/platform/firestore-client.ts
-generated: { by: "codex", at: "2026-11-03T16:58:55.100Z" }
+generated: { by: "codex", at: "2026-11-03T17:06:15.948Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T16:58:55.100Z
+    at: 2026-11-03T17:06:15.948Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
@@ -84,7 +82,7 @@ Dùng [hướng dẫn đo thời gian](../docs/diagnostics.md) và [vận hành]
 
 ## Giá tài sản và đối chiếu edition
 
-[Bảng kinh tế 01A.2](../docs/game/rules/property-economics.md) liệt kê 28 tài sản, nhưng chưa là config runtime hoặc bảng đã duyệt. Từng trường xác minh trực tiếp từ G0009 S-002 được phân biệt với số nháp từ Wikibooks S-004. Hình rulebook G0009 ghi Rhode Island Avenue, khác Oriental Avenue trong nguồn tham khảo; không tự sao chép rent giữa hai tên. Mortgage/unmortgage và rent/giá xây Rhode Island vẫn unresolved. Không coi đủ 28 hàng là đã hoàn thành Plan 01A.
+[Bảng kinh tế 01A.2](../docs/game/rules/property-economics.md) liệt kê 28 tài sản, nhưng chưa là config runtime hoặc bảng đã duyệt. Từng trường xác minh trực tiếp từ G0009 S-002 được phân biệt với số nháp từ Wikibooks S-004. Hình rulebook G0009 ghi Rhode Island Avenue, khác Oriental Avenue trong nguồn tham khảo; không tự sao chép rent giữa hai tên. Ảnh nguồn thứ cấp S-005 đã cho mặt sau Rhode Island ghi mortgage 50, unmortgage 55; chưa có hộp/mã G0009 để xác minh edition độc lập. Mortgage các tài sản khác và rent/giá xây Rhode Island vẫn thiếu. Không coi đủ 28 hàng là đã hoàn thành Plan 01A.
 
 ## Điều kiện áp dụng giá và tiền thuê
 

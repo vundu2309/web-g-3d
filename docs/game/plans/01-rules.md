@@ -46,3 +46,7 @@ Giao diện game, ảnh mới, thay hub/Firebase, model runtime, backend, server
 ## Tiến độ nghiên cứu tiếp theo
 
 Đã kiểm tra thêm nguồn công khai ngày 2026-11-03: trang shop Hasbro được thử chuyển về trang where-to-buy, chưa cung cấp bộ Title Deed; các hình S-002 không có mặt sau. Chưa xác minh được giá còn thiếu; không coi việc tìm không thấy là bằng chứng số liệu không tồn tại. Trong lúc 01A.2 còn thiếu S-003, chỉ tiếp tục các điều kiện 01A.3 có bằng chứng độc lập, chưa mở 01B/01C hoặc implementation.
+
+## Bổ sung nguồn ảnh 2025
+
+S-005 có ảnh mặt sau Rhode Island Avenue: mortgage 50, unmortgage 55. Chưa có mặt trước và hộp/mã G0009 nên vẫn cần đối chiếu edition; không suy rent từ Vermont trong cùng ảnh. Đây là tiến triển bằng chứng của 01A.2, chưa hoàn thành toàn bảng.

@@ -50,3 +50,11 @@ Trang Hasbro en-us cho mã **C1009** hiện liên kết `C1009780B_INST_MN_CLASS
 ## Điều kiện giá đã đối chiếu từ S-002
 
 [01A.3](rent-conditions.md) dẫn cụ thể Owned Properties, Collect color sets!, Railroads, Utilities, Buildings, Mortgaging Property và Deals & Trades ở trang PDF 2. Các mục này xác định quyền thu, điều kiện thế chấp/xây và công thức rent thông thường; không xác minh các số tiền mặt sau thẻ còn thiếu. Phép tung utility, yêu cầu rent trước lượt tiếp theo và cách xử lý trên online cần tách chính sách số hóa, không tự mặc định auto-claim hoặc timeout.
+
+## S-005 — Ảnh thẻ vật lý từ nguồn bán lại Monopoly 2025
+
+Đọc ngày 2026-11-03, nguồn thứ cấp, không phải Hasbro xuất bản. [Listing eBay 267501640627](https://www.ebay.com/itm/267501640627), tiêu đề từ trang kết quả tìm kiếm: “MONOPOLY 2025 Replacement Property Title Deed Cards NEW - YOU PICK”. [Ảnh thẻ gốc đọc được](https://i.ebayimg.com/images/g/lb8AAeSwFSxpMoyf/s-l1600.jpg).
+
+Ảnh cho thấy mặt sau **RHODE ISLAND AVENUE**, ghi **MORTGAGE VALUE 50**, **TO UNMORTGAGE, PAY 55**. Đây là số đọc trực tiếp, không suy công thức từ giá mua. Mặt trước Vermont Avenue trong cùng ảnh ghi copyright 1935, 2025 HASBRO, rent 6/12/30/90/270/400/550 và giá nhà/khách sạn 50. Không nhầm rent Vermont với Rhode Island bị che mặt trước.
+
+Giới hạn: chưa thấy hộp/mã G0009 trong ảnh, nên chỉ xác minh nội dung ảnh của listing ghi 2025, không coi toàn bộ listing là xác nhận edition độc lập. Trang chi tiết hiện trả trang kiểm tra tự động; ảnh public và kết quả tìm kiếm đọc được. Chưa xem được ảnh mặt trước Rhode Island. Không dùng ảnh này để chốt mọi mortgage khác hoặc suy quy tắc lãi chung.

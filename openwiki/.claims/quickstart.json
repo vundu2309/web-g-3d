@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:cd2e98e87d3651469be826581c38d651630e81c304e8d2f73394dccc5bc78162",
+  "pageVersion": "sha256:986985103e0ce7533fe43bf8a9299ec64490a2a5cf72390a84e712b3045287e3",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -104,29 +104,25 @@
         },
         {
           "resource": "repo://docs/game/plans/01-rules.md",
-          "version": "repo-file-v1:sha256:5ed74de5b367536fdc410477d8f312ce7369367d0f5fa1314ddddf5756e55c34"
+          "version": "repo-file-v1:sha256:88d382b34d893775409f57a2603c43206e877f9900ee054e74b362fd2512367a"
         },
         {
           "resource": "repo://docs/game/rules/sources.md",
-          "version": "repo-file-v1:sha256:1ec58da7e293b6008a2eeb6425690a65ab757faf104fc5dcfc887dc40aaa7027"
+          "version": "repo-file-v1:sha256:ed83e04bdc9168a5e7209dd7b7cd63ffddfcf00d98813a402533096e16324dc6"
         }
       ]
     },
     {
       "id": "claim_fb3186da1e8d4cf0b5cb48164dde00da",
-      "statement": "Bảng kinh tế 01A.2 có 28 tài sản, phân biệt bằng chứng G0009 S-002 và nháp S-004; G0009 dùng Rhode Island Avenue, mortgage/unmortgage và rent/giá xây đất này chưa xác minh, chưa có config runtime.",
+      "statement": "Bảng kinh tế 01A.2 phân biệt G0009 S-002, nháp S-004 và ảnh listing 2025 S-005 có Rhode Island mortgage 50/unmortgage 55. Chưa đủ bảng giá/mặt trước/đối chiếu edition cho ảnh, chưa có config runtime.",
       "evidence": [
         {
-          "resource": "repo://docs/game/rules/board-and-properties.md",
-          "version": "repo-file-v1:sha256:23fc6cd2a5fa612f15d4c81166ded5d5377a9d72ae482f1f1fe613445d03a683"
-        },
-        {
           "resource": "repo://docs/game/rules/property-economics.md",
-          "version": "repo-file-v1:sha256:3f22140655df2d81f2d18b56d25225ba4f701b0b4a07aacaebdb6e4c1cf01708"
+          "version": "repo-file-v1:sha256:7fae7469f6584fc0d468705c88f8ebc68a78836fc6f52e1d07cb5c66cbdf305f"
         },
         {
           "resource": "repo://docs/game/rules/sources.md",
-          "version": "repo-file-v1:sha256:1ec58da7e293b6008a2eeb6425690a65ab757faf104fc5dcfc887dc40aaa7027"
+          "version": "repo-file-v1:sha256:ed83e04bdc9168a5e7209dd7b7cd63ffddfcf00d98813a402533096e16324dc6"
         }
       ]
     },
@@ -136,7 +132,7 @@
       "evidence": [
         {
           "resource": "repo://docs/game/plans/01-rules.md",
-          "version": "repo-file-v1:sha256:5ed74de5b367536fdc410477d8f312ce7369367d0f5fa1314ddddf5756e55c34"
+          "version": "repo-file-v1:sha256:88d382b34d893775409f57a2603c43206e877f9900ee054e74b362fd2512367a"
         },
         {
           "resource": "repo://docs/game/rules/rent-conditions.md",
@@ -147,6 +143,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T16:58:55.100Z"
+    "at": "2026-11-03T17:06:15.948Z"
   }
 }

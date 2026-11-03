@@ -6,6 +6,7 @@
 
 - **S-002:** rulebook G0009 US 2025 chính thức. Đã đọc chữ và phóng to hình trang 2 để đối chiếu các trường được liệt kê bên dưới.
 - **S-004:** bảng US/Canada của Wikibooks, revision 4662179; nguồn cộng đồng/khác edition, chỉ cung cấp **ứng viên để review**, không xác nhận toàn bộ bảng là của G0009. [Sổ nguồn](sources.md) ghi URL và giới hạn.
+- **S-005:** ảnh thẻ vật lý từ listing ghi Monopoly 2025, xác nhận mặt sau Rhode Island 50/55; chưa có hộp/mã G0009 trong ảnh, xem giới hạn trong sổ nguồn.
 - Mọi ô số ở bảng đất màu mặc định là **nháp S-004**, ngoại trừ các trường S-002 được liệt kê rõ. Không dùng nháp để sinh dữ liệu game. Không suy tiền thế chấp bằng nửa giá mua hoặc áp lãi 10% từ edition khác.
 
 ## US-ECON-001 — Giá và rent của 22 đất màu
@@ -75,7 +76,7 @@ Các trường khác của các tài sản trên vẫn nháp S-004. Ví dụ xá
 
 ## US-ECON-004 — Thế chấp và giải chấp
 
-**Chưa xác minh toàn bộ 28 tài sản.** S-002 / Mortgaging Property yêu cầu đọc mortgage value ở mặt sau thẻ, trả unmortgage cost ghi trên thẻ. Chưa có đủ mặt sau nên để unresolved; không tạo bảng nửa-giá-mua hoặc công thức 10% giả định. Việc không có giá trị là blocker cho implementation kinh tế, không làm hành động thành miễn phí.
+**Chưa xác minh đầy đủ toàn bộ 28 tài sản.** Đã tìm thấy ảnh mặt sau Rhode Island Avenue ở nguồn thứ cấp S-005: thế chấp **50**, giải chấp **55**. Đây là số đọc trực tiếp từ ảnh listing ghi 2025; chưa có hộp/mã G0009 để đối chiếu độc lập. Các tài sản khác và mặt trước Rhode Island vẫn chưa đủ bằng chứng. S-002 / Mortgaging Property yêu cầu đọc mortgage value ở mặt sau thẻ, trả unmortgage cost ghi trên thẻ. Chưa có đủ mặt sau nên để unresolved; không tạo bảng nửa-giá-mua hoặc công thức 10% giả định. Việc không có giá trị là blocker cho implementation kinh tế, không làm hành động thành miễn phí.
 
 ## Tình huống kiểm chứng đặc tả
 
@@ -86,4 +87,4 @@ Các trường khác của các tài sản trên vẫn nháp S-004. Ví dụ xá
 - CASE-ECON-005: yêu cầu giá mortgage chưa xác minh → phải báo thiếu đặc tả, không tự tính/ghi 0.
 - CASE-ECON-006: import bảng Oriental từ S-004 → không được tự coi là thẻ Rhode Island G0009.
 
-Các case là ví dụ tài liệu, chưa có engine hoặc test gameplay. Chưa đánh dấu 01A.2 hoàn thành: còn thiếu S-003, rent/giá xây Rhode Island, mọi mortgage/unmortgage và việc duyệt bảng.
+Các case là ví dụ tài liệu, chưa có engine hoặc test gameplay. Chưa đánh dấu 01A.2 hoàn thành: còn thiếu S-003, rent/giá xây Rhode Island, mortgage/unmortgage các tài sản khác, đối chiếu edition cho S-005 và việc duyệt bảng.
