@@ -10,6 +10,10 @@ sources:
     resource: repo://.github/workflows/pages.yml
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
+  - id: openwiki-source-9b9ee78b093d5cd6376d5a80
+    resource: repo://docs/game/plans/01-rules.md
+  - id: openwiki-source-03d3729a6d1fb321fab7b6df
+    resource: repo://docs/game/README.md
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
     resource: repo://package.json
   - id: openwiki-source-3515d68bed1b916f693296ec
@@ -26,10 +30,10 @@ sources:
     resource: repo://tests/hub-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-03T16:08:25.086Z" }
+generated: { by: "codex", at: "2026-11-03T16:35:31.899Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T16:08:25.086Z
+    at: 2026-11-03T16:35:31.899Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -83,3 +87,7 @@ Luồng create/join đầu tiên gộp profile với room trong một commit; ru
 Mở Pages với `?diagnostics=1`, tạo hoặc tham gia phòng, rồi chọn **Chẩn đoán thời gian → Sao chép kết quả**. Bảng lưu tối đa năm thao tác trong RAM, không tự gửi dữ liệu và không ghi danh tính hay mã phòng. Reload xóa kết quả. Đo bắt đầu sau validation/chọn phòng, kết thúc sau snapshot đầu và hai animation frames; login ban đầu nằm ngoài phạm vi. Không cộng các dòng song song, không gán toàn bộ commit wait cho server hoặc kết luận vùng/billing là nguyên nhân khi chưa có phép đo. Token readiness có thêm getIdToken khi bật chẩn đoán.
 
 Unit tests kiểm tra thời gian chồng lấn, mã lỗi an toàn, retry, giới hạn samples và kết thúc bất biến. Browser Auth/Firestore emulator cố ý trì hoãn commit 200 ms và kiểm tra bảng nhận được độ trễ đó, đồng thời guest không bật cờ không có nút chẩn đoán. Đây là kiểm tra công cụ đo, không đo latency production. Xem [hướng dẫn đầy đủ](../../docs/diagnostics.md).
+
+## Quy ước đặc tả luật cho AI
+
+AGENTS dẫn tới [game contract](../../docs/game/README.md), plan hiện hành và trang luật liên quan. Chỉ 01A của Plan 01 đang active cho tài liệu; phần khác giữ backlog. Không coi plan là cho phép implementation hoặc tự chọn renderer/backend/Blaze. Luật truyền thống Mỹ giữ tên đất, phải có đấu giá/trao đổi/thế chấp; không thêm house rules. Các chi tiết edition, số liệu và thẻ chưa có nguồn được ghi unresolved. Đặc tả đã duyệt xác định hành vi mong đợi, source/test mô tả hiện trạng; sai lệch cần được xử lý chứ không sửa đặc tả để che bug.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:838487f3525d6ab5f6ab7a6da71a79ee71e91eefd6bcd1080f4f08493ddb67e9",
+  "pageVersion": "sha256:1629b2f00706f1a824740be203e74897985c94f2514d7cf7f4e5587ff4d3f331",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -89,10 +89,28 @@
           "version": "repo-file-v1:sha256:4108ffaff4df02a7389615c62b4bb4d6e28d4c70f532156b186c6e9c27b220eb"
         }
       ]
+    },
+    {
+      "id": "claim_93b00f5ea349493b897f7f2ba4773072",
+      "statement": "Tài liệu gameplay chọn Classic US truyền thống, giữ tên đất Mỹ; chỉ phần tài liệu 01A active, các plan sau backlog và edition/số liệu chưa xác minh.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md",
+          "version": "repo-file-v1:sha256:7ba4d4c1609e9d0487563762e925b4b04eb5bce6d6104cb4330cd90296c9680a"
+        },
+        {
+          "resource": "repo://docs/game/README.md",
+          "version": "repo-file-v1:sha256:16093f5d2027b36f8b77f43173688ccbf0491cb6a1b153b634c68790bfbe05c1"
+        },
+        {
+          "resource": "repo://docs/game/plans/01-rules.md",
+          "version": "repo-file-v1:sha256:90acb59c977de86460028c44ffedef85e06ff0fe4e78b76521d293c00012ccf0"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T16:08:25.086Z"
+    "at": "2026-11-03T16:35:31.899Z"
   }
 }

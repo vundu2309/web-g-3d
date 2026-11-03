@@ -2,25 +2,25 @@
   "schemaVersion": 1,
   "pages": {
     "/openwiki/architecture/hub.md": {
+      "gitHead": "637c7cd0d7b1f9e41f34b9494dc5e7c4f1886622",
+      "sourceFingerprint": "sha256:6760b2de7cca674f67b6906c0b11f5ca74126ab7180dec12c3af4b7dd1283e24",
       "pageVersion": "sha256:d0436b2bb0948990f3989caef65936080e44ca3e31c1157b65596295052aecd9",
       "completedBy": "codex",
-      "completedRunId": "8746230f-1e2c-43f5-bde4-3b267e608554",
-      "gitHead": "637c7cd0d7b1f9e41f34b9494dc5e7c4f1886622",
-      "sourceFingerprint": "sha256:6760b2de7cca674f67b6906c0b11f5ca74126ab7180dec12c3af4b7dd1283e24"
+      "completedRunId": "8746230f-1e2c-43f5-bde4-3b267e608554"
     },
     "/openwiki/operations/development.md": {
-      "pageVersion": "sha256:f36163e90b932044ca0acd7840030197866315b9b8d8caa4513dca69e4694dfc",
+      "pageVersion": "sha256:0a6513a16e2b1e8809af0aba16ccda0ba1149c3d09cb2a8fc86ff17d7e449450",
       "completedBy": "codex",
-      "completedRunId": "8746230f-1e2c-43f5-bde4-3b267e608554",
-      "gitHead": "637c7cd0d7b1f9e41f34b9494dc5e7c4f1886622",
-      "sourceFingerprint": "sha256:6760b2de7cca674f67b6906c0b11f5ca74126ab7180dec12c3af4b7dd1283e24"
+      "completedRunId": "13e826e0-0895-4cae-b94e-946dab9f2eac",
+      "gitHead": "152f973ae4d2d70d08149ad8cec5150f2253b14d",
+      "sourceFingerprint": "sha256:35682b0f56e327d8dfc19589c8a9b14142e5980d981c12994f63f0232b283f59"
     },
     "/openwiki/quickstart.md": {
-      "pageVersion": "sha256:838487f3525d6ab5f6ab7a6da71a79ee71e91eefd6bcd1080f4f08493ddb67e9",
+      "pageVersion": "sha256:1629b2f00706f1a824740be203e74897985c94f2514d7cf7f4e5587ff4d3f331",
       "completedBy": "codex",
-      "completedRunId": "8746230f-1e2c-43f5-bde4-3b267e608554",
-      "gitHead": "637c7cd0d7b1f9e41f34b9494dc5e7c4f1886622",
-      "sourceFingerprint": "sha256:6760b2de7cca674f67b6906c0b11f5ca74126ab7180dec12c3af4b7dd1283e24"
+      "completedRunId": "13e826e0-0895-4cae-b94e-946dab9f2eac",
+      "gitHead": "152f973ae4d2d70d08149ad8cec5150f2253b14d",
+      "sourceFingerprint": "sha256:35682b0f56e327d8dfc19589c8a9b14142e5980d981c12994f63f0232b283f59"
     }
   }
 }
