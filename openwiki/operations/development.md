@@ -16,16 +16,18 @@ sources:
     resource: repo://scripts/test-browser.mjs
   - id: openwiki-source-4c36e1d79dd002cc49e886f0
     resource: repo://scripts/test-rules.mjs
+  - id: openwiki-source-554339f52225d7d8edff3ed0
+    resource: repo://src/style.css
   - id: openwiki-source-d6f301bba4bff3a816376dbe
     resource: repo://tests/auth-browser.mjs
   - id: openwiki-source-692b548971d3dc99c2c806f0
     resource: repo://tests/hub-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-03T14:37:35.433Z" }
+generated: { by: "codex", at: "2026-11-03T14:44:11.949Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T14:37:35.433Z
+    at: 2026-11-03T14:44:11.949Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -64,3 +66,6 @@ MCP OpenWiki chạy qua `npx --no-install` trong `.codex/config.toml`; công c�
 
 
 Trước deploy backend phải đọc rules đang release và index hiện có. File hiện tại giữ allowance cũ ngoài monopolyHub và loại trừ hub khỏi wildcard; test regression xác nhận phần này. CLI phải có danh tính đã xác thực, không suy ra quyền admin từ public app config. Đối chiếu remote rules với file đã test và chờ index READY trước khi kết luận backend đã sẵn sàng.
+
+
+Form tài khoản trên điện thoại ngang dùng bố cục compact; test Auth browser xác nhận nút đăng ký nằm trong khung dialog khi chưa mở bàn phím. Dialog vẫn cho cuộn khi viewport bị thu nhỏ bởi bàn phím.

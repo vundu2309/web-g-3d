@@ -29,6 +29,18 @@ async function register(page, name, email) {
   await page
     .getByRole("button", { name: "Chưa có tài khoản? Đăng ký" })
     .click();
+  assert.equal(
+    await page
+      .getByRole("dialog")
+      .locator('button[type="submit"]')
+      .evaluate(
+        (button) =>
+          button.getBoundingClientRect().bottom <=
+          button.closest("dialog").getBoundingClientRect().bottom - 4,
+      ),
+    true,
+    "registration action fits landscape phone without scrolling",
+  );
   await page.getByLabel("Tên người chơi", { exact: true }).fill(name);
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Mật khẩu", { exact: true }).fill("GameTest-123!");

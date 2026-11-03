@@ -1126,3 +1126,40 @@ input::placeholder {
   position: static;
   flex-shrink: 0;
 }
+@media (min-width: 600px) and (max-height: 600px) {
+  .account-dialog {
+    padding: 12px 20px;
+  }
+  .account-heading {
+    top: -12px;
+    padding-block: 0;
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
+  .account-heading h1 {
+    font-size: 1.8rem;
+  }
+  .account-intro {
+    display: none;
+  }
+  #account-form {
+    gap: 8px;
+  }
+  #account-form .field-hint {
+    margin: 0;
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+  #account-form .button {
+    min-height: 48px;
+    padding: 8px 16px;
+    font-size: 1.1rem;
+    margin-top: 0;
+  }
+  .account-links {
+    gap: 0;
+  }
+}
+.auth-status:empty {
+  display: none;
+}

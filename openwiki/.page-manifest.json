@@ -2,18 +2,18 @@
   "schemaVersion": 1,
   "pages": {
     "/openwiki/architecture/hub.md": {
+      "gitHead": "4c93b1a1f7f0fd4cb5fb3a675cd9a9e717d88162",
+      "sourceFingerprint": "sha256:9fd6f65fca5a0089c94663dfdb387f9dfb3c75413d90351007f618ffd15e1d0f",
       "pageVersion": "sha256:bbf0a3cb822f85b064755170d71df6605d6cfeeb91fd972e45c085d4bd8a1995",
       "completedBy": "codex",
-      "completedRunId": "cf31eb9d-e40d-408f-ae97-fed159a607a5",
-      "gitHead": "4c93b1a1f7f0fd4cb5fb3a675cd9a9e717d88162",
-      "sourceFingerprint": "sha256:9fd6f65fca5a0089c94663dfdb387f9dfb3c75413d90351007f618ffd15e1d0f"
+      "completedRunId": "cf31eb9d-e40d-408f-ae97-fed159a607a5"
     },
     "/openwiki/operations/development.md": {
-      "pageVersion": "sha256:21c403b221c94faf9155c4fffd152b2ef775f1420f427cbfff4e70e394566cdc",
+      "pageVersion": "sha256:680ab2d2036fc3644584ad4e32e3bc305ab6ac4ea5f90cfe1e5b94b18762f4d8",
       "completedBy": "codex",
-      "completedRunId": "cf31eb9d-e40d-408f-ae97-fed159a607a5",
-      "gitHead": "4c93b1a1f7f0fd4cb5fb3a675cd9a9e717d88162",
-      "sourceFingerprint": "sha256:9fd6f65fca5a0089c94663dfdb387f9dfb3c75413d90351007f618ffd15e1d0f"
+      "completedRunId": "5e556bda-611d-4bde-b96a-f36e860a9735",
+      "gitHead": "28c6a0da3ea05f2ff4876c145af599c076e8f1fd",
+      "sourceFingerprint": "sha256:a9c4b8034a9b25989333bac06308c92828d5d9484d2a94efa310ec1d2970f790"
     },
     "/openwiki/quickstart.md": {
       "gitHead": "bec59b627ed6a356d820f86425101680331993ce",

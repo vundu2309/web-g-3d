@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:21c403b221c94faf9155c4fffd152b2ef775f1420f427cbfff4e70e394566cdc",
+  "pageVersion": "sha256:680ab2d2036fc3644584ad4e32e3bc305ab6ac4ea5f90cfe1e5b94b18762f4d8",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -94,13 +94,27 @@
         },
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:d6e975b2bfd0a0349aabfbd2a3290a73bfe3edadb23effd251d49ac9e4d37be0"
+          "version": "repo-file-v1:sha256:113fb4a2be7aa9f4380f62e03e452608e1d709e598f20df4ac265386ef22c197"
+        }
+      ]
+    },
+    {
+      "id": "claim_4d7ed525c7434a64846c26c360d57b4f",
+      "statement": "CSS account dialog có chế độ compact cho điện thoại ngang; browser test kiểm tra nút đăng ký hiển thị trong dialog không cần cuộn ở viewport thử nghiệm.",
+      "evidence": [
+        {
+          "resource": "repo://src/style.css",
+          "version": "repo-file-v1:sha256:18f8e2ee2d0fc3e417b954669b6374e184612020fdda057d7866c49b785b0bac"
+        },
+        {
+          "resource": "repo://tests/auth-browser.mjs",
+          "version": "repo-file-v1:sha256:113fb4a2be7aa9f4380f62e03e452608e1d709e598f20df4ac265386ef22c197"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T14:37:35.433Z"
+    "at": "2026-11-03T14:44:11.949Z"
   }
 }
