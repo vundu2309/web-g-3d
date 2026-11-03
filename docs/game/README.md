@@ -10,12 +10,14 @@
 
 **D-006 — Nguồn cơ sở:** Sau khi người dùng đồng ý Classic US tiêu chuẩn hiện đại, chọn **G0009 US**, rulebook copyright **2025**, đã đọc từ Hasbro; xem [S-002](rules/sources.md). Không đồng nghĩa bảng giá, bộ thẻ hoặc toàn bộ chi tiết luật đã được xác minh/duyệt. Không ghép các bộ thẻ khác thời kỳ.
 
+**D-007 — Quy trình đối chiếu đã duyệt:** Ưu tiên text và kiểm tra theo bảng. Hasbro là chuẩn luật; nguồn text cộng đồng được dùng cho bảng số có ghi mức xác minh. Ảnh chỉ dùng xử lý ngoại lệ, không dò tuần tự từng thẻ hoặc lặp tìm ảnh mỗi lượt nếu không có nguồn mới.
+
 ## Cách AI làm việc
 
 1. Đọc trang này, [plan hiện hành](plans/01-rules.md), rồi đúng trang luật liên quan.
 2. Chỉ thực hiện phần đang active và được giao. Hiện **Plan 01 / phần 01A — bàn cờ và tài sản** đang mở để nghiên cứu/duyệt tài liệu; các phần khác là backlog, không tự implement.
 3. Phân biệt **đã duyệt**, **nháp cần xác minh**, **chưa xác định**, **đã implement** và **đã kiểm chứng**. Không suy từ đề xuất trong plan thành phê duyệt của người dùng.
-4. Mọi quy tắc thực thi phải có mã luật, nguồn chính thức xác định được edition/section và ví dụ kiểm chứng. Chưa có nguồn hoặc còn xung đột: ghi vào [sổ câu hỏi](rules/sources.md), tiếp tục phần độc lập; không tự điền cho đủ.
+4. Luật dùng rulebook Hasbro làm chuẩn. Số liệu tài sản ưu tiên bảng text có nguồn/version, đối chiếu hàng loạt; không bắt buộc tìm ảnh từng thẻ. Mỗi luật/dữ liệu cần ID, nguồn và ví dụ; ghi rõ khác biệt edition. Chỉ xem ảnh khi có mục thiếu/mâu thuẫn cụ thể và ghi câu hỏi đó trước khi xem. Chưa đủ bằng chứng thì gom vào [sổ câu hỏi](rules/sources.md), tiếp tục phần độc lập; không đoán số hoặc coi nguồn cộng đồng là xác minh G0009 chính thức.
 5. Khi implementation được giao, ánh xạ test tới mã luật. Source thực thi thể hiện hiện trạng, không tự sửa đặc tả đã duyệt để hợp thức hóa bug. Báo sai lệch và sửa phần sai theo yêu cầu được giao.
 6. Thay đổi hướng đã duyệt cần người dùng quyết định; các lựa chọn implementation thông thường trong phạm vi được giao không cần hỏi lại. Tài liệu này không tạo thêm bước xin phép cho sửa lỗi hoặc deploy đã được cho phép.
 7. Hoàn thành một phần thì cập nhật checklist, bằng chứng và giới hạn; không đánh dấu xong chỉ vì đã tạo file.

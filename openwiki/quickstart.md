@@ -40,10 +40,10 @@ sources:
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
     resource: repo://src/platform/firestore-client.ts
-generated: { by: "codex", at: "2026-11-03T17:13:29.061Z" }
+generated: { by: "codex", at: "2026-11-03T17:18:01.675Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T17:13:29.061Z
+    at: 2026-11-03T17:18:01.675Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
@@ -87,3 +87,7 @@ Dùng [hướng dẫn đo thời gian](../docs/diagnostics.md) và [vận hành]
 ## Điều kiện áp dụng giá và tiền thuê
 
 [01A.3](../docs/game/rules/rent-conditions.md) có bảy quy tắc và 15 case tài liệu đối chiếu S-002: quyền yêu cầu rent, đất đủ nhóm, công trình, railroad/utility, thế chấp và điều kiện xây. Chưa có engine/test gameplay. Giá còn thiếu S-003 và chính sách số hóa (yêu cầu rent, phép tung utility, thứ tự mạng) vẫn unresolved; 01A chưa hoàn thành và chưa mở plan sau.
+
+## Đối chiếu số liệu ưu tiên text
+
+Quy ước đã được người dùng đồng ý: dùng rulebook Hasbro cho luật, bảng text có revision cho giá và so hàng loạt. Đã kiểm tra 21 đất màu × 9 trường = 189 số trong bảng nháp khớp S-004. Không ánh xạ Oriental sang Rhode Island; không coi khớp text là bằng chứng cả bộ G0009 hoặc phê duyệt. Ngoại lệ được gom trong [sổ nguồn](../docs/game/rules/sources.md); ảnh chỉ dùng cho mục thiếu/mâu thuẫn cụ thể, không dò từng thẻ.

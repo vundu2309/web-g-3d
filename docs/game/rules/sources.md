@@ -1,5 +1,11 @@
 # Nguồn tham chiếu và câu hỏi mở
 
+## Quy trình đối chiếu ưu tiên text
+
+Đã được người dùng đồng ý: đọc rulebook Hasbro dạng text cho luật; lấy bảng text có URL/revision cho giá và kiểm tra toàn bảng một lượt. Chỉ dùng ảnh khi một trường cụ thể bị thiếu hoặc xung đột, không dùng ảnh làm điều kiện bắt buộc cho mọi giá trị. Dữ liệu ảnh đã có giữ lại làm bằng chứng, không cần xem lại.
+
+Phân biệt ba việc: **khớp nguồn text**, **xác minh đúng edition G0009**, **người dùng duyệt đặc tả**. Việc thứ nhất không tự hoàn thành hai việc sau. Khi nguồn text dùng tên/luật khác, ghi khác biệt, ưu tiên rulebook chính thức và không tự ghép các giá trị. Tập hợp vấn đề còn mở để review một lần, không yêu cầu người dùng xác nhận từng con số.
+
 ## Sổ nguồn
 
 | ID | Nguồn | Trạng thái |
@@ -78,3 +84,24 @@ Hash giúp nhận diện đúng ảnh nếu nội dung URL đổi; không biến
 - S-005, SHA-256: `01f98c2d2e6ce3eddbbe87ec4b26470c433782f2b181f56905e35325b5b7c49b`.
 - S-006, SHA-256: `5031e43c427626ebb912db8014a8ed73cd96781e3946549038d2a4c6096cc35f`.
 - S-007, SHA-256: `456313580a87ed2110402e7906efb0411b5e00ed6de565428348db494e454b21`.
+
+## Kết quả đối chiếu text theo bảng — 2026-11-03
+
+Đã tải S-004 tại URL revision cố định `oldid=4662179`, đọc bảng HTML và so với Markdown property-economics theo tên tài sản, không so theo số thứ tự hàng của hai nguồn.
+
+- **21 đất màu × 9 trường = 189 giá trị khớp**: giá mua, 7 mức rent (trống/nhóm/1–4 nhà/KS) và giá xây.
+- Bỏ ký hiệu chú thích `[1]` ở Marvin Gardens khi đọc số; vẫn giữ cảnh báo khác edition, không bỏ qua nội dung chú thích.
+- Không ánh xạ Oriental Avenue sang Rhode Island Avenue. Giá mua Rhode Island 100 đã có S-002; 7 mức rent và giá xây còn thiếu.
+- S-004 không cung cấp bảng mortgage/unmortgage, nên phép so này không chốt được các trường đó. Hai giá trị đã đọc từ ảnh Rhode Island/Short Line vẫn có nguồn riêng.
+- Kết quả chứng minh bảng nháp chép đúng nguồn text, không chứng minh cả 189 giá trị là thẻ G0009 đã xác minh hoặc đã được người dùng duyệt.
+
+### Danh sách ngoại lệ cần xử lý cùng đợt
+
+| Mục | Trạng thái / cách tiếp tục |
+| --- | --- |
+| Rhode Island: 7 rent + giá xây | Không có trong S-004; cần text ghi đúng tên/edition hoặc bằng chứng thẻ cụ thể, không copy Oriental |
+| Mortgage/unmortgage chưa có số | Chỉ dùng text có nguồn phù hợp; không suy nửa giá mua/10% thành số xác minh từ hai ảnh mẫu |
+| Marvin Gardens 24/48 | Đã khớp S-004; còn cảnh báo khác edition cần đối chiếu trước khi chốt |
+| Bộ thẻ sự kiện | Thuộc 01D, chưa mở; không tiếp tục tìm ảnh ngoài phần 01A |
+
+Không lặp tìm gallery eBay bị chặn hoặc render lại các thẻ đã đọc ở lượt tiếp theo nếu không có URL/bằng chứng mới. Không để một ngoại lệ ngăn việc so phần bảng còn lại.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:ce336c5f4ff35f274a035ff13c486a883d33d128ce6c6bac8c244226e4b69082",
+  "pageVersion": "sha256:39c6594e9913af4db7bf79d67f5e0e43093434ee6a3657e815a76b012ce5bbe1",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -96,19 +96,19 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:91ac1fc6c7f01475dd035da8bdaf1ce92e699c4cfa6a71e8dd92e89ddf05bc02"
+          "version": "repo-file-v1:sha256:9a13ba36b6aa5d344cf51dd35b8fe23f7a93df811027a34870433e114db9dbfe"
         },
         {
           "resource": "repo://docs/game/README.md",
-          "version": "repo-file-v1:sha256:6015421addd919e2066880de0d0f177aea05178674b66b15d921c0884ddcf5a9"
+          "version": "repo-file-v1:sha256:1532dbe8365d8d0ef3de907e18912d6cb6f86afc36c3380fcf0dd0ea15382f29"
         },
         {
           "resource": "repo://docs/game/plans/01-rules.md",
-          "version": "repo-file-v1:sha256:5a679e5d645e9ec690dcbc795280ddd2c2734da3d3a7c4b59b48c677216fdcdc"
+          "version": "repo-file-v1:sha256:891ec1a04190ee642cf76ee441dfd7719ea8546be5efe78bd87bddd6a288fb6b"
         },
         {
           "resource": "repo://docs/game/rules/sources.md",
-          "version": "repo-file-v1:sha256:4c3063916bd9f81d59b593bb7e2fdf585c13526754b9af78f96d20a1a6c3e0c6"
+          "version": "repo-file-v1:sha256:f59dbe4791e9ddd3e5e590109aa89fd31ed06ddac2ac13136814699b69aa3f16"
         }
       ]
     },
@@ -118,11 +118,11 @@
       "evidence": [
         {
           "resource": "repo://docs/game/rules/property-economics.md",
-          "version": "repo-file-v1:sha256:4fc150cd1b0de526ca116e2ba45f5029aac911650a6a9462a8adf734e98ad97f"
+          "version": "repo-file-v1:sha256:0f1ef886a366b84f5081b76e9294e442d757abbcbf5bcd6e2c2c52d3be19e520"
         },
         {
           "resource": "repo://docs/game/rules/sources.md",
-          "version": "repo-file-v1:sha256:4c3063916bd9f81d59b593bb7e2fdf585c13526754b9af78f96d20a1a6c3e0c6"
+          "version": "repo-file-v1:sha256:f59dbe4791e9ddd3e5e590109aa89fd31ed06ddac2ac13136814699b69aa3f16"
         }
       ]
     },
@@ -132,17 +132,39 @@
       "evidence": [
         {
           "resource": "repo://docs/game/plans/01-rules.md",
-          "version": "repo-file-v1:sha256:5a679e5d645e9ec690dcbc795280ddd2c2734da3d3a7c4b59b48c677216fdcdc"
+          "version": "repo-file-v1:sha256:891ec1a04190ee642cf76ee441dfd7719ea8546be5efe78bd87bddd6a288fb6b"
         },
         {
           "resource": "repo://docs/game/rules/rent-conditions.md",
           "version": "repo-file-v1:sha256:bee97eb0f6e9af6f8e151c08f039129bac25d1f3ffaae7a60e48a6bd78932a3f"
         }
       ]
+    },
+    {
+      "id": "claim_d8cd50ead3184735afb7c53db4b576fa",
+      "statement": "Quy trình đối chiếu ưu tiên text và so bảng có revision; ảnh chỉ xử lý ngoại lệ cụ thể, không lặp tìm ảnh bị chặn. Bảng nháp đã có 189 số khớp S-004 nhưng không đồng nghĩa xác minh edition G0009.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md",
+          "version": "repo-file-v1:sha256:9a13ba36b6aa5d344cf51dd35b8fe23f7a93df811027a34870433e114db9dbfe"
+        },
+        {
+          "resource": "repo://docs/game/README.md",
+          "version": "repo-file-v1:sha256:1532dbe8365d8d0ef3de907e18912d6cb6f86afc36c3380fcf0dd0ea15382f29"
+        },
+        {
+          "resource": "repo://docs/game/rules/property-economics.md",
+          "version": "repo-file-v1:sha256:0f1ef886a366b84f5081b76e9294e442d757abbcbf5bcd6e2c2c52d3be19e520"
+        },
+        {
+          "resource": "repo://docs/game/rules/sources.md",
+          "version": "repo-file-v1:sha256:f59dbe4791e9ddd3e5e590109aa89fd31ed06ddac2ac13136814699b69aa3f16"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T17:13:29.061Z"
+    "at": "2026-11-03T17:18:01.675Z"
   }
 }

@@ -54,3 +54,7 @@ S-005 có ảnh mặt sau Rhode Island Avenue: mortgage 50, unmortgage 55. Chưa
 ## Bổ sung ảnh thẻ 2025 lần tiếp theo
 
 S-006 bổ sung mặt sau Short Line 100/110; S-007 bổ sung giá nhà/KS Mediterranean 50 và rent khớp S-002. Đã đưa các trường đọc được ở S-005/S-006/S-007 vào ma trận nguồn thay vì để lẫn số nháp Wikibooks. Mặt trước Rhode Island chưa thấy; trang item eBay trả kiểm tra tự động, endpoint mô tả trả HTTP 410, nên không tuyên bố đã xem được gallery đầy đủ. Các ảnh công khai được lưu hash trong sổ nguồn.
+
+## Quy trình tiếp tục đã điều chỉnh
+
+Ưu tiên nguồn text, so bảng hàng loạt thay cho tìm ảnh từng thẻ. Đã so 189 số của 21 đất màu với S-004 revision 4662179 và khớp; chưa thay đổi trạng thái xác minh đúng edition hoặc phê duyệt. Gom Rhode Island, mortgage còn thiếu và khác biệt Marvin Gardens trong sổ nguồn để xử lý theo đợt. Chỉ quay lại ảnh cho một ngoại lệ có nguồn mới; không lặp các gallery đã bị chặn. Tiếp tục review các phần có bằng chứng trong 01A, chưa mở implementation/plan sau.

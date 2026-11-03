@@ -9,6 +9,8 @@
 - **S-005:** ảnh thẻ vật lý từ listing ghi Monopoly 2025, xác nhận mặt sau Rhode Island 50/55; chưa có hộp/mã G0009 trong ảnh, xem giới hạn trong sổ nguồn.
 - Mọi ô số ở bảng đất màu mặc định là **nháp S-004**, ngoại trừ các trường S-002 được liệt kê rõ. Không dùng nháp để sinh dữ liệu game. Không suy tiền thế chấp bằng nửa giá mua hoặc áp lãi 10% từ edition khác.
 
+**Kiểm tra text theo bảng (2026-11-03):** 21 đất màu × 9 trường = **189 số khớp S-004 revision 4662179**. Đây là xác nhận chép đúng nguồn tham khảo; chưa xác minh toàn bộ edition G0009. Rhode Island không được ánh xạ từ Oriental; các ngoại lệ được gom tại [sổ nguồn](sources.md). Không cần ảnh riêng cho từng hàng để tiếp tục review bảng.
+
 ## US-ECON-001 — Giá và rent của 22 đất màu
 
 `Nhóm` là sở hữu cả nhóm nhưng chưa xây. `KS` là một khách sạn. `Xây` là chi phí mỗi nhà hoặc khoản trả thêm để nâng 4 nhà thành khách sạn, không phải tổng chi phí từ đất trống lên khách sạn. Điều kiện được xây vẫn thuộc 01C.
