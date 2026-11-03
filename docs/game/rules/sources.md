@@ -6,7 +6,8 @@
 | --- | --- | --- |
 | S-001 | Các quyết định người dùng được ghi lại tại [game README](../README.md), D-001 đến D-005 | Xác nhận hướng sản phẩm, không thay thế rulebook |
 | S-002 | [Hasbro G0009, Classic với storage tray](https://instructions.hasbro.com/en-us/instruction/monopoly-board-game-classic-game-with-storage-tray-and-larger-tokens-family-games-8), PDF chính thức bên dưới | Đã đọc rulebook tiếng Anh Mỹ, copyright 2025; chọn làm nguồn cơ sở sau khi người dùng đồng ý hướng Classic US hiện đại |
-| S-003 | Title Deed cards, mặt bàn và hai bộ thẻ của G0009 US | Chưa thu thập đủ/xác minh từng mục; không lấy toàn bảng kinh tế hoặc nội dung thẻ từ trí nhớ |
+| S-003 | Title Deed cards, mặt bàn và hai bộ thẻ của G0009 US | Chưa thu thập đủ; hình mẫu trong S-002 chỉ xác minh các trường được ghi trong property-economics.md |
+| S-004 | [Wikibooks Properties reference, revision 4662179](https://en.wikibooks.org/w/index.php?title=Monopoly/Properties_reference&oldid=4662179), bảng US/Canada | Nguồn cộng đồng, không chứng minh G0009; dùng lập nháp có nhãn, không quyết định luật khi mâu thuẫn nguồn chính thức |
 
 Khi xác minh S-002/S-003, ghi URL trực tiếp, tên sản phẩm, mã bộ, năm/edition, ngày truy cập và trang/section/card ID. Trang tìm kiếm chung không đủ chứng minh một con số. Ưu tiên nguồn Hasbro chính thức; không dùng wiki/fan rules làm nguồn quyết định khi có khác biệt.
 
@@ -37,3 +38,11 @@ Không có câu trả lời mặc định cho các mục này. Có thể nghiên
 ### Cảnh báo nguồn khác vùng
 
 Trang Hasbro en-us cho mã **C1009** hiện liên kết `C1009780B_INST_MN_CLASSIC_F22_FAR.pdf` dùng các thuật ngữ `colour`, `stations`, `Super Tax`. Vì vậy đường dẫn en-us hoặc mã SKU chung không tự chứng minh PDF là US. Không dùng PDF đó để điền dữ liệu cho G0009 US. Khi link Hasbro thay đổi, so SHA/edition/ngôn ngữ trước khi thay nguồn; không ghép dữ liệu của hai bộ chỉ vì đều mang tên Classic.
+
+## S-004 — Bảng kinh tế tham khảo, không phải nguồn quyết định G0009
+
+Đọc ngày 2026-11-03 tại [Properties reference](https://en.wikibooks.org/wiki/Monopoly/Properties_reference), revision 4662179, trang ghi sửa lần cuối 2026-08-19. Cột US/Canada cung cấp giá mua, giá xây và rent của bộ tiêu chuẩn, không chỉ rõ mã G0009. Trang ghi Oriental Avenue và có ghi chú khác biệt rent Marvin Gardens theo edition. Vì thế chỉ dùng làm bảng nháp, không suy ra tương thích G0009. Bảng tổng hợp tại [property-economics](property-economics.md) giữ nguồn cho từng trường và không dùng cột UK/International làm tên hiển thị.
+
+## Bằng chứng bổ sung S-002 cho 01A.2
+
+Đã xem hình trang 2 ở độ phóng đại đủ đọc: Kentucky Avenue (rent/giá xây), Mediterranean Avenue (rent; giá xây bị che), St. James Place (rent/giá xây), Illinois Avenue (mua 240), cụm Connecticut/Vermont/**Rhode Island Avenue** (mua 120/100/100). Bảng tên tham khảo cũ được sửa vị trí 6 theo G0009, không tự đưa rent Oriental vào Rhode Island. Railroads và Utilities trên cùng trang xác nhận công thức rent thông thường. Chưa có mặt sau để chốt mortgage/unmortgage. Danh mục 40 ô còn phải đối chiếu toàn bàn, không được gọi là đã xác minh hết.

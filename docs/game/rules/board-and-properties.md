@@ -14,7 +14,7 @@ Chỉ số 0 là GO, tăng theo chiều di chuyển. Đây là chỉ số đặc
 | 3 | Baltic Avenue | Brown |
 | 4 | Income Tax | Special |
 | 5 | Reading Railroad | Railroad |
-| 6 | Oriental Avenue | Light blue |
+| 6 | Rhode Island Avenue | Light blue |
 | 7 | Chance | Card |
 | 8 | Vermont Avenue | Light blue |
 | 9 | Connecticut Avenue | Light blue |
@@ -65,5 +65,7 @@ Mỗi đất màu cần giá mua, rent trống, rent khi sở hữu nhóm đầy
 - CASE-BOARD-001: đi từ vị trí 39 thêm một bước → vị trí 0; tiền qua GO thuộc luật 01B, không suy từ phép modulo.
 - CASE-BOARD-002: hai ô Community Chest/Chance khác vị trí phải có ID ô riêng dù cùng tên.
 - CASE-ASSET-001: đủ nhóm màu nhưng có đất thế chấp → kiểm tra điều kiện tiền thuê/xây theo 01C, không tự cho phép xây.
+
+Bảng kinh tế nháp và nguồn theo từng trường nằm tại [01A.2 — giá tài sản](property-economics.md). Đối chiếu S-002 trang 2 đã sửa vị trí 6 từ tên tham khảo cũ Oriental Avenue sang **Rhode Island Avenue** của G0009; không coi hai bộ là cùng dữ liệu thẻ.
 
 Các ví dụ chưa có test vì gameplay chưa được triển khai. Hoàn thành 01A khi bảng và số liệu đã đối chiếu nguồn, mọi mâu thuẫn được xử lý và người dùng duyệt.

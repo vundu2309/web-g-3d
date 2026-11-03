@@ -16,6 +16,10 @@ sources:
     resource: repo://docs/game/plans/01-rules.md
   - id: openwiki-source-03d3729a6d1fb321fab7b6df
     resource: repo://docs/game/README.md
+  - id: openwiki-source-c7bf72666669afd9b48e6ca6
+    resource: repo://docs/game/rules/board-and-properties.md
+  - id: openwiki-source-c932588d9fa043f7688a8026
+    resource: repo://docs/game/rules/property-economics.md
   - id: openwiki-source-9be48765f38483590a0034ef
     resource: repo://docs/game/rules/sources.md
   - id: openwiki-source-8acf8e92f9f7b465d02fa04b
@@ -36,10 +40,10 @@ sources:
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
     resource: repo://src/platform/firestore-client.ts
-generated: { by: "codex", at: "2026-11-03T16:50:23.899Z" }
+generated: { by: "codex", at: "2026-11-03T16:55:28.050Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T16:50:23.899Z
+    at: 2026-11-03T16:55:28.050Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
@@ -75,3 +79,7 @@ Dùng [hướng dẫn đo thời gian](../docs/diagnostics.md) và [vận hành]
 ## Đặc tả gameplay theo từng phần
 
 [Game contract](../docs/game/README.md) ghi quyết định dùng Monopoly Classic US truyền thống, giữ tên đất Mỹ, không house rules. [Plan 01](../docs/game/plans/01-rules.md) hiện chỉ mở phần 01A bàn cờ/tài sản để nghiên cứu và duyệt tài liệu. Sáu plan tiếp theo giữ backlog. Nguồn đã chọn là Hasbro G0009 US, rulebook copyright 2025, có URL/PDF/SHA tại sources.md. Toàn bộ bảng số liệu/thẻ vẫn chưa được xác minh; bảng 40 ô là nháp tham chiếu, không phải dữ liệu runtime. Hub/Firebase hiện tại không đổi và gameplay chưa implement. Mỗi luật cần ID, nguồn cùng edition, tình huống kiểm chứng và trạng thái duyệt.
+
+## Giá tài sản và đối chiếu edition
+
+[Bảng kinh tế 01A.2](../docs/game/rules/property-economics.md) liệt kê 28 tài sản, nhưng chưa là config runtime hoặc bảng đã duyệt. Từng trường xác minh trực tiếp từ G0009 S-002 được phân biệt với số nháp từ Wikibooks S-004. Hình rulebook G0009 ghi Rhode Island Avenue, khác Oriental Avenue trong nguồn tham khảo; không tự sao chép rent giữa hai tên. Mortgage/unmortgage và rent/giá xây Rhode Island vẫn unresolved. Không coi đủ 28 hàng là đã hoàn thành Plan 01A.

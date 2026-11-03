@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:91c585b857c70e1005ad0ad9e2747f39c0531b272eec135be73b72194dbb856a",
+  "pageVersion": "sha256:dca101a7e4525f4d3c34d6d4753a2fb5cd62dc607ddf84980d7ab707082d546f",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -104,17 +104,35 @@
         },
         {
           "resource": "repo://docs/game/plans/01-rules.md",
-          "version": "repo-file-v1:sha256:2ee189ac0ca2bbf3e0eb441659f72b53d21a9f3d19a032a1fbcc01cbb9929432"
+          "version": "repo-file-v1:sha256:0ea38258d2b509dd0780747557ab9fa50aa04f056f2dfbee94ba178ad9b1762a"
         },
         {
           "resource": "repo://docs/game/rules/sources.md",
-          "version": "repo-file-v1:sha256:686113cb7f3e06984139f1a2e09b17eef4eff178605a2bdd3ba71d5f3002f252"
+          "version": "repo-file-v1:sha256:8117373b9dc81a56e8e92733894cf8ec259a0de643c6652644f674f276e50827"
+        }
+      ]
+    },
+    {
+      "id": "claim_fb3186da1e8d4cf0b5cb48164dde00da",
+      "statement": "Bảng kinh tế 01A.2 có 28 tài sản, phân biệt bằng chứng G0009 S-002 và nháp S-004; G0009 dùng Rhode Island Avenue, mortgage/unmortgage và rent/giá xây đất này chưa xác minh, chưa có config runtime.",
+      "evidence": [
+        {
+          "resource": "repo://docs/game/rules/board-and-properties.md",
+          "version": "repo-file-v1:sha256:23fc6cd2a5fa612f15d4c81166ded5d5377a9d72ae482f1f1fe613445d03a683"
+        },
+        {
+          "resource": "repo://docs/game/rules/property-economics.md",
+          "version": "repo-file-v1:sha256:92dd1de28b01cd3f525fc679f94a8091d58b5a9e815226618f9ab6680048af84"
+        },
+        {
+          "resource": "repo://docs/game/rules/sources.md",
+          "version": "repo-file-v1:sha256:8117373b9dc81a56e8e92733894cf8ec259a0de643c6652644f674f276e50827"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T16:50:23.899Z"
+    "at": "2026-11-03T16:55:28.050Z"
   }
 }
