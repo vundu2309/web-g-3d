@@ -14,6 +14,8 @@ sources:
     resource: repo://docs/game/plans/01-rules.md
   - id: openwiki-source-03d3729a6d1fb321fab7b6df
     resource: repo://docs/game/README.md
+  - id: openwiki-source-cc7175a0c3a0d5f1359efcc1
+    resource: repo://docs/workflow.md
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
     resource: repo://package.json
   - id: openwiki-source-3515d68bed1b916f693296ec
@@ -30,10 +32,10 @@ sources:
     resource: repo://tests/hub-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-03T16:35:31.899Z" }
+generated: { by: "codex", at: "2026-11-03T16:41:59.639Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T16:35:31.899Z
+    at: 2026-11-03T16:41:59.639Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -56,9 +58,9 @@ Test xanh không chứng minh keyboard Safari, FPS hay trải nghiệm điện t
 
 ## Publish Pages và Firebase
 
-Workflow Pages chạy `npm run check` với Chromium trên PR/main/dispatch; PR không deploy, main/dispatch upload dist và deploy sau kiểm tra thành công. CI cài Node 24 và Java 21. Workflow không tự sinh wiki. Vite dùng base tương đối, hỗ trợ đường dẫn `/web-g-3d/`.
+Workflow Pages chạy `npm run check` với Chromium trên PR/main/dispatch; PR không deploy; push chỉ upload dist và deploy khi commit range có trailer `Pages-Deploy: true`, manual dispatch là yêu cầu publish rõ ràng. CI cài Node 24 và Java 21. Workflow không tự sinh wiki. Vite dùng base tương đối, hỗ trợ đường dẫn `/web-g-3d/`.
 
-User đã cho phép deploy sau cập nhật. Agent phải commit/push main, theo dõi workflow của đúng SHA đến deploy, đối chiếu entry asset public với dist đã kiểm tra rồi gửi link có query phiên bản. Push hoặc build xanh riêng lẻ chưa hoàn tất deploy. Branch protection là setting ngoài workflow.
+Chỉ thay đổi có ảnh hưởng UI/UX mới cần deploy Pages. Agent đánh giá tác động quan sát được rồi thêm trailer `Pages-Deploy: true` khi cần; docs/plan/test/tooling hoặc sửa nội bộ không ảnh hưởng UI/UX vẫn commit/push và kiểm tra nhưng không đánh dấu deploy. Với bản cần deploy, theo dõi đúng SHA và đối chiếu asset public trước khi báo hoàn tất. Với bản không cần deploy, báo SHA đã push và Pages được giữ nguyên, không mô tả SHA đó là bản live. Branch protection là setting ngoài workflow.
 
 Pages chỉ publish frontend. Firebase backend cần Email/Password Auth, Firestore `(default)`, rules namespace hub và composite index danh sách phòng. Public config không cho quyền quản trị; [Firebase setup](../../docs/firebase.md) ghi cụ thể cách áp dụng rules/index và ranh giới quyền quản trị. Khi áp dụng rules phải bảo toàn dữ liệu/quyền Movieapp khác. Bản thử nhiều tab và emulator không phải chứng cứ online hai thiết bị đã hoạt động.
 

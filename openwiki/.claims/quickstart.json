@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:1629b2f00706f1a824740be203e74897985c94f2514d7cf7f4e5587ff4d3f331",
+  "pageVersion": "sha256:07174f559dccfc525d16aca5099c453bccf741b47977e3f2846dfedbd7db8ef6",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -96,7 +96,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:7ba4d4c1609e9d0487563762e925b4b04eb5bce6d6104cb4330cd90296c9680a"
+          "version": "repo-file-v1:sha256:fb180c5e91be3dc22c865cb0a2f0b7b66b5205cf6eef1b67de7ed6461fe48638"
         },
         {
           "resource": "repo://docs/game/README.md",
@@ -111,6 +111,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T16:35:31.899Z"
+    "at": "2026-11-03T16:41:59.639Z"
   }
 }

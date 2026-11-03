@@ -24,9 +24,11 @@ Do not equate a generated image, build or screenshot with complete usability app
 
 ## Release to GitHub Pages
 
-The user reviews completed changes on Pages and authorizes deployment after project updates. Run applicable checks, commit the coherent update and push `main`; do not ask again for permission. `.github/workflows/pages.yml` runs checks on PRs/main/manual dispatch and publishes `dist` only after success. No deployment of Firestore rules/indexes and Auth settings is included.
+Deploy only for changes affecting UI/UX: visuals, navigation, interaction, accessibility or player-visible behavior. Documentation/plans, tests, tooling and internal changes without UI/UX impact are committed/pushed and checked, without redeploying Pages. Judge behavior rather than file paths.
 
-Monitor the exact commit's Actions run through deployment, not merely a green build or successful push. Compare the public entry asset with tested `dist/index.html` and inspect the public mobile interface where possible. Send `https://vundu2309.github.io/web-g-3d/?v=<short-commit>` with the deployed short SHA. The query is a review identifier, not proof of CDN freshness. If blocked, report the exact blocker and distinguish the older live version.
+For a UI/UX update, include the exact commit trailer `Pages-Deploy: true`. The Pages workflow checks PRs/main/manual dispatch; a push publishes only when its pushed commit range contains that trailer. Manual dispatch is an explicit publication request. PRs never publish. Do not mark documentation-only commits. Backend rules/indexes and Auth settings are not deployed by Pages.
+
+When publication is required, monitor the exact SHA through deployment, compare the public entry asset with tested `dist/index.html`, and inspect the changed UI where possible. Send the deployed SHA and `https://vundu2309.github.io/web-g-3d/?v=<short-commit>`. For other updates report the pushed SHA/checks and intentional absence of deployment, without claiming that SHA is live. Do not ask again for permission within the authorized UI/UX scope.
 
 ## Context maintenance
 

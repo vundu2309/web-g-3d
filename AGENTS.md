@@ -26,13 +26,13 @@ Phố Tỷ Phú is a mobile-first multiplayer board-game **hub**. The ocean/boat
 
 ## Publication contract for this project
 
-The user verifies changes on GitHub Pages and has authorized deployment after each completed project update. Treat publication as part of completion, including source/config/docs updates. Do not ask for deployment permission again within this scope. Batch implementation edits into a coherent verified update; do not publish incomplete intermediate saves.
+Deploy GitHub Pages only when a completed change affects UI/UX: appearance, navigation, interaction, accessibility, or player-visible behavior. Documentation, plans, tests, tooling and internal changes with no UI/UX effect must still be committed/pushed with appropriate checks, but do not require Pages deployment. Do not ask again for permission to deploy an authorized UI/UX update.
 
-- Run the applicable local checks, commit, and push the completed update to `main`.
-- Monitor the Pages workflow for that exact commit through successful checks and deployment. Diagnose and fix failures; a push or green build alone is not completion.
-- Verify the public URL serves the deployed build (compare its entry asset with the locally tested `dist/index.html` when available). For visible changes, inspect the affected behavior in a browser as access allows.
-- Report the deployed short commit and a link such as `https://vundu2309.github.io/web-g-3d/?v=<short-commit>`. The query distinguishes review links; it does not prove CDN freshness or replace verification.
-- If publishing is blocked, state that the update is not deployed and give the concrete blocker. Do not describe an older live build as the new result. If a later user instruction says not to deploy, follow it.
+- Assess observable UI/UX impact, not merely file extensions. For an update that needs Pages publication, include the exact Git commit trailer `Pages-Deploy: true` in the commit message. Omit it for changes without UI/UX impact. A manual workflow dispatch explicitly requests publication.
+- Run applicable checks, commit and push the coherent update to `main`. The workflow keeps checks for all updates but uploads/deploys only for a marked push or manual dispatch; PRs never deploy.
+- For UI/UX updates, monitor the workflow for that exact commit through successful deployment, verify the public entry asset against the tested build, and inspect the changed interface where possible. Report the deployed SHA and review URL. A push or green build alone is not completion when deployment is required.
+- For updates without UI/UX impact, report the pushed SHA and checks; state that Pages was intentionally not redeployed. Do not present the pushed SHA as the live version.
+- If required publishing is blocked, report the concrete blocker and distinguish the older live version. User instructions to withhold deployment take precedence.
 
 <!-- OPENWIKI:START -->
 

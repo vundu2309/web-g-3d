@@ -1,14 +1,22 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:0a6513a16e2b1e8809af0aba16ccda0ba1149c3d09cb2a8fc86ff17d7e449450",
+  "pageVersion": "sha256:58f026d11ebb6f56c2286f3c041568b38416bbc5c9ade297b907716ed063eec4",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
-      "statement": "Pages workflow chạy npm run check với Chromium trên PR/main/dispatch; PR không deploy, main/dispatch deploy sau khi kiểm tra qua và không tự sinh wiki.",
+      "statement": "Pages workflow chạy checks cho PR/main/dispatch; chỉ publish marked push có trailer Pages-Deploy: true hoặc manual dispatch, PR không deploy. Quy ước chỉ đánh dấu thay đổi có UI/UX impact.",
       "evidence": [
         {
           "resource": "repo://.github/workflows/pages.yml",
-          "version": "repo-file-v1:sha256:4ba260e1d44f2b568a7af77948b1ba73491bfaed1ce1c737ba2e7fef8503f880"
+          "version": "repo-file-v1:sha256:274115c8088825eca830e5eb2bf4e59dec02a517d2cfcaee9e736277512202fa"
+        },
+        {
+          "resource": "repo://AGENTS.md",
+          "version": "repo-file-v1:sha256:fb180c5e91be3dc22c865cb0a2f0b7b66b5205cf6eef1b67de7ed6461fe48638"
+        },
+        {
+          "resource": "repo://docs/workflow.md",
+          "version": "repo-file-v1:sha256:677bd97d521c910501f28a008290960b0e797cd22ab36c5dd5db31431b4b8147"
         }
       ]
     },
@@ -56,7 +64,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:7ba4d4c1609e9d0487563762e925b4b04eb5bce6d6104cb4330cd90296c9680a"
+          "version": "repo-file-v1:sha256:fb180c5e91be3dc22c865cb0a2f0b7b66b5205cf6eef1b67de7ed6461fe48638"
         }
       ]
     },
@@ -152,7 +160,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:7ba4d4c1609e9d0487563762e925b4b04eb5bce6d6104cb4330cd90296c9680a"
+          "version": "repo-file-v1:sha256:fb180c5e91be3dc22c865cb0a2f0b7b66b5205cf6eef1b67de7ed6461fe48638"
         },
         {
           "resource": "repo://docs/game/README.md",
@@ -167,6 +175,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T16:35:31.899Z"
+    "at": "2026-11-03T16:41:59.639Z"
   }
 }
