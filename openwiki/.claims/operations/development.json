@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:77c2775710f36ac216ed5fe2842c1fad79094d871902a765cc16b58db5b504d8",
+  "pageVersion": "sha256:68e07c3d3fe0470bc34e20cf924a0ea615d44a17ca8e3cf066fc0c367b3d3d29",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -56,7 +56,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:86f3b040989866180e9dfc5b165f6d309d8c47541571339b6a6d7f7423822a42"
+          "version": "repo-file-v1:sha256:7b3826dbc72bc5d36feb3864580d15dd9354f5f591c3689aa5c92fad11c2aff7"
         }
       ]
     },
@@ -94,7 +94,7 @@
         },
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:9f2abd7fdd302c80b3fadd6eb141c1e54dcbafdd07f83dd73ed7573e90a3f323"
+          "version": "repo-file-v1:sha256:2a1421c48cee0c643ece364f5f9a635fd99ca0f5e78df3263d215fc4624fad2c"
         }
       ]
     },
@@ -108,7 +108,7 @@
         },
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:9f2abd7fdd302c80b3fadd6eb141c1e54dcbafdd07f83dd73ed7573e90a3f323"
+          "version": "repo-file-v1:sha256:2a1421c48cee0c643ece364f5f9a635fd99ca0f5e78df3263d215fc4624fad2c"
         }
       ]
     },
@@ -118,13 +118,23 @@
       "evidence": [
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:9f2abd7fdd302c80b3fadd6eb141c1e54dcbafdd07f83dd73ed7573e90a3f323"
+          "version": "repo-file-v1:sha256:2a1421c48cee0c643ece364f5f9a635fd99ca0f5e78df3263d215fc4624fad2c"
+        }
+      ]
+    },
+    {
+      "id": "claim_a8ddcae5d7f547c9b0be24fd472571be",
+      "statement": "Test browser xác nhận lần tạo phòng đầu chỉ có một RPC commit với hai update documents profile và room.",
+      "evidence": [
+        {
+          "resource": "repo://tests/auth-browser.mjs",
+          "version": "repo-file-v1:sha256:2a1421c48cee0c643ece364f5f9a635fd99ca0f5e78df3263d215fc4624fad2c"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T14:57:42.153Z"
+    "at": "2026-11-03T15:06:37.643Z"
   }
 }

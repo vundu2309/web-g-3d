@@ -11,7 +11,7 @@ service cloud.firestore {
     function owns(uid) { return signedIn() && request.auth.uid == uid; }
     function text(value, max) { return value is string && value.size() > 0 && value.size() <= max; }
     function validProfile(data) { return data.keys().hasAll(['displayName','createdAt']) && data.keys().hasOnly(['displayName','createdAt']) && text(data.displayName,24) && data.createdAt is timestamp; }
-    function profileName(uid) { return get(/databases/$(database)/documents/monopolyHub/v1/profiles/$(uid)).data.displayName; }
+    function profileName(uid) { return getAfter(/databases/$(database)/documents/monopolyHub/v1/profiles/$(uid)).data.displayName; }
     function slot(data, key, index) {
       let uid = data.seats.get(key, '');
       let p = data.players.get(uid, {});

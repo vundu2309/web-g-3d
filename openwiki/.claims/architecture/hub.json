@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:35ccd25760f51bea98c4405f0ed9f509ef9edd7b232ba98b9d4262799f622af1",
+  "pageVersion": "sha256:9e942c039439e102cb1403f8ff101a0e376908cc71c48a40ac2e7c1758f83555",
   "claims": [
     {
       "id": "claim_c48c88a21cf14dd39b37deb5ae6894ff",
@@ -18,7 +18,7 @@
       "evidence": [
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:213e84f4044352b9b5189c88bb95640e3759cc3370543a5d61260d538d3790ac"
+          "version": "repo-file-v1:sha256:2607fe4753f2f025981accf9a710bde48affcd21b346934489a0b8a42087d871"
         },
         {
           "resource": "repo://src/platform/firestore-client.ts",
@@ -26,7 +26,7 @@
         },
         {
           "resource": "repo://src/platform/profile.ts",
-          "version": "repo-file-v1:sha256:dbac6dd713f4e174126965e9e92898f9856e3c3df18e51ce391fe810ee36a145"
+          "version": "repo-file-v1:sha256:dd7bf6cc24393e65416e9c4c441e68e0da79db60f3086afe19bcd6dc76264eb0"
         }
       ]
     },
@@ -50,7 +50,7 @@
       "evidence": [
         {
           "resource": "repo://firestore.rules",
-          "version": "repo-file-v1:sha256:a029d209fe8ac2e6e7a160711e9dd7d6b6b8ef468401f0b53377e1019a908cc7"
+          "version": "repo-file-v1:sha256:a8e6e1e17cd7e34b9b0f8f043492aee714a6ec5d5e494e3aa4addbdb65d82129"
         },
         {
           "resource": "repo://tests/rules.test.mjs",
@@ -68,11 +68,11 @@
         },
         {
           "resource": "repo://firestore.rules",
-          "version": "repo-file-v1:sha256:a029d209fe8ac2e6e7a160711e9dd7d6b6b8ef468401f0b53377e1019a908cc7"
+          "version": "repo-file-v1:sha256:a8e6e1e17cd7e34b9b0f8f043492aee714a6ec5d5e494e3aa4addbdb65d82129"
         },
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:213e84f4044352b9b5189c88bb95640e3759cc3370543a5d61260d538d3790ac"
+          "version": "repo-file-v1:sha256:2607fe4753f2f025981accf9a710bde48affcd21b346934489a0b8a42087d871"
         }
       ]
     },
@@ -100,15 +100,15 @@
       "evidence": [
         {
           "resource": "repo://firestore.rules",
-          "version": "repo-file-v1:sha256:a029d209fe8ac2e6e7a160711e9dd7d6b6b8ef468401f0b53377e1019a908cc7"
+          "version": "repo-file-v1:sha256:a8e6e1e17cd7e34b9b0f8f043492aee714a6ec5d5e494e3aa4addbdb65d82129"
         },
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:213e84f4044352b9b5189c88bb95640e3759cc3370543a5d61260d538d3790ac"
+          "version": "repo-file-v1:sha256:2607fe4753f2f025981accf9a710bde48affcd21b346934489a0b8a42087d871"
         },
         {
           "resource": "repo://src/platform/profile.ts",
-          "version": "repo-file-v1:sha256:dbac6dd713f4e174126965e9e92898f9856e3c3df18e51ce391fe810ee36a145"
+          "version": "repo-file-v1:sha256:dd7bf6cc24393e65416e9c4c441e68e0da79db60f3086afe19bcd6dc76264eb0"
         }
       ]
     },
@@ -118,7 +118,7 @@
       "evidence": [
         {
           "resource": "repo://firestore.rules",
-          "version": "repo-file-v1:sha256:a029d209fe8ac2e6e7a160711e9dd7d6b6b8ef468401f0b53377e1019a908cc7"
+          "version": "repo-file-v1:sha256:a8e6e1e17cd7e34b9b0f8f043492aee714a6ec5d5e494e3aa4addbdb65d82129"
         },
         {
           "resource": "repo://tests/rules.test.mjs",
@@ -128,17 +128,25 @@
     },
     {
       "id": "claim_c8ee127b54f649a0a64242baaaafa353",
-      "statement": "Directory và room-resume không chờ giao dịch profile; profile chỉ đồng bộ ở create/join, dùng lại trong store và có thể thử lại khi lỗi.",
+      "statement": "Directory/resume không chờ profile; create/join đồng bộ profile cùng room trong một commit, đọc song song và chỉ cache tên sau thành công.",
       "evidence": [
         {
+          "resource": "repo://firestore.rules",
+          "version": "repo-file-v1:sha256:a8e6e1e17cd7e34b9b0f8f043492aee714a6ec5d5e494e3aa4addbdb65d82129"
+        },
+        {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:213e84f4044352b9b5189c88bb95640e3759cc3370543a5d61260d538d3790ac"
+          "version": "repo-file-v1:sha256:2607fe4753f2f025981accf9a710bde48affcd21b346934489a0b8a42087d871"
+        },
+        {
+          "resource": "repo://src/platform/profile.ts",
+          "version": "repo-file-v1:sha256:dd7bf6cc24393e65416e9c4c441e68e0da79db60f3086afe19bcd6dc76264eb0"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T14:57:42.153Z"
+    "at": "2026-11-03T15:06:37.643Z"
   }
 }

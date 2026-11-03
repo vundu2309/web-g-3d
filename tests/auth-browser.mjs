@@ -55,6 +55,12 @@ try {
   await mkdir("test-results", { recursive: true });
   const host = await player();
   await register(host, "Minh", "minh@example.test");
+  const roomCommits = [];
+  await host.context().route("**/documents:commit**", (route) => {
+    roomCommits.push(route.request().postDataJSON());
+    return route.continue();
+  });
+
   await host.getByRole("button", { name: "Tạo phòng", exact: true }).click();
   assert.equal(await host.getByLabel("Tên của bạn").inputValue(), "Minh");
   assert.equal(
@@ -67,6 +73,17 @@ try {
     .getByRole("button", { name: "Tạo phòng", exact: true })
     .click();
   await host.getByRole("heading", { name: "Phòng chờ", exact: true }).waitFor();
+  assert.equal(
+    roomCommits.length,
+    1,
+    "first room creation uses one commit, not a separate profile commit",
+  );
+  const writes = roomCommits[0].writes
+    .filter((write) => write.update)
+    .map((write) => write.update.name);
+  assert.equal(writes.length, 2);
+  assert.ok(writes.some((path) => path.includes("/profiles/")));
+  assert.ok(writes.some((path) => path.includes("/rooms/")));
   const guest = await player();
   await register(guest, "Lan", "lan@example.test");
   // Directory reads must not depend on an own-profile transaction. Deliberately

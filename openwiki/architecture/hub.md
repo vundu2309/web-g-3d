@@ -5,7 +5,7 @@ description: Luồng giao diện mobile, luật phòng thuần, adapter bản th
 tags: [hub, rooms, mobile, firebase, architecture]
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T14:57:42.153Z
+    at: 2026-11-03T15:06:37.643Z
 sources:
   - id: openwiki-source-8acf8e92f9f7b465d02fa04b
     resource: repo://firestore.indexes.json
@@ -29,7 +29,7 @@ sources:
     resource: repo://src/platform/profile.ts
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-03T14:57:42.153Z" }
+generated: { by: "codex", at: "2026-11-03T15:06:37.643Z" }
 ---
 
 # Kiến trúc hub và đồng bộ phòng
@@ -75,4 +75,4 @@ Rules triển khai bảo vệ riêng monopolyHub. Project trước đó có Test
 
 ## Tách độ trễ hồ sơ khỏi danh sách phòng
 
-Khởi tạo store chỉ xác nhận tài khoản, không đợi đồng bộ profile. Directory và room-resume listeners có thể bắt đầu ngay. Tạo/tham gia phòng mới đồng bộ profile, chia sẻ một Promise thành công trong store; khi lỗi xóa Promise để lần sau thử lại. Dispose chặn việc khởi động lệnh phòng mới sau khi chờ profile. Không coi thay đổi này là số đo latency trên điện thoại thật.
+Khởi tạo store chỉ xác nhận tài khoản, không đợi đồng bộ profile. Directory và room-resume listeners có thể bắt đầu ngay. Tạo/tham gia phòng đọc profile và room song song trước khi ghi, rồi commit cả hai trong một transaction. Không có commit profile riêng đứng trước commit room. Rules dùng getAfter để đối chiếu tên với profile sau commit. Store chỉ cache tên profile sau commit thành công; thao tác thất bại có thể thử lại. Dispose chặn việc khởi động lệnh phòng mới. Không coi thay đổi này là số đo latency trên điện thoại thật.

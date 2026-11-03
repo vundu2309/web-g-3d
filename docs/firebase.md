@@ -46,3 +46,7 @@ Security tests cover unauthenticated/private reads, oversized/extra/missing fiel
 ## Limits
 
 No presence detection, host migration, abandoned-room cleanup, chat, board or server-authoritative gameplay. Closing a tab does not automatically remove its membership. No backend resources are automatically created or activated from public app config.
+
+## Create/join latency contract
+
+Do not commit an own-profile transaction and then start a second room transaction. The first create/join reads profile and room concurrently, writes both in one Firestore commit, and caches the successful profile name for later operations in that store. Rules use getAfter for profile identity so an account without a profile can create/join atomically. Directory/resume listeners do not synchronize the profile at all. The browser regression checks zero document batch reads before directory display and exactly one initial create commit containing both profile and room writes. These are network-dependency checks, not measured production latency guarantees.
