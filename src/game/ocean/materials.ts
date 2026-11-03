@@ -14,12 +14,18 @@ export function createOceanMaterial(scene: Scene): ShaderMaterial {
       (w) => `{
     vec2 d=normalize(vec2(${f(w.x)},${f(w.z)}));
     float k=${f(w.frequency)};
-    float a=${f(w.amplitude)}*strength;
-    float phase=dot(d,p)*k+time*${f(w.speed)};
+    float packetPhase=dot(vec2(-d.y,d.x),p)*${f(w.packet)}+time*.13+${f(w.phase)};
+    float packetS=.5+.5*sin(packetPhase);
+    float envelope=.3+.7*packetS*packetS;
+    vec2 da=.7*packetS*cos(packetPhase)*vec2(-d.y,d.x)*${f(w.packet)}*${f(w.amplitude)}*strength;
+    float a=${f(w.amplitude)}*strength*envelope;
+    float phase=dot(d,p)*k+time*${f(w.speed)}+${f(w.phase)};
     float s=sin(phase), c=cos(phase), q=.65;
     displaced += vec3(d.x*q*a*c,a*s,d.y*q*a*c);
     tangent += vec3(-q*a*k*d.x*d.x*s,a*k*d.x*c,-q*a*k*d.x*d.y*s);
     binormal += vec3(-q*a*k*d.x*d.y*s,a*k*d.y*c,-q*a*k*d.y*d.y*s);
+    tangent+=vec3(d.x*q*c,s,d.y*q*c)*da.x;
+    binormal+=vec3(d.x*q*c,s,d.y*q*c)*da.y;
     compression += q*a*k*s;
   }`,
     )
@@ -64,6 +70,9 @@ export function createOceanMaterial(scene: Scene): ShaderMaterial {
       float h=octave(p*1.1+drift)*.55+octave(p*1.1-drift)*.45;
       p=turn*p;
       h+=.22*octave(p*1.1+drift*1.4);
+      // Centimetre-scale capillary ripples move independently of large swells.
+      h+=.03*octave(p*4.7-drift*2.7);
+
       return h;
     }
     vec3 skyColor(vec3 r){float y=max(r.y,0.);
@@ -79,9 +88,9 @@ export function createOceanMaterial(scene: Scene): ShaderMaterial {
       float e=max(.025,distanceToEye*.0015);
       float h=wavelets(p);
       vec2 slope=vec2(wavelets(p+vec2(e,0.))-h,wavelets(p+vec2(0.,e))-h)/e;
-      float detail=exp(-distanceToEye*.009);
+      float detail=exp(-distanceToEye*.018);
       vec3 macroNormal;float compression;vec3 ignored=displace(vSample,macroNormal,compression);
-      vec3 n=normalize(macroNormal+vec3(-slope.x,0.,-slope.y)*.24*detail*strength);
+      vec3 n=normalize(macroNormal+vec3(-slope.x,0.,-slope.y)*.34*detail*strength);
       float nv=max(dot(n,view),.001);
       float fresnel=.02+.98*pow(1.-nv,5.);
       vec3 reflection=skyColor(reflect(-view,n));
@@ -98,7 +107,7 @@ export function createOceanMaterial(scene: Scene): ShaderMaterial {
       float spec=a2/(3.14159*denominator*denominator);
       color+=vec3(1.,.79,.48)*min(spec*.018,1.1)*max(dot(n,sunDirection),0.);
       float foamNoise=fbm(p*3.7+vec2(time*.09,-time*.06));
-      float peaks=smoothstep(.17,.32,compression)*smoothstep(.43,.7,foamNoise);
+      float peaks=smoothstep(.12,.27,compression)*smoothstep(.43,.7,foamNoise);
       float bubbles=smoothstep(.43,.64,noise(p*21.))*detail;
       float foam=peaks*(.35+.65*bubbles);
       // Broken patches of aerated water near the hull, rather than a solid ring.
