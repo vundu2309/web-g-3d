@@ -24,11 +24,11 @@ export function createDemoStore(): RoomStore {
   window.addEventListener("storage", storageChanged);
   return {
     uid,
-    create: (name, capacity) =>
+    create: (name, capacity, title) =>
       lock(() => {
         let code = generateCode();
         while (read(code)) code = generateCode();
-        write(code, createRoom(uid, name, capacity));
+        write(code, createRoom(uid, name, capacity, title));
         return code;
       }),
     join: (code, name) =>
@@ -44,6 +44,33 @@ export function createDemoStore(): RoomStore {
       const listener = () => {
         try {
           update(read(code));
+        } catch (e) {
+          error(e);
+        }
+      };
+      listeners.add(listener);
+      queueMicrotask(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    list: (update, error) => {
+      const listener = () => {
+        try {
+          const rooms: { code: string; room: Room }[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i)!;
+            const code = key.slice(prefix.length);
+            if (key.startsWith(prefix) && /^[A-HJ-NP-Z2-9]{6}$/.test(code)) {
+              const room = read(code);
+              if (
+                room?.status === "waiting" &&
+                Date.now() - room.createdAt < 86400000
+              )
+                rooms.push({ code, room });
+            }
+          }
+          update(rooms.slice(-50));
         } catch (e) {
           error(e);
         }

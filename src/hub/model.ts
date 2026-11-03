@@ -5,6 +5,7 @@ export interface Player {
   seat: number;
 }
 export interface Room {
+  title: string;
   hostId: string;
   capacity: Capacity;
   status: "waiting" | "started";
@@ -48,10 +49,12 @@ export function createRoom(
   uid: string,
   name: string,
   capacity: Capacity,
+  title = "Phòng bạn bè",
 ): Room {
   if (![2, 3, 4].includes(capacity))
     throw new HubError("Chọn từ 2 đến 4 người chơi.");
   return {
+    title: playerName(title),
     hostId: uid,
     capacity,
     status: "waiting",

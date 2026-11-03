@@ -11,10 +11,10 @@ Use Node 24 (`.node-version`), npm 11 and the existing checkout. `npm ci` instal
 | `npm run test:unit` | Room validation, capacity, immutable snapshots, readiness/start permissions, leave/seat reuse |
 | `npm run build` | Strict TypeScript and production asset generation |
 | `npm run test:browser` | Owned dev/preview servers; create/join/errors, two preview clients, reload, ready/start/close, mobile layout, Auth error |
-| `npm run test:rules` | Real RTDB emulator allow/deny tests, including malicious direct writes; needs Java 21 |
+| `npm run test:rules` | Firestore rules plus real Auth/Firestore emulator browser accounts, profiles and directory; needs Java 21 |
 | `npm run check` | Lint, format, unit, build, browser and rules tests |
 
-Browser tests use `CHROMIUM_PATH`, system `/usr/bin/chromium`, or the Playwright-managed browser. Install the managed browser with `npx --no-install playwright-core install --with-deps chromium` if needed. The runner starts servers on free ports and owns their cleanup. Failure output and screenshots belong under ignored `test-results/`; tests must not leave a user-owned server running or use live Firebase writes.
+Browser tests use `CHROMIUM_PATH`, system `/usr/bin/chromium`, or the Playwright-managed browser. Install the managed browser with `npx --no-install playwright-core install --with-deps chromium` if needed. The runner starts servers on free ports and owns their cleanup. Failure output and screenshots belong under ignored `test-results/`; tests must not leave a user-owned server running or use live Firebase writes. The auth browser scenario starts on a dedicated DEV-only emulator configuration and aborts any production Firebase request.
 
 ## Mobile-first visual acceptance
 
@@ -24,7 +24,7 @@ Do not equate a generated image, build or screenshot with complete usability app
 
 ## Release to GitHub Pages
 
-The user reviews completed changes on Pages and authorizes deployment after project updates. Run applicable checks, commit the coherent update and push `main`; do not ask again for permission. `.github/workflows/pages.yml` runs checks on PRs/main/manual dispatch and publishes `dist` only after success. No deployment of Firebase rules/settings is included.
+The user reviews completed changes on Pages and authorizes deployment after project updates. Run applicable checks, commit the coherent update and push `main`; do not ask again for permission. `.github/workflows/pages.yml` runs checks on PRs/main/manual dispatch and publishes `dist` only after success. No deployment of Firestore rules/indexes and Auth settings is included.
 
 Monitor the exact commit's Actions run through deployment, not merely a green build or successful push. Compare the public entry asset with tested `dist/index.html` and inspect the public mobile interface where possible. Send `https://vundu2309.github.io/web-g-3d/?v=<short-commit>` with the deployed short SHA. The query is a review identifier, not proof of CDN freshness. If blocked, report the exact blocker and distinguish the older live version.
 

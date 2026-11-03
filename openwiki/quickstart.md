@@ -8,21 +8,29 @@ sources:
     resource: repo://docs/decisions/0002-mobile-board-game-hub.md
   - id: openwiki-source-523a2ee371c511874cedf68c
     resource: repo://docs/design/theme.md
+  - id: openwiki-source-8acf8e92f9f7b465d02fa04b
+    resource: repo://firestore.indexes.json
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
     resource: repo://package.json
   - id: openwiki-source-fc82ffca2def259f088b8cf9
     resource: repo://src/app/start.ts
   - id: openwiki-source-d4189bbeecb62806cb297b5a
     resource: repo://src/main.ts
-generated: { by: "codex", at: "2026-11-03T10:48:14.207Z" }
+  - id: openwiki-source-a516dc77b4f57ace3d032e8c
+    resource: repo://src/platform/account.ts
+  - id: openwiki-source-0eacf94e25ae0c7320c6f741
+    resource: repo://src/platform/firebase.ts
+  - id: openwiki-source-a2b90583a7b340fe72510d57
+    resource: repo://src/platform/firestore-client.ts
+generated: { by: "codex", at: "2026-11-03T13:09:48.572Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T10:52:40.016Z
+    at: 2026-11-03T13:09:48.572Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
 
-Phố Tỷ Phú là hub cho board game giao dịch bất động sản, ưu tiên điện thoại xoay ngang. Có màn chính, form tạo/tham gia và phòng chờ với mã, readiness, reload và rời/đóng phòng. Bàn chơi, xúc xắc, tiền và 3D gameplay chưa được triển khai; trải nghiệm biển/thuyền cũ đã được thay thế.
+Phố Tỷ Phú là hub cho board game giao dịch bất động sản, ưu tiên điện thoại xoay ngang. Có đăng ký/đăng nhập/reset, hồ sơ player, danh sách phòng theo tên và chủ phòng, màn chính, form tạo/tham gia và phòng chờ với mã, readiness, reload và rời/đóng phòng. Bàn chơi, xúc xắc, tiền và 3D gameplay chưa được triển khai; trải nghiệm biển/thuyền cũ đã được thay thế.
 
 ## Đọc theo tác vụ
 
@@ -31,16 +39,16 @@ Phố Tỷ Phú là hub cho board game giao dịch bất động sản, ưu tiê
 | Bắt đầu sửa source bằng AI | [AGENTS](../AGENTS.md), rồi source liên quan |
 | Chỉnh giao diện hoặc mobile | [Theme và bốn ảnh duyệt](../docs/design/theme.md), `src/style.css`, `src/ui/art.ts` |
 | Đổi luồng hoặc luật phòng | [Kiến trúc hub](architecture/hub.md), `src/app/start.ts`, `src/hub/model.ts` |
-| Sửa Firebase hoặc bản thử | [Kiến trúc hub](architecture/hub.md), [Firebase setup](../docs/firebase.md), adapter/rules/test |
+| Sửa Firebase hoặc bản thử | [Kiến trúc hub](architecture/hub.md), [Firebase setup](../docs/firebase.md), adapter, `firestore.rules`, `firestore.indexes.json` và tests |
 | Chạy test, setup và deploy | [Phát triển](operations/development.md), [workflow authored](../docs/workflow.md) |
 
 `src/main.ts` nạp font/CSS và gọi app `start`, đăng ký cleanup HMR. App sở hữu DOM, navigation và subscription phòng. Model thuần không nhập Firebase; store contract tách các adapter. Màu cobalt/sky/yellow và các màn riêng là hướng đã duyệt, không phải chỗ tự đổi style tùy ý.
 
 ## Chạy và xác nhận đúng phạm vi
 
-Dùng Node 24/npm 11; `npm ci`, `npm run dev`. Java 21 phục vụ rules emulator. `npm run check` kiểm tra transitions, browser dev/production và RTDB rules. Ưu tiên 844×390, 932×430 và 667×375; portrait/desktop là kiểm tra bổ sung. Đối chiếu ảnh render thật, không chỉ concept.
+Dùng Node 24/npm 11; `npm ci`, `npm run dev`. Java 21 phục vụ rules emulator. `npm run check` kiểm tra transitions, browser dev/production và Firestore rules. Ưu tiên 844×390, 932×430 và 667×375; portrait/desktop là kiểm tra bổ sung. Đối chiếu ảnh render thật, không chỉ concept.
 
-Online dùng Firebase Anonymous Auth + RTDB; bản thử chỉ là nhiều tab cùng browser origin, luôn có nhãn riêng. Backend Firebase cần kích hoạt/cấu hình riêng; Pages chỉ deploy frontend. Không xem emulator xanh hoặc bản thử là online hai thiết bị đã thành công.
+Online dùng Firebase Email/Password Auth + Cloud Firestore `(default)`; bản thử chỉ là nhiều tab cùng browser origin, luôn có nhãn riêng. Backend Firebase cần kích hoạt/cấu hình riêng; Pages chỉ deploy frontend. Không xem emulator xanh hoặc bản thử là online hai thiết bị đã thành công.
 
 ## Vai trò wiki
 

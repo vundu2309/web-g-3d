@@ -43,3 +43,9 @@ Use Baloo 2 800 for the brand and headings, Be Vietnam Pro 400/600/700 for contr
 Inspect real rendered home, create, join and lobby at mobile landscape sizes first. Test portrait fallback, text escaping, long names, errors, readiness updates and reload. A generated concept or passing build is not visual verification. Save temporary browser screenshots under ignored `test-results/`.
 
 Design skills used: `ui-ux-pro-max` and `frontend-design`; optional `board-game-design` applies when designing actual rules/economy. Skills are aids, not permission to change an approved direction. Do not require globally installed skills for CI. New visual directions still need concept review before implementation unless the user explicitly skips it.
+
+## Account and room directory extension
+
+The user requested real email/password accounts and a room directory. Online create/join now requires Firebase Authentication; the dialog offers login, registration (player name/email/password), password visibility and password reset. Keep the same theme, native labels and landscape-phone layout. The account dialog may scroll with the keyboard, but its close/header remains accessible. A demo player is never represented as an online account.
+
+Online player names come from the authenticated profile and are readonly in room forms. Create adds a room title (1–24 characters, with a default title when blank). Home's join action opens a separate directory: title, host display name, occupancy and join button. Keep direct code entry as a secondary route. Never put email addresses or password data in the directory.

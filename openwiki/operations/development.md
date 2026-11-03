@@ -3,9 +3,6 @@ type: operations
 title: Phát triển mobile, kiểm tra và publish
 description: Setup Node/Java, kiểm tra hub trên trình duyệt và emulator, publish Pages và kích hoạt Firebase riêng.
 tags: [development, testing, deployment, mobile, firebase, openwiki]
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-03T10:48:14.207Z
 sources:
   - id: openwiki-source-ab585d88aca3958f2aa6a541
     resource: repo://.codex/config.toml
@@ -19,11 +16,16 @@ sources:
     resource: repo://scripts/test-browser.mjs
   - id: openwiki-source-4c36e1d79dd002cc49e886f0
     resource: repo://scripts/test-rules.mjs
+  - id: openwiki-source-d6f301bba4bff3a816376dbe
+    resource: repo://tests/auth-browser.mjs
   - id: openwiki-source-692b548971d3dc99c2c806f0
     resource: repo://tests/hub-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-03T10:48:14.207Z" }
+generated: { by: "codex", at: "2026-11-03T13:09:48.572Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-03T13:09:48.572Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -36,9 +38,11 @@ Browser helper ưu tiên `CHROMIUM_PATH`, Chromium hệ thống, rồi Playwrigh
 
 ## Kiểm chứng hub
 
-`npm run check` gồm lint, format, unit transitions, typecheck/build, browser và RTDB rules tests. Runner browser mở dev/preview ở cổng trống rồi đóng đúng server do mình tạo. Test chủ yếu bắt đầu từ điện thoại ngang: tạo/tham gia, mã sai/phòng không tồn tại, hai tab, escape tên, reload, ready/unready, bắt đầu/đóng phòng và Auth lỗi có kiểm soát. Nó kiểm tra thêm 667×375, 844×390, 932×430, portrait 390×844 và desktop 1440×900; ảnh nằm dưới `test-results/` được ignore.
+`npm run check` gồm lint, format, unit transitions, typecheck/build, browser và Firestore rules tests. Runner browser mở dev/preview ở cổng trống rồi đóng đúng server do mình tạo. Test chủ yếu bắt đầu từ điện thoại ngang: tạo/tham gia, mã sai/phòng không tồn tại, hai tab, escape tên, reload, ready/unready, bắt đầu/đóng phòng và Auth lỗi có kiểm soát. Nó kiểm tra thêm 667×375, 844×390, 932×430, portrait 390×844 và desktop 1440×900; ảnh nằm dưới `test-results/` được ignore.
 
-`npm run test:rules` dùng bộ tải chính thức Firebase để lấy JAR và kiểm tra size/checksum rồi mở Java emulator ở loopback/cổng trống. Test REST dùng danh tính giả chỉ hợp lệ cho emulator; không ghi database thật. Các trường hợp gồm đổi host/capacity, thêm quá chỗ, xóa người khác, ghi status trực tiếp để vượt readiness, quyền host-only và ETag cũ. Runner tránh lỗi proxy localhost của CLI/Node WebSocket SDK, vẫn giữ proxy/CA cho tải remote.
+`npm run test:rules` dùng bộ tải chính thức Firebase để lấy JAR và kiểm tra size/checksum rồi mở Java emulator ở loopback/cổng trống. Rules tests dùng SDK với danh tính giả chỉ hợp lệ cho emulator; không ghi database thật. Các trường hợp gồm đổi host/capacity, thêm quá chỗ, xóa người khác, ghi status trực tiếp để vượt readiness, quyền host-only và hai transaction tranh chỗ cuối. Runner tránh lỗi proxy localhost của CLI/Node WebSocket SDK, vẫn giữ proxy/CA cho tải remote.
+
+`tests/auth-browser.mjs` được runner rules chạy với Auth/Firestore emulators và Vite DEV-only. Hai browser contexts dùng Firebase SDK thật để đăng ký, lưu own profiles, tạo/tìm/tham gia phòng có tên, đăng xuất/đăng nhập sai/đúng và khôi phục phiên. Test chặn production requests.
 
 Test xanh không chứng minh keyboard Safari, FPS hay trải nghiệm điện thoại thật. [Theme](../../docs/design/theme.md) yêu cầu kiểm tra ảnh render thực, vùng chạm 44px và safe areas. Các test biển/Havok không còn thuộc sản phẩm này.
 
@@ -48,7 +52,7 @@ Workflow Pages chạy `npm run check` với Chromium trên PR/main/dispatch; PR 
 
 User đã cho phép deploy sau cập nhật. Agent phải commit/push main, theo dõi workflow của đúng SHA đến deploy, đối chiếu entry asset public với dist đã kiểm tra rồi gửi link có query phiên bản. Push hoặc build xanh riêng lẻ chưa hoàn tất deploy. Branch protection là setting ngoài workflow.
 
-Pages chỉ publish frontend. Firebase backend cần Anonymous Auth, database đang hoạt động và rules namespace hub. Public config không cho quyền quản trị; [Firebase setup](../../docs/firebase.md) ghi cụ thể lỗi database bị vô hiệu hóa đã quan sát và bước khôi phục. Khi áp dụng rules phải bảo toàn dữ liệu/quyền Movieapp khác. Bản thử nhiều tab và emulator không phải chứng cứ online hai thiết bị đã hoạt động.
+Pages chỉ publish frontend. Firebase backend cần Email/Password Auth, Firestore `(default)`, rules namespace hub và composite index danh sách phòng. Public config không cho quyền quản trị; [Firebase setup](../../docs/firebase.md) ghi cụ thể cách áp dụng rules/index và ranh giới quyền quản trị. Khi áp dụng rules phải bảo toàn dữ liệu/quyền Movieapp khác. Bản thử nhiều tab và emulator không phải chứng cứ online hai thiết bị đã hoạt động.
 
 ## Ngữ cảnh cho AI và OpenWiki
 

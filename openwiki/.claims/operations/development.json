@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:3f102b94ecf609d422a601fefb6c43ab055d8647b8b6e183cb9f64200df92c42",
+  "pageVersion": "sha256:1525c96e3328ef0877db74baf7e69d99de7c8e4e61e78550fffee5265e1d957f",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -34,7 +34,7 @@
     },
     {
       "id": "claim_7f0efb779d404f5c9e4682419541c353",
-      "statement": "npm run check ghép lint, format, unit, build, browser và RTDB rules tests; browser runner tự mở dev/preview ở cổng trống và đóng server sở hữu.",
+      "statement": "npm run check ghép lint, format, unit, build, browser và Firestore rules/auth integration tests; runner đóng đúng các server/emulator sở hữu.",
       "evidence": [
         {
           "resource": "repo://package.json",
@@ -46,7 +46,7 @@
         },
         {
           "resource": "repo://scripts/test-rules.mjs",
-          "version": "repo-file-v1:sha256:b80db44c3185afaaa4842ad6e7a8f7da9fcf2152e17a758c44b4c4f2dc245d3f"
+          "version": "repo-file-v1:sha256:404c173a593ec5debedf4bb690a6bec63d0856a2468447d6be41962d0ed2524a"
         }
       ]
     },
@@ -56,7 +56,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:778c9d561939c85b6b379e6aca6c390f4c6ec37a84c00e9f7f33cdc62cf30984"
+          "version": "repo-file-v1:sha256:86f3b040989866180e9dfc5b165f6d309d8c47541571339b6a6d7f7423822a42"
         }
       ]
     },
@@ -66,27 +66,41 @@
       "evidence": [
         {
           "resource": "repo://tests/hub-browser.mjs",
-          "version": "repo-file-v1:sha256:f86d5135502582d176b9ff0990471ab06c553fdfb092aa3927a05771cc4b6178"
+          "version": "repo-file-v1:sha256:2f660af95074a3055aaa4e7dfcea2cef8e4690233cceccb3f498765a8021861f"
         }
       ]
     },
     {
       "id": "claim_1a97e8a8418d45858f411e05eeae2475",
-      "statement": "Runner rules kiểm tra checksum/size JAR chính thức, khởi động emulator Java loopback và thử allow/deny cùng ETag bằng REST không ghi cloud.",
+      "statement": "Runner kiểm tra checksum/size Firestore JAR chính thức, chạy emulator Java loopback và test quyền, schema, query cùng tranh chỗ cuối bằng SDK transactions, không ghi cloud.",
       "evidence": [
         {
           "resource": "repo://scripts/test-rules.mjs",
-          "version": "repo-file-v1:sha256:b80db44c3185afaaa4842ad6e7a8f7da9fcf2152e17a758c44b4c4f2dc245d3f"
+          "version": "repo-file-v1:sha256:404c173a593ec5debedf4bb690a6bec63d0856a2468447d6be41962d0ed2524a"
         },
         {
           "resource": "repo://tests/rules.test.mjs",
-          "version": "repo-file-v1:sha256:ea3f3521e8bf26aa947a3841c0cdcbdc7cecbf4aacd4b959371a04bf56ea9688"
+          "version": "repo-file-v1:sha256:4b626f6acbb8ca223fb87de9143fd33c3fc3dc1da31142774c398f3fdfa35a21"
+        }
+      ]
+    },
+    {
+      "id": "claim_bdf5ae1429bb4a69b986cbe225bb80fd",
+      "statement": "Runner chạy Auth/Firestore emulator browser test dùng hai tài khoản SDK thật, profile, phòng có tên, logout/login và khôi phục phiên; production requests bị chặn.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/test-rules.mjs",
+          "version": "repo-file-v1:sha256:404c173a593ec5debedf4bb690a6bec63d0856a2468447d6be41962d0ed2524a"
+        },
+        {
+          "resource": "repo://tests/auth-browser.mjs",
+          "version": "repo-file-v1:sha256:d6e975b2bfd0a0349aabfbd2a3290a73bfe3edadb23effd251d49ac9e4d37be0"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T10:48:14.207Z"
+    "at": "2026-11-03T13:09:48.572Z"
   }
 }

@@ -62,6 +62,12 @@ try {
   await guest
     .getByRole("button", { name: "Tham gia phòng", exact: true })
     .click();
+  await guest
+    .getByRole("heading", { name: "Chọn phòng", exact: true })
+    .waitFor();
+  await guest
+    .getByRole("button", { name: "Nhập mã phòng", exact: true })
+    .click();
   await guest.getByLabel("Tên của bạn").fill("Lan <b>");
   await guest.getByLabel("Mã phòng", { exact: true }).fill("BAD");
   await guest.getByRole("button", { name: "Vào phòng", exact: true }).click();
@@ -162,19 +168,82 @@ try {
     }),
   );
   await host.getByRole("button", { name: "Tạo phòng", exact: true }).click();
-  await host.getByLabel("Tên của bạn").fill("Minh");
   await host
-    .locator("#room-form")
-    .getByRole("button", { name: "Tạo phòng", exact: true })
+    .getByRole("dialog")
+    .getByLabel("Email", { exact: true })
+    .fill("test@example.com");
+  await host
+    .getByRole("dialog")
+    .getByLabel("Mật khẩu", { exact: true })
+    .fill("test-password");
+  await host
+    .getByRole("button", { name: "Hiện mật khẩu", exact: true })
+    .click();
+  assert.equal(
+    await host.locator("#account-password").getAttribute("type"),
+    "text",
+  );
+  await host
+    .getByRole("dialog")
+    .getByRole("button", { name: "Đăng nhập", exact: true })
     .click();
   await host
+    .getByRole("dialog")
     .getByRole("alert")
-    .filter({ hasText: "bật đăng nhập Ẩn danh" })
+    .filter({ hasText: "Email/Password" })
     .waitFor();
-  assert.equal(
-    await host.locator('#room-form button[type="submit"]').isEnabled(),
-    true,
-  );
+  await host
+    .getByRole("button", { name: "Chưa có tài khoản? Đăng ký" })
+    .click();
+  await host.getByLabel("Tên người chơi", { exact: true }).fill("Minh");
+  await host
+    .getByRole("dialog")
+    .getByLabel("Email", { exact: true })
+    .fill("test@example.com");
+  await host
+    .getByRole("dialog")
+    .getByLabel("Mật khẩu", { exact: true })
+    .fill("test-password");
+  await host.getByRole("dialog").evaluate((dialog) => {
+    dialog.scrollTop = 0;
+  });
+  await host
+    .getByRole("dialog")
+    .screenshot({ path: `${output}/register-mobile.png` });
+  await host
+    .getByRole("dialog")
+    .getByRole("button", { name: "Tạo tài khoản", exact: true })
+    .click();
+  await host
+    .getByRole("dialog")
+    .getByRole("alert")
+    .filter({ hasText: "Email/Password" })
+    .waitFor();
+  await host
+    .getByRole("dialog")
+    .screenshot({ path: `${output}/account-mobile.png` });
+  await host
+    .getByRole("button", { name: "Đã có tài khoản? Đăng nhập" })
+    .click();
+  await host
+    .getByRole("button", { name: "Quên mật khẩu?", exact: true })
+    .click();
+  await host
+    .getByRole("heading", { name: "Quên mật khẩu", exact: true })
+    .waitFor();
+  await host
+    .getByRole("dialog")
+    .getByLabel("Email", { exact: true })
+    .fill("test@example.com");
+  await host
+    .getByRole("button", { name: "Gửi hướng dẫn", exact: true })
+    .click();
+  await host
+    .getByRole("dialog")
+    .getByRole("alert")
+    .filter({ hasText: "Email/Password" })
+    .waitFor();
+  await host.getByRole("button", { name: "Đóng", exact: true }).click();
   assert.deepEqual(errors, []);
   console.log(
     "Hub browser passed: create/join, validation, two clients, readiness, reload, start, close, responsive, online error.",

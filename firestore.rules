@@ -1,0 +1,54 @@
+// Assumed data model (all fields required):
+// monopolyHub/v1/profiles/{uid}: displayName string 1..24; createdAt timestamp (immutable).
+// monopolyHub/v1/rooms/{code}: title string 1..24, hostId string 1..128,
+// capacity int 2..4, createdAt timestamp (title/host/capacity/createdAt immutable),
+// status waiting|started, players map UID -> {name string 1..24, ready bool, seat int 0..3},
+// seats map "0".."3" -> UID. At most four players. No passwords/emails here.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null && request.auth.token.firebase.sign_in_provider == 'password'; }
+    function owns(uid) { return signedIn() && request.auth.uid == uid; }
+    function text(value, max) { return value is string && value.size() > 0 && value.size() <= max; }
+    function validProfile(data) { return data.keys().hasAll(['displayName','createdAt']) && data.keys().hasOnly(['displayName','createdAt']) && text(data.displayName,24) && data.createdAt is timestamp; }
+    function profileName(uid) { return get(/databases/$(database)/documents/monopolyHub/v1/profiles/$(uid)).data.displayName; }
+    function slot(data, key, index) {
+      let uid = data.seats.get(key, '');
+      let p = data.players.get(uid, {});
+      return !(key in data.seats) || (text(uid,128) && index < data.capacity && p.keys().hasAll(['name','ready','seat']) && p.keys().hasOnly(['name','ready','seat']) && text(p.name,24) && p.ready is bool && p.seat is int && p.seat == index && (data.status != 'started' || p.ready));
+    }
+    function validRoom(data) {
+      return data.keys().hasAll(['title','hostId','capacity','createdAt','status','players','seats']) && data.keys().hasOnly(['title','hostId','capacity','createdAt','status','players','seats'])
+        && text(data.title,24) && text(data.hostId,128) && data.capacity is int && data.capacity in [2,3,4] && data.createdAt is timestamp && data.status in ['waiting','started']
+        && data.players is map && data.seats is map && data.players.size() >= 1 && data.players.size() <= data.capacity && data.players.size() == data.seats.size()
+        && data.seats.keys().hasOnly(['0','1','2','3']) && data.seats.get('0','') == data.hostId && data.players[data.hostId].ready == true
+        && slot(data,'0',0) && slot(data,'1',1) && slot(data,'2',2) && slot(data,'3',3);
+    }
+    function preserveSlot(before, after, key) { return before.seats.get(key,'') == '' || before.seats.get(key,'') == request.auth.uid || before.seats.get(key,'') == after.seats.get(key,''); }
+    function ownPlayer(before, after) {
+      let uid = request.auth.uid;
+      let old = before.players.get(uid, {});
+      let next = after.players.get(uid, {});
+      return after.players.diff(before.players).affectedKeys().hasOnly([uid])
+        && preserveSlot(before,after,'0') && preserveSlot(before,after,'1') && preserveSlot(before,after,'2') && preserveSlot(before,after,'3')
+        && (next == {} || (next.name == profileName(uid) && (old == {} ? before.status == 'waiting' && next.ready == false : next.name == old.name && next.seat == old.seat && (next.ready == old.ready || before.status == 'waiting'))));
+    }
+    match /monopolyHub/v1/profiles/{uid} {
+      allow get: if owns(uid);
+      allow create: if owns(uid) && validProfile(request.resource.data) && request.resource.data.createdAt == request.time;
+      allow update: if owns(uid) && validProfile(request.resource.data) && request.resource.data.createdAt == resource.data.createdAt;
+    }
+    match /monopolyHub/v1/rooms/{code} {
+      allow get: if signedIn() && code.matches('^[A-HJ-NP-Z2-9]{6}$');
+      allow list: if signedIn() && request.query.limit != null && request.query.limit <= 50 && resource.data.status == 'waiting';
+      allow create: if signedIn() && code.matches('^[A-HJ-NP-Z2-9]{6}$') && validRoom(request.resource.data)
+        && request.resource.data.hostId == request.auth.uid && request.resource.data.status == 'waiting' && request.resource.data.createdAt == request.time
+        && request.resource.data.players.size() == 1 && request.resource.data.players[request.auth.uid].name == profileName(request.auth.uid);
+      allow update: if signedIn() && validRoom(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['players','seats','status'])
+        && ownPlayer(resource.data,request.resource.data)
+        && (request.resource.data.status == resource.data.status || (resource.data.status == 'waiting' && request.resource.data.status == 'started' && resource.data.hostId == request.auth.uid && request.resource.data.players.size() >= 2));
+      allow delete: if signedIn() && resource.data.hostId == request.auth.uid;
+    }
+  }
+}

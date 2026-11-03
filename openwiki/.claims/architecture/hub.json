@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:ce20bbc69596b5d067e1e8074eb46b74d5c85dc5ea5bf4a158b228fd8c049164",
+  "pageVersion": "sha256:88183ea51537e294f676bfdcc320c202f9bf7b1d28d944484ed18a6b2c1abb13",
   "claims": [
     {
       "id": "claim_c48c88a21cf14dd39b37deb5ae6894ff",
@@ -8,17 +8,25 @@
       "evidence": [
         {
           "resource": "repo://src/hub/model.ts",
-          "version": "repo-file-v1:sha256:afb719744833da38c1d36e2439aa5fd6e4826f407f77fd3caf2220342a4d118b"
+          "version": "repo-file-v1:sha256:9e909358c283e76d69e75481564ca9eaee9630952213017a0ff3f22d90493807"
         }
       ]
     },
     {
       "id": "claim_bebc199be37647b28862073bf0ef9c39",
-      "statement": "Adapter online dùng Anonymous Auth, listener RTDB và REST ETag conditional writes với tối đa năm lần thử lại khi HTTP 412.",
+      "statement": "Adapter online dùng Email/Password Auth, own Firestore profile, onSnapshot và runTransaction với tối đa năm lần thử lại contention; không còn REST ETag/RTDB.",
       "evidence": [
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:ccdec6f21a106573fca6425f171f271329f21bced157cd8b6ff3a8fa1978b2d1"
+          "version": "repo-file-v1:sha256:a1fa63c9f335e07c933b11a6a3c5c543f21404a2020bbe8f93c4c660bdd83b8b"
+        },
+        {
+          "resource": "repo://src/platform/firestore-client.ts",
+          "version": "repo-file-v1:sha256:1d47abaae2947e122c2630ff683bf35f43bf26ce479a0f54de7bd8ee6d46ff96"
+        },
+        {
+          "resource": "repo://src/platform/profile.ts",
+          "version": "repo-file-v1:sha256:dbac6dd713f4e174126965e9e92898f9856e3c3df18e51ce391fe810ee36a145"
         }
       ]
     },
@@ -28,11 +36,11 @@
       "evidence": [
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:8a929c293648cedee1c3dbf7f71134431cdcc83230999e66a9d90d29de1e9316"
+          "version": "repo-file-v1:sha256:7fe0e8d7cc72ded04c6ba5969a36ffc55b9655e7ee9f42b4341e8e9c8a7f6a2f"
         },
         {
           "resource": "repo://src/platform/demo.ts",
-          "version": "repo-file-v1:sha256:d4d6fabc9b7a9a92e58c51948ea37ad835cd59e7829e266fb58654d03b0f67cc"
+          "version": "repo-file-v1:sha256:1cb64af9d1bf361cdb72aec0cb4fb5c3cc8401cdf7b7d3a3551990236ed72f47"
         }
       ]
     },
@@ -41,18 +49,72 @@
       "statement": "Rules và emulator tests chặn thay host, vượt capacity, xóa người khác và bắt đầu trực tiếp khi người chơi chưa sẵn sàng.",
       "evidence": [
         {
-          "resource": "repo://database.rules.json",
-          "version": "repo-file-v1:sha256:24ac586195e070347924e584f9ed41a027707d931d492eaf306b0b86208087f9"
+          "resource": "repo://firestore.rules",
+          "version": "repo-file-v1:sha256:335920352df48a782587270f25712c870da533473439fe94f878d4a87a498b10"
         },
         {
           "resource": "repo://tests/rules.test.mjs",
-          "version": "repo-file-v1:sha256:ea3f3521e8bf26aa947a3841c0cdcbdc7cecbf4aacd4b959371a04bf56ea9688"
+          "version": "repo-file-v1:sha256:4b626f6acbb8ca223fb87de9143fd33c3fc3dc1da31142774c398f3fdfa35a21"
+        }
+      ]
+    },
+    {
+      "id": "claim_c39e0fa92b22416485c5cf4193c44082",
+      "statement": "Firestore rules yêu cầu password identity, bảo vệ own profile và cho directory query theo waiting-status với limit tối đa 50; index phục vụ thứ tự createdAt giảm dần.",
+      "evidence": [
+        {
+          "resource": "repo://firestore.indexes.json",
+          "version": "repo-file-v1:sha256:cc75f777d5ebe7b545878ceff725a4a077cf26d4b27cf8038eeb01319baf95dd"
+        },
+        {
+          "resource": "repo://firestore.rules",
+          "version": "repo-file-v1:sha256:335920352df48a782587270f25712c870da533473439fe94f878d4a87a498b10"
+        },
+        {
+          "resource": "repo://src/platform/firebase.ts",
+          "version": "repo-file-v1:sha256:a1fa63c9f335e07c933b11a6a3c5c543f21404a2020bbe8f93c4c660bdd83b8b"
+        }
+      ]
+    },
+    {
+      "id": "claim_f6c43c43a2624ce5b82f9912d685240a",
+      "statement": "Account dialog đăng ký/đăng nhập/reset dùng Firebase SDK, không lưu bảng mật khẩu local; phiên Auth thay đổi được app quan sát để hủy store của UID cũ.",
+      "evidence": [
+        {
+          "resource": "repo://src/app/account.ts",
+          "version": "repo-file-v1:sha256:56879be1c91fa9d9f59397bda24f3b70e17d8d94dc3a91fe86c99d12dc68cafd"
+        },
+        {
+          "resource": "repo://src/app/start.ts",
+          "version": "repo-file-v1:sha256:7fe0e8d7cc72ded04c6ba5969a36ffc55b9655e7ee9f42b4341e8e9c8a7f6a2f"
+        },
+        {
+          "resource": "repo://src/platform/account.ts",
+          "version": "repo-file-v1:sha256:4c40ff3e6183ff30dbcb47de56ffee17fb38712aa7299009fdf0819f20c157d1"
+        }
+      ]
+    },
+    {
+      "id": "claim_f895579939f6449a86385357c2a9e816",
+      "statement": "Timestamp được tạo phía server và giữ bất biến trong storage; adapter chuyển createdAt sang milliseconds cho model thuần.",
+      "evidence": [
+        {
+          "resource": "repo://firestore.rules",
+          "version": "repo-file-v1:sha256:335920352df48a782587270f25712c870da533473439fe94f878d4a87a498b10"
+        },
+        {
+          "resource": "repo://src/platform/firebase.ts",
+          "version": "repo-file-v1:sha256:a1fa63c9f335e07c933b11a6a3c5c543f21404a2020bbe8f93c4c660bdd83b8b"
+        },
+        {
+          "resource": "repo://src/platform/profile.ts",
+          "version": "repo-file-v1:sha256:dbac6dd713f4e174126965e9e92898f9856e3c3df18e51ce391fe810ee36a145"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T10:52:40.016Z"
+    "at": "2026-11-03T13:09:48.572Z"
   }
 }

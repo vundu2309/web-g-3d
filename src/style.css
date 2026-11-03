@@ -968,3 +968,161 @@ input::placeholder {
     margin-top: 8px;
   }
 }
+/* Account forms reuse the approved controls and remain usable with a mobile keyboard. */
+.account-dialog {
+  width: min(620px, calc(100vw - 32px));
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  border: var(--line);
+  border-radius: var(--radius-card);
+  background: var(--sky);
+  color: var(--ink);
+  padding: 24px;
+}
+.account-dialog::backdrop {
+  background: #153b8077;
+}
+.account-dialog h1 {
+  font-size: 2.2rem;
+  padding-right: 60px;
+}
+.account-intro {
+  font-size: 0.85rem;
+  margin-block: 8px 20px;
+  line-height: 1.6;
+}
+.account-close {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+}
+#account-form {
+  display: grid;
+  gap: 10px;
+}
+#account-form > label {
+  font-weight: 600;
+}
+#account-form .button {
+  margin-top: 10px;
+}
+.password-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.password-field input {
+  flex: 1;
+}
+.password-field .text-button {
+  flex-shrink: 0;
+}
+.account-links,
+.account-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+.auth-status {
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.rooms-page {
+  max-width: 960px;
+  margin: 12px auto;
+}
+.rooms-page > h1,
+.rooms-page > p {
+  text-align: center;
+  margin-bottom: 14px;
+}
+.room-directory {
+  display: grid;
+  gap: 12px;
+  margin-block: 20px;
+}
+.room-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 18px;
+  background: white;
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  padding: 12px 18px;
+}
+.room-row h2 {
+  font-size: 1.5rem;
+  overflow-wrap: anywhere;
+}
+.room-row p {
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.room-row .button {
+  min-height: 44px;
+  font-size: 1rem;
+  padding: 8px 16px;
+}
+.directory-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.directory-actions .button {
+  font-size: 1rem;
+  min-height: 48px;
+}
+@media (max-width: 599px) {
+  .room-row {
+    grid-template-columns: 1fr auto;
+  }
+  .room-row .button {
+    grid-column: 1/-1;
+  }
+}
+@media (min-width: 600px) and (max-height: 600px) {
+  .account-dialog {
+    width: min(680px, calc(100vw - 48px));
+    padding: 20px;
+  }
+  #account-form {
+    grid-template-columns: 150px 1fr;
+    align-items: center;
+    gap: 12px;
+  }
+  #account-form > p,
+  #account-form > .button {
+    grid-column: 1/-1;
+  }
+  .account-intro {
+    margin-bottom: 16px;
+  }
+  .account-bar {
+    font-size: 0.75rem;
+  }
+}
+
+.account-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: -24px;
+  z-index: 2;
+  background: var(--sky);
+  padding-block: 8px;
+  margin-top: -8px;
+}
+.account-heading h1 {
+  padding-right: 0;
+}
+.account-heading .account-close {
+  position: static;
+  flex-shrink: 0;
+}

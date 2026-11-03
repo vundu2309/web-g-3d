@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:59582d618af8dd73961c83cea0ae3cbaad3e27d92d7b9a5150ce93b6de147a47",
+  "pageVersion": "sha256:407d6dcd83efb9ca38833ee3a64aadf517bffca405fe7068e3a801b193e2c92f",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -8,7 +8,7 @@
       "evidence": [
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:8a929c293648cedee1c3dbf7f71134431cdcc83230999e66a9d90d29de1e9316"
+          "version": "repo-file-v1:sha256:7fe0e8d7cc72ded04c6ba5969a36ffc55b9655e7ee9f42b4341e8e9c8a7f6a2f"
         },
         {
           "resource": "repo://src/main.ts",
@@ -36,13 +36,45 @@
         },
         {
           "resource": "repo://docs/design/theme.md",
-          "version": "repo-file-v1:sha256:6d8b25dc55c2c8938c9bafaec52e472501313b1417d9f83416a5b35f602db153"
+          "version": "repo-file-v1:sha256:a50a0a8c9718d7bfd8978d16f7c77a39d137cbb7df5020c1006a4bfd6b984185"
+        }
+      ]
+    },
+    {
+      "id": "claim_c1fa02a3485d44e2ba2ebbda8a474ff6",
+      "statement": "Hub dùng Email/Password Auth và hồ sơ player, hỗ trợ đăng ký/đăng nhập/reset cùng danh sách phòng có tên và chủ phòng.",
+      "evidence": [
+        {
+          "resource": "repo://src/app/start.ts",
+          "version": "repo-file-v1:sha256:7fe0e8d7cc72ded04c6ba5969a36ffc55b9655e7ee9f42b4341e8e9c8a7f6a2f"
+        },
+        {
+          "resource": "repo://src/platform/account.ts",
+          "version": "repo-file-v1:sha256:4c40ff3e6183ff30dbcb47de56ffee17fb38712aa7299009fdf0819f20c157d1"
+        }
+      ]
+    },
+    {
+      "id": "claim_fe19bb036a5e4be8a645436f10797c7c",
+      "statement": "Backend hub dùng Cloud Firestore mặc định với snapshot listeners, transactions và composite index danh sách phòng; không còn adapter Realtime Database.",
+      "evidence": [
+        {
+          "resource": "repo://firestore.indexes.json",
+          "version": "repo-file-v1:sha256:cc75f777d5ebe7b545878ceff725a4a077cf26d4b27cf8038eeb01319baf95dd"
+        },
+        {
+          "resource": "repo://src/platform/firebase.ts",
+          "version": "repo-file-v1:sha256:a1fa63c9f335e07c933b11a6a3c5c543f21404a2020bbe8f93c4c660bdd83b8b"
+        },
+        {
+          "resource": "repo://src/platform/firestore-client.ts",
+          "version": "repo-file-v1:sha256:1d47abaae2947e122c2630ff683bf35f43bf26ce479a0f54de7bd8ee6d46ff96"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T10:52:40.016Z"
+    "at": "2026-11-03T13:09:48.572Z"
   }
 }
