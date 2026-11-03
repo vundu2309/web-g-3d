@@ -14,6 +14,8 @@ sources:
     resource: repo://docs/diagnostics.md
   - id: openwiki-source-9b9ee78b093d5cd6376d5a80
     resource: repo://docs/game/plans/01-rules.md
+  - id: openwiki-source-e357e023868ea4db450d34ad
+    resource: repo://docs/game/plans/02-mobile-ui.md
   - id: openwiki-source-03d3729a6d1fb321fab7b6df
     resource: repo://docs/game/README.md
   - id: openwiki-source-c932588d9fa043f7688a8026
@@ -40,10 +42,10 @@ sources:
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
     resource: repo://src/platform/firestore-client.ts
-generated: { by: "codex", at: "2026-11-03T17:18:01.675Z" }
+generated: { by: "codex", at: "2026-11-03T17:31:08.931Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T17:18:01.675Z
+    at: 2026-11-03T17:31:08.931Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
@@ -78,7 +80,7 @@ Dùng [hướng dẫn đo thời gian](../docs/diagnostics.md) và [vận hành]
 
 ## Đặc tả gameplay theo từng phần
 
-[Game contract](../docs/game/README.md) ghi quyết định dùng Monopoly Classic US truyền thống, giữ tên đất Mỹ, không house rules. [Plan 01](../docs/game/plans/01-rules.md) hiện chỉ mở phần 01A bàn cờ/tài sản để nghiên cứu và duyệt tài liệu. Sáu plan tiếp theo giữ backlog. Nguồn đã chọn là Hasbro G0009 US, rulebook copyright 2025, có URL/PDF/SHA tại sources.md. Toàn bộ bảng số liệu/thẻ vẫn chưa được xác minh; bảng 40 ô là nháp tham chiếu, không phải dữ liệu runtime. Hub/Firebase hiện tại không đổi và gameplay chưa implement. Mỗi luật cần ID, nguồn cùng edition, tình huống kiểm chứng và trạng thái duyệt.
+[Game contract](../docs/game/README.md) giữ baseline Monopoly Classic US truyền thống, không house rules. Người dùng yêu cầu chốt tài liệu hiện có và sang [Plan 02 mobile UI](../docs/game/plans/02-mobile-ui.md): hiện active 02A màn bàn chơi chính. Plan 01 tạm dừng nghiên cứu, chưa đồng nghĩa mọi số liệu/luật đã xác minh hoặc có gameplay. Các mục còn thiếu giữ backlog trước implementation; không tiếp tục dò từng thẻ. Thiết kế từng màn với ảnh review riêng trước code.
 
 ## Giá tài sản và đối chiếu edition
 
@@ -86,7 +88,7 @@ Dùng [hướng dẫn đo thời gian](../docs/diagnostics.md) và [vận hành]
 
 ## Điều kiện áp dụng giá và tiền thuê
 
-[01A.3](../docs/game/rules/rent-conditions.md) có bảy quy tắc và 15 case tài liệu đối chiếu S-002: quyền yêu cầu rent, đất đủ nhóm, công trình, railroad/utility, thế chấp và điều kiện xây. Chưa có engine/test gameplay. Giá còn thiếu S-003 và chính sách số hóa (yêu cầu rent, phép tung utility, thứ tự mạng) vẫn unresolved; 01A chưa hoàn thành và chưa mở plan sau.
+[01A.3](../docs/game/rules/rent-conditions.md) có bảy quy tắc và 15 case tài liệu đối chiếu S-002: quyền yêu cầu rent, đất đủ nhóm, công trình, railroad/utility, thế chấp và điều kiện xây. Chưa có engine/test gameplay. Giá còn thiếu S-003 và chính sách số hóa (yêu cầu rent, phép tung utility, thứ tự mạng) vẫn unresolved; Các khoảng trống 01A chưa được coi là xác minh xong; theo yêu cầu người dùng, chuyển sang Plan 02 thiết kế và xử lý các thiếu sót trước gameplay.
 
 ## Đối chiếu số liệu ưu tiên text
 

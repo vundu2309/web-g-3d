@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:38ed804dd2d5ed558d8eacb5e59a8866ddaa23dfbd1b208f0ea416db70cbf5f7",
+  "pageVersion": "sha256:612329e9dbf3c1341dd2241a1cc85e9100d3be905349357940411a8361e0dbda",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -12,7 +12,7 @@
         },
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:9a13ba36b6aa5d344cf51dd35b8fe23f7a93df811027a34870433e114db9dbfe"
+          "version": "repo-file-v1:sha256:e1b6e554bd04f1a105ae670895839f363e392adcca0002898ed2d32f656ab362"
         },
         {
           "resource": "repo://docs/workflow.md",
@@ -64,7 +64,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:9a13ba36b6aa5d344cf51dd35b8fe23f7a93df811027a34870433e114db9dbfe"
+          "version": "repo-file-v1:sha256:e1b6e554bd04f1a105ae670895839f363e392adcca0002898ed2d32f656ab362"
         }
       ]
     },
@@ -156,23 +156,23 @@
     },
     {
       "id": "claim_2e542c100ba04040abe4b3ab4e5767eb",
-      "statement": "Gameplay chọn Classic US truyền thống, giữ tên đất Mỹ, chỉ phần tài liệu 01A active và plan sau backlog. Nguồn rulebook đã chọn G0009 US copyright 2025; bảng kinh tế/thẻ chưa được xác minh đầy đủ.",
+      "statement": "Người dùng chốt baseline tài liệu hiện có để sang Plan02 mobile UI, active02A màn bàn chơi chính; Plan01 tạm dừng nghiên cứu, số liệu/luật còn thiếu giữ backlog trước gameplay, thiết kế từng màn và review ảnh trước code.",
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:9a13ba36b6aa5d344cf51dd35b8fe23f7a93df811027a34870433e114db9dbfe"
+          "version": "repo-file-v1:sha256:e1b6e554bd04f1a105ae670895839f363e392adcca0002898ed2d32f656ab362"
         },
         {
           "resource": "repo://docs/game/README.md",
-          "version": "repo-file-v1:sha256:1532dbe8365d8d0ef3de907e18912d6cb6f86afc36c3380fcf0dd0ea15382f29"
+          "version": "repo-file-v1:sha256:1e5b6056248c8a18e8214fcc72db2b5cf8e0916689c13d99425bc0fb826ca6fd"
         },
         {
           "resource": "repo://docs/game/plans/01-rules.md",
-          "version": "repo-file-v1:sha256:891ec1a04190ee642cf76ee441dfd7719ea8546be5efe78bd87bddd6a288fb6b"
+          "version": "repo-file-v1:sha256:f9b86cbeaa3adfab384f79ea85050bd3d74c25403bdb67924cf4bbc0ae716b99"
         },
         {
-          "resource": "repo://docs/game/rules/sources.md",
-          "version": "repo-file-v1:sha256:f59dbe4791e9ddd3e5e590109aa89fd31ed06ddac2ac13136814699b69aa3f16"
+          "resource": "repo://docs/game/plans/02-mobile-ui.md",
+          "version": "repo-file-v1:sha256:fc9aa9717e20fc7f32c6086a4ab1bee020b29e04b47ccae19a6cba898fd622f2"
         }
       ]
     },
@@ -182,11 +182,11 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:9a13ba36b6aa5d344cf51dd35b8fe23f7a93df811027a34870433e114db9dbfe"
+          "version": "repo-file-v1:sha256:e1b6e554bd04f1a105ae670895839f363e392adcca0002898ed2d32f656ab362"
         },
         {
           "resource": "repo://docs/game/README.md",
-          "version": "repo-file-v1:sha256:1532dbe8365d8d0ef3de907e18912d6cb6f86afc36c3380fcf0dd0ea15382f29"
+          "version": "repo-file-v1:sha256:1e5b6056248c8a18e8214fcc72db2b5cf8e0916689c13d99425bc0fb826ca6fd"
         },
         {
           "resource": "repo://docs/game/rules/property-economics.md",
@@ -201,6 +201,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T17:18:01.675Z"
+    "at": "2026-11-03T17:31:08.931Z"
   }
 }

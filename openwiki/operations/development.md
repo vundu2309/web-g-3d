@@ -12,6 +12,8 @@ sources:
     resource: repo://AGENTS.md
   - id: openwiki-source-9b9ee78b093d5cd6376d5a80
     resource: repo://docs/game/plans/01-rules.md
+  - id: openwiki-source-e357e023868ea4db450d34ad
+    resource: repo://docs/game/plans/02-mobile-ui.md
   - id: openwiki-source-03d3729a6d1fb321fab7b6df
     resource: repo://docs/game/README.md
   - id: openwiki-source-c932588d9fa043f7688a8026
@@ -36,10 +38,10 @@ sources:
     resource: repo://tests/hub-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-03T17:18:01.675Z" }
+generated: { by: "codex", at: "2026-11-03T17:31:08.931Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T17:18:01.675Z
+    at: 2026-11-03T17:31:08.931Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -96,7 +98,7 @@ Unit tests kiểm tra thời gian chồng lấn, mã lỗi an toàn, retry, gi�
 
 ## Quy ước đặc tả luật cho AI
 
-AGENTS dẫn tới [game contract](../../docs/game/README.md), plan hiện hành và trang luật liên quan. Chỉ 01A của Plan 01 đang active cho tài liệu; phần khác giữ backlog. Không coi plan là cho phép implementation hoặc tự chọn renderer/backend/Blaze. Luật truyền thống Mỹ giữ tên đất, phải có đấu giá/trao đổi/thế chấp; không thêm house rules. Nguồn rulebook đã chốt G0009 US copyright 2025 theo S-002; số liệu và thẻ chưa đủ bằng chứng S-003 vẫn ghi unresolved. Đặc tả đã duyệt xác định hành vi mong đợi, source/test mô tả hiện trạng; sai lệch cần được xử lý chứ không sửa đặc tả để che bug.
+AGENTS dẫn tới [game contract](../../docs/game/README.md), [Plan 02 hiện hành](../../docs/game/plans/02-mobile-ui.md) và trang luật liên quan. Hiện Plan 02 / 02A màn bàn chơi chính active cho thiết kế. Plan 01 đã bàn giao baseline và tạm dừng nghiên cứu, các khoảng trống luật/số liệu giữ lại trước gameplay. Không coi plan là cho phép implementation hoặc tự chọn renderer/backend/Blaze. Luật truyền thống Mỹ giữ tên đất, phải có đấu giá/trao đổi/thế chấp; không thêm house rules. Nguồn rulebook đã chốt G0009 US copyright 2025 theo S-002; số liệu và thẻ chưa đủ bằng chứng S-003 vẫn ghi unresolved. Đặc tả đã duyệt xác định hành vi mong đợi, source/test mô tả hiện trạng; sai lệch cần được xử lý chứ không sửa đặc tả để che bug.
 
 ## Giảm chi phí đối chiếu luật và bảng giá
 
