@@ -1,6 +1,6 @@
 # Plan 01 — Luật chơi
 
-**Trạng thái:** Active, chỉ phần 01A. **Đầu ra:** đặc tả tài liệu; chưa code gameplay.
+**Trạng thái:** Baseline tài liệu hiện có đã chốt để chuyển sang [Plan 02](02-mobile-ui.md) theo yêu cầu người dùng. Nghiên cứu tạm dừng; không đồng nghĩa hoàn thành xác minh toàn bộ luật/edition. **Đầu ra:** đặc tả tài liệu; chưa code gameplay.
 
 ## Mục tiêu
 
@@ -10,7 +10,7 @@ Ghi đủ luật Monopoly Classic US thành tài liệu có nguồn, ID và tìn
 
 | Phần | Đầu ra | Trạng thái |
 | --- | --- | --- |
-| 01A | [Bàn cờ, nhóm tài sản, bảng kinh tế](../rules/board-and-properties.md) | Active: 01A.1 đã chọn nguồn; 01A.2/01A.3 chưa xong |
+| 01A | [Bàn cờ, nhóm tài sản, bảng kinh tế](../rules/board-and-properties.md) | Baseline bàn giao cho thiết kế, ngoại lệ lưu lại trước gameplay |
 | 01B | [Thiết lập, lượt và đấu giá](../rules/turns.md) | Backlog |
 | 01C | [Thuê, xây, trao đổi, thế chấp](../rules/assets.md) | Backlog |
 | 01D | [Thẻ, thuế, nhà tù](../rules/cards-and-jail.md) | Backlog |
@@ -58,3 +58,16 @@ S-006 bổ sung mặt sau Short Line 100/110; S-007 bổ sung giá nhà/KS Medit
 ## Quy trình tiếp tục đã điều chỉnh
 
 Ưu tiên nguồn text, so bảng hàng loạt thay cho tìm ảnh từng thẻ. Đã so 189 số của 21 đất màu với S-004 revision 4662179 và khớp; chưa thay đổi trạng thái xác minh đúng edition hoặc phê duyệt. Gom Rhode Island, mortgage còn thiếu và khác biệt Marvin Gardens trong sổ nguồn để xử lý theo đợt. Chỉ quay lại ảnh cho một ngoại lệ có nguồn mới; không lặp các gallery đã bị chặn. Tiếp tục review các phần có bằng chứng trong 01A, chưa mở implementation/plan sau.
+
+## Bàn giao sang Plan 02
+
+Người dùng yêu cầu chốt tài liệu hiện tại và sang plan tiếp theo. Dùng tên/thứ tự bàn, nhóm tài sản, bảng số liệu và điều kiện rent hiện có để thiết kế; ví dụ tiền chưa chốt phải ghi là dữ liệu minh họa, không khẳng định là số liệu G0009 đã xác minh.
+
+Checklist này không chặn concept UI nhưng phải giải quyết trước implementation chức năng tương ứng:
+
+- [ ] Chốt các số còn thiếu của Rhode Island và mortgage/unmortgage, không lấy `—` làm 0.
+- [ ] Hoàn thiện 01B–01E cho vòng lượt, đấu giá, trao đổi, nhà tù/thẻ, nợ và kết thúc. Hiện các phần này mới có phạm vi nghiên cứu, không phải luật đầy đủ đã viết xong.
+- [ ] Chốt chính sách số hóa: yêu cầu rent, utility roll, thứ tự sự kiện mạng; không tự thêm timer/house rules.
+- [ ] Kiểm tra các khác biệt edition đã ghi ở sổ nguồn khi đưa số liệu vào runtime.
+
+Từ đây không tiếp tục tìm nguồn hoặc bổ sung ảnh thẻ trừ khi công việc implementation được giao cần mục đó hoặc người dùng yêu cầu quay lại Plan 01. Ưu tiên hiện hành là thiết kế màn 02A.

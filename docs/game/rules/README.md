@@ -1,10 +1,10 @@
 # Luật Monopoly Classic US
 
-**Trạng thái: hướng sản phẩm đã duyệt; bộ đặc tả chi tiết chưa duyệt, chưa implement.** Nguồn/edition phải được chốt theo [sources](sources.md).
+**Trạng thái: baseline tài liệu hiện có được chốt để thiết kế Plan 02; chưa xác minh/hoàn thiện toàn bộ luật, chưa implement.** Nguồn/edition phải được chốt theo [sources](sources.md).
 
 | Phần | Trang | Trạng thái |
 | --- | --- | --- |
-| 01A | [Bàn cờ và tài sản](board-and-properties.md) | Active, nháp để đối chiếu |
+| 01A | [Bàn cờ và tài sản](board-and-properties.md) | Baseline bàn giao; ngừng vòng nghiên cứu từng thẻ |
 | 01A.2 | [Bảng kinh tế có nguồn](property-economics.md) | Nháp; phân biệt S-002 xác minh và S-004 tham khảo |
 | 01A.3 | [Điều kiện tính tiền và áp giá](rent-conditions.md) | Nháp có section nguồn/case; chờ review và dữ liệu còn thiếu |
 | 01B | [Thiết lập và lượt](turns.md) | Backlog |
