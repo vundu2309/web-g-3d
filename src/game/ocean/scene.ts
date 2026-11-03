@@ -66,7 +66,6 @@ export function createOceanScene(engine: Engine, canvas: HTMLCanvasElement) {
     strength += ((rough ? 1.5 : 0.8) - strength) * 0.025;
     for (const surface of [material]) {
       surface.setFloat("time", time);
-      surface.setVector3("boatPosition", boat.position);
       surface.setFloat("strength", strength);
       surface.setVector3("cameraPosition", camera.globalPosition);
     }

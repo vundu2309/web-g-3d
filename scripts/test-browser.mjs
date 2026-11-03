@@ -1,0 +1,47 @@
+import { createServer, preview } from "vite";
+import { spawn } from "node:child_process";
+
+async function run(file, port) {
+  await new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [file], {
+      stdio: "inherit",
+      env: { ...process.env, TEST_BASE_URL: `http://127.0.0.1:${port}` },
+    });
+    child.once("error", reject);
+    child.once("exit", (code, signal) => {
+      if (code === 0) resolve();
+      else reject(new Error(`${file} failed: ${signal || code}`));
+    });
+  });
+}
+
+let dev;
+let production;
+try {
+  // Port 0 avoids collisions with user servers. Only close servers we own.
+  dev = await createServer({
+    server: { host: "127.0.0.1", port: 0 },
+    logLevel: "warn",
+  });
+  await dev.listen();
+  const port = dev.httpServer.address().port;
+  await run("tests/ocean-smoke.mjs", port);
+  await run("tests/physics-smoke.mjs", port);
+  await dev.close();
+  dev = undefined;
+  production = await preview({
+    preview: { host: "127.0.0.1", port: 0 },
+    logLevel: "warn",
+  });
+  await run("tests/ocean-smoke.mjs", production.httpServer.address().port);
+} catch (error) {
+  console.error(error);
+  process.exitCode = 1;
+} finally {
+  await dev?.close();
+  await new Promise((resolve, reject) => {
+    if (!production) return resolve();
+    production.httpServer.close((error) => (error ? reject(error) : resolve()));
+    production.httpServer.closeAllConnections();
+  });
+}

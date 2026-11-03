@@ -11,3 +11,6 @@ dist/
 
 # Generated standalone AI schedule needs separate provider credentials; keep local.
 .github/workflows/openwiki-update.yml
+
+# Local validation evidence
+test-results/

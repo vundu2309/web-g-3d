@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:e824b0d569356b3a91a8bda01794c13de51bc11854f30df65cd3894185ba4fd7",
+  "pageVersion": "sha256:48cc915e682b3a798aad0d0629db052c92022000afefe6dd8eb36857c591dab2",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -12,7 +12,7 @@
         },
         {
           "resource": "repo://src/main.ts",
-          "version": "repo-file-v1:sha256:1bb4f220c5029677b4a37dce24e711172d45283cc009a975b8c47dbceaccf862"
+          "version": "repo-file-v1:sha256:2b1523708d097cd480655544361bbab8da7730689b21bb894e2af6fe9adf7e43"
         }
       ]
     },
@@ -22,7 +22,7 @@
       "evidence": [
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:a26c705e6f3c9fc27222a291894d7af229f90e3c829320bd53ddaa0d0bdce428"
+          "version": "repo-file-v1:sha256:6e44784d44354da2ccc5b85608360c59a0bc104d1f1b92554fad3193696c2499"
         }
       ]
     },
@@ -31,18 +31,18 @@
       "statement": "Scene biển cập nhật thuyền theo heightAt của trường sóng, còn Havok được nạp bởi module vật lý riêng.",
       "evidence": [
         {
-          "resource": "repo://src/game/ocean/scene.ts#L64-L83",
-          "version": "repo-lines-v1:sha256:abd97c621dd20475b5944d742b49fac951f8beb0973d26eb81d7efcccbd9fa9d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzNWM1MmYyODU3ZTI4NTQzMzk3MjIxZDFhNWRjYTA4MTViN2M5NzE0OWFmMTYxOWQ2NjMyYzNhMTE5MDM1ZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0ZTQyMDhjZDZmZmI4YzRhMzU0N2IyZjU0YWRhMTk5NzhjM2YzNjVlNzhmOTUwMmVmNTE0NWNkZDJhYTg1NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1ZDUzZTljY2U5MzFmNDBiNjFiMmNmMDE3ZDQzODAxZjY5YmNlZTAzNWE3N2VlNTU1NmRmNzg1YTQzZGZmZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyZTk4NTUwNWY1NDJmYjg4NWM3ZmVmZTAxNzk0NTczOGJlYzZhMTkxY2MzZjJlODAyMDA1ZWEzZjFiOTY0MDUifQ"
+          "resource": "repo://src/game/ocean/scene.ts#L64-L82",
+          "version": "repo-lines-v1:sha256:523819cb1c56b0cad2c720f5c1527d363257725219cd81f9ced2ba3b721c2568:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzNWM1MmYyODU3ZTI4NTQzMzk3MjIxZDFhNWRjYTA4MTViN2M5NzE0OWFmMTYxOWQ2NjMyYzNhMTE5MDM1ZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0ZTQyMDhjZDZmZmI4YzRhMzU0N2IyZjU0YWRhMTk5NzhjM2YzNjVlNzhmOTUwMmVmNTE0NWNkZDJhYTg1NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1ZDUzZTljY2U5MzFmNDBiNjFiMmNmMDE3ZDQzODAxZjY5YmNlZTAzNWE3N2VlNTU1NmRmNzg1YTQzZGZmZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyZTk4NTUwNWY1NDJmYjg4NWM3ZmVmZTAxNzk0NTczOGJlYzZhMTkxY2MzZjJlODAyMDA1ZWEzZjFiOTY0MDUifQ"
         },
         {
           "resource": "repo://src/platform/physics.ts",
-          "version": "repo-file-v1:sha256:db7151b73270d997f15c3e64f8e06d633036d1b3ffe430857499bee2798f569d"
+          "version": "repo-file-v1:sha256:5bfbcbba401fa86895922f5e620b6ba66c624a0d2eb3b0566bdfff2c25edb349"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T07:23:24.494Z"
+    "at": "2026-11-03T07:37:49.505Z"
   }
 }

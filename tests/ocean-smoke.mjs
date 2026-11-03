@@ -1,14 +1,7 @@
-import { chromium } from "playwright-core";
+import { launchBrowser } from "./browser.mjs";
 import assert from "node:assert/strict";
 
-const browser = await chromium.launch({
-  executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
-  args: [
-    "--no-sandbox",
-    "--use-angle=swiftshader",
-    "--enable-unsafe-swiftshader",
-  ],
-});
+const browser = await launchBrowser();
 try {
   for (const viewport of [
     { width: 1440, height: 900 },

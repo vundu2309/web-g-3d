@@ -20,13 +20,15 @@ Sóng Gerstner dịch chuyển đỉnh lưới theo cả chiều ngang và chi�
 
 ## Kiểm tra
 
-Khi dev server chạy: `npm run test:ocean` kiểm tra desktop/mobile, tải asset, lỗi shader, chuyển động và nút đổi sóng. `npm run test:smoke` giữ kiểm tra Havok: khối rơi, va chạm nền, giới hạn body và dispose. Cần Chromium tại `/usr/bin/chromium` hoặc đặt `CHROMIUM_PATH`. `TEST_BASE_URL` chọn URL cho bài kiểm tra biển, bao gồm bản production/Pages; kiểm tra Havok cần Vite dev server để import module.
+`npm run check` là lệnh kiểm chứng chung: lint ranh giới module, format, hai unit test trường sóng, build TypeScript/Vite, kiểm tra browser trên dev và production. Runner tự mở/đóng server ở cổng trống. Chromium hệ thống được dùng nếu có; nếu không, cài bằng `npx --no-install playwright-core install --with-deps chromium`. Có thể đặt `CHROMIUM_PATH` để chọn trình duyệt khác.
+
+Các lệnh `test:ocean`/`test:smoke` vẫn dùng được với server thủ công và `TEST_BASE_URL`. Xem [quy trình đầy đủ](docs/workflow.md), [ranh giới kiến trúc](docs/architecture.md), [quy tắc agent](AGENTS.md) và [quyết định thiết kế](docs/decisions/0001-context-and-validation.md).
 
 Kiểm tra trình duyệt dùng software WebGL không đại diện FPS điện thoại thật. Giới hạn độ phân giải render trên thiết bị DPI cao; vẫn cần đo trên thiết bị mục tiêu. Engine còn tạo cảnh báo bundle lớn.
 
 ## Deploy GitHub Pages
 
-Settings → Pages → Source: GitHub Actions. Push `main` tự build và deploy `dist`; có thể chạy workflow thủ công. Vite dùng base tương đối để asset hoạt động dưới project path.
+Settings → Pages → Source: GitHub Actions. Pull request chạy toàn bộ `npm run check`; push `main` hoặc chạy thủ công chỉ deploy `dist` sau khi các kiểm tra qua. Vite dùng base tương đối để asset hoạt động dưới project path.
 
 URL: https://vundu2309.github.io/web-g-3d/
 
@@ -39,4 +41,4 @@ OpenWiki 0.7.3 được pin trong devDependencies, không được import vào g
 - `npm run wiki:serve`: mở trình đọc/đồ thị local.
 - `npm run wiki:export`: xuất trình đọc tĩnh vào `.openwiki-export/`; không tự publish ra Pages.
 
-Wiki tiếng Việt bắt đầu tại [openwiki/quickstart.md](openwiki/quickstart.md). Quy tắc phạm vi trong `openwiki/INSTRUCTIONS.md`. Metadata, Claims và index do OpenWiki quản lý. CLI standalone `--init`/`--update` cần cấu hình provider riêng; không đặt API key vào source hoặc GitHub Pages. Workflow Pages hiện chỉ build/deploy game, chưa tự chạy sinh wiki hoặc test trình duyệt.
+Wiki tiếng Việt bắt đầu tại [openwiki/quickstart.md](openwiki/quickstart.md). Quy tắc phạm vi trong `openwiki/INSTRUCTIONS.md`. Metadata, Claims và index do OpenWiki quản lý. CLI standalone `--init`/`--update` cần cấu hình provider riêng; không đặt API key vào source hoặc GitHub Pages. Workflow Pages chạy lint, unit test, build và test trình duyệt trước deploy; không tự sinh wiki.

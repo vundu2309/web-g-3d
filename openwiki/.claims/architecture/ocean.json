@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:383f9fe0eea191c9366d57261bf1caddd173daa5f679298a2a9bf2ea56446059",
+  "pageVersion": "sha256:beaf23ac358788c22a5772caef97ffa342f83a8a79f208bf3a122673b2430f3e",
   "claims": [
     {
       "id": "claim_d57d95e10d4a4c5cbda4192319a202c2",
@@ -17,8 +17,8 @@
       "statement": "Scene biển lấy heightAt và các mẫu lân cận để mô phỏng thuyền nổi, không khởi tạo Havok.",
       "evidence": [
         {
-          "resource": "repo://src/game/ocean/scene.ts#L53-L83",
-          "version": "repo-lines-v1:sha256:f24d4ce19657d7b5bc23041b75967042085c6212573bc61cd957a10c44c3e6b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5MzU4M2NjOTRhYjU2MmZhNDQ2NWFiMjFkZjQ0MGQyZTUwNjdjZjg3ZjkwMmI5ZGRlZjMxNWIyMWZlZjBhNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0ZTQyMDhjZDZmZmI4YzRhMzU0N2IyZjU0YWRhMTk5NzhjM2YzNjVlNzhmOTUwMmVmNTE0NWNkZDJhYTg1NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhYzFiZDFhYTM5N2U3YzBiOTRjNGMyNzE5MzJiODcxY2IyZDM3NjZkNWM4NjgxMjk4NzA1MjNiN2E1ZmQ1NjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyZTk4NTUwNWY1NDJmYjg4NWM3ZmVmZTAxNzk0NTczOGJlYzZhMTkxY2MzZjJlODAyMDA1ZWEzZjFiOTY0MDUifQ"
+          "resource": "repo://src/game/ocean/scene.ts#L53-L82",
+          "version": "repo-lines-v1:sha256:f207de52c299aa25d701dedf982c1ff7b95877734a5a697b08116d67c3b22c74:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5MzU4M2NjOTRhYjU2MmZhNDQ2NWFiMjFkZjQ0MGQyZTUwNjdjZjg3ZjkwMmI5ZGRlZjMxNWIyMWZlZjBhNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0ZTQyMDhjZDZmZmI4YzRhMzU0N2IyZjU0YWRhMTk5NzhjM2YzNjVlNzhmOTUwMmVmNTE0NWNkZDJhYTg1NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhYzFiZDFhYTM5N2U3YzBiOTRjNGMyNzE5MzJiODcxY2IyZDM3NjZkNWM4NjgxMjk4NzA1MjNiN2E1ZmQ1NjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyZTk4NTUwNWY1NDJmYjg4NWM3ZmVmZTAxNzk0NTczOGJlYzZhMTkxY2MzZjJlODAyMDA1ZWEzZjFiOTY0MDUifQ"
         }
       ]
     },
@@ -41,10 +41,20 @@
           "version": "repo-file-v1:sha256:ea00bbfa3690da188ae1f5b82911b665eed2abe1e4af4e4e977bd13e41bcda47"
         }
       ]
+    },
+    {
+      "id": "claim_309cf9c414d94d3bb1bdd82cf6cc64a6",
+      "statement": "Shader nước tạo bọt từ compression/đỉnh sóng và noise, không còn vòng bọt elip quanh thuyền.",
+      "evidence": [
+        {
+          "resource": "repo://src/game/ocean/materials.ts#L109-L114",
+          "version": "repo-lines-v1:sha256:3c65e0633b47e181a279f709546fc7bcd1287a8892ce46296360e4be61b41f29:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDE5NjYzMzc4NDM4MzdmM2Y1YTY1ZDU3OGM4ZjA1NDY1ODViNmU2MjBlYTEwM2UwNWVhOTk1N2Y0MWM4NDMxMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjU0NDkyYThkNGQ0NjM4Njg5NTNjOTBkMTA2YWEwZWQ2OTEzYmUyNjdjYzY0ZWFjZjEyYzUxMWQ1ZDUzZWU0NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmE5OWJmNTE1YWM2M2M4YmY3MmVhNzE5MWZmNzM4ODA5NDg1NmI3NzA5OWNkNjA0OTdlOTdmOTA3YTFjMDY1MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODc5NDIzOWY4NWFjY2NiOGEyOGI3N2E3Yzk1ZTNjNWM3MGY3YTIzYTUzZmU1OWU5MmNhM2E0OTQ4MzA2OTQ3ZSJ9"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T07:23:24.494Z"
+    "at": "2026-11-03T07:37:49.505Z"
   }
 }

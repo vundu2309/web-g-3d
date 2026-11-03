@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:4f85005ebdd2f73d0f591f438d8f6670a412a91377d5143a8ff2d7add1004df5",
+  "pageVersion": "sha256:4bfdc0d866fcb1423046bc0009a3a1766128dfe04ef6ec54b297f6b22703f1c0",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
-      "statement": "GitHub Pages workflow build rồi deploy dist trên push main hoặc workflow_dispatch, không chạy test trình duyệt hoặc sinh wiki.",
+      "statement": "Pages workflow chạy npm run check với Chromium trên PR/main/dispatch; PR không deploy, main/dispatch deploy sau khi kiểm tra qua và không tự sinh wiki.",
       "evidence": [
         {
           "resource": "repo://.github/workflows/pages.yml",
-          "version": "repo-file-v1:sha256:7330b478223a0e6c91e3f0db5c6608d6f9fcb897efe1db049859c7ba6faa9bb3"
+          "version": "repo-file-v1:sha256:758c4e8bfeb277b0ff687009af5a1e6ca5e304736bc84c0a390383df181b6cf6"
         }
       ]
     },
@@ -28,7 +28,7 @@
       "evidence": [
         {
           "resource": "repo://tests/ocean-smoke.mjs",
-          "version": "repo-file-v1:sha256:340e8c0747f96d45f85b2e0992b4da917f9632ca4b2833d76cfd379c5381e478"
+          "version": "repo-file-v1:sha256:45572ee600965c5ae64db9827a7d9b32629e51ea4c0b53e7feddfc2c7d874ce0"
         }
       ]
     },
@@ -41,10 +41,34 @@
           "version": "repo-lines-v1:sha256:8a959d8831efc3274793bd6824d7b6e59bf991e842021658dc5b7a6e6eccae3c:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjc5OWU5OTQyNjk5ZmE4MTIyNmRiZGE5M2Y1OWRhNjI4MzQ5ZDVhMGM2NGRlYzU5ZDkwYjkyOTkxOGY3NWY5MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWVlMjRlMGZlYmRjOGI2YzM2NDk3ZDc4ZGUzMjE4OTY1NDNlMjVlYTVhYjNlZjE2MjMzMWUxZjA5Y2FhY2RjNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzhlYTM3Mjc4NTU0OTczNGMxOGU1NzMxNDYxYzk3YmVmN2U2ODk1OGRiOTliMTI1NmJiMTM3ZDNhZGQyZjUyYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzM2MzQxMjY1OTMxYmUzZWMzYmJjY2M4NmQ0NzlkYmIyMGRkOTc4Yzk5ZWEwMzk3NDM5YTA0ZDA1MTZjOTlhZSJ9"
         }
       ]
+    },
+    {
+      "id": "claim_7f0efb779d404f5c9e4682419541c353",
+      "statement": "npm run check ghép lint, format, unit tests, build và browser checks; runner tự mở server dev/preview ở cổng trống và đóng các server sở hữu.",
+      "evidence": [
+        {
+          "resource": "repo://package.json",
+          "version": "repo-file-v1:sha256:6e44784d44354da2ccc5b85608360c59a0bc104d1f1b92554fad3193696c2499"
+        },
+        {
+          "resource": "repo://scripts/test-browser.mjs",
+          "version": "repo-file-v1:sha256:1e3bc1c2b9ab7d4eb68d7f1fb83a2fa9d3114804da6daac106905ba0d2d32a5d"
+        }
+      ]
+    },
+    {
+      "id": "claim_3ba1b926b98c45148618fbd328cc20a9",
+      "statement": "AGENTS.md nạp context theo tác vụ, dẫn tới hợp đồng architecture/workflow và yêu cầu ảnh/motion thực cho đồ họa.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L1-L29",
+          "version": "repo-lines-v1:sha256:9ea17e4d773dfb5553f7e763a91b871c4efcbdbb7cad3e8ec2c06f9a1833c877:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMzA1ZjI4Y2ZjOTQzNjUzNTk2NDY4OTA0MWMyZjgyODRjM2JmNmViNmZkNzMyNWVmZmYwNjUxNDJjYjA1MDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5YjQ4YzFjOTNhZjYzMmQwZDU0ZjM3NWYzNGJlNjNiZmUwODRkYTIxZGJmOThkODlmMmM1MTc0ZjRmNTY2ZWEifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T07:23:24.494Z"
+    "at": "2026-11-03T07:37:49.505Z"
   }
 }

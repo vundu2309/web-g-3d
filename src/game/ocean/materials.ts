@@ -53,7 +53,7 @@ export function createOceanMaterial(scene: Scene): ShaderMaterial {
     }`,
       fragmentSource: `precision highp float;
     uniform float time,strength,innerCutout;
-    uniform vec3 cameraPosition,sunDirection,boatPosition;
+    uniform vec3 cameraPosition,sunDirection;
     varying vec3 vPosition;varying vec2 vSample;
     ${sample}
     float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
@@ -110,10 +110,6 @@ export function createOceanMaterial(scene: Scene): ShaderMaterial {
       float peaks=smoothstep(.12,.27,compression)*smoothstep(.43,.7,foamNoise);
       float bubbles=smoothstep(.43,.64,noise(p*21.))*detail;
       float foam=peaks*(.35+.65*bubbles);
-      // Broken patches of aerated water near the hull, rather than a solid ring.
-      vec2 local=mat2(cos(.55),-sin(.55),sin(.55),cos(.55))*(p-boatPosition.xz);
-      float rim=length(local/vec2(1.02,3.5));
-      foam+= (1.-smoothstep(.04,.21,abs(rim-1.)))*smoothstep(.42,.7,foamNoise)*.65;
       color=mix(color,vec3(.70,.79,.78),clamp(foam,0.,.85));
       color=mix(color,vec3(.53,.64,.70),1.-exp(-distanceToEye*.0015));
       // Exposure rolloff preserves glint detail; convert linear lighting to display.
@@ -131,7 +127,6 @@ export function createOceanMaterial(scene: Scene): ShaderMaterial {
         "cameraPosition",
         "sunDirection",
         "innerCutout",
-        "boatPosition",
       ],
     },
   );

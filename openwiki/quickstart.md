@@ -3,9 +3,6 @@ type: quickstart
 title: Bắt đầu với Hải trình
 description: Bản đồ tác vụ để chạy, sửa sóng, hiểu vòng đời, kiểm tra và deploy web game 3D Hải trình.
 tags: [quickstart, navigation, game]
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-03T07:23:24.494Z
 sources:
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
     resource: repo://package.json
@@ -17,7 +14,10 @@ sources:
     resource: repo://src/main.ts
   - id: openwiki-source-d68353aa5a7b304d05de84d2
     resource: repo://src/platform/physics.ts
-generated: { by: "codex", at: "2026-11-03T07:23:24.494Z" }
+generated: { by: "codex", at: "2026-11-03T07:37:49.505Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-03T07:37:49.505Z
 ---
 
 # Bắt đầu với Hải trình
@@ -39,13 +39,17 @@ Hải trình hiện là cảnh biển 3D tương tác bằng Babylon.js và Type
 
 ## Chạy nhanh
 
-Từ repo root: `npm ci`, `npm run dev`. Giữ dev server chạy rồi dùng `npm run test:ocean`. Chạy `npm run build` để kiểm tra kiểu và tạo `dist`; `npm run preview` xem bản production. Kiểm tra console và xem ảnh/video thực để đánh giá sóng, không coi test xanh là bảo đảm chất lượng hình ảnh.
+Từ repo root: `npm ci`, `npm run dev` để phát triển. `npm run check` tự chạy lint, format, unit tests, build và các kiểm tra browser trên dev/production với server do runner quản lý. `npm run preview` xem bản build. Kiểm tra console và xem ảnh/video thực để đánh giá sóng, không coi test xanh là bảo đảm chất lượng hình ảnh.
 
 ## Ranh giới cần nhớ
 
 Thuyền nổi bằng lấy mẫu trường sóng trên CPU, chưa có lực nổi Havok. Scene thử Havok vẫn tồn tại để kiểm tra va chạm riêng. Render loop, listener và Engine thuộc app; scene sở hữu mesh/material. Khi đổi phương trình GPU cần giữ CPU sampling tương ứng.
 
-Push `main` kích hoạt build/deploy Pages. Workflow hiện không tự sinh wiki và không chạy test trình duyệt. Xem [hướng dẫn vận hành](operations/development.md) để biết khác biệt giữa kiểm tra local/cloud và CI.
+Push `main` kích hoạt build/deploy Pages. Workflow chạy lint, format, unit tests, build và test trình duyệt; PR không deploy, main/dispatch deploy khi check qua. Workflow không tự sinh wiki. Xem [hướng dẫn vận hành](operations/development.md) để biết khác biệt giữa kiểm tra local/cloud và CI.
+
+## Ngữ cảnh agent
+
+Bắt đầu bằng `AGENTS.md`, chỉ đọc phần liên quan trong `docs/architecture.md` và `docs/workflow.md`; xem `docs/decisions/` khi cần lý do thiết kế. Các tài liệu authored ghi hợp đồng, code/test chứng minh hành vi hiện tại, còn OpenWiki phục vụ tìm kiếm theo câu hỏi.
 
 ## Độ tin cậy của tài liệu
 

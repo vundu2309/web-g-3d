@@ -3,19 +3,23 @@ type: operations
 title: Phát triển, kiểm tra và deploy
 description: Cài đặt bằng lockfile, kiểm tra trình duyệt, deploy GitHub Pages và vận hành tích hợp OpenWiki cho Codex.
 tags: [development, testing, deployment, openwiki]
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-03T07:23:24.494Z
 sources:
   - id: openwiki-source-ab585d88aca3958f2aa6a541
     resource: repo://.codex/config.toml
   - id: openwiki-source-5f219f204b3e870beec929d9
     resource: repo://.github/workflows/pages.yml
+  - id: openwiki-source-8037e2358a2c4f9b2c722a11
+    resource: repo://AGENTS.md
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
     resource: repo://package.json
+  - id: openwiki-source-3515d68bed1b916f693296ec
+    resource: repo://scripts/test-browser.mjs
   - id: openwiki-source-cccb7301733cfb64159c8c2f
     resource: repo://tests/ocean-smoke.mjs
-generated: { by: "codex", at: "2026-11-03T07:23:24.494Z" }
+generated: { by: "codex", at: "2026-11-03T07:37:49.505Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-03T07:37:49.505Z
 ---
 
 # Phát triển, kiểm tra và deploy
@@ -28,17 +32,25 @@ Dùng Node.js 24 và npm 11 như README và workflow. Từ repo root, chạy `np
 
 ## Kiểm tra có ý nghĩa
 
-`npm run test:ocean` dùng Chromium kiểm tra hai viewport 1440×900 và 390×844: khởi động, nút đổi sóng, ảnh canvas thay đổi, kích thước canvas và lỗi JavaScript/shader/HTTP. Mặc định trình duyệt ở `/usr/bin/chromium`, có thể đổi bằng `CHROMIUM_PATH`. Để kiểm tra production đang chạy, đặt `TEST_BASE_URL` đến preview server.
+`npm run test:ocean` dùng Chromium kiểm tra hai viewport 1440×900 và 390×844: khởi động, nút đổi sóng, ảnh canvas thay đổi, kích thước canvas và lỗi JavaScript/shader/HTTP. Browser helper dùng `CHROMIUM_PATH`, nếu không có thì dùng Chromium hệ thống khi được cài, cuối cùng là browser do Playwright quản lý. Cài browser bằng `npx --no-install playwright-core install --with-deps chromium`. Để kiểm tra production đang chạy, đặt `TEST_BASE_URL` đến preview server.
 
 `npm run test:smoke` kiểm tra Havok trong scene thử riêng: 8 khối rơi, mô phỏng 600 bước, kiểm tra không xuyên nền, giới hạn 32 body và scene dispose. Test này import source qua Vite nên cần dev server. Nó không chứng minh thuyền có va chạm hoặc lực nổi thật.
 
 Hai ảnh khác nhau chỉ chứng minh có thay đổi pixel, không chứng minh mặt nước tự nhiên. Đánh giá shader bằng ảnh/video thực, cùng góc nhìn và thời điểm, kiểm tra gợn gần camera, nhịp lặp, đường chân trời và nhiễu ở xa. Hai kích thước viewport không thay thế kiểm tra GPU/điện thoại thật.
 
+## Kiểm chứng tự động và ngữ cảnh agent
+
+`npm run check` chạy lint, format, unit test, build và browser tests. ESLint kiểm tra import game/platform không ngược lên app/main, và giữ `waves.ts` dependency-free. Unit test kiểm tra đảo dịch chuyển sóng tại nhiều vị trí/thời điểm/cường độ và trường phẳng khi strength bằng 0.
+
+`scripts/test-browser.mjs` tự mở Vite ở cổng trống, chạy ocean/physics trên dev, đóng dev rồi mở preview và kiểm tra ocean trên production. Runner truyền exit code lỗi qua process và đóng server do chính nó tạo. `test:browser` cần build sẵn; `npm test` tự build trước.
+
+`AGENTS.md` dẫn đến `docs/architecture.md`, `docs/workflow.md` và quyết định trong `docs/decisions/`. Agent nạp ngữ cảnh theo tác vụ, giữ code/test làm nguồn sự thật và kiểm tra ảnh/motion thật với thay đổi đồ họa. OpenWiki là chỉ mục tra cứu, không thay thế hợp đồng authored hoặc kiểm chứng thực thi.
+
 ## GitHub Pages
 
-`.github/workflows/pages.yml` chạy khi push `main` hoặc được dispatch thủ công. Job build checkout, dùng Node 24, chạy `npm ci`, `npm run build` rồi upload `dist`. Job deploy chờ build và gọi `actions/deploy-pages` với quyền `pages: write`, `id-token: write`. GitHub Pages cần chọn Source là GitHub Actions.
+`.github/workflows/pages.yml` chạy trên pull request, push `main` và dispatch thủ công. Job build cài Node 24, npm dependencies và Chromium rồi chạy `npm run check`. PR chỉ kiểm chứng; main/dispatch upload `dist` và deploy sau khi check qua. Workflow không tự sinh wiki. Branch protection là cấu hình GitHub riêng, không được đảm bảo chỉ bởi file workflow.
 
-Workflow hiện không chạy `test:ocean`, `test:smoke` hoặc sinh wiki. Không suy ra đã có test trình duyệt trong CI từ dấu build xanh. Vite dùng `base: './'` để asset hoạt động dưới `/web-g-3d/`. URL mặc định: https://vundu2309.github.io/web-g-3d/.
+Vite dùng `base: './'` để asset hoạt động dưới `/web-g-3d/`. URL mặc định: https://vundu2309.github.io/web-g-3d/.
 
 ## OpenWiki trong Codex
 
