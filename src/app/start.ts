@@ -1,35 +1,38 @@
-import { Engine } from '@babylonjs/core/Engines/engine';
-import { createPhysics } from '../platform/physics';
-import { createPlayground } from '../game/playground';
+import { Engine } from "@babylonjs/core/Engines/engine";
+import { createOceanScene } from "../game/ocean/scene";
 
-export async function start(canvas: HTMLCanvasElement, dropButton: HTMLButtonElement): Promise<() => void> {
-  const physics = await createPhysics();
-  let engine: Engine;
+export async function start(
+  canvas: HTMLCanvasElement,
+  waveButton: HTMLButtonElement,
+): Promise<() => void> {
+  const engine = new Engine(canvas, true, {
+    stencil: false,
+    powerPreference: "high-performance",
+  });
+  // Cap render resolution on high-DPI phones; keep geometry and shaders shared.
+  engine.setHardwareScalingLevel(Math.max(1, window.devicePixelRatio / 1.5));
   try {
-    engine = new Engine(canvas, true);
-  } catch (error) {
-    physics.dispose();
-    throw error;
-  }
-  try {
-    const playground = createPlayground(engine, canvas, physics);
+    const ocean = createOceanScene(engine, canvas);
     const resize = () => engine.resize();
-    const drop = () => playground.drop();
-    window.addEventListener('resize', resize);
-    dropButton.addEventListener('click', drop);
-    engine.runRenderLoop(() => playground.scene.render());
-    dropButton.disabled = false;
+    const toggle = () => {
+      const rough = ocean.toggleWaves();
+      waveButton.textContent = rough ? "Sóng mạnh ↗" : "Sóng êm ≋";
+      waveButton.setAttribute("aria-pressed", String(rough));
+    };
+    window.addEventListener("resize", resize);
+    waveButton.addEventListener("click", toggle);
+    engine.runRenderLoop(() => ocean.scene.render());
+    waveButton.disabled = false;
     return () => {
-      dropButton.disabled = true;
-      window.removeEventListener('resize', resize);
-      dropButton.removeEventListener('click', drop);
+      waveButton.disabled = true;
+      window.removeEventListener("resize", resize);
+      waveButton.removeEventListener("click", toggle);
       engine.stopRenderLoop();
-      playground.dispose();
+      ocean.dispose();
       engine.dispose();
     };
   } catch (error) {
     engine.dispose();
-    physics.dispose();
     throw error;
   }
 }

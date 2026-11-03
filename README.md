@@ -1,41 +1,31 @@
-# Web G 3D
+# Hải trình — 3D Ocean
 
-Nền tảng web game 3D: TypeScript strict, Vite, Babylon.js và Havok Physics (WASM tự phục vụ, không dùng CDN khi chạy).
+Cảnh biển 3D tương tác bằng Babylon.js, TypeScript strict và Vite: sóng shader, ánh nắng, bầu trời thủ tục và thuyền buồm nhấp nhô. Kéo để xoay, cuộn/chụm để zoom, nút Sóng êm/Sóng mạnh để đổi cường độ. Đây là môi trường khởi đầu cho game; chưa có nhiệm vụ hoặc điều khiển lái thuyền.
 
-## Chạy
+## Phát triển
 
-Yêu cầu Node.js 22.12+ (đã kiểm tra trên Node 24), npm 11.
+Node.js 24, npm 11. `npm ci`, sau đó `npm run dev`. `npm run build` kiểm tra kiểu và build production. `npm run preview` phục vụ dist. Không cần backend, secret, texture tải ngoài hay CDN.
 
-```sh
-npm ci
-npm run dev
-```
+## Kiến trúc
 
-`npm run typecheck` kiểm tra kiểu; `npm run build` kiểm tra kiểu và đóng gói production; `npm run preview` chạy bản build. Không cần backend hay biến bí mật.
+- `src/main.ts`: DOM, trạng thái khởi động và HMR.
+- `src/app/start.ts`: engine, render loop, listener và cleanup.
+- `src/game/ocean/scene.ts`: ghép scene, camera và cập nhật thời gian.
+- `src/game/ocean/waves.ts`: trường sóng dùng chung giữa shader và thuyền.
+- `src/game/ocean/materials.ts`: shader nước, phản xạ bầu trời xấp xỉ, nắng và mây thủ tục.
+- `src/game/ocean/boat.ts`: model thuyền thủ tục, tài nguyên do scene sở hữu.
+- `src/platform/physics.ts` và `src/game/playground.ts`: nền Havok và scene va chạm được giữ để phát triển gameplay sau này; scene biển không cần tải WASM vật lý.
 
-## Ranh giới mã nguồn
+Sóng lớn biến dạng mesh bằng GPU, gợn nhỏ làm thay đổi pháp tuyến. Lưới gần có độ chi tiết cao hơn mặt biển xa. Thuyền lấy độ cao và độ nghiêng từ cùng hàm sóng; đây là chuyển động nổi mô phỏng bằng toán, chưa phải lực nổi thủy động lực học Havok. Scene.dispose dọn mesh/material; app dọn loop, listener và engine. Không thêm singleton, event bus hay ECS trước khi có nhu cầu thực tế.
 
-- `src/main.ts`: kết nối DOM, trạng thái tải/lỗi, HMR.
-- `src/app/start.ts`: sở hữu engine, khởi động và dọn dẹp vòng đời ứng dụng.
-- `src/platform/physics.ts`: nạp Havok/WASM; cấu hình phụ thuộc nền tảng.
-- `src/game/playground.ts`: scene mẫu, camera, đối tượng và luật vật lý.
+## Kiểm tra
 
-Gameplay không truy cập DOM. Thêm feature theo chức năng khi có nhu cầu thực tế; không tạo global singleton, event bus tổng quát hay ECS sớm. Khi scene lớn lên, tách factory thực thể và controller trong `game/`, giữ ownership rõ ràng. Một tài nguyên có một nơi chịu trách nhiệm dispose; vật thể phải dọn physics body trước mesh. Các mesh dùng chung material do scene sở hữu. Scene mẫu giới hạn 32 khối để tránh tích tụ body/mesh.
+Khi dev server chạy: `npm run test:ocean` kiểm tra desktop/mobile, tải asset, lỗi shader, chuyển động và nút đổi sóng. `npm run test:smoke` giữ kiểm tra Havok: khối rơi, va chạm nền, giới hạn body và dispose. Cần Chromium tại `/usr/bin/chromium` hoặc đặt `CHROMIUM_PATH`. `TEST_BASE_URL` chọn URL cho bài kiểm tra biển, bao gồm bản production/Pages; kiểm tra Havok cần Vite dev server để import module.
 
-Vật lý dùng timestep của HavokPlugin và trọng lực theo đơn vị mét/giây. Khi thêm điều khiển nhân vật, đưa lực/vận tốc vào bước vật lý; không tự dịch chuyển dynamic body theo render frame. Tách simulation khỏi input và rendering khi có gameplay thực tế. Không tối ưu bằng framework trừu tượng trước khi đo.
+Kiểm tra trình duyệt dùng software WebGL không đại diện FPS điện thoại thật. Giới hạn độ phân giải render trên thiết bị DPI cao; vẫn cần đo trên thiết bị mục tiêu. Engine còn tạo cảnh báo bundle lớn.
 
-## Kiểm tra thủ công
+## Deploy GitHub Pages
 
-Mở game bằng trình duyệt hỗ trợ WebGL: 8 khối rơi, va chạm nhau và nằm trên nền. Nút thả khối tạo thêm body; kéo để xoay camera, cuộn để zoom. Kiểm tra console không lỗi, resize canvas đúng, HMR không nhân đôi vòng render. Bản mẫu chưa có nhân vật, luật thắng/thua, multiplayer hoặc điều khiển nhân vật trên mobile.
+Settings → Pages → Source: GitHub Actions. Push `main` tự build và deploy `dist`; có thể chạy workflow thủ công. Vite dùng base tương đối để asset hoạt động dưới project path.
 
-Build phát cảnh báo chunk lớn do engine 3D; WASM và engine tải một lần khi khởi động. Đo bundle và thời gian tải trên thiết bị mục tiêu trước khi quyết định chia chunk, nén asset hay chọn tính năng engine.
-
-## Kiểm tra tự động
-
-Khi `npm run dev` đang chạy, chạy `npm run test:smoke`. Yêu cầu Chromium tại `/usr/bin/chromium` hoặc đặt `CHROMIUM_PATH` đến trình duyệt đã cài. Bài kiểm tra dùng Chromium để nạp WebGL/WASM, thả khối qua UI, chạy 600 bước mô phỏng để xác nhận trọng lực và va chạm nền, kiểm tra giới hạn 32 khối và dispose scene. Không dùng trình duyệt tải từ CDN. Kiểm tra này chưa thay thế kiểm thử gameplay và thiết bị mobile thực tế.
-
-## GitHub Pages
-
-Trong repository GitHub, vào **Settings → Pages → Build and deployment → Source**, chọn **GitHub Actions**. Đưa source lên nhánh `main`; workflow `.github/workflows/pages.yml` sẽ cài dependency từ lockfile, build và deploy thư mục `dist`. Có thể chạy lại từ tab Actions bằng workflow_dispatch.
-
-URL mặc định sau khi deploy thành công: `https://vundu2309.github.io/web-g-3d/`. Vite dùng đường dẫn asset tương đối để JS và Havok WASM tải được dưới đường dẫn project. Không cần API key hay backend. Publish cloud environment không thay thế bước push source và deploy GitHub Pages.
+URL: https://vundu2309.github.io/web-g-3d/
