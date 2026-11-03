@@ -18,7 +18,7 @@ npm run check
 
 ## Online và bản thử
 
-Online dùng Firebase Email/Password Auth + Cloud Firestore `(default)` của project `movieapp-fa2d4`. Firestore đã được tạo; rules/index của hub cần áp dụng bằng quyền quản trị; deploy Pages không tự làm bước đó. Xem [hướng dẫn Firebase](docs/firebase.md).
+Online dùng Firebase Email/Password Auth + Cloud Firestore `(default)` của project `movieapp-fa2d4`. Firestore `(default)` đã được tạo và rules/index của hub được triển khai riêng qua CLI; deploy Pages không tự làm bước đó. Xem [hướng dẫn Firebase](docs/firebase.md).
 
 Chọn **Thử trên thiết bị này** để kiểm tra hub mà không ghi Firebase. Mở thêm tab cùng trình duyệt, chuyển tab đó sang bản thử rồi tham gia bằng mã. Chế độ này chỉ đồng bộ trên cùng thiết bị/trình duyệt, không phải multiplayer qua Internet. Giao diện luôn ghi “Bản thử”.
 

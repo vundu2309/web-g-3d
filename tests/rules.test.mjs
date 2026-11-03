@@ -71,6 +71,7 @@ try {
         createdAt: Timestamp.fromMillis(1),
       }),
     );
+    await assertSucceeds(getDoc(doc(unauth, "legacyMovieapp/sample")));
     let room = createRoom("host", "Minh", 2, "Bạn bè");
     const write = (db, data) =>
       setDoc(doc(db, path), {

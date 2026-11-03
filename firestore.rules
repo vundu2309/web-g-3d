@@ -33,6 +33,12 @@ service cloud.firestore {
         && preserveSlot(before,after,'0') && preserveSlot(before,after,'1') && preserveSlot(before,after,'2') && preserveSlot(before,after,'3')
         && (next == {} || (next.name == profileName(uid) && (old == {} ? before.status == 'waiting' && next.ready == false : next.name == old.name && next.seat == old.seat && (next.ready == old.ready || before.status == 'waiting'))));
     }
+    // Preserve the pre-existing Movieapp Test-mode access outside this hub.
+    // The former global wildcard must exclude monopolyHub or it would bypass its rules.
+    // This legacy allowance expires exactly when the original project rules expired.
+    match /{collection}/{document=**} {
+      allow read, write: if collection != 'monopolyHub' && request.time < timestamp.date(2026, 12, 3);
+    }
     match /monopolyHub/v1/profiles/{uid} {
       allow get: if owns(uid);
       allow create: if owns(uid) && validProfile(request.resource.data) && request.resource.data.createdAt == request.time;

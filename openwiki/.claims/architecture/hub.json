@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:88183ea51537e294f676bfdcc320c202f9bf7b1d28d944484ed18a6b2c1abb13",
+  "pageVersion": "sha256:bbf0a3cb822f85b064755170d71df6605d6cfeeb91fd972e45c085d4bd8a1995",
   "claims": [
     {
       "id": "claim_c48c88a21cf14dd39b37deb5ae6894ff",
@@ -50,11 +50,11 @@
       "evidence": [
         {
           "resource": "repo://firestore.rules",
-          "version": "repo-file-v1:sha256:335920352df48a782587270f25712c870da533473439fe94f878d4a87a498b10"
+          "version": "repo-file-v1:sha256:a029d209fe8ac2e6e7a160711e9dd7d6b6b8ef468401f0b53377e1019a908cc7"
         },
         {
           "resource": "repo://tests/rules.test.mjs",
-          "version": "repo-file-v1:sha256:4b626f6acbb8ca223fb87de9143fd33c3fc3dc1da31142774c398f3fdfa35a21"
+          "version": "repo-file-v1:sha256:a39e5db27fa780f071841cf4d99e24076213999db9ad28302a4a49f42aef954f"
         }
       ]
     },
@@ -68,7 +68,7 @@
         },
         {
           "resource": "repo://firestore.rules",
-          "version": "repo-file-v1:sha256:335920352df48a782587270f25712c870da533473439fe94f878d4a87a498b10"
+          "version": "repo-file-v1:sha256:a029d209fe8ac2e6e7a160711e9dd7d6b6b8ef468401f0b53377e1019a908cc7"
         },
         {
           "resource": "repo://src/platform/firebase.ts",
@@ -100,7 +100,7 @@
       "evidence": [
         {
           "resource": "repo://firestore.rules",
-          "version": "repo-file-v1:sha256:335920352df48a782587270f25712c870da533473439fe94f878d4a87a498b10"
+          "version": "repo-file-v1:sha256:a029d209fe8ac2e6e7a160711e9dd7d6b6b8ef468401f0b53377e1019a908cc7"
         },
         {
           "resource": "repo://src/platform/firebase.ts",
@@ -111,10 +111,24 @@
           "version": "repo-file-v1:sha256:dbac6dd713f4e174126965e9e92898f9856e3c3df18e51ce391fe810ee36a145"
         }
       ]
+    },
+    {
+      "id": "claim_cad48d26384541fcb72458b23c41d49e",
+      "statement": "Rules bảo vệ monopolyHub và bảo toàn allowance Test mode trước đó ở collection khác đến 2026-12-03; test xác nhận path legacy giữ quyền còn hub unauth bị từ chối.",
+      "evidence": [
+        {
+          "resource": "repo://firestore.rules",
+          "version": "repo-file-v1:sha256:a029d209fe8ac2e6e7a160711e9dd7d6b6b8ef468401f0b53377e1019a908cc7"
+        },
+        {
+          "resource": "repo://tests/rules.test.mjs",
+          "version": "repo-file-v1:sha256:a39e5db27fa780f071841cf4d99e24076213999db9ad28302a4a49f42aef954f"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T13:09:48.572Z"
+    "at": "2026-11-03T14:37:35.433Z"
   }
 }

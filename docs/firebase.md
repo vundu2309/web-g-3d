@@ -6,16 +6,16 @@ The web app targets project `movieapp-fa2d4`, web App ID ending `4d7072ef0a49352
 
 Firebase Auth Email/Password identifies players. The custom game forms register, log in/out, show/hide passwords and send reset emails. Own Firestore profiles contain only displayName and server-created timestamp; emails/passwords stay in Firebase Auth. Do not diagnose provider activation from an unrelated database failure.
 
-The default Firestore database has been created. A read-only request to a nonexistent hub room document returned HTTP 404, showing the Firestore document endpoint responds; this does not establish rule deployment, edition, private access controls or complete online functionality. The CLI cannot inspect database edition or deploy settings because no administrator login is available in this cloud. Target the existing native Firestore `(default)`; the modular document/query APIs are used for the hub's required realtime listeners. No Enterprise pipeline feature is assumed.
+The default Firestore database has been created. A read-only request to a nonexistent hub room document returned HTTP 404, showing the Firestore document endpoint responds; this does not establish rule deployment, edition, private access controls or complete online functionality. Authorized CLI inspection confirmed the existing native Firestore `(default)` is STANDARD edition in nam5, with realtime updates enabled. Target this database; the modular document/query APIs are used for the hub's required realtime listeners. No Enterprise pipeline feature is assumed.
 
 GitHub Pages deploys only frontend assets. It does not deploy Firestore rules/indexes or enable Auth providers. Do not claim the production backend is verified solely because emulator tests pass.
 
 ## Apply rules and index
 
-An authorized Firebase administrator must apply the reviewed configuration before real online play:
+Deploy rules/indexes with an authorized Firebase administrator identity before real online play:
 
 1. In [Cloud Firestore](https://console.firebase.google.com/project/movieapp-fa2d4/firestore), select `(default)`.
-2. Review existing rules. Merge the `/monopolyHub/v1/profiles/{uid}` and `/monopolyHub/v1/rooms/{code}` matches and helper functions from `firestore.rules`, preserving all unrelated Movieapp permissions and data. If this database is dedicated to this hub, the standalone deny-by-default file may be used as a whole. Never use open test-mode rules to mask configuration errors.
+2. Review existing rules. Merge the `/monopolyHub/v1/profiles/{uid}` and `/monopolyHub/v1/rooms/{code}` matches and helper functions from `firestore.rules`, preserving all unrelated Movieapp permissions and data. The current file preserves the original outside-hub Test-mode allowance until 2026-12-03, while explicitly excluding monopolyHub from that wildcard. This keeps unrelated Movieapp behavior unchanged and prevents the legacy allow from bypassing hub protection. Never use open test-mode rules to mask configuration errors.
 3. Create the collection-scope composite index in `firestore.indexes.json`: collection `rooms`, `status` ascending, `createdAt` descending. Wait for it to become ready. It supports the waiting-room directory ordered newest first.
 4. With a properly authorized Firebase CLI and reviewed project rules, `npx --no-install firebase deploy --only firestore:rules,firestore:indexes --project movieapp-fa2d4` deploys these files. Run it only after preserving other application's rules, not blindly using the current file over a shared backend.
 5. Test on two separate devices: registration/login, create a named room, find the host/title in the directory, join, toggle ready, refresh, then close/leave. Verify wrong passwords and full/unready rooms fail. Keep live verification separate from emulator evidence.

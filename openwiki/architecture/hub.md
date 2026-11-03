@@ -5,7 +5,7 @@ description: Luồng giao diện mobile, luật phòng thuần, adapter bản th
 tags: [hub, rooms, mobile, firebase, architecture]
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T13:09:48.572Z
+    at: 2026-11-03T14:37:35.433Z
 sources:
   - id: openwiki-source-8acf8e92f9f7b465d02fa04b
     resource: repo://firestore.indexes.json
@@ -29,7 +29,7 @@ sources:
     resource: repo://src/platform/profile.ts
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-03T13:09:48.572Z" }
+generated: { by: "codex", at: "2026-11-03T14:37:35.433Z" }
 ---
 
 # Kiến trúc hub và đồng bộ phòng
@@ -66,3 +66,8 @@ Public Firebase config không có quyền quản trị. Backend hiện cần đ�
 ## Kiểm chứng tài khoản
 
 DEV-only emulator mode yêu cầu `import.meta.env.DEV` và cờ riêng; production không kích hoạt được nó. Runner mở Auth/Firestore emulators và Vite riêng. Hai browser contexts đăng ký/đăng nhập bằng SDK thật, đồng bộ own profile, tạo/tìm/tham gia phòng theo tên và kiểm tra reload/logout. Các test chặn request đến production Firebase. Build Pages không áp dụng Firestore rules/index và public app config không cấp quyền quản trị.
+
+
+## Bảo toàn quyền ngoài hub
+
+Rules triển khai bảo vệ riêng monopolyHub. Project trước đó có Test-mode wildcard hết hạn 2026-12-03; phần ngoài hub giữ đúng allowance cũ, nhưng wildcard mới loại trừ monopolyHub để không vượt các điều kiện Auth/schema. Không được chép lại wildcard toàn cục vì Firestore ghép các allow theo OR. Rules hiện là prototype đã qua kiểm tra emulator, không thay thế review trước phát hành rộng.

@@ -22,10 +22,10 @@ sources:
     resource: repo://tests/hub-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-03T13:09:48.572Z" }
+generated: { by: "codex", at: "2026-11-03T14:37:35.433Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T13:09:48.572Z
+    at: 2026-11-03T14:37:35.433Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -61,3 +61,6 @@ Pages chỉ publish frontend. Firebase backend cần Email/Password Auth, Firest
 MCP OpenWiki chạy qua `npx --no-install` trong `.codex/config.toml`; công cụ và dependency thuộc dev, không được nhập vào game. Cập nhật wiki qua lifecycle sau khi source ổn định; OpenWiki quản lý Claims/index/provenance. Không hand-edit các metadata đó hay tự gọi paid model. `npm run wiki:serve` mở reader local; `npm run wiki:export` xuất reader ignored, không tự deploy lên Pages.
 
 [Kiến trúc hub](../architecture/hub.md) · [Bắt đầu](../quickstart.md).
+
+
+Trước deploy backend phải đọc rules đang release và index hiện có. File hiện tại giữ allowance cũ ngoài monopolyHub và loại trừ hub khỏi wildcard; test regression xác nhận phần này. CLI phải có danh tính đã xác thực, không suy ra quyền admin từ public app config. Đối chiếu remote rules với file đã test và chờ index READY trước khi kết luận backend đã sẵn sàng.
