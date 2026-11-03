@@ -1,0 +1,7 @@
+:root { font-family: system-ui, sans-serif; color: #e8fff8; background: #090e19; }
+body { margin: 0; }
+#game { display: block; width: 100vw; height: 100dvh; touch-action: none; outline: none; }
+aside { position: fixed; top: 20px; left: 20px; right: 20px; max-width: 330px; padding: 20px; background: #101d2deb; border: 1px solid #365264; border-radius: 16px; }
+strong { font-size: 22px; } p { font-size: 13px; color: #b3c9d1; }
+button { padding: 12px 18px; border: 0; border-radius: 8px; background: #40d9ae; color: #072c23; font-weight: 700; cursor: pointer; }
+button:disabled { opacity: .5; cursor: wait; }
