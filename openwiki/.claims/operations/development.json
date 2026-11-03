@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:b06415c81d4495eeb7654e1b59b8ed676ecd761d33001ba95332ec6b724f76e9",
+  "pageVersion": "sha256:6a68297c69c6ef3f11c04387ea4d303fdfbfe6847eeabab0cd7b908edc8cf0ec",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -168,17 +168,17 @@
         },
         {
           "resource": "repo://docs/game/plans/01-rules.md",
-          "version": "repo-file-v1:sha256:88d382b34d893775409f57a2603c43206e877f9900ee054e74b362fd2512367a"
+          "version": "repo-file-v1:sha256:5a679e5d645e9ec690dcbc795280ddd2c2734da3d3a7c4b59b48c677216fdcdc"
         },
         {
           "resource": "repo://docs/game/rules/sources.md",
-          "version": "repo-file-v1:sha256:ed83e04bdc9168a5e7209dd7b7cd63ffddfcf00d98813a402533096e16324dc6"
+          "version": "repo-file-v1:sha256:4c3063916bd9f81d59b593bb7e2fdf585c13526754b9af78f96d20a1a6c3e0c6"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T17:06:15.948Z"
+    "at": "2026-11-03T17:13:29.061Z"
   }
 }

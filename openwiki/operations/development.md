@@ -37,7 +37,7 @@ sources:
 generated: { by: "codex", at: "2026-11-03T16:50:23.899Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T17:06:15.948Z
+    at: 2026-11-03T17:13:29.061Z
 ---
 
 # Phát triển mobile, kiểm tra và publish

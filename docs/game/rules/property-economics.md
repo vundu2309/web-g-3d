@@ -50,7 +50,16 @@
 | Vermont Avenue | Giá mua 100 | Cùng hình light-blue |
 | Connecticut Avenue | Giá mua 120 | Cùng hình light-blue |
 
-Các trường khác của các tài sản trên vẫn nháp S-004. Ví dụ xác minh rent của Kentucky không tự xác minh giá mua/mortgage của Kentucky. Không truyền xác minh sang đất cùng nhóm hoặc cùng giá.
+### Bằng chứng bổ sung từ ảnh thẻ 2025 (nguồn thứ cấp)
+
+| Nguồn | Tài sản | Số đọc trực tiếp | Giới hạn |
+| --- | --- | --- | --- |
+| S-005 | Vermont Avenue | Rent 6/12/30/90/270/400/550; nhà/KS 50 | Ảnh in copyright 2025; chưa có hộp/mã G0009 |
+| S-005 | Rhode Island Avenue | Mortgage 50; unmortgage 55 | Chỉ thấy mặt sau, không xác minh rent/giá xây |
+| S-006 | Short Line | Mortgage 100; unmortgage 110 | Listing ghi 2025, chưa có hộp/mã G0009 |
+| S-007 | Mediterranean Avenue | Rent 2/4/10/30/90/160/250; nhà/KS 50 | Rent khớp S-002; ảnh in copyright 2025, mã thẻ 4140D1254000020; chưa có hộp/mã G0009 |
+
+Các số này được đọc từ ảnh, không phải suy từ công thức. Mức xác minh là **ảnh thẻ 2025 nguồn thứ cấp**, chưa nâng thành đối chiếu đầy đủ G0009. Các trường khác của các tài sản trên vẫn nháp S-004. Ví dụ xác minh rent của Kentucky không tự xác minh giá mua/mortgage của Kentucky. Không truyền xác minh sang đất cùng nhóm hoặc cùng giá.
 
 **Khác biệt edition cần giữ:** S-004 dùng Oriental Avenue, còn G0009 S-002 minh họa Rhode Island Avenue. Chỉ giữ giá mua 100 đã thấy ở G0009; không sao chép rent/giá xây từ Oriental sang Rhode Island. S-004 cũng cảnh báo Marvin Gardens có rent trống khác giữa các edition; giá 24/48 ở đây chỉ là nháp, không được chốt theo trí nhớ.
 
@@ -61,7 +70,7 @@ Các trường khác của các tài sản trên vẫn nháp S-004. Ví dụ xá
 | 5 | Reading Railroad | 200 | — / — |
 | 15 | Pennsylvania Railroad | 200 | — / — |
 | 25 | B. & O. Railroad | 200 | — / — |
-| 35 | Short Line | 200 | — / — |
+| 35 | Short Line | 200 | 100 / 110 (ảnh S-006; còn chờ đối chiếu G0009) |
 
 **Đã xác minh S-002 trang 2 / Railroads:** sở hữu 1/2/3/4 railroad → mức thuê lần lượt **25/50/100/200** trong trường hợp thông thường. Giá mua/tên chi tiết/mặt sau từng thẻ vẫn cần S-003. Không xây nhà/khách sạn trên railroad; không ghi giá xây 0 vì đó là hành động không áp dụng. Thẻ di chuyển đến railroad có thể quy định mức thuê khác; chưa mở phần thẻ.
 
@@ -76,7 +85,7 @@ Các trường khác của các tài sản trên vẫn nháp S-004. Ví dụ xá
 
 ## US-ECON-004 — Thế chấp và giải chấp
 
-**Chưa xác minh đầy đủ toàn bộ 28 tài sản.** Đã tìm thấy ảnh mặt sau Rhode Island Avenue ở nguồn thứ cấp S-005: thế chấp **50**, giải chấp **55**. Đây là số đọc trực tiếp từ ảnh listing ghi 2025; chưa có hộp/mã G0009 để đối chiếu độc lập. Các tài sản khác và mặt trước Rhode Island vẫn chưa đủ bằng chứng. S-002 / Mortgaging Property yêu cầu đọc mortgage value ở mặt sau thẻ, trả unmortgage cost ghi trên thẻ. Chưa có đủ mặt sau nên để unresolved; không tạo bảng nửa-giá-mua hoặc công thức 10% giả định. Việc không có giá trị là blocker cho implementation kinh tế, không làm hành động thành miễn phí.
+**Chưa xác minh đầy đủ toàn bộ 28 tài sản.** Đã tìm thấy ảnh mặt sau Rhode Island Avenue ở nguồn thứ cấp S-005: thế chấp **50**, giải chấp **55**. Đây là số đọc trực tiếp từ ảnh listing ghi 2025; chưa có hộp/mã G0009 để đối chiếu độc lập. S-006 cũng có Short Line 100/110. Các tài sản còn lại và mặt trước Rhode Island vẫn chưa đủ bằng chứng. S-002 / Mortgaging Property yêu cầu đọc mortgage value ở mặt sau thẻ, trả unmortgage cost ghi trên thẻ. Chưa có đủ mặt sau nên để unresolved; không tạo bảng nửa-giá-mua hoặc công thức 10% giả định. Việc không có giá trị là blocker cho implementation kinh tế, không làm hành động thành miễn phí.
 
 ## Tình huống kiểm chứng đặc tả
 

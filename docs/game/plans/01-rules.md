@@ -50,3 +50,7 @@ Giao diện game, ảnh mới, thay hub/Firebase, model runtime, backend, server
 ## Bổ sung nguồn ảnh 2025
 
 S-005 có ảnh mặt sau Rhode Island Avenue: mortgage 50, unmortgage 55. Chưa có mặt trước và hộp/mã G0009 nên vẫn cần đối chiếu edition; không suy rent từ Vermont trong cùng ảnh. Đây là tiến triển bằng chứng của 01A.2, chưa hoàn thành toàn bảng.
+
+## Bổ sung ảnh thẻ 2025 lần tiếp theo
+
+S-006 bổ sung mặt sau Short Line 100/110; S-007 bổ sung giá nhà/KS Mediterranean 50 và rent khớp S-002. Đã đưa các trường đọc được ở S-005/S-006/S-007 vào ma trận nguồn thay vì để lẫn số nháp Wikibooks. Mặt trước Rhode Island chưa thấy; trang item eBay trả kiểm tra tự động, endpoint mô tả trả HTTP 410, nên không tuyên bố đã xem được gallery đầy đủ. Các ảnh công khai được lưu hash trong sổ nguồn.

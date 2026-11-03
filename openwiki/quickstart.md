@@ -40,10 +40,10 @@ sources:
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
     resource: repo://src/platform/firestore-client.ts
-generated: { by: "codex", at: "2026-11-03T17:06:15.948Z" }
+generated: { by: "codex", at: "2026-11-03T17:13:29.061Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T17:06:15.948Z
+    at: 2026-11-03T17:13:29.061Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
@@ -82,7 +82,7 @@ Dùng [hướng dẫn đo thời gian](../docs/diagnostics.md) và [vận hành]
 
 ## Giá tài sản và đối chiếu edition
 
-[Bảng kinh tế 01A.2](../docs/game/rules/property-economics.md) liệt kê 28 tài sản, nhưng chưa là config runtime hoặc bảng đã duyệt. Từng trường xác minh trực tiếp từ G0009 S-002 được phân biệt với số nháp từ Wikibooks S-004. Hình rulebook G0009 ghi Rhode Island Avenue, khác Oriental Avenue trong nguồn tham khảo; không tự sao chép rent giữa hai tên. Ảnh nguồn thứ cấp S-005 đã cho mặt sau Rhode Island ghi mortgage 50, unmortgage 55; chưa có hộp/mã G0009 để xác minh edition độc lập. Mortgage các tài sản khác và rent/giá xây Rhode Island vẫn thiếu. Không coi đủ 28 hàng là đã hoàn thành Plan 01A.
+[Bảng kinh tế 01A.2](../docs/game/rules/property-economics.md) liệt kê 28 tài sản, nhưng chưa là config runtime hoặc bảng đã duyệt. Từng trường xác minh trực tiếp từ G0009 S-002 được phân biệt với số nháp từ Wikibooks S-004. Hình rulebook G0009 ghi Rhode Island Avenue, khác Oriental Avenue trong nguồn tham khảo; không tự sao chép rent giữa hai tên. Ảnh nguồn thứ cấp S-005 đã cho mặt sau Rhode Island ghi mortgage 50, unmortgage 55; chưa có hộp/mã G0009 để xác minh edition độc lập. S-006 bổ sung Short Line 100/110, S-007 bổ sung giá nhà/KS Mediterranean 50 và rent khớp S-002. Mortgage còn lại và rent/giá xây Rhode Island vẫn thiếu. Các ảnh bán lại chưa chứng minh mã G0009; sổ nguồn ghi hash ảnh. Không coi đủ 28 hàng là đã hoàn thành Plan 01A.
 
 ## Điều kiện áp dụng giá và tiền thuê
 

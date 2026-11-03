@@ -58,3 +58,23 @@ Trang Hasbro en-us cho mã **C1009** hiện liên kết `C1009780B_INST_MN_CLASS
 Ảnh cho thấy mặt sau **RHODE ISLAND AVENUE**, ghi **MORTGAGE VALUE 50**, **TO UNMORTGAGE, PAY 55**. Đây là số đọc trực tiếp, không suy công thức từ giá mua. Mặt trước Vermont Avenue trong cùng ảnh ghi copyright 1935, 2025 HASBRO, rent 6/12/30/90/270/400/550 và giá nhà/khách sạn 50. Không nhầm rent Vermont với Rhode Island bị che mặt trước.
 
 Giới hạn: chưa thấy hộp/mã G0009 trong ảnh, nên chỉ xác minh nội dung ảnh của listing ghi 2025, không coi toàn bộ listing là xác nhận edition độc lập. Trang chi tiết hiện trả trang kiểm tra tự động; ảnh public và kết quả tìm kiếm đọc được. Chưa xem được ảnh mặt trước Rhode Island. Không dùng ảnh này để chốt mọi mortgage khác hoặc suy quy tắc lãi chung.
+
+## S-006 — Ảnh mặt sau Short Line, listing ghi 2025
+
+[Listing eBay 267483185422](https://www.ebay.com/itm/267483185422), tiêu đề từ trang kết quả: “Monopoly Game Complete Set Property Title Deed Cards - New Sealed - 2025”. [Ảnh gốc](https://i.ebayimg.com/images/g/WnoAAeSwULxpH2nX/s-l1600.jpg), đọc 2026-11-03.
+
+Mặt sau **SHORT LINE** ghi rõ mortgage value **100**, unmortgage **110**. Không suy tiền cho ba railroad còn lại. Đây là nguồn bán lại, chưa thấy hộp/mã G0009 trong ảnh; xác minh nội dung ảnh, chưa xác minh độc lập toàn bộ edition.
+
+## S-007 — Ảnh mặt trước Mediterranean Avenue, copyright 2025
+
+[Listing eBay 257232447514](https://www.ebay.com/itm/257232447514), tiêu đề từ trang kết quả: “2025 Monopoly Property Title Deed Cards Complete Set - Game Replacement Parts”. [Ảnh gốc](https://i.ebayimg.com/images/g/ncMAAeSwMIJpKL00/s-l1600.jpg), đọc 2026-11-03.
+
+Mặt trước **MEDITERRANEAN AVENUE** đọc được rent **2/4/10/30/90/160/250**, houses cost **50 each**, hotels cost **50 each (plus 4 houses)**. Thẻ in **©1935, 2025 HASBRO**, mã **4140D1254000020**. Tiền thuê khớp hình trong S-002; phần giá xây mà S-002 bị che nay có ảnh đọc được từ nguồn thứ cấp. Chưa thấy hộp/mã G0009, không tự xác minh phần thẻ bị chồng hoặc mặt sau.
+
+### Hash ảnh đã đọc
+
+Hash giúp nhận diện đúng ảnh nếu nội dung URL đổi; không biến nguồn bán lại thành nguồn Hasbro chính thức.
+
+- S-005, SHA-256: `01f98c2d2e6ce3eddbbe87ec4b26470c433782f2b181f56905e35325b5b7c49b`.
+- S-006, SHA-256: `5031e43c427626ebb912db8014a8ed73cd96781e3946549038d2a4c6096cc35f`.
+- S-007, SHA-256: `456313580a87ed2110402e7906efb0411b5e00ed6de565428348db494e454b21`.
