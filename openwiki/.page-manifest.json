@@ -2,25 +2,25 @@
   "schemaVersion": 1,
   "pages": {
     "/openwiki/architecture/hub.md": {
-      "gitHead": "4c93b1a1f7f0fd4cb5fb3a675cd9a9e717d88162",
-      "sourceFingerprint": "sha256:9fd6f65fca5a0089c94663dfdb387f9dfb3c75413d90351007f618ffd15e1d0f",
-      "pageVersion": "sha256:bbf0a3cb822f85b064755170d71df6605d6cfeeb91fd972e45c085d4bd8a1995",
+      "pageVersion": "sha256:35ccd25760f51bea98c4405f0ed9f509ef9edd7b232ba98b9d4262799f622af1",
       "completedBy": "codex",
-      "completedRunId": "cf31eb9d-e40d-408f-ae97-fed159a607a5"
+      "completedRunId": "677e514e-05e8-42de-aaee-af2ba049994b",
+      "gitHead": "fff090f6b0510431dc2611a707fcc1b0f94a9125",
+      "sourceFingerprint": "sha256:c7a9ded466066c7a6d12e186ec075586185c6b15b96c2ebade99da3eecd36cdb"
     },
     "/openwiki/operations/development.md": {
-      "pageVersion": "sha256:680ab2d2036fc3644584ad4e32e3bc305ab6ac4ea5f90cfe1e5b94b18762f4d8",
+      "pageVersion": "sha256:77c2775710f36ac216ed5fe2842c1fad79094d871902a765cc16b58db5b504d8",
       "completedBy": "codex",
-      "completedRunId": "5e556bda-611d-4bde-b96a-f36e860a9735",
-      "gitHead": "28c6a0da3ea05f2ff4876c145af599c076e8f1fd",
-      "sourceFingerprint": "sha256:a9c4b8034a9b25989333bac06308c92828d5d9484d2a94efa310ec1d2970f790"
+      "completedRunId": "677e514e-05e8-42de-aaee-af2ba049994b",
+      "gitHead": "fff090f6b0510431dc2611a707fcc1b0f94a9125",
+      "sourceFingerprint": "sha256:c7a9ded466066c7a6d12e186ec075586185c6b15b96c2ebade99da3eecd36cdb"
     },
     "/openwiki/quickstart.md": {
-      "gitHead": "bec59b627ed6a356d820f86425101680331993ce",
-      "sourceFingerprint": "sha256:02b406574a7d1cbcf1cb45d3e54b84478717f93e9973411df7e02209268c63e7",
-      "pageVersion": "sha256:407d6dcd83efb9ca38833ee3a64aadf517bffca405fe7068e3a801b193e2c92f",
+      "pageVersion": "sha256:132b7cb648c0012b5776a303389ff2f48ecc671e25246dec98ef8393b5542e0b",
       "completedBy": "codex",
-      "completedRunId": "d8d47655-7553-4fa0-86d5-9a19aecdf741"
+      "completedRunId": "677e514e-05e8-42de-aaee-af2ba049994b",
+      "gitHead": "fff090f6b0510431dc2611a707fcc1b0f94a9125",
+      "sourceFingerprint": "sha256:c7a9ded466066c7a6d12e186ec075586185c6b15b96c2ebade99da3eecd36cdb"
     }
   }
 }

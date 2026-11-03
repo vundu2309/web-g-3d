@@ -69,6 +69,16 @@ try {
   await host.getByRole("heading", { name: "Phòng chờ", exact: true }).waitFor();
   const guest = await player();
   await register(guest, "Lan", "lan@example.test");
+  // Directory reads must not depend on an own-profile transaction. Deliberately
+  // block document batch reads until the room list is visible.
+  let blockedProfileReads = 0;
+  let blockProfileReads = true;
+  const blockProfile = (route) => {
+    blockedProfileReads++;
+    return blockProfileReads ? route.abort() : route.continue();
+  };
+  await guest.context().route("**/documents:batchGet**", blockProfile);
+
   await guest
     .getByRole("button", { name: "Tham gia phòng", exact: true })
     .click();
@@ -76,11 +86,23 @@ try {
     .getByRole("heading", { name: "Hội bạn cuối tuần", exact: true })
     .waitFor();
   await guest.getByText("Chủ phòng: Minh", { exact: true }).waitFor();
+  assert.equal(
+    blockedProfileReads,
+    0,
+    "room directory does not wait for profile document reads",
+  );
+  blockProfileReads = false;
+
   await guest.screenshot({ path: "test-results/rooms-online-emulator.png" });
   await guest
     .locator(".room-row")
     .getByRole("button", { name: "Vào phòng", exact: true })
     .click();
+  await guest.getByRole("button", { name: "Sẵn sàng", exact: true }).waitFor();
+  assert.ok(
+    blockedProfileReads > 0,
+    "profile/room transaction reads use the intercepted transport after selecting a room",
+  );
   await guest.getByRole("button", { name: "Sẵn sàng", exact: true }).click();
   await host.waitForFunction(
     () => !document.querySelector('[data-action="start"]').disabled,

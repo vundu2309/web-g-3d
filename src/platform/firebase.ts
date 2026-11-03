@@ -23,14 +23,27 @@ function readRoom(data: DocumentData): Room {
   return { ...data, createdAt: data.createdAt.toMillis() } as Room;
 }
 export async function createFirebaseStore(): Promise<RoomStore> {
-  const { user, displayName } = await syncPlayerProfile();
+  const user = await currentPlayer();
+  if (!user) throw new HubError("Hãy đăng nhập để chơi online.");
+  const uid = user.uid;
+  let active = true;
+  let profile: ReturnType<typeof syncPlayerProfile> | undefined;
+  async function ensureProfile() {
+    profile ??= syncPlayerProfile();
+    try {
+      return await profile;
+    } catch (error) {
+      profile = undefined;
+      throw error;
+    }
+  }
   const reference = (code: string) =>
     doc(playerDatabase, "monopolyHub/v1/rooms", code);
   async function transact(
     code: string,
     change: (room: Room | null) => Room | null,
   ) {
-    if ((await currentPlayer())?.uid !== user.uid)
+    if (!active || (await currentPlayer())?.uid !== uid)
       throw new HubError("Hãy đăng nhập lại.");
     await runTransaction(
       playerDatabase,
@@ -53,14 +66,15 @@ export async function createFirebaseStore(): Promise<RoomStore> {
     );
   }
   return {
-    uid: user.uid,
+    uid,
     async create(_name, capacity, title) {
+      const { displayName } = await ensureProfile();
       for (let attempt = 0; attempt < 5; attempt++) {
         const code = generateCode();
         try {
           await transact(code, (room) => {
             if (room) throw new HubError("code-collision");
-            return createRoom(user.uid, displayName, capacity, title);
+            return createRoom(uid, displayName, capacity, title);
           });
           return code;
         } catch (error) {
@@ -73,10 +87,12 @@ export async function createFirebaseStore(): Promise<RoomStore> {
       }
       throw new HubError("Không tạo được mã phòng. Hãy thử lại.");
     },
-    join: (code) =>
-      transact(code, (room) =>
-        applyCommand(room, { type: "join", uid: user.uid, name: displayName }),
-      ),
+    async join(code) {
+      const { displayName } = await ensureProfile();
+      await transact(code, (room) =>
+        applyCommand(room, { type: "join", uid, name: displayName }),
+      );
+    },
     command: (code, command) =>
       transact(code, (room) => applyCommand(room, command)),
     watch: (code, update, error) =>
@@ -113,6 +129,8 @@ export async function createFirebaseStore(): Promise<RoomStore> {
         },
         error,
       ),
-    dispose() {},
+    dispose() {
+      active = false;
+    },
   };
 }

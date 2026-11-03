@@ -24,10 +24,10 @@ sources:
     resource: repo://tests/hub-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-03T14:44:11.949Z" }
+generated: { by: "codex", at: "2026-11-03T14:57:42.153Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T14:44:11.949Z
+    at: 2026-11-03T14:57:42.153Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -69,3 +69,6 @@ Trước deploy backend phải đọc rules đang release và index hiện có. 
 
 
 Form tài khoản trên điện thoại ngang dùng bố cục compact; test Auth browser xác nhận nút đăng ký nằm trong khung dialog khi chưa mở bàn phím. Dialog vẫn cho cuộn khi viewport bị thu nhỏ bởi bàn phím.
+
+
+Test Auth browser chặn RPC documents:batchGet trước khi mở directory. Danh sách phòng vẫn phải xuất hiện mà không có document batch read; sau khi chọn phòng, test mở lại đường đọc và xác nhận interceptor thực sự nhận RPC trước khi join thành công. Đây là kiểm tra phụ thuộc API, không phải benchmark mạng production.

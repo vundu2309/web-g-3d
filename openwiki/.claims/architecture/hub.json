@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:bbf0a3cb822f85b064755170d71df6605d6cfeeb91fd972e45c085d4bd8a1995",
+  "pageVersion": "sha256:35ccd25760f51bea98c4405f0ed9f509ef9edd7b232ba98b9d4262799f622af1",
   "claims": [
     {
       "id": "claim_c48c88a21cf14dd39b37deb5ae6894ff",
@@ -18,7 +18,7 @@
       "evidence": [
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:a1fa63c9f335e07c933b11a6a3c5c543f21404a2020bbe8f93c4c660bdd83b8b"
+          "version": "repo-file-v1:sha256:213e84f4044352b9b5189c88bb95640e3759cc3370543a5d61260d538d3790ac"
         },
         {
           "resource": "repo://src/platform/firestore-client.ts",
@@ -72,7 +72,7 @@
         },
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:a1fa63c9f335e07c933b11a6a3c5c543f21404a2020bbe8f93c4c660bdd83b8b"
+          "version": "repo-file-v1:sha256:213e84f4044352b9b5189c88bb95640e3759cc3370543a5d61260d538d3790ac"
         }
       ]
     },
@@ -104,7 +104,7 @@
         },
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:a1fa63c9f335e07c933b11a6a3c5c543f21404a2020bbe8f93c4c660bdd83b8b"
+          "version": "repo-file-v1:sha256:213e84f4044352b9b5189c88bb95640e3759cc3370543a5d61260d538d3790ac"
         },
         {
           "resource": "repo://src/platform/profile.ts",
@@ -125,10 +125,20 @@
           "version": "repo-file-v1:sha256:a39e5db27fa780f071841cf4d99e24076213999db9ad28302a4a49f42aef954f"
         }
       ]
+    },
+    {
+      "id": "claim_c8ee127b54f649a0a64242baaaafa353",
+      "statement": "Directory và room-resume không chờ giao dịch profile; profile chỉ đồng bộ ở create/join, dùng lại trong store và có thể thử lại khi lỗi.",
+      "evidence": [
+        {
+          "resource": "repo://src/platform/firebase.ts",
+          "version": "repo-file-v1:sha256:213e84f4044352b9b5189c88bb95640e3759cc3370543a5d61260d538d3790ac"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T14:37:35.433Z"
+    "at": "2026-11-03T14:57:42.153Z"
   }
 }

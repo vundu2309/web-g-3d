@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:407d6dcd83efb9ca38833ee3a64aadf517bffca405fe7068e3a801b193e2c92f",
+  "pageVersion": "sha256:132b7cb648c0012b5776a303389ff2f48ecc671e25246dec98ef8393b5542e0b",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -64,7 +64,7 @@
         },
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:a1fa63c9f335e07c933b11a6a3c5c543f21404a2020bbe8f93c4c660bdd83b8b"
+          "version": "repo-file-v1:sha256:213e84f4044352b9b5189c88bb95640e3759cc3370543a5d61260d538d3790ac"
         },
         {
           "resource": "repo://src/platform/firestore-client.ts",
@@ -75,6 +75,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T13:09:48.572Z"
+    "at": "2026-11-03T14:57:42.153Z"
   }
 }
