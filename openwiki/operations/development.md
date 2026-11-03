@@ -20,14 +20,16 @@ sources:
     resource: repo://src/style.css
   - id: openwiki-source-d6f301bba4bff3a816376dbe
     resource: repo://tests/auth-browser.mjs
+  - id: openwiki-source-23d81adb7ef7cfcf251d7e3a
+    resource: repo://tests/diagnostics.test.mjs
   - id: openwiki-source-692b548971d3dc99c2c806f0
     resource: repo://tests/hub-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-03T15:06:37.643Z" }
+generated: { by: "codex", at: "2026-11-03T16:08:25.086Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T15:06:37.643Z
+    at: 2026-11-03T16:08:25.086Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -75,3 +77,9 @@ Test Auth browser chặn RPC documents:batchGet trước khi mở directory. Dan
 
 
 Luồng create/join đầu tiên gộp profile với room trong một commit; rules dùng getAfter cho profile mới trong cùng giao dịch. Test browser đếm RPC commit khi tạo phòng lần đầu và xác nhận đúng một commit chứa cả hai document. Giữ kiểm tra này khi tối ưu latency, không thay bằng một timeout ngắn hơn hay bỏ kiểm tra quyền.
+
+## Đo tạo/vào phòng trên máy gặp chậm
+
+Mở Pages với `?diagnostics=1`, tạo hoặc tham gia phòng, rồi chọn **Chẩn đoán thời gian → Sao chép kết quả**. Bảng lưu tối đa năm thao tác trong RAM, không tự gửi dữ liệu và không ghi danh tính hay mã phòng. Reload xóa kết quả. Đo bắt đầu sau validation/chọn phòng, kết thúc sau snapshot đầu và hai animation frames; login ban đầu nằm ngoài phạm vi. Không cộng các dòng song song, không gán toàn bộ commit wait cho server hoặc kết luận vùng/billing là nguyên nhân khi chưa có phép đo. Token readiness có thêm getIdToken khi bật chẩn đoán.
+
+Unit tests kiểm tra thời gian chồng lấn, mã lỗi an toàn, retry, giới hạn samples và kết thúc bất biến. Browser Auth/Firestore emulator cố ý trì hoãn commit 200 ms và kiểm tra bảng nhận được độ trễ đó, đồng thời guest không bật cờ không có nút chẩn đoán. Đây là kiểm tra công cụ đo, không đo latency production. Xem [hướng dẫn đầy đủ](../../docs/diagnostics.md).

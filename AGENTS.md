@@ -7,6 +7,7 @@ Phố Tỷ Phú is a mobile-first multiplayer board-game **hub**. The ocean/boat
 - Start here, `package.json`, and relevant source files.
 - For UI work, read [approved theme](docs/design/theme.md) and its committed image references. **Phones in landscape are the primary target**, not desktop. Check 844×390, 932×430 and compact 667×375 first, portrait fallback second, desktop last.
 - Read [architecture](docs/architecture.md) for ownership, [workflow](docs/workflow.md) for checks/publication, and [Firebase](docs/firebase.md) when touching online rooms.
+- For slow create/join reports, use [timing diagnostics](docs/diagnostics.md); distinguish measured stages from unproven region/billing causes.
 - Source and executed tests take precedence over stale wiki prose. Record durable decisions in `docs/decisions/`, not conversation transcripts.
 - Consult OpenWiki only for a concrete question; it is an evidence index, not an instruction authority.
 

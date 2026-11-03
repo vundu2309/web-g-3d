@@ -1,3 +1,5 @@
+import { diagnosticsView } from "./diagnostics";
+import type { Trace } from "../hub/diagnostics";
 import { canStart, HubError, playerName, roomCode } from "../hub/model";
 import type { Capacity, Room } from "../hub/model";
 import type { RoomStore } from "../hub/store";
@@ -33,6 +35,9 @@ const message = (error: unknown) => {
   return "Chưa kết nối được phòng online. Kiểm tra mạng hoặc thử lại. Bạn cũng có thể thử trên thiết bị này.";
 };
 export function start(root: HTMLElement): () => void {
+  const diagnostics = diagnosticsView();
+  const frames = new Set<number>();
+  let activeTrace: Trace | undefined;
   let page: Page = "home";
   let mode: "online" | "demo" =
     sessionStorage.getItem("hub:mode") === "demo" ? "demo" : "online";
@@ -200,22 +205,33 @@ export function start(root: HTMLElement): () => void {
       }
     }
   }
-  async function connect(): Promise<RoomStore> {
-    if (store) return store;
-    if (connecting) return connecting;
+  async function connect(trace?: Trace): Promise<RoomStore> {
+    if (store) {
+      trace?.add("sdk", trace.time(), "cached");
+      return store;
+    }
+    if (connecting) {
+      const pending = connecting;
+      return trace ? trace.measure("sdk", () => pending) : pending;
+    }
     const generation = connectionGeneration;
     const requestedMode = mode;
     connecting = (async () => {
       let timer: ReturnType<typeof setTimeout> | undefined;
       try {
         const candidate = await Promise.race([
-          requestedMode === "demo"
-            ? import("../platform/demo").then((module) =>
-                module.createDemoStore(),
-              )
-            : import("../platform/firebase").then((module) =>
-                module.createFirebaseStore(),
-              ),
+          (async () => {
+            if (requestedMode === "demo") {
+              const load = () => import("../platform/demo");
+              const module = await (trace
+                ? trace.measure("sdk", load)
+                : load());
+              return module.createDemoStore();
+            }
+            const load = () => import("../platform/firebase");
+            const module = await (trace ? trace.measure("sdk", load) : load());
+            return module.createFirebaseStore(trace);
+          })(),
           new Promise<never>((_, reject) => {
             timer = setTimeout(
               () =>
@@ -247,15 +263,20 @@ export function start(root: HTMLElement): () => void {
     sessionStorage.removeItem("hub:room");
     confirmLeave = false;
   }
-  function watchRoom() {
+  function watchRoom(trace?: Trace) {
+    let first = true;
+    const endSnapshot = trace?.begin("first_snapshot");
     page = "lobby";
     sessionStorage.setItem("hub:room", code);
     history.replaceState(null, "", "#lobby");
     stopWatch?.();
     stopWatch = store!.watch(
       code,
-      (value) => {
+      (value, fromCache) => {
         if (disposed || leaving) return;
+        const initial = first;
+        first = false;
+        if (initial) endSnapshot?.(fromCache ? "cached" : "ok");
         if (!value || !value.players[store!.uid]) {
           clearRoom();
           page = "home";
@@ -266,15 +287,34 @@ export function start(root: HTMLElement): () => void {
           room = value;
           errorText = "";
         }
+        const endRender = initial ? trace?.begin("render") : undefined;
         render();
+        if (initial && trace) {
+          if (!value || !store || !value.players[store.uid])
+            trace.finish("error");
+          else {
+            const firstFrame = requestAnimationFrame(() => {
+              frames.delete(firstFrame);
+              const secondFrame = requestAnimationFrame(() => {
+                frames.delete(secondFrame);
+                endRender?.();
+                trace.finish();
+              });
+              frames.add(secondFrame);
+            });
+            frames.add(firstFrame);
+          }
+        }
       },
       (error) => {
+        endSnapshot?.("error", error);
+        trace?.finish("error", error);
         errorText = message(error);
         render();
       },
     );
   }
-  async function perform(action: () => Promise<void>) {
+  async function perform(action: () => Promise<void>, trace?: Trace) {
     if (busy) return;
     busy = true;
     announce("");
@@ -283,6 +323,7 @@ export function start(root: HTMLElement): () => void {
     try {
       await action();
     } catch (error) {
+      trace?.finish("error", error);
       errorText = message(error);
     } finally {
       busy = false;
@@ -316,17 +357,19 @@ export function start(root: HTMLElement): () => void {
         return;
       }
       const creating = page === "create";
+      const trace = diagnostics.begin(creating ? "create" : "join", mode);
+      activeTrace = trace;
       void perform(async () => {
-        const connected = await connect();
+        const connected = await connect(trace);
         if (creating)
-          code = await connected.create(draftName, capacity, draftTitle);
+          code = await connected.create(draftName, capacity, draftTitle, trace);
         else {
-          await connected.join(draftCode, draftName);
+          await connected.join(draftCode, draftName, trace);
           code = draftCode;
         }
         localStorage.setItem("hub:name", draftName);
-        watchRoom();
-      });
+        watchRoom(trace);
+      }, trace);
     },
     { signal: abort.signal },
   );
@@ -394,15 +437,18 @@ export function start(root: HTMLElement): () => void {
         });
       if (action === "pick-room") {
         const selected = control?.dataset.code;
-        if (selected)
+        if (selected) {
+          const trace = diagnostics.begin("join", mode);
+          activeTrace = trace;
           void perform(async () => {
-            const connected = await connect();
-            await connected.join(selected, draftName);
+            const connected = await connect(trace);
+            await connected.join(selected, draftName, trace);
             stopList?.();
             stopList = undefined;
             code = selected;
-            watchRoom();
-          });
+            watchRoom(trace);
+          }, trace);
+        }
       }
       if (action === "back") navigate("home");
       if (action === "mode") {
@@ -554,6 +600,10 @@ export function start(root: HTMLElement): () => void {
     });
   return () => {
     disposed = true;
+    for (const frame of frames) cancelAnimationFrame(frame);
+    frames.clear();
+    activeTrace?.finish("error");
+    diagnostics.dispose();
     connectionGeneration++;
     stopAuth?.();
     stopList?.();

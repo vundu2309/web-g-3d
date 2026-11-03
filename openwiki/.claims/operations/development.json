@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:68e07c3d3fe0470bc34e20cf924a0ea615d44a17ca8e3cf066fc0c367b3d3d29",
+  "pageVersion": "sha256:f36163e90b932044ca0acd7840030197866315b9b8d8caa4513dca69e4694dfc",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -38,7 +38,7 @@
       "evidence": [
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:32735293852d4f349b3fd634341b996a81c3a977ddc356b81b27983b6d362102"
+          "version": "repo-file-v1:sha256:adee6ae08a6539588124f4e0d682548897e4db4726ec981e7e4be45c713119c1"
         },
         {
           "resource": "repo://scripts/test-browser.mjs",
@@ -56,7 +56,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:7b3826dbc72bc5d36feb3864580d15dd9354f5f591c3689aa5c92fad11c2aff7"
+          "version": "repo-file-v1:sha256:0c858868db94dadb0d9093363ed4a7921ef46f34b3ffe1967ea282ae290555f3"
         }
       ]
     },
@@ -94,7 +94,7 @@
         },
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:2a1421c48cee0c643ece364f5f9a635fd99ca0f5e78df3263d215fc4624fad2c"
+          "version": "repo-file-v1:sha256:1c918eaa97387910edeb9f42361f107a7d5408c76f998058f62150e03f4545fc"
         }
       ]
     },
@@ -104,11 +104,11 @@
       "evidence": [
         {
           "resource": "repo://src/style.css",
-          "version": "repo-file-v1:sha256:18f8e2ee2d0fc3e417b954669b6374e184612020fdda057d7866c49b785b0bac"
+          "version": "repo-file-v1:sha256:227a7d27409ff4d3ebc26a550d56137ffbc8836d2564b88e7dca1edd6cff76f8"
         },
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:2a1421c48cee0c643ece364f5f9a635fd99ca0f5e78df3263d215fc4624fad2c"
+          "version": "repo-file-v1:sha256:1c918eaa97387910edeb9f42361f107a7d5408c76f998058f62150e03f4545fc"
         }
       ]
     },
@@ -118,7 +118,7 @@
       "evidence": [
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:2a1421c48cee0c643ece364f5f9a635fd99ca0f5e78df3263d215fc4624fad2c"
+          "version": "repo-file-v1:sha256:1c918eaa97387910edeb9f42361f107a7d5408c76f998058f62150e03f4545fc"
         }
       ]
     },
@@ -128,13 +128,27 @@
       "evidence": [
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:2a1421c48cee0c643ece364f5f9a635fd99ca0f5e78df3263d215fc4624fad2c"
+          "version": "repo-file-v1:sha256:1c918eaa97387910edeb9f42361f107a7d5408c76f998058f62150e03f4545fc"
+        }
+      ]
+    },
+    {
+      "id": "claim_813fc4d7e5af4e2faf0b930a5f0bd27b",
+      "statement": "Kiểm tra chẩn đoán gồm unit test và browser emulator trì hoãn commit 200 ms để xác nhận timing; không là số đo production.",
+      "evidence": [
+        {
+          "resource": "repo://tests/auth-browser.mjs",
+          "version": "repo-file-v1:sha256:1c918eaa97387910edeb9f42361f107a7d5408c76f998058f62150e03f4545fc"
+        },
+        {
+          "resource": "repo://tests/diagnostics.test.mjs",
+          "version": "repo-file-v1:sha256:1d952e78adc130004f47ea828441b8976ddaa7215d1449f8d9da3c629ba549c1"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T15:06:37.643Z"
+    "at": "2026-11-03T16:08:25.086Z"
   }
 }

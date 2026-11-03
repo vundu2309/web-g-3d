@@ -1,3 +1,4 @@
+import type { Trace } from "../hub/diagnostics";
 import {
   collection,
   doc,
@@ -22,8 +23,10 @@ function readRoom(data: DocumentData): Room {
     throw new HubError("Dữ liệu phòng không hợp lệ. Hãy tạo phòng mới.");
   return { ...data, createdAt: data.createdAt.toMillis() } as Room;
 }
-export async function createFirebaseStore(): Promise<RoomStore> {
-  const user = await currentPlayer();
+export async function createFirebaseStore(trace?: Trace): Promise<RoomStore> {
+  const user = await (trace
+    ? trace.measure("session", currentPlayer)
+    : currentPlayer());
   if (!user) throw new HubError("Hãy đăng nhập để chơi online.");
   const uid = user.uid;
   let active = true;
@@ -34,52 +37,99 @@ export async function createFirebaseStore(): Promise<RoomStore> {
     code: string,
     change: (room: Room | null, displayName: string) => Room | null,
     synchronizeProfile = false,
+    trace?: Trace,
   ) {
-    const actor = await currentPlayer();
+    const actor = await (trace
+      ? trace.measure("session", currentPlayer)
+      : currentPlayer());
+    if (trace && actor) await trace.measure("token", () => actor.getIdToken());
     if (!active || actor?.uid !== uid) throw new HubError("Hãy đăng nhập lại.");
     const needsProfileRead =
       synchronizeProfile &&
       (!knownProfileName ||
         (actor.displayName && actor.displayName !== knownProfileName));
-    const name = await runTransaction(
-      playerDatabase,
-      async (transaction) => {
-        const target = reference(code);
-        const profileRef = doc(playerDatabase, "monopolyHub/v1/profiles", uid);
-        // All reads precede writes; independent reads share the same network wait.
-        const [snapshot, profile] = await Promise.all([
-          transaction.get(target),
-          needsProfileRead ? transaction.get(profileRef) : undefined,
-        ]);
-        if (!active) throw new HubError("Phiên chơi đã thay đổi. Hãy thử lại.");
-        let displayName = knownProfileName || "";
-        if (profile) {
-          const data = playerProfile(actor, profile.data());
-          displayName = data.displayName;
-          if (!profile.exists() || profile.data()?.displayName !== displayName)
-            transaction.set(profileRef, data);
-        }
-        const result = change(
-          snapshot.exists() ? readRoom(snapshot.data()) : null,
-          displayName,
-        );
-        if (result)
-          transaction.set(target, {
-            ...result,
-            createdAt: snapshot.exists()
-              ? snapshot.data().createdAt
-              : serverTimestamp(),
-          });
-        else transaction.delete(target);
-        return displayName;
-      },
-      { maxAttempts: 5 },
-    );
-    if (synchronizeProfile) knownProfileName = name;
+    let endCommit: ReturnType<Trace["begin"]> | undefined;
+    const execute = () =>
+      runTransaction(
+        playerDatabase,
+        async (transaction) => {
+          endCommit?.("retry");
+          endCommit = undefined;
+          const attempt = trace?.attempt();
+          const target = reference(code);
+          const profileRef = doc(
+            playerDatabase,
+            "monopolyHub/v1/profiles",
+            uid,
+          );
+          // All reads precede writes; independent reads share the same network wait.
+          const [snapshot, profile] = await Promise.all([
+            trace
+              ? trace.measure(
+                  "room_read",
+                  () => transaction.get(target),
+                  attempt,
+                )
+              : transaction.get(target),
+            needsProfileRead
+              ? trace
+                ? trace.measure(
+                    "profile_read",
+                    () => transaction.get(profileRef),
+                    attempt,
+                  )
+                : transaction.get(profileRef)
+              : undefined,
+          ]);
+          if (!active)
+            throw new HubError("Phiên chơi đã thay đổi. Hãy thử lại.");
+          const prepare = () => {
+            let displayName = knownProfileName || "";
+            if (profile) {
+              const data = playerProfile(actor, profile.data());
+              displayName = data.displayName;
+              if (
+                !profile.exists() ||
+                profile.data()?.displayName !== displayName
+              )
+                transaction.set(profileRef, data);
+            }
+            const result = change(
+              snapshot.exists() ? readRoom(snapshot.data()) : null,
+              displayName,
+            );
+            if (result)
+              transaction.set(target, {
+                ...result,
+                createdAt: snapshot.exists()
+                  ? snapshot.data().createdAt
+                  : serverTimestamp(),
+              });
+            else transaction.delete(target);
+            return displayName;
+          };
+          const displayName = trace
+            ? trace.sync("prepare", prepare, attempt)
+            : prepare();
+          endCommit = trace?.begin("commit_wait", attempt);
+          return displayName;
+        },
+        { maxAttempts: 5 },
+      );
+    try {
+      const name = await (trace
+        ? trace.measure("transaction", execute)
+        : execute());
+      endCommit?.();
+      if (synchronizeProfile) knownProfileName = name;
+    } catch (error) {
+      endCommit?.("error", error);
+      throw error;
+    }
   }
   return {
     uid,
-    async create(_name, capacity, title) {
+    async create(_name, capacity, title, trace) {
       for (let attempt = 0; attempt < 5; attempt++) {
         const code = generateCode();
         try {
@@ -90,6 +140,7 @@ export async function createFirebaseStore(): Promise<RoomStore> {
               return createRoom(uid, displayName, capacity, title);
             },
             true,
+            trace,
           );
           return code;
         } catch (error) {
@@ -102,12 +153,13 @@ export async function createFirebaseStore(): Promise<RoomStore> {
       }
       throw new HubError("Không tạo được mã phòng. Hãy thử lại.");
     },
-    async join(code) {
+    async join(code, _name, trace) {
       await transact(
         code,
         (room, displayName) =>
           applyCommand(room, { type: "join", uid, name: displayName }),
         true,
+        trace,
       );
     },
     command: (code, command) =>
@@ -117,7 +169,10 @@ export async function createFirebaseStore(): Promise<RoomStore> {
         reference(code),
         (snapshot) => {
           try {
-            update(snapshot.exists() ? readRoom(snapshot.data()) : null);
+            update(
+              snapshot.exists() ? readRoom(snapshot.data()) : null,
+              snapshot.metadata.fromCache,
+            );
           } catch (e) {
             error(e);
           }

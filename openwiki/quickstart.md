@@ -8,12 +8,18 @@ sources:
     resource: repo://docs/decisions/0002-mobile-board-game-hub.md
   - id: openwiki-source-523a2ee371c511874cedf68c
     resource: repo://docs/design/theme.md
+  - id: openwiki-source-1207dc6dc9df1cc76b6da2de
+    resource: repo://docs/diagnostics.md
   - id: openwiki-source-8acf8e92f9f7b465d02fa04b
     resource: repo://firestore.indexes.json
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
     resource: repo://package.json
+  - id: openwiki-source-2d276ab0949853064e1a4208
+    resource: repo://src/app/diagnostics.ts
   - id: openwiki-source-fc82ffca2def259f088b8cf9
     resource: repo://src/app/start.ts
+  - id: openwiki-source-435a4eb0dedae12246227bd4
+    resource: repo://src/hub/diagnostics.ts
   - id: openwiki-source-d4189bbeecb62806cb297b5a
     resource: repo://src/main.ts
   - id: openwiki-source-a516dc77b4f57ace3d032e8c
@@ -22,10 +28,10 @@ sources:
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
     resource: repo://src/platform/firestore-client.ts
-generated: { by: "codex", at: "2026-11-03T13:09:48.572Z" }
+generated: { by: "codex", at: "2026-11-03T16:08:25.086Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T15:06:37.643Z
+    at: 2026-11-03T16:08:25.086Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
@@ -53,3 +59,7 @@ Online dùng Firebase Email/Password Auth + Cloud Firestore `(default)`; bản t
 ## Vai trò wiki
 
 OpenWiki là devDependency pin 0.7.3 với `wiki`, `wiki:serve`, `wiki:export`; không nhập vào client. Nó là chỉ mục bằng chứng, không thay source/test và authored docs. Dùng lifecycle để cập nhật, không sửa Claims/index/provenance bằng tay. Cấu hình .codex dùng dependency cục bộ, không tự tiêu token model qua CI.
+
+## Khi tạo/vào phòng chậm
+
+Dùng [hướng dẫn đo thời gian](../docs/diagnostics.md) và [vận hành](operations/development.md): cờ `?diagnostics=1` cung cấp bảng theo từng chặng ngay trên điện thoại. Kết quả chỉ ở bộ nhớ, không tự upload. Chưa có phép đo production thì không khẳng định nguyên nhân là vùng database hay gói billing.

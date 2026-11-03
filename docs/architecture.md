@@ -55,3 +55,7 @@ The emulator-only mode requires both Vite DEV and `VITE_FIREBASE_EMULATORS=true`
 Auth restoration loads its own module; the larger Firestore SDK is deferred until a room/profile connection is requested. Do not pull Firestore back into the home-page Auth import just to reuse initialization.
 
 The production rules preserve the pre-existing outside-hub Test-mode allowance until 2026-12-03, scoped to top-level collections other than monopolyHub. Never copy its old unrestricted wildcard over the hub rules; Firestore combines matching allows with OR. The game profile/room namespace remains authenticated and strictly validated.
+
+## Optional operation timing
+
+The [diagnostics panel](diagnostics.md) is enabled only by `?diagnostics=1`. Pure bounded traces live in `src/hub/diagnostics.ts`; the app owns the dialog, operation lifetime and animation frames. The Firebase adapter records read/transaction spans and a diagnostic-only token readiness preflight. Reports stay in memory without player/room identifiers. Cached snapshots, overlapping reads and SDK retry waits are distinguished; emulator timing is not production latency evidence.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:4261794b3d3aaa0828a1d1abd1656de40865acec938e8844d4fd2b8504beda54",
+  "pageVersion": "sha256:838487f3525d6ab5f6ab7a6da71a79ee71e91eefd6bcd1080f4f08493ddb67e9",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -8,7 +8,7 @@
       "evidence": [
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:7fe0e8d7cc72ded04c6ba5969a36ffc55b9655e7ee9f42b4341e8e9c8a7f6a2f"
+          "version": "repo-file-v1:sha256:38dfae1541c4bbc472bdf4f6f78710797d7806e7ff7faac827aa506a572a1ae2"
         },
         {
           "resource": "repo://src/main.ts",
@@ -22,7 +22,7 @@
       "evidence": [
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:32735293852d4f349b3fd634341b996a81c3a977ddc356b81b27983b6d362102"
+          "version": "repo-file-v1:sha256:adee6ae08a6539588124f4e0d682548897e4db4726ec981e7e4be45c713119c1"
         }
       ]
     },
@@ -46,7 +46,7 @@
       "evidence": [
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:7fe0e8d7cc72ded04c6ba5969a36ffc55b9655e7ee9f42b4341e8e9c8a7f6a2f"
+          "version": "repo-file-v1:sha256:38dfae1541c4bbc472bdf4f6f78710797d7806e7ff7faac827aa506a572a1ae2"
         },
         {
           "resource": "repo://src/platform/account.ts",
@@ -64,17 +64,35 @@
         },
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:2607fe4753f2f025981accf9a710bde48affcd21b346934489a0b8a42087d871"
+          "version": "repo-file-v1:sha256:9eb078d7beaf558c314e602838242c0d9f5fb75b476662ea6e2aad76143374e6"
         },
         {
           "resource": "repo://src/platform/firestore-client.ts",
           "version": "repo-file-v1:sha256:1d47abaae2947e122c2630ff683bf35f43bf26ce479a0f54de7bd8ee6d46ff96"
         }
       ]
+    },
+    {
+      "id": "claim_c385647312d74bd1960c6cf4f4aaeba1",
+      "statement": "URL diagnostics=1 bật bảng thời gian tạo/vào phòng trên điện thoại; kết quả trong bộ nhớ và không chứng minh nguyên nhân vùng/billing.",
+      "evidence": [
+        {
+          "resource": "repo://docs/diagnostics.md",
+          "version": "repo-file-v1:sha256:bff633ca4f9cf37ae0924036e0f9769f9e96b9b4daf79295f574096cfedd8da7"
+        },
+        {
+          "resource": "repo://src/app/diagnostics.ts",
+          "version": "repo-file-v1:sha256:42056d313e455c9d90502be811f3a625ee50e53dbe093013b7f1664af5f20bfe"
+        },
+        {
+          "resource": "repo://src/hub/diagnostics.ts",
+          "version": "repo-file-v1:sha256:4108ffaff4df02a7389615c62b4bb4d6e28d4c70f532156b186c6e9c27b220eb"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T15:06:37.643Z"
+    "at": "2026-11-03T16:08:25.086Z"
   }
 }

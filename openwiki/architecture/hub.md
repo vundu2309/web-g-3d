@@ -5,16 +5,22 @@ description: Luồng giao diện mobile, luật phòng thuần, adapter bản th
 tags: [hub, rooms, mobile, firebase, architecture]
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T15:06:37.643Z
+    at: 2026-11-03T16:08:25.086Z
 sources:
+  - id: openwiki-source-1207dc6dc9df1cc76b6da2de
+    resource: repo://docs/diagnostics.md
   - id: openwiki-source-8acf8e92f9f7b465d02fa04b
     resource: repo://firestore.indexes.json
   - id: openwiki-source-60b51f83565a4de6497fc329
     resource: repo://firestore.rules
   - id: openwiki-source-3cc44dcb42d14ad2fffb83f2
     resource: repo://src/app/account.ts
+  - id: openwiki-source-2d276ab0949853064e1a4208
+    resource: repo://src/app/diagnostics.ts
   - id: openwiki-source-fc82ffca2def259f088b8cf9
     resource: repo://src/app/start.ts
+  - id: openwiki-source-435a4eb0dedae12246227bd4
+    resource: repo://src/hub/diagnostics.ts
   - id: openwiki-source-32927955437a252a5e197780
     resource: repo://src/hub/model.ts
   - id: openwiki-source-a516dc77b4f57ace3d032e8c
@@ -29,7 +35,7 @@ sources:
     resource: repo://src/platform/profile.ts
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-03T15:06:37.643Z" }
+generated: { by: "codex", at: "2026-11-03T16:08:25.086Z" }
 ---
 
 # Kiến trúc hub và đồng bộ phòng
@@ -76,3 +82,7 @@ Rules triển khai bảo vệ riêng monopolyHub. Project trước đó có Test
 ## Tách độ trễ hồ sơ khỏi danh sách phòng
 
 Khởi tạo store chỉ xác nhận tài khoản, không đợi đồng bộ profile. Directory và room-resume listeners có thể bắt đầu ngay. Tạo/tham gia phòng đọc profile và room song song trước khi ghi, rồi commit cả hai trong một transaction. Không có commit profile riêng đứng trước commit room. Rules dùng getAfter để đối chiếu tên với profile sau commit. Store chỉ cache tên profile sau commit thành công; thao tác thất bại có thể thử lại. Dispose chặn việc khởi động lệnh phòng mới. Không coi thay đổi này là số đo latency trên điện thoại thật.
+
+## Chẩn đoán độ trễ có chủ đích
+
+Cờ URL `?diagnostics=1` bật dialog đo tạo/vào phòng. Trace thuần trong src/hub/diagnostics.ts giới hạn 100 samples mỗi thao tác; UI giữ năm báo cáo trong bộ nhớ, không tự upload. Các span SDK, session/token, đọc phòng/profile, transaction/commit, snapshot đầu và khung hình có thể chồng lấn. Adapter kiểm tra token riêng khi bật đo; việc này có thể làm ấm token nên không coi đây là timing thụ động hoàn toàn. Cached snapshot không chứng minh round trip server. Số callback transaction không phải mọi transport retry; commit gồm chờ SDK/mạng/backoff. Xem [hướng dẫn đo](../../docs/diagnostics.md) và [kiểm tra](../operations/development.md).

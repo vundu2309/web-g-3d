@@ -1163,3 +1163,48 @@ input::placeholder {
 .auth-status:empty {
   display: none;
 }
+.diagnostics-launcher {
+  position: fixed;
+  right: max(8px, env(safe-area-inset-right));
+  bottom: max(8px, env(safe-area-inset-bottom));
+  z-index: 8;
+  background: var(--white);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+}
+.diagnostics-launcher button {
+  font-size: 0.8rem;
+}
+.diagnostics-dialog {
+  width: min(900px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  color: var(--ink);
+  background: white;
+  border: var(--line);
+  border-radius: 18px;
+  padding: 20px;
+}
+.diagnostics-dialog::backdrop {
+  background: #153b8077;
+}
+.diagnostics-dialog p {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  margin-block: 12px;
+}
+.diagnostics-dialog section {
+  margin-block: 20px;
+}
+.diagnostics-dialog table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.8rem;
+}
+.diagnostics-dialog th,
+.diagnostics-dialog td {
+  padding: 8px;
+  border-bottom: 1px solid #dceeff;
+  overflow-wrap: anywhere;
+}

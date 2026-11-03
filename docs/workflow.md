@@ -8,7 +8,7 @@ Use Node 24 (`.node-version`), npm 11 and the existing checkout. `npm ci` instal
 | --- | --- |
 | `npm run lint` | TypeScript rules and hub/platform import boundaries |
 | `npm run format:check` | Authored executable formatting |
-| `npm run test:unit` | Room validation, capacity, immutable snapshots, readiness/start permissions, leave/seat reuse |
+| `npm run test:unit` | Room transitions plus diagnostic timing, safe errors and bounded history |
 | `npm run build` | Strict TypeScript and production asset generation |
 | `npm run test:browser` | Owned dev/preview servers; create/join/errors, two preview clients, reload, ready/start/close, mobile layout, Auth error |
 | `npm run test:rules` | Firestore rules plus real Auth/Firestore emulator browser accounts, profiles and directory; needs Java 21 |
@@ -31,3 +31,7 @@ Monitor the exact commit's Actions run through deployment, not merely a green bu
 ## Context maintenance
 
 Update authored docs when contracts change. Finish source edits before refreshing affected OpenWiki pages via its installed lifecycle; never hand-edit managed metadata, Claims or indexes. No model-token spending or autonomous wiki CI is enabled. `AGENTS.md` is the single agent entrypoint; do not duplicate divergent instructions across agent-specific files.
+
+## Investigating room latency
+
+Use the opt-in [timing panel](diagnostics.md) on the affected phone before attributing slow create/join operations to billing or region. No production timing is inferred from emulator tests.

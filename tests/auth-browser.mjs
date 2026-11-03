@@ -4,7 +4,7 @@ import { launchBrowser } from "./browser.mjs";
 const browser = await launchBrowser();
 const contexts = [];
 const errors = [];
-async function player() {
+async function player(diagnostics = false) {
   const context = await browser.newContext({
     viewport: { width: 844, height: 390 },
   });
@@ -19,7 +19,9 @@ async function player() {
       return route.abort();
     },
   );
-  await page.goto(process.env.TEST_BASE_URL);
+  await page.goto(
+    process.env.TEST_BASE_URL + (diagnostics ? "?diagnostics=1" : ""),
+  );
   return page;
 }
 async function register(page, name, email) {
@@ -53,11 +55,12 @@ async function register(page, name, email) {
 }
 try {
   await mkdir("test-results", { recursive: true });
-  const host = await player();
+  const host = await player(true);
   await register(host, "Minh", "minh@example.test");
   const roomCommits = [];
-  await host.context().route("**/documents:commit**", (route) => {
+  await host.context().route("**/documents:commit**", async (route) => {
     roomCommits.push(route.request().postDataJSON());
+    await new Promise((resolve) => setTimeout(resolve, 200));
     return route.continue();
   });
 
@@ -84,7 +87,39 @@ try {
   assert.equal(writes.length, 2);
   assert.ok(writes.some((path) => path.includes("/profiles/")));
   assert.ok(writes.some((path) => path.includes("/rooms/")));
+  await host
+    .getByRole("button", { name: "Chẩn đoán thời gian", exact: true })
+    .click();
+  const panel = host.getByRole("dialog", {
+    name: "Chẩn đoán thời gian",
+    exact: true,
+  });
+  await panel.getByText("Chờ khung hình", { exact: true }).waitFor();
+  await host.waitForTimeout(100);
+  const commitRow = panel
+    .getByRole("row")
+    .filter({ hasText: "Commit / chờ thử lại" });
+  assert.ok(
+    parseInt(await commitRow.locator("td").nth(1).innerText()) >= 190,
+    "diagnostics includes the injected commit delay",
+  );
+  assert.doesNotMatch(
+    await panel.innerText(),
+    /minh@example|Hội bạn cuối tuần|GameTest/,
+  );
+  assert.equal(
+    await panel.evaluate((el) => el.scrollWidth <= el.clientWidth),
+    true,
+  );
+  await host.screenshot({ path: "test-results/diagnostics-mobile.png" });
+  await panel.getByRole("button", { name: "Đóng", exact: true }).click();
   const guest = await player();
+  assert.equal(
+    await guest
+      .getByRole("button", { name: "Chẩn đoán thời gian", exact: true })
+      .count(),
+    0,
+  );
   await register(guest, "Lan", "lan@example.test");
   // Directory reads must not depend on an own-profile transaction. Deliberately
   // block document batch reads until the room list is visible.
