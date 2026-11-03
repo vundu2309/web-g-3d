@@ -1,6 +1,6 @@
 # 01A — Bàn cờ và tài sản
 
-**Trạng thái:** Nháp cần xác minh, chưa implement. Hướng Classic US và tên đất đã được chọn qua S-001; bảng dưới chưa được đối chiếu S-002/S-003 của một edition cụ thể.
+**Trạng thái:** Nháp cần xác minh, chưa implement. Hướng Classic US và tên đất đã được chọn qua S-001; đã chọn rulebook G0009 US copyright 2025 (S-002). Bảng dưới vẫn cần đối chiếu mặt bàn/Title Deed của bộ đó (S-003); rulebook không chứng minh mọi ô/giá.
 
 ## US-BOARD-001 — Danh mục tham chiếu
 
@@ -53,7 +53,8 @@ Chỉ số 0 là GO, tăng theo chiều di chuyển. Đây là chỉ số đặc
 
 Mỗi đất màu cần giá mua, rent trống, rent khi sở hữu nhóm đầy đủ, rent 1/2/3/4 nhà và khách sạn, giá xây, tiền thế chấp và điều kiện tính tiền thuê. Railroad/utility có công thức riêng, không ép vào công thức rent đất màu. Không dùng 0 làm placeholder cho giá chưa biết; để trạng thái unresolved và không sinh config runtime.
 
-- [ ] Chốt S-002/S-003 và spelling/thứ tự cả 40 ô.
+- [x] Chọn và đọc S-002: G0009 US, rulebook 2025.
+- [ ] Thu thập S-003 và đối chiếu spelling/thứ tự cả 40 ô.
 - [ ] Đối chiếu 22 đất màu, 4 railroad, 2 utility và 12 ô còn lại.
 - [ ] Lập bảng kinh tế đầy đủ với nguồn trên từng nhóm dữ liệu.
 - [ ] Phân biệt số liệu thẻ đất với quy tắc thế chấp/xây/thuê ở 01C.

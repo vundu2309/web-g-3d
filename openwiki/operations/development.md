@@ -14,6 +14,8 @@ sources:
     resource: repo://docs/game/plans/01-rules.md
   - id: openwiki-source-03d3729a6d1fb321fab7b6df
     resource: repo://docs/game/README.md
+  - id: openwiki-source-9be48765f38483590a0034ef
+    resource: repo://docs/game/rules/sources.md
   - id: openwiki-source-cc7175a0c3a0d5f1359efcc1
     resource: repo://docs/workflow.md
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
@@ -32,10 +34,10 @@ sources:
     resource: repo://tests/hub-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-03T16:41:59.639Z" }
+generated: { by: "codex", at: "2026-11-03T16:50:23.899Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T16:41:59.639Z
+    at: 2026-11-03T16:50:23.899Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -92,4 +94,4 @@ Unit tests kiểm tra thời gian chồng lấn, mã lỗi an toàn, retry, gi�
 
 ## Quy ước đặc tả luật cho AI
 
-AGENTS dẫn tới [game contract](../../docs/game/README.md), plan hiện hành và trang luật liên quan. Chỉ 01A của Plan 01 đang active cho tài liệu; phần khác giữ backlog. Không coi plan là cho phép implementation hoặc tự chọn renderer/backend/Blaze. Luật truyền thống Mỹ giữ tên đất, phải có đấu giá/trao đổi/thế chấp; không thêm house rules. Các chi tiết edition, số liệu và thẻ chưa có nguồn được ghi unresolved. Đặc tả đã duyệt xác định hành vi mong đợi, source/test mô tả hiện trạng; sai lệch cần được xử lý chứ không sửa đặc tả để che bug.
+AGENTS dẫn tới [game contract](../../docs/game/README.md), plan hiện hành và trang luật liên quan. Chỉ 01A của Plan 01 đang active cho tài liệu; phần khác giữ backlog. Không coi plan là cho phép implementation hoặc tự chọn renderer/backend/Blaze. Luật truyền thống Mỹ giữ tên đất, phải có đấu giá/trao đổi/thế chấp; không thêm house rules. Nguồn rulebook đã chốt G0009 US copyright 2025 theo S-002; số liệu và thẻ chưa đủ bằng chứng S-003 vẫn ghi unresolved. Đặc tả đã duyệt xác định hành vi mong đợi, source/test mô tả hiện trạng; sai lệch cần được xử lý chứ không sửa đặc tả để che bug.

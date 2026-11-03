@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:58f026d11ebb6f56c2286f3c041568b38416bbc5c9ade297b907716ed063eec4",
+  "pageVersion": "sha256:557296d5ea98845201a0cb66f8da0400ed12b32523bc473366f39edc349dc10a",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -12,7 +12,7 @@
         },
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:fb180c5e91be3dc22c865cb0a2f0b7b66b5205cf6eef1b67de7ed6461fe48638"
+          "version": "repo-file-v1:sha256:91ac1fc6c7f01475dd035da8bdaf1ce92e699c4cfa6a71e8dd92e89ddf05bc02"
         },
         {
           "resource": "repo://docs/workflow.md",
@@ -64,7 +64,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:fb180c5e91be3dc22c865cb0a2f0b7b66b5205cf6eef1b67de7ed6461fe48638"
+          "version": "repo-file-v1:sha256:91ac1fc6c7f01475dd035da8bdaf1ce92e699c4cfa6a71e8dd92e89ddf05bc02"
         }
       ]
     },
@@ -156,25 +156,29 @@
     },
     {
       "id": "claim_2e542c100ba04040abe4b3ab4e5767eb",
-      "statement": "Tài liệu gameplay chọn Classic US truyền thống, giữ tên đất Mỹ; chỉ phần tài liệu 01A active, các plan sau backlog và edition/số liệu chưa xác minh.",
+      "statement": "Gameplay chọn Classic US truyền thống, giữ tên đất Mỹ, chỉ phần tài liệu 01A active và plan sau backlog. Nguồn rulebook đã chọn G0009 US copyright 2025; bảng kinh tế/thẻ chưa được xác minh đầy đủ.",
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:fb180c5e91be3dc22c865cb0a2f0b7b66b5205cf6eef1b67de7ed6461fe48638"
+          "version": "repo-file-v1:sha256:91ac1fc6c7f01475dd035da8bdaf1ce92e699c4cfa6a71e8dd92e89ddf05bc02"
         },
         {
           "resource": "repo://docs/game/README.md",
-          "version": "repo-file-v1:sha256:16093f5d2027b36f8b77f43173688ccbf0491cb6a1b153b634c68790bfbe05c1"
+          "version": "repo-file-v1:sha256:6015421addd919e2066880de0d0f177aea05178674b66b15d921c0884ddcf5a9"
         },
         {
           "resource": "repo://docs/game/plans/01-rules.md",
-          "version": "repo-file-v1:sha256:90acb59c977de86460028c44ffedef85e06ff0fe4e78b76521d293c00012ccf0"
+          "version": "repo-file-v1:sha256:2ee189ac0ca2bbf3e0eb441659f72b53d21a9f3d19a032a1fbcc01cbb9929432"
+        },
+        {
+          "resource": "repo://docs/game/rules/sources.md",
+          "version": "repo-file-v1:sha256:686113cb7f3e06984139f1a2e09b17eef4eff178605a2bdd3ba71d5f3002f252"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T16:41:59.639Z"
+    "at": "2026-11-03T16:50:23.899Z"
   }
 }

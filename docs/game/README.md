@@ -8,7 +8,7 @@
 - **D-004 — Đã duyệt:** Chia plan riêng, làm từng phần; ưu tiên mobile landscape. Thiết kế hình ảnh phải được review trước implementation.
 - **D-005 — Phạm vi hiện tại:** Giữ hub/Firebase/diagnostics đang chạy. Công việc hiện tại chỉ thiết lập tài liệu luật và plan; chưa cho phép bắt đầu gameplay hoặc đổi database/gói billing.
 
-Đã duyệt hướng không đồng nghĩa đã duyệt mọi con số hay một ấn bản cụ thể. **Năm/edition, mã sản phẩm và tài liệu gốc của bản Mỹ chưa được chốt.** Không tự chọn một năm và ghép các bộ thẻ khác thời kỳ.
+**D-006 — Nguồn cơ sở:** Sau khi người dùng đồng ý Classic US tiêu chuẩn hiện đại, chọn **G0009 US**, rulebook copyright **2025**, đã đọc từ Hasbro; xem [S-002](rules/sources.md). Không đồng nghĩa bảng giá, bộ thẻ hoặc toàn bộ chi tiết luật đã được xác minh/duyệt. Không ghép các bộ thẻ khác thời kỳ.
 
 ## Cách AI làm việc
 
