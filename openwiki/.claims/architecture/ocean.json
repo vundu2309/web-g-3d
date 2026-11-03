@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:383f9fe0eea191c9366d57261bf1caddd173daa5f679298a2a9bf2ea56446059",
+  "claims": [
+    {
+      "id": "claim_d57d95e10d4a4c5cbda4192319a202c2",
+      "statement": "App sở hữu render loop và listener; cleanup dừng loop, tháo listener rồi dispose scene và Engine.",
+      "evidence": [
+        {
+          "resource": "repo://src/app/start.ts#L23-L38",
+          "version": "repo-lines-v1:sha256:c2bf850d859e130fe63ca840dcb8f3a03401e05de989ffd99493eb1b488ab2cd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1OTJiNDUwMDJiZGFjOWNhM2YwNmMxODU4M2FiNjFkYzk4YTNmYmM5MTdlNzg1ODg1NTEzZjUzNjgwNTk2MzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc4YjU4MTYyMGI3NTViMmU2YmRlZmYwYzU3YjRkZjc4NDBkZGY0MTA1NTdlMTYwZDQ5MGJmYmQyNmQ2NjlmMTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3294264963b040348e0f3a301daf5327",
+      "statement": "Scene biển lấy heightAt và các mẫu lân cận để mô phỏng thuyền nổi, không khởi tạo Havok.",
+      "evidence": [
+        {
+          "resource": "repo://src/game/ocean/scene.ts#L53-L83",
+          "version": "repo-lines-v1:sha256:f24d4ce19657d7b5bc23041b75967042085c6212573bc61cd957a10c44c3e6b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5MzU4M2NjOTRhYjU2MmZhNDQ2NWFiMjFkZjQ0MGQyZTUwNjdjZjg3ZjkwMmI5ZGRlZjMxNWIyMWZlZjBhNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0ZTQyMDhjZDZmZmI4YzRhMzU0N2IyZjU0YWRhMTk5NzhjM2YzNjVlNzhmOTUwMmVmNTE0NWNkZDJhYTg1NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhYzFiZDFhYTM5N2U3YzBiOTRjNGMyNzE5MzJiODcxY2IyZDM3NjZkNWM4NjgxMjk4NzA1MjNiN2E1ZmQ1NjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyZTk4NTUwNWY1NDJmYjg4NWM3ZmVmZTAxNzk0NTczOGJlYzZhMTkxY2MzZjJlODAyMDA1ZWEzZjFiOTY0MDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6d802c52ee464f8c998388debb91101a",
+      "statement": "CPU dùng envelope và đảo dịch chuyển ngang qua bốn lần lặp để lấy độ cao của trường Gerstner.",
+      "evidence": [
+        {
+          "resource": "repo://src/game/ocean/waves.ts#L19-L76",
+          "version": "repo-lines-v1:sha256:448a941fb94f2d309e1b24341ea414b62ebd0242f7738d0fc6dff19fbef2d48c:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlMmNkOWExMjNjYzZhMGQxMTlmZjgwM2M1ZmY4ZGI5MGJhZmRlMjEyNWIyMWMwMTAzNTg1YTg0ZWQ2YWU5NTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiNmE5NmNhMjQ5ZmEwZjRiODBkZmVjYjhiYjg0YTk0NmQ0ODI5ZjI2YzhiM2UyMDI4ZGFmZmQ5OTU3MjEzNzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9881ff7b30dc45d6922b8953a6d87ce1",
+      "statement": "Lưới biển dùng giãn tọa độ hàm mũ trên một mesh liên tục để tập trung chi tiết gần gốc.",
+      "evidence": [
+        {
+          "resource": "repo://src/game/ocean/surface.ts",
+          "version": "repo-file-v1:sha256:ea00bbfa3690da188ae1f5b82911b665eed2abe1e4af4e4e977bd13e41bcda47"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-03T07:23:24.494Z"
+  }
+}

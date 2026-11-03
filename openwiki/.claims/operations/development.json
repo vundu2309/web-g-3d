@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:4f85005ebdd2f73d0f591f438d8f6670a412a91377d5143a8ff2d7add1004df5",
+  "claims": [
+    {
+      "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
+      "statement": "GitHub Pages workflow build rồi deploy dist trên push main hoặc workflow_dispatch, không chạy test trình duyệt hoặc sinh wiki.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/pages.yml",
+          "version": "repo-file-v1:sha256:7330b478223a0e6c91e3f0db5c6608d6f9fcb897efe1db049859c7ba6faa9bb3"
+        }
+      ]
+    },
+    {
+      "id": "claim_92d2cb01ea2d44769b1310038a3831a8",
+      "statement": "MCP OpenWiki của Codex chạy qua npx --no-install để dùng dependency trong repo.",
+      "evidence": [
+        {
+          "resource": "repo://.codex/config.toml",
+          "version": "repo-file-v1:sha256:1a57de45554398b6f766e432cb8305967c5348f970bb51f9a8a3f7db73099b2c"
+        }
+      ]
+    },
+    {
+      "id": "claim_a3110a185a75405a94d88502a8755237",
+      "statement": "Bài test biển kiểm tra hai viewport, thay đổi ảnh canvas, nút sóng và lỗi JavaScript/shader/HTTP.",
+      "evidence": [
+        {
+          "resource": "repo://tests/ocean-smoke.mjs",
+          "version": "repo-file-v1:sha256:340e8c0747f96d45f85b2e0992b4da917f9632ca4b2833d76cfd379c5381e478"
+        }
+      ]
+    },
+    {
+      "id": "claim_356b565513cd4da0bce1f866c6fb58f1",
+      "statement": "Lệnh build kiểm tra TypeScript trước khi đóng gói Vite.",
+      "evidence": [
+        {
+          "resource": "repo://package.json#L7-L10",
+          "version": "repo-lines-v1:sha256:8a959d8831efc3274793bd6824d7b6e59bf991e842021658dc5b7a6e6eccae3c:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjc5OWU5OTQyNjk5ZmE4MTIyNmRiZGE5M2Y1OWRhNjI4MzQ5ZDVhMGM2NGRlYzU5ZDkwYjkyOTkxOGY3NWY5MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWVlMjRlMGZlYmRjOGI2YzM2NDk3ZDc4ZGUzMjE4OTY1NDNlMjVlYTVhYjNlZjE2MjMzMWUxZjA5Y2FhY2RjNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzhlYTM3Mjc4NTU0OTczNGMxOGU1NzMxNDYxYzk3YmVmN2U2ODk1OGRiOTliMTI1NmJiMTM3ZDNhZGQyZjUyYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzM2MzQxMjY1OTMxYmUzZWMzYmJjY2M4NmQ0NzlkYmIyMGRkOTc4Yzk5ZWEwMzk3NDM5YTA0ZDA1MTZjOTlhZSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-03T07:23:24.494Z"
+  }
+}

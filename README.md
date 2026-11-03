@@ -29,3 +29,14 @@ Kiểm tra trình duyệt dùng software WebGL không đại diện FPS điện 
 Settings → Pages → Source: GitHub Actions. Push `main` tự build và deploy `dist`; có thể chạy workflow thủ công. Vite dùng base tương đối để asset hoạt động dưới project path.
 
 URL: https://vundu2309.github.io/web-g-3d/
+
+## OpenWiki (công cụ phát triển)
+
+OpenWiki 0.7.3 được pin trong devDependencies, không được import vào game. Sau `npm ci`, mở lại Codex tại repo để nạp `.agents/skills/openwiki` và MCP `.codex/config.toml`; cấu hình dùng `npx --no-install` nên không cần cài global hoặc tải bản mới khi khởi động. Chỉ tin cậy MCP của repo mà bạn đã kiểm tra.
+
+- `npm run wiki -- integrations list --project .`: kiểm tra tích hợp.
+- Trong Codex: “Update this repository's OpenWiki from current source and tests.” Dùng phiên model của coding agent; không cần thêm API key riêng cho cách này.
+- `npm run wiki:serve`: mở trình đọc/đồ thị local.
+- `npm run wiki:export`: xuất trình đọc tĩnh vào `.openwiki-export/`; không tự publish ra Pages.
+
+Wiki tiếng Việt bắt đầu tại [openwiki/quickstart.md](openwiki/quickstart.md). Quy tắc phạm vi trong `openwiki/INSTRUCTIONS.md`. Metadata, Claims và index do OpenWiki quản lý. CLI standalone `--init`/`--update` cần cấu hình provider riêng; không đặt API key vào source hoặc GitHub Pages. Workflow Pages hiện chỉ build/deploy game, chưa tự chạy sinh wiki hoặc test trình duyệt.

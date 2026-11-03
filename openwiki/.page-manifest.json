@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "pages": {
+    "/openwiki/architecture/ocean.md": {
+      "pageVersion": "sha256:383f9fe0eea191c9366d57261bf1caddd173daa5f679298a2a9bf2ea56446059",
+      "completedBy": "codex",
+      "completedRunId": "97359773-9593-4893-969b-05fe3401c1bc",
+      "gitHead": "2f8f964b7b1f44092023b16d85ce9373d4c81b08",
+      "sourceFingerprint": "sha256:aa8ac594bf58886c915693cca842b12831ef227895946fe48e3df982a17187e1"
+    },
+    "/openwiki/operations/development.md": {
+      "pageVersion": "sha256:4f85005ebdd2f73d0f591f438d8f6670a412a91377d5143a8ff2d7add1004df5",
+      "completedBy": "codex",
+      "completedRunId": "97359773-9593-4893-969b-05fe3401c1bc",
+      "gitHead": "2f8f964b7b1f44092023b16d85ce9373d4c81b08",
+      "sourceFingerprint": "sha256:aa8ac594bf58886c915693cca842b12831ef227895946fe48e3df982a17187e1"
+    },
+    "/openwiki/quickstart.md": {
+      "pageVersion": "sha256:e824b0d569356b3a91a8bda01794c13de51bc11854f30df65cd3894185ba4fd7",
+      "completedBy": "codex",
+      "completedRunId": "97359773-9593-4893-969b-05fe3401c1bc",
+      "gitHead": "2f8f964b7b1f44092023b16d85ce9373d4c81b08",
+      "sourceFingerprint": "sha256:aa8ac594bf58886c915693cca842b12831ef227895946fe48e3df982a17187e1"
+    }
+  }
+}

@@ -1,0 +1,5 @@
+# OPENWIKI:MCP:START
+[mcp_servers.openwiki]
+command = "npx"
+args = ["--no-install", "openwiki", "mcp", "--host", "codex"]
+# OPENWIKI:MCP:END

@@ -1,3 +1,13 @@
 node_modules/
 dist/
 *.local
+
+# Local documentation credentials, cache and exported viewer
+.env
+.env.*
+!.env.example
+.openwiki-export/
+.openwiki-state/
+
+# Generated standalone AI schedule needs separate provider credentials; keep local.
+.github/workflows/openwiki-update.yml
