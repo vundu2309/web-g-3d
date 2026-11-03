@@ -2,25 +2,25 @@
   "schemaVersion": 1,
   "pages": {
     "/openwiki/architecture/ocean.md": {
-      "pageVersion": "sha256:beaf23ac358788c22a5772caef97ffa342f83a8a79f208bf3a122673b2430f3e",
+      "pageVersion": "sha256:dd1d08f43cf0730af23f5c8db7ae4664d5bc56eec3e9364b73452c4c18ccc631",
       "completedBy": "codex",
-      "completedRunId": "91e27062-3557-4ca4-afb0-94e517314b9c",
-      "gitHead": "a21dde47030117f9d10bd034d39921fcfa5f208b",
-      "sourceFingerprint": "sha256:30f1f0415dc828d330b609733b8923366f351da9256e0a4b108abd1cdcc6ba98"
+      "completedRunId": "64a4011f-679a-4cba-b92e-b88f252373e2",
+      "gitHead": "97d12b4092234ea9e68cb1d2410557dc66c1c757",
+      "sourceFingerprint": "sha256:f648879263e6ac81bf012362abb9990a4a5e9f406dc30fab54831b77002c7437"
     },
     "/openwiki/operations/development.md": {
-      "pageVersion": "sha256:4bfdc0d866fcb1423046bc0009a3a1766128dfe04ef6ec54b297f6b22703f1c0",
+      "pageVersion": "sha256:90d0a0f1bf332c5edd638e07510d7d6cd613601fb083b6c15530e900ffd76e7a",
       "completedBy": "codex",
-      "completedRunId": "91e27062-3557-4ca4-afb0-94e517314b9c",
-      "gitHead": "a21dde47030117f9d10bd034d39921fcfa5f208b",
-      "sourceFingerprint": "sha256:30f1f0415dc828d330b609733b8923366f351da9256e0a4b108abd1cdcc6ba98"
+      "completedRunId": "64a4011f-679a-4cba-b92e-b88f252373e2",
+      "gitHead": "97d12b4092234ea9e68cb1d2410557dc66c1c757",
+      "sourceFingerprint": "sha256:f648879263e6ac81bf012362abb9990a4a5e9f406dc30fab54831b77002c7437"
     },
     "/openwiki/quickstart.md": {
+      "gitHead": "a21dde47030117f9d10bd034d39921fcfa5f208b",
+      "sourceFingerprint": "sha256:30f1f0415dc828d330b609733b8923366f351da9256e0a4b108abd1cdcc6ba98",
       "pageVersion": "sha256:48cc915e682b3a798aad0d0629db052c92022000afefe6dd8eb36857c591dab2",
       "completedBy": "codex",
-      "completedRunId": "91e27062-3557-4ca4-afb0-94e517314b9c",
-      "gitHead": "a21dde47030117f9d10bd034d39921fcfa5f208b",
-      "sourceFingerprint": "sha256:30f1f0415dc828d330b609733b8923366f351da9256e0a4b108abd1cdcc6ba98"
+      "completedRunId": "91e27062-3557-4ca4-afb0-94e517314b9c"
     }
   }
 }

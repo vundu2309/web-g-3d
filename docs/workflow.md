@@ -23,7 +23,7 @@ Establish the intended behavior before editing. Run focused checks while iterati
 
 For shader, model, camera or UI changes, compare actual game frames and motion before/after at the same camera/viewport. Inspect both 1440×900 and 390×844, rough and calm water, console errors, horizon seams and near-surface detail. Review foam for contact plausibility. Save useful images/clips outside the checkout or under an ignored artifact directory; do not commit generated screenshots by default. Do not claim realism or mobile FPS based only on a screenshot or software-WebGL smoke test.
 
-The ocean smoke checks loading, controls, changing canvas pixels, errors and dimensions. Physics smoke advances the separate Havok playground for 600 steps and checks ground collision, bounded bodies and scene disposal. These checks complement visual review; neither proves complete gameplay correctness.
+The ocean smoke checks loading, controls, changing canvas pixels, errors and dimensions. On desktop it also checks that a foreground water band contains sparse bright whitecaps, catching missing foam or a white-coated sea; this broad pixel-coverage check is not a realism metric. Physics smoke advances the separate Havok playground for 600 steps and checks ground collision, bounded bodies and scene disposal. These checks complement visual review; neither proves complete gameplay correctness.
 
 ## CI and release
 

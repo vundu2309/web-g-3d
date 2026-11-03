@@ -5,7 +5,7 @@ description: Luồng khởi động Babylon, trường sóng CPU/GPU, vật li�
 tags: [ocean, rendering, lifecycle, physics]
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T07:37:49.505Z
+    at: 2026-11-03T08:01:10.530Z
 sources:
   - id: openwiki-source-fc82ffca2def259f088b8cf9
     resource: repo://src/app/start.ts
@@ -17,7 +17,7 @@ sources:
     resource: repo://src/game/ocean/surface.ts
   - id: openwiki-source-a70d9dcc089366b083f1e0f9
     resource: repo://src/game/ocean/waves.ts
-generated: { by: "codex", at: "2026-11-03T07:37:49.505Z" }
+generated: { by: "codex", at: "2026-11-03T08:01:10.530Z" }
 ---
 
 # Kiến trúc biển và vòng đời render
@@ -41,6 +41,8 @@ Khi thay phương trình sóng GPU, phải cập nhật `heightAt` tương ứng
 `surface.ts` tạo một lưới liên tục, chia 320 đoạn mỗi chiều, giãn tọa độ theo hàm mũ để tập trung đỉnh gần gốc. Cách này tránh đường ghép giữa hai mesh biển. Shader nước kết hợp pháp tuyến sóng lớn, gợn giao thoa, phản xạ Fresnel, tán xạ màu nước, lobe phản sáng và bọt đứt đoạn. Chi tiết được giảm theo khoảng cách. Bầu trời và thuyền được dựng thủ tục; không có ảnh concept làm nền.
 
 Đây là mô hình render xấp xỉ. Bài test render không chứng minh nước chân thực, không đo FPS trên điện thoại thật và không so sánh chất lượng với concept. Đánh giá thay đổi shader bằng ảnh/video game thật ở cùng góc nhìn, cả gần lẫn xa; kiểm tra chuyển động để phát hiện nhịp lặp và nhiễu hạt.
+
+Bọt đỉnh sóng dùng compression chia cho tổng steepness tại chỗ và độ cao chuẩn hóa của nhóm sóng dài (frequency dưới 0.9). Ngưỡng tuyệt đối cũ hiếm khi được kích hoạt; chuẩn hóa giúp đỉnh sóng lớn tạo được bọt. Noise được dịch theo hướng sóng chính để bẻ mảng bọt và tạo chi tiết bong bóng. Sáu thành phần sóng dài được tăng biên độ 25%; shader và CPU vẫn đọc chung tham số. Đây là shading xấp xỉ, không có lưu lượng/chất lỏng thật.
 
 Vòng bọt elip cố định quanh thân tàu đã bị bỏ vì tạo vết ố khi nhìn từ trên xuống; shader hiện chỉ tạo bọt theo compression/đỉnh sóng và noise. Chỉ thêm bọt tiếp xúc hoặc wake khi có mô hình chuyển động hợp lý.
 

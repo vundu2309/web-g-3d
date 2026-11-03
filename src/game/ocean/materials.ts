@@ -27,14 +27,16 @@ export function createOceanMaterial(scene: Scene): ShaderMaterial {
     tangent+=vec3(d.x*q*c,s,d.y*q*c)*da.x;
     binormal+=vec3(d.x*q*c,s,d.y*q*c)*da.y;
     compression += q*a*k*s;
+    steepness += q*a*k;
+    ${w.frequency < 0.9 ? "macroHeight += a*s; macroAmplitude += a;" : ""}
   }`,
     )
     .join("\n");
-  const sample = `vec3 displace(vec2 p,out vec3 normal,out float fold){
+  const sample = `vec3 displace(vec2 p,out vec3 normal,out float fold,out float crest){
     vec3 displaced=vec3(p.x,0.,p.y);
-    vec3 tangent=vec3(1.,0.,0.),binormal=vec3(0.,0.,1.);float compression=0.;
+    vec3 tangent=vec3(1.,0.,0.),binormal=vec3(0.,0.,1.);float compression=0.,steepness=0.,macroHeight=0.,macroAmplitude=0.;
     ${displacement}
-    normal=normalize(cross(binormal,tangent));fold=compression;return displaced;
+    normal=normalize(cross(binormal,tangent));fold=compression/max(steepness,.001);crest=macroHeight/max(macroAmplitude,.001);return displaced;
   }`;
   return new ShaderMaterial(
     "ocean-surface",
@@ -46,8 +48,8 @@ export function createOceanMaterial(scene: Scene): ShaderMaterial {
     varying vec3 vPosition; varying vec2 vSample;
     ${sample}
     void main(){
-      vec3 normal;float fold;
-      vec3 displaced=displace(position.xz,normal,fold);
+      vec3 normal;float fold,crest;
+      vec3 displaced=displace(position.xz,normal,fold,crest);
       vPosition=displaced;vSample=position.xz;
       gl_Position=worldViewProjection*vec4(displaced,1.);
     }`,
@@ -89,7 +91,7 @@ export function createOceanMaterial(scene: Scene): ShaderMaterial {
       float h=wavelets(p);
       vec2 slope=vec2(wavelets(p+vec2(e,0.))-h,wavelets(p+vec2(0.,e))-h)/e;
       float detail=exp(-distanceToEye*.018);
-      vec3 macroNormal;float compression;vec3 ignored=displace(vSample,macroNormal,compression);
+      vec3 macroNormal;float compression,crest;vec3 ignored=displace(vSample,macroNormal,compression,crest);
       vec3 n=normalize(macroNormal+vec3(-slope.x,0.,-slope.y)*.34*detail*strength);
       float nv=max(dot(n,view),.001);
       float fresnel=.02+.98*pow(1.-nv,5.);
@@ -106,11 +108,16 @@ export function createOceanMaterial(scene: Scene): ShaderMaterial {
       float denominator=nh*nh*(a2-1.)+1.;
       float spec=a2/(3.14159*denominator*denominator);
       color+=vec3(1.,.79,.48)*min(spec*.018,1.1)*max(dot(n,sunDirection),0.);
-      float foamNoise=fbm(p*3.7+vec2(time*.09,-time*.06));
-      float peaks=smoothstep(.12,.27,compression)*smoothstep(.43,.7,foamNoise);
-      float bubbles=smoothstep(.43,.64,noise(p*21.))*detail;
-      float foam=peaks*(.35+.65*bubbles);
-      color=mix(color,vec3(.70,.79,.78),clamp(foam,0.,.85));
+      // Normalize by local wave energy: raw compression was too small for
+      // the previous absolute threshold, so large crests rarely showed foam.
+      // Advect the breakup texture with the dominant swell; no hull-space mask.
+      vec2 foamFlow=vSample+vec2(.94,.34)*time*.6;
+      float foamNoise=fbm(foamFlow*2.1);
+      float breaking=smoothstep(.30,.62,crest)*smoothstep(.04,.28,compression);
+      float patches=smoothstep(.38,.62,foamNoise);
+      float bubbles=mix(.8,smoothstep(.3,.65,noise(foamFlow*17.)),detail*.45);
+      float foam=clamp(breaking*patches*bubbles*2.2,0.,.98);
+      color=mix(color,vec3(1.5,1.6,1.58),foam);
       color=mix(color,vec3(.53,.64,.70),1.-exp(-distanceToEye*.0015));
       // Exposure rolloff preserves glint detail; convert linear lighting to display.
       color=vec3(1.)-exp(-color*1.15);

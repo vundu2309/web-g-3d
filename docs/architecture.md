@@ -19,7 +19,7 @@ Lint prevents game/platform imports from app/main and imports into the pure wave
 
 The Gerstner spectrum is shared between CPU and generated GLSL. Wave packets vary in space/time. CPU buoyancy inverts horizontal displacement before sampling height. The unit test checks round trips at several positions/times and calm/rough strengths. It does not execute GLSL; browser and visual checks are also required when shader math changes.
 
-Fine ripples affect normals only. The boat follows height and neighboring samples; it is not a Havok rigid body in the ocean. Hull foam should only be added with a credible contact or wake model: a stationary ellipse produced a visible white stain and was removed. Crest foam remains a shading approximation.
+Fine ripples affect normals only. The boat follows height and neighboring samples; it is not a Havok rigid body in the ocean. Hull foam should only be added with a credible contact or wake model: a stationary ellipse produced a visible white stain and was removed. Crest foam normalizes compression by local spectral steepness and combines it with the normalized height of long waves, so absolute thresholds do not suppress whitecaps. Advected noise breaks the crest coverage into patches; this remains a shading approximation rather than a fluid/foam simulation.
 
 Scene teardown removes its observer and disposes scene-owned meshes/materials. App teardown stops rendering, removes DOM listeners, disposes scene, then engine. Keep the order explicit when adding resources. Avoid abstractions that obscure ownership.
 

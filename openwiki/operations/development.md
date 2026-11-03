@@ -16,10 +16,10 @@ sources:
     resource: repo://scripts/test-browser.mjs
   - id: openwiki-source-cccb7301733cfb64159c8c2f
     resource: repo://tests/ocean-smoke.mjs
-generated: { by: "codex", at: "2026-11-03T07:37:49.505Z" }
+generated: { by: "codex", at: "2026-11-03T08:01:10.530Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T07:37:49.505Z
+    at: 2026-11-03T08:01:10.530Z
 ---
 
 # Phát triển, kiểm tra và deploy
@@ -35,6 +35,8 @@ Dùng Node.js 24 và npm 11 như README và workflow. Từ repo root, chạy `np
 `npm run test:ocean` dùng Chromium kiểm tra hai viewport 1440×900 và 390×844: khởi động, nút đổi sóng, ảnh canvas thay đổi, kích thước canvas và lỗi JavaScript/shader/HTTP. Browser helper dùng `CHROMIUM_PATH`, nếu không có thì dùng Chromium hệ thống khi được cài, cuối cùng là browser do Playwright quản lý. Cài browser bằng `npx --no-install playwright-core install --with-deps chromium`. Để kiểm tra production đang chạy, đặt `TEST_BASE_URL` đến preview server.
 
 `npm run test:smoke` kiểm tra Havok trong scene thử riêng: 8 khối rơi, mô phỏng 600 bước, kiểm tra không xuyên nền, giới hạn 32 body và scene dispose. Test này import source qua Vite nên cần dev server. Nó không chứng minh thuyền có va chạm hoặc lực nổi thật.
+
+Trên desktop, test còn giải mã ảnh canvas và kiểm tra một dải nước tiền cảnh dưới thuyền/trên HUD: cần có pixel trắng thưa, không biến mất toàn bộ và không phủ trắng mặt biển. Đây là kiểm tra regression cho whitecaps; khoảng coverage rộng không xác nhận bọt nằm đúng mọi đỉnh sóng hoặc có tính vật lý.
 
 Hai ảnh khác nhau chỉ chứng minh có thay đổi pixel, không chứng minh mặt nước tự nhiên. Đánh giá shader bằng ảnh/video thực, cùng góc nhìn và thời điểm, kiểm tra gợn gần camera, nhịp lặp, đường chân trời và nhiễu ở xa. Hai kích thước viewport không thay thế kiểm tra GPU/điện thoại thật.
 

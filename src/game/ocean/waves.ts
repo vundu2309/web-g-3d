@@ -11,7 +11,8 @@ export const waves = Array.from({ length: 14 }, (_, i) => {
     z: Math.sin(angle),
     frequency,
     speed: Math.sqrt(9.81 * frequency),
-    amplitude: 0.29 * Math.pow(0.77, i),
+    // Give the long swells more height without enlarging capillary detail.
+    amplitude: 0.29 * Math.pow(0.77, i) * (i < 6 ? 1.25 : 1),
     phase: i * 2.399963,
     packet: 0.035 + i * 0.0061,
   };

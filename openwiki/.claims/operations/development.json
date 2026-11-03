@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:4bfdc0d866fcb1423046bc0009a3a1766128dfe04ef6ec54b297f6b22703f1c0",
+  "pageVersion": "sha256:90d0a0f1bf332c5edd638e07510d7d6cd613601fb083b6c15530e900ffd76e7a",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -28,7 +28,7 @@
       "evidence": [
         {
           "resource": "repo://tests/ocean-smoke.mjs",
-          "version": "repo-file-v1:sha256:45572ee600965c5ae64db9827a7d9b32629e51ea4c0b53e7feddfc2c7d874ce0"
+          "version": "repo-file-v1:sha256:5fad129f87accc4423a6785b79db2e2b7b01e9b9f4c3b1df5003fbe041258edc"
         }
       ]
     },
@@ -65,10 +65,20 @@
           "version": "repo-lines-v1:sha256:9ea17e4d773dfb5553f7e763a91b871c4efcbdbb7cad3e8ec2c06f9a1833c877:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMzA1ZjI4Y2ZjOTQzNjUzNTk2NDY4OTA0MWMyZjgyODRjM2JmNmViNmZkNzMyNWVmZmYwNjUxNDJjYjA1MDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5YjQ4YzFjOTNhZjYzMmQwZDU0ZjM3NWYzNGJlNjNiZmUwODRkYTIxZGJmOThkODlmMmM1MTc0ZjRmNTY2ZWEifQ"
         }
       ]
+    },
+    {
+      "id": "claim_2418de1bec674e88bc2940638d31dea7",
+      "statement": "Test ocean ở desktop kiểm tra sparse bright whitecap coverage trên một dải nước tiền cảnh để phát hiện thiếu bọt hoặc phủ trắng toàn mặt biển.",
+      "evidence": [
+        {
+          "resource": "repo://tests/ocean-smoke.mjs#L35-L65",
+          "version": "repo-lines-v1:sha256:39482e76eedfe2e3434b78b59e70e9415637dce2caabf0606df3e19e25009e64:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmZWMyMTQ3ZmUwOTM3YWE3OTA0ODMwZTNmOTY3NjQ3N2Q4MDgxOTBlMjMyYzRjMTE2ZWI4ZWEwN2Q2ZTY2ZmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0MzM4NTM4ODFhYjJmOGQ5YTRmMmMzYTBkNWEzMmRmZGMzMzQyYjRkYTNkZGEwNDM4YWIyM2RmOWU1M2UzNGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmYTY1NmM1OTcxNzlmMDNkZTE2Nzc2Njk1MDUyMmQ5ZWFjMDc0OGNlODY2NDZhNWVlNTc1ZmZhYWFkZDYzMjQifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T07:37:49.505Z"
+    "at": "2026-11-03T08:01:10.530Z"
   }
 }

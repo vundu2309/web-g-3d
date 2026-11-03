@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:beaf23ac358788c22a5772caef97ffa342f83a8a79f208bf3a122673b2430f3e",
+  "pageVersion": "sha256:dd1d08f43cf0730af23f5c8db7ae4664d5bc56eec3e9364b73452c4c18ccc631",
   "claims": [
     {
       "id": "claim_d57d95e10d4a4c5cbda4192319a202c2",
@@ -27,7 +27,7 @@
       "statement": "CPU dùng envelope và đảo dịch chuyển ngang qua bốn lần lặp để lấy độ cao của trường Gerstner.",
       "evidence": [
         {
-          "resource": "repo://src/game/ocean/waves.ts#L19-L76",
+          "resource": "repo://src/game/ocean/waves.ts#L20-L77",
           "version": "repo-lines-v1:sha256:448a941fb94f2d309e1b24341ea414b62ebd0242f7738d0fc6dff19fbef2d48c:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlMmNkOWExMjNjYzZhMGQxMTlmZjgwM2M1ZmY4ZGI5MGJhZmRlMjEyNWIyMWMwMTAzNTg1YTg0ZWQ2YWU5NTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiNmE5NmNhMjQ5ZmEwZjRiODBkZmVjYjhiYjg0YTk0NmQ0ODI5ZjI2YzhiM2UyMDI4ZGFmZmQ5OTU3MjEzNzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
@@ -44,17 +44,35 @@
     },
     {
       "id": "claim_309cf9c414d94d3bb1bdd82cf6cc64a6",
-      "statement": "Shader nước tạo bọt từ compression/đỉnh sóng và noise, không còn vòng bọt elip quanh thuyền.",
+      "statement": "Shader tạo bọt theo độ cao nhóm sóng dài và compression chuẩn hóa tại chỗ, dùng noise dịch chuyển để bẻ mảng; không có vòng bọt elip quanh thuyền.",
       "evidence": [
         {
-          "resource": "repo://src/game/ocean/materials.ts#L109-L114",
-          "version": "repo-lines-v1:sha256:3c65e0633b47e181a279f709546fc7bcd1287a8892ce46296360e4be61b41f29:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDE5NjYzMzc4NDM4MzdmM2Y1YTY1ZDU3OGM4ZjA1NDY1ODViNmU2MjBlYTEwM2UwNWVhOTk1N2Y0MWM4NDMxMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjU0NDkyYThkNGQ0NjM4Njg5NTNjOTBkMTA2YWEwZWQ2OTEzYmUyNjdjYzY0ZWFjZjEyYzUxMWQ1ZDUzZWU0NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmE5OWJmNTE1YWM2M2M4YmY3MmVhNzE5MWZmNzM4ODA5NDg1NmI3NzA5OWNkNjA0OTdlOTdmOTA3YTFjMDY1MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODc5NDIzOWY4NWFjY2NiOGEyOGI3N2E3Yzk1ZTNjNWM3MGY3YTIzYTUzZmU1OWU5MmNhM2E0OTQ4MzA2OTQ3ZSJ9"
+          "resource": "repo://src/game/ocean/materials.ts#L111-L120",
+          "version": "repo-lines-v1:sha256:19b68cd1b6e7676157263969759ecf9db46757f4da27c8729cf3993837105b4a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjYTk3MmM4N2ViOGRhMTY0ODNkN2YzOWE3MmJlOWQ4YjNjMTE0OTA4MDg3NmMwYjY0MTg5Mjk2MmNjZjAzODciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3ZGE2MmU2NWY1ZTJiNTUwNGMwYTY2MmQ5NmVmZDM0Yzg3ZDNmOTY0ZDVhYmRjNzA1ZmMwMmQwZTU3YTg0NzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJhOTliZjUxNWFjNjNjOGJmNzJlYTcxOTFmZjczODgwOTQ4NTZiNzcwOTljZDYwNDk3ZTk3ZjkwN2ExYzA2NTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4OTg3MmY2ODU1MmUzOTE5OGFhODU5ZjY1NTNkMzBjZGMwZWY5YmE4ZjY2YzRiNWZiYzcwYTMzYmYwOTQyODgifQ"
+        },
+        {
+          "resource": "repo://src/game/ocean/materials.ts#L28-L39",
+          "version": "repo-lines-v1:sha256:000b58cdba83c6559b63ab2127f690dd9fd1da75f7ab3a960093a88810cfdb9a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyNzlmOGM3YzI1ZTQyOWU1OWIyZDM0NGIwMzE0ODA0Y2VlOWI2NzhlOGIyZjVmN2RlZTkwN2MyMjc4NDJhMjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5ZWZmNzgwMmM0YjY0Yjk3YjU5MWViMzhhZGM3MzY4YTc0Njc5YTNkZjNjOWE4ZDYwM2U3OGVmMWFkYzIwNzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMzMDJhODNkOTY2MTAxNTdlNjA4ZTU1ZmYzZTE4ZDRlOTNlN2E0Yjc1NTVhM2U2OGZhMzFhNzg3OTg3M2I2ZjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMyNDlmODAxODI2MTdmZjdmNzg0NmY1ZTU4NjczZDhhYTQ2YThhMjRlZjdkYjI0YzEwZWVkNDljZDYwMDQyNTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_184f9a75974045a983296879e45bed3d",
+      "statement": "Sáu thành phần sóng dài được tăng biên độ 25% trong bộ tham số dùng chung CPU và GPU.",
+      "evidence": [
+        {
+          "resource": "repo://src/game/ocean/materials.ts#L10-L23",
+          "version": "repo-lines-v1:sha256:88d71fc5d03644fcbf63cf9fe5e080d4d516c5055e28a2145eb136845b8f5f03:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiMWNjZDllNjE4MWExMGI3NWMzNjRkYWIzOTkzOGNlN2UxMWIwZTQ1ODQ2Njk5MTNhYzJjNjIxNjU5ZTVlM2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2ZWMxMDRiMDE5ZmYxNGY0M2UwMDRiMDhiMTViNmI0ZGQxMjU5MDcwNzE0Y2Q4Mzk4MjA3NDg3MDBhNzZlNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmOGY3ODMyODUyMGY1YzQ1OGRjMzVhODFkNzllYTZhMDAyMDg3Y2RiNTA1NmY5NWYwMDllYTE4YjhkOWYxZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxYWYxNGRlOGU4NDZmN2E4MGNkMWJkMDllN2IyNTgwY2I0OTUzYjczMjg1ZWRlODRlNTRkYWEyMGNlYjhmN2UifQ"
+        },
+        {
+          "resource": "repo://src/game/ocean/waves.ts#L3-L18",
+          "version": "repo-lines-v1:sha256:e5f1504c41268d458df76f600c1b381f78f7632097e4c3418667697fc9afc093:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5MTQ5YTE3Y2MxMmFlMjE1NGNkYTgyNWE2MWIwYjY3YWJkYTFmYjJiOGZjYjViYzIxZjM1NzM4NjlhYzM1MzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyYTJjYjI1YTEyMmI0NDIyMWE2MjM0ZWM2NjBhN2I1ZmI3ZjliZGU3YjNiOWUyYjNjNTU5YTBkOTZmYWM3MzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmYTk2ZDlhMjhmNWYxYzJiMWQzY2FiMzE1ODIyMDdjNzRjMjQxOTBkYmQ5NDczNWQ2ZmE0ZTg3Y2FhODNmZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjMWUyNDk2ZDUyNzU0Mzk0YWVmMzIxODExOTBiZDQxZjg3ZjlkNDM3YzVmMjVkNTJlMDQ3NGI3MjYyZjVlYzcifQ"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T07:37:49.505Z"
+    "at": "2026-11-03T08:01:10.530Z"
   }
 }
