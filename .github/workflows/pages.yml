@@ -23,6 +23,10 @@ jobs:
         with:
           node-version: '24'
           cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
       - run: npm ci --no-audit --no-fund
       - name: Install browser for functional checks
         run: npx --no-install playwright-core install --with-deps chromium

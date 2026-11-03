@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:48cc915e682b3a798aad0d0629db052c92022000afefe6dd8eb36857c591dab2",
+  "pageVersion": "sha256:59582d618af8dd73961c83cea0ae3cbaad3e27d92d7b9a5150ce93b6de147a47",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
-      "statement": "App khởi động scene biển qua start và xử lý trạng thái DOM cùng cleanup HMR ở main.ts.",
+      "statement": "main.ts nạp font/CSS, gọi start của hub và cleanup HMR; app sở hữu DOM, navigation và room subscriptions.",
       "evidence": [
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:ff429531834c7e107dc4c5f5de52e6d9e7951ef3944b70c5e3b3752bf709c5b4"
+          "version": "repo-file-v1:sha256:8a929c293648cedee1c3dbf7f71134431cdcc83230999e66a9d90d29de1e9316"
         },
         {
           "resource": "repo://src/main.ts",
-          "version": "repo-file-v1:sha256:2b1523708d097cd480655544361bbab8da7730689b21bb894e2af6fe9adf7e43"
+          "version": "repo-file-v1:sha256:3dee4f6c005028e3eafff2990bb0aecb2010eef56c699f4e73c5dbc94786aeb9"
         }
       ]
     },
@@ -22,27 +22,27 @@
       "evidence": [
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:6e44784d44354da2ccc5b85608360c59a0bc104d1f1b92554fad3193696c2499"
+          "version": "repo-file-v1:sha256:32735293852d4f349b3fd634341b996a81c3a977ddc356b81b27983b6d362102"
         }
       ]
     },
     {
-      "id": "claim_5c5dafdbeb0345cc9df5e27b26ca39e4",
-      "statement": "Scene biển cập nhật thuyền theo heightAt của trường sóng, còn Havok được nạp bởi module vật lý riêng.",
+      "id": "claim_b15559346abe411f8d129cd16a288100",
+      "statement": "Theme đã duyệt ưu tiên điện thoại ngang, bốn màn riêng và palette sky/cobalt/yellow; bàn chơi và 3D gameplay chưa triển khai.",
       "evidence": [
         {
-          "resource": "repo://src/game/ocean/scene.ts#L64-L82",
-          "version": "repo-lines-v1:sha256:523819cb1c56b0cad2c720f5c1527d363257725219cd81f9ced2ba3b721c2568:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzNWM1MmYyODU3ZTI4NTQzMzk3MjIxZDFhNWRjYTA4MTViN2M5NzE0OWFmMTYxOWQ2NjMyYzNhMTE5MDM1ZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0ZTQyMDhjZDZmZmI4YzRhMzU0N2IyZjU0YWRhMTk5NzhjM2YzNjVlNzhmOTUwMmVmNTE0NWNkZDJhYTg1NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1ZDUzZTljY2U5MzFmNDBiNjFiMmNmMDE3ZDQzODAxZjY5YmNlZTAzNWE3N2VlNTU1NmRmNzg1YTQzZGZmZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyZTk4NTUwNWY1NDJmYjg4NWM3ZmVmZTAxNzk0NTczOGJlYzZhMTkxY2MzZjJlODAyMDA1ZWEzZjFiOTY0MDUifQ"
+          "resource": "repo://docs/decisions/0002-mobile-board-game-hub.md",
+          "version": "repo-file-v1:sha256:3012709b4a3864034b83c27559a0cd29e6345968ddab80c26cdabfd72205c9bd"
         },
         {
-          "resource": "repo://src/platform/physics.ts",
-          "version": "repo-file-v1:sha256:5bfbcbba401fa86895922f5e620b6ba66c624a0d2eb3b0566bdfff2c25edb349"
+          "resource": "repo://docs/design/theme.md",
+          "version": "repo-file-v1:sha256:6d8b25dc55c2c8938c9bafaec52e472501313b1417d9f83416a5b35f602db153"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T07:37:49.505Z"
+    "at": "2026-11-03T10:52:40.016Z"
   }
 }

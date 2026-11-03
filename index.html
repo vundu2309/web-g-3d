@@ -2,44 +2,18 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0b3845" />
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%230b3845%27/%3E%3Ctext x=%275%27 y=%2725%27 fill=%27%23f5dbab%27 font-size=%2728%27%3E≈%3C/text%3E%3C/svg%3E"
-    />
-    <title>Hải trình — Ocean experience</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#dceeff" />
+    <meta name="description" content="Phố Tỷ Phú — Tạo phòng, mời bạn bè và cùng sẵn sàng cho một ván board game." />
+    <title>Phố Tỷ Phú — Chơi cùng bạn bè</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ffd35a'/%3E%3Cpath d='m5 15 11-9 11 9v13H5Z' fill='%23153b80'/%3E%3C/svg%3E" />
   </head>
   <body>
-    <canvas
-      id="game"
-      aria-label="Biển 3D với sóng chuyển động và thuyền buồm"
-    ></canvas>
-    <header>
-      <a class="brand" href="./"
-        ><span class="mark">≈</span> HẢI TRÌNH<span class="edition"
-          >OCEAN EXPERIENCE / 01</span
-        ></a
-      ><span class="live"><i></i> ĐẠI DƯƠNG ĐANG THỨC</span>
-    </header>
-    <main class="intro">
-      <span class="eyebrow">MỘT CHÚT BÌNH YÊN GIỮA ĐẠI DƯƠNG</span>
-      <h1>Theo từng<br /><em>con sóng.</em></h1>
-      <p>
-        Bỏ lại bờ xa. Để gió và mặt biển<br />dẫn lối cho một hành trình mới.
-      </p>
-    </main>
-    <footer>
-      <div class="coordinates">
-        <span>16°03′ N &nbsp; 108°12′ E</span
-        ><small>BIỂN ĐÔNG · GIỜ VÀNG</small>
-      </div>
-      <div class="controls">
-        <button id="waves" disabled aria-pressed="false">Sóng êm ≋</button>
-        <p id="status" role="status">Đang mở đại dương…</p>
-      </div>
-      <span class="chapter">01 <span>/ KHỞI HÀNH</span></span>
-    </footer>
+    <div class="paper-card card-left" aria-hidden="true"></div>
+    <div class="paper-card card-right" aria-hidden="true"></div>
+    <div id="app"></div>
+    <p id="announcement" class="announcement" role="status" aria-live="polite" aria-atomic="true"></p>
+    <noscript>Bật JavaScript để mở Phố Tỷ Phú.</noscript>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -14,3 +14,7 @@ dist/
 
 # Local validation evidence
 test-results/
+
+# Firebase emulator/debug output
+*-debug.log
+.firebase/

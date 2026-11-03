@@ -25,15 +25,14 @@ try {
   });
   await dev.listen();
   const port = dev.httpServer.address().port;
-  await run("tests/ocean-smoke.mjs", port);
-  await run("tests/physics-smoke.mjs", port);
+  await run("tests/hub-browser.mjs", port);
   await dev.close();
   dev = undefined;
   production = await preview({
     preview: { host: "127.0.0.1", port: 0 },
     logLevel: "warn",
   });
-  await run("tests/ocean-smoke.mjs", production.httpServer.address().port);
+  await run("tests/hub-browser.mjs", production.httpServer.address().port);
 } catch (error) {
   console.error(error);
   process.exitCode = 1;

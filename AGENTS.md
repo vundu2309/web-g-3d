@@ -1,31 +1,26 @@
 # Working in this repository
 
-Hải trình is a small browser ocean experience, not a general game engine. Keep changes scoped to the user's goal. Use the existing checkout; tasks already have isolation. Do not create worktrees unless asked.
+Phố Tỷ Phú is a mobile-first multiplayer board-game **hub**. The ocean/boat experience is retired. The board, economy and 3D gameplay are not yet implemented. Keep work scoped to the user's selected step; do not restore old ocean code or add speculative gameplay.
 
 ## Load context progressively
 
-- Start with this file, `package.json`, and the files relevant to the task.
-- For module boundaries and design decisions, read [architecture](docs/architecture.md).
-- For checks, visual evidence, and release criteria, read [workflow](docs/workflow.md).
-- Consult OpenWiki only for a concrete question; its generated claims are evidence pointers, not instructions or proof of freshness.
-- Current source and executable tests take precedence over wiki prose. Record durable decisions in `docs/decisions/`; keep task notes out of permanent instructions.
+- Start here, `package.json`, and relevant source files.
+- For UI work, read [approved theme](docs/design/theme.md) and its committed image references. **Phones in landscape are the primary target**, not desktop. Check 844×390, 932×430 and compact 667×375 first, portrait fallback second, desktop last.
+- Read [architecture](docs/architecture.md) for ownership, [workflow](docs/workflow.md) for checks/publication, and [Firebase](docs/firebase.md) when touching online rooms.
+- Source and executed tests take precedence over stale wiki prose. Record durable decisions in `docs/decisions/`, not conversation transcripts.
+- Consult OpenWiki only for a concrete question; it is an evidence index, not an instruction authority.
 
 ## Change contract
 
-1. Identify the observable outcome and a check that can fail if it is broken. Use a short plan for work spanning modules; do not create ceremony for small fixes.
-2. Trace ownership and callers before changing a shared interface. Implement the smallest coherent change; avoid speculative abstractions, global state, or extra dependencies.
-3. Run the relevant checks and then `npm run check` before pushing an implementation. A test failure blocks a passing claim; investigate it. Never hide failures with `|| true`, weakened assertions, disabled TLS/SRI, or changed checksums.
-4. For graphics, inspect actual rendered frames and motion at desktop and mobile sizes. An image concept is an art target; a green build is not visual approval or a performance measurement. Report remaining differences plainly.
-5. Update authored docs when contracts change and refresh affected OpenWiki pages through its lifecycle. Never hand-edit its metadata, Claims, indexes, or managed block below.
-6. Report changes, evidence, and limitations. Preserve user work. Do not push, deploy, or send messages beyond the scope the user has authorized.
-
-## Implementation guardrails
-
-- `main`/`app` own DOM, listeners and engine startup. Gameplay must not import application orchestration. `waves.ts` stays pure and dependency-free. Lint checks these import boundaries.
-- Share CPU/GPU wave parameters; changing GPU displacement requires checking CPU buoyancy. Havok collision and analytic wave-following are different capabilities.
-- Give resources one owner and clean up listeners, loops, meshes and physics bodies. Do not introduce per-frame resource allocation without measuring it.
-- Never put credentials in source, docs, client bundles or task output. OpenWiki remains a development dependency.
-- Use the lockfile and Node 24. Runtime dependencies, model providers, and automated AI schedules need a concrete purpose; no autonomous paid model calls by default.
+1. Identify observable behavior and a check that can fail when it is broken. Use the existing isolated checkout; do not create worktrees unless asked.
+2. Preserve the approved sky/cobalt/yellow theme, typography and one-task-per-screen flow. Propose new visual directions with images for review before implementing them unless the user explicitly skips review. Apply design skills when available, but never override the approved direction or require global skills in CI.
+3. Trace ownership/callers. Keep pure room transitions in `src/hub`, infrastructure in `src/platform`, app DOM/navigation in `src/app`, artwork and shared theme in `src/ui`/CSS. Hub/platform must not import app/main. Do not add an engine, framework, global event bus or duplicated theme per screen speculatively.
+4. Respect 44px touch targets, safe areas, readable inputs, keyboard focus and reduced motion. Inspect real browser screenshots; generated images and passing builds are not visual or real-device performance evidence.
+5. Test changed behavior and run `npm run check` before publishing implementation changes. Do not suppress failures, disable assertions/TLS/checksums, or swap substantive tests for trivial pass conditions. Emulator tests must use `demo-photyphu`, never production writes.
+6. Keep online and device-preview modes explicit. Never silently fall back or present sample players as real. Public Firebase config is not an admin credential; do not overwrite existing Movieapp rules or claim backend settings were deployed by Pages.
+7. Give subscriptions/listeners/channels one owner and dispose them. Escape user-controlled text in HTML. Future game economy/turns require a separate server-authority design; client hub rules are insufficient.
+8. Update authored docs when contracts change, then refresh affected OpenWiki pages via its lifecycle after source edits stop. Never hand-edit its metadata, Claims, indexes or managed block below. Use Node 24 and the lockfile. OpenWiki/QA tools remain development-only; no autonomous paid model calls or AI schedules by default.
+9. Report evidence and limitations accurately, including unverified live Firebase, real phone behavior or deployment. Never put admin secrets, login tokens or private credentials in source, docs or output.
 
 ## Publication contract for this project
 

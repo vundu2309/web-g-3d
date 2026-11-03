@@ -1,56 +1,47 @@
 ---
 type: quickstart
-title: Bắt đầu với Hải trình
-description: Bản đồ tác vụ để chạy, sửa sóng, hiểu vòng đời, kiểm tra và deploy web game 3D Hải trình.
-tags: [quickstart, navigation, game]
+title: Bắt đầu với hub Phố Tỷ Phú
+description: Bản đồ tác vụ cho hub board game mobile, theme đã duyệt, kiểm tra và phát hành Pages với Firebase riêng.
+tags: [quickstart, hub, mobile, context]
 sources:
+  - id: openwiki-source-de23c649f29de7b7defa1fe3
+    resource: repo://docs/decisions/0002-mobile-board-game-hub.md
+  - id: openwiki-source-523a2ee371c511874cedf68c
+    resource: repo://docs/design/theme.md
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
     resource: repo://package.json
   - id: openwiki-source-fc82ffca2def259f088b8cf9
     resource: repo://src/app/start.ts
-  - id: openwiki-source-f076bde49e0d74deae49ea82
-    resource: repo://src/game/ocean/scene.ts
   - id: openwiki-source-d4189bbeecb62806cb297b5a
     resource: repo://src/main.ts
-  - id: openwiki-source-d68353aa5a7b304d05de84d2
-    resource: repo://src/platform/physics.ts
-generated: { by: "codex", at: "2026-11-03T07:37:49.505Z" }
+generated: { by: "codex", at: "2026-11-03T10:48:14.207Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T07:37:49.505Z
+    at: 2026-11-03T10:52:40.016Z
 ---
 
-# Bắt đầu với Hải trình
+# Bắt đầu với hub Phố Tỷ Phú
 
-Hải trình hiện là cảnh biển 3D tương tác bằng Babylon.js và TypeScript, build tĩnh bằng Vite. Người dùng xoay/zoom camera và đổi cường độ sóng. App chưa có nhiệm vụ hoặc hệ lái thuyền. OpenWiki hỗ trợ đọc hiểu source; nó là công cụ phát triển trong devDependencies, không được app import vào game.
+Phố Tỷ Phú là hub cho board game giao dịch bất động sản, ưu tiên điện thoại xoay ngang. Có màn chính, form tạo/tham gia và phòng chờ với mã, readiness, reload và rời/đóng phòng. Bàn chơi, xúc xắc, tiền và 3D gameplay chưa được triển khai; trải nghiệm biển/thuyền cũ đã được thay thế.
 
-## Chọn tác vụ
+## Đọc theo tác vụ
 
-| Bạn cần làm gì? | Đọc ở đâu? | Điểm vào source |
-| --- | --- | --- |
-| Chạy source, build, kiểm tra | [Phát triển và deploy](operations/development.md#cài-đặt-và-chạy) | `package.json` |
-| Sửa hình dạng hoặc nhịp sóng | [Trường sóng](architecture/ocean.md#trường-sóng-và-thuyền-nổi) | `src/game/ocean/waves.ts`, `materials.ts` |
-| Sửa phản xạ, gợn hoặc bọt nước | [Bề mặt nước](architecture/ocean.md#bề-mặt-nước-và-hình-ảnh) | `src/game/ocean/materials.ts` |
-| Sửa mô hình thuyền | [Kiến trúc](architecture/ocean.md) | `src/game/ocean/boat.ts` |
-| Xử lý leak/HMR, listener, vòng render | [Ownership](architecture/ocean.md#luồng-khởi-động-và-ownership) | `src/main.ts`, `src/app/start.ts` |
-| Thêm vật lý va chạm thật | [Ranh giới Havok](architecture/ocean.md#ranh-giới-havok) | `src/platform/physics.ts`, `src/game/playground.ts` |
-| Kiểm tra bản deploy hoặc sửa CI | [GitHub Pages](operations/development.md#github-pages) | `.github/workflows/pages.yml` |
-| Cập nhật/tra cứu wiki qua Codex | [OpenWiki](operations/development.md#openwiki-trong-codex) | `.codex/config.toml`, `openwiki/INSTRUCTIONS.md` |
+| Tác vụ | Nguồn nên đọc |
+| --- | --- |
+| Bắt đầu sửa source bằng AI | [AGENTS](../AGENTS.md), rồi source liên quan |
+| Chỉnh giao diện hoặc mobile | [Theme và bốn ảnh duyệt](../docs/design/theme.md), `src/style.css`, `src/ui/art.ts` |
+| Đổi luồng hoặc luật phòng | [Kiến trúc hub](architecture/hub.md), `src/app/start.ts`, `src/hub/model.ts` |
+| Sửa Firebase hoặc bản thử | [Kiến trúc hub](architecture/hub.md), [Firebase setup](../docs/firebase.md), adapter/rules/test |
+| Chạy test, setup và deploy | [Phát triển](operations/development.md), [workflow authored](../docs/workflow.md) |
 
-## Chạy nhanh
+`src/main.ts` nạp font/CSS và gọi app `start`, đăng ký cleanup HMR. App sở hữu DOM, navigation và subscription phòng. Model thuần không nhập Firebase; store contract tách các adapter. Màu cobalt/sky/yellow và các màn riêng là hướng đã duyệt, không phải chỗ tự đổi style tùy ý.
 
-Từ repo root: `npm ci`, `npm run dev` để phát triển. `npm run check` tự chạy lint, format, unit tests, build và các kiểm tra browser trên dev/production với server do runner quản lý. `npm run preview` xem bản build. Kiểm tra console và xem ảnh/video thực để đánh giá sóng, không coi test xanh là bảo đảm chất lượng hình ảnh.
+## Chạy và xác nhận đúng phạm vi
 
-## Ranh giới cần nhớ
+Dùng Node 24/npm 11; `npm ci`, `npm run dev`. Java 21 phục vụ rules emulator. `npm run check` kiểm tra transitions, browser dev/production và RTDB rules. Ưu tiên 844×390, 932×430 và 667×375; portrait/desktop là kiểm tra bổ sung. Đối chiếu ảnh render thật, không chỉ concept.
 
-Thuyền nổi bằng lấy mẫu trường sóng trên CPU, chưa có lực nổi Havok. Scene thử Havok vẫn tồn tại để kiểm tra va chạm riêng. Render loop, listener và Engine thuộc app; scene sở hữu mesh/material. Khi đổi phương trình GPU cần giữ CPU sampling tương ứng.
+Online dùng Firebase Anonymous Auth + RTDB; bản thử chỉ là nhiều tab cùng browser origin, luôn có nhãn riêng. Backend Firebase cần kích hoạt/cấu hình riêng; Pages chỉ deploy frontend. Không xem emulator xanh hoặc bản thử là online hai thiết bị đã thành công.
 
-Push `main` kích hoạt build/deploy Pages. Workflow chạy lint, format, unit tests, build và test trình duyệt; PR không deploy, main/dispatch deploy khi check qua. Workflow không tự sinh wiki. Xem [hướng dẫn vận hành](operations/development.md) để biết khác biệt giữa kiểm tra local/cloud và CI.
+## Vai trò wiki
 
-## Ngữ cảnh agent
-
-Bắt đầu bằng `AGENTS.md`, chỉ đọc phần liên quan trong `docs/architecture.md` và `docs/workflow.md`; xem `docs/decisions/` khi cần lý do thiết kế. Các tài liệu authored ghi hợp đồng, code/test chứng minh hành vi hiện tại, còn OpenWiki phục vụ tìm kiếm theo câu hỏi.
-
-## Độ tin cậy của tài liệu
-
-Trang wiki có nguồn và Claims do OpenWiki quản lý. Kiểm tra code hiện tại trước thay đổi quan trọng; tài liệu có thể cũ sau lần sửa source. Không sửa tay Claims/index/metadata. Yêu cầu coding agent cập nhật wiki theo `openwiki/INSTRUCTIONS.md` khi hành vi thay đổi.
+OpenWiki là devDependency pin 0.7.3 với `wiki`, `wiki:serve`, `wiki:export`; không nhập vào client. Nó là chỉ mục bằng chứng, không thay source/test và authored docs. Dùng lifecycle để cập nhật, không sửa Claims/index/provenance bằng tay. Cấu hình .codex dùng dependency cục bộ, không tự tiêu token model qua CI.

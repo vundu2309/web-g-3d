@@ -1,3 +1,3 @@
 # Tập tin
 
-- [Kiến trúc biển và vòng đời render](ocean.md) - Luồng khởi động Babylon, trường sóng CPU/GPU, vật liệu nước và ownership tài nguyên của Hải trình.
+- [Kiến trúc hub và đồng bộ phòng](hub.md) - Luồng giao diện mobile, luật phòng thuần, adapter bản thử và Firebase, quyền truy cập và giới hạn trước khi có bàn chơi.

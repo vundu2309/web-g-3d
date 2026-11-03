@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:90d0a0f1bf332c5edd638e07510d7d6cd613601fb083b6c15530e900ffd76e7a",
+  "pageVersion": "sha256:3f102b94ecf609d422a601fefb6c43ab055d8647b8b6e183cb9f64200df92c42",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -8,7 +8,7 @@
       "evidence": [
         {
           "resource": "repo://.github/workflows/pages.yml",
-          "version": "repo-file-v1:sha256:758c4e8bfeb277b0ff687009af5a1e6ca5e304736bc84c0a390383df181b6cf6"
+          "version": "repo-file-v1:sha256:4ba260e1d44f2b568a7af77948b1ba73491bfaed1ce1c737ba2e7fef8503f880"
         }
       ]
     },
@@ -19,16 +19,6 @@
         {
           "resource": "repo://.codex/config.toml",
           "version": "repo-file-v1:sha256:1a57de45554398b6f766e432cb8305967c5348f970bb51f9a8a3f7db73099b2c"
-        }
-      ]
-    },
-    {
-      "id": "claim_a3110a185a75405a94d88502a8755237",
-      "statement": "Bài test biển kiểm tra hai viewport, thay đổi ảnh canvas, nút sóng và lỗi JavaScript/shader/HTTP.",
-      "evidence": [
-        {
-          "resource": "repo://tests/ocean-smoke.mjs",
-          "version": "repo-file-v1:sha256:5fad129f87accc4423a6785b79db2e2b7b01e9b9f4c3b1df5003fbe041258edc"
         }
       ]
     },
@@ -44,41 +34,59 @@
     },
     {
       "id": "claim_7f0efb779d404f5c9e4682419541c353",
-      "statement": "npm run check ghép lint, format, unit tests, build và browser checks; runner tự mở server dev/preview ở cổng trống và đóng các server sở hữu.",
+      "statement": "npm run check ghép lint, format, unit, build, browser và RTDB rules tests; browser runner tự mở dev/preview ở cổng trống và đóng server sở hữu.",
       "evidence": [
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:6e44784d44354da2ccc5b85608360c59a0bc104d1f1b92554fad3193696c2499"
+          "version": "repo-file-v1:sha256:32735293852d4f349b3fd634341b996a81c3a977ddc356b81b27983b6d362102"
         },
         {
           "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:1e3bc1c2b9ab7d4eb68d7f1fb83a2fa9d3114804da6daac106905ba0d2d32a5d"
+          "version": "repo-file-v1:sha256:63ea0694adb8c429c5aaa0068965cacd88694aa13d1b735c962571edbebab31d"
+        },
+        {
+          "resource": "repo://scripts/test-rules.mjs",
+          "version": "repo-file-v1:sha256:b80db44c3185afaaa4842ad6e7a8f7da9fcf2152e17a758c44b4c4f2dc245d3f"
         }
       ]
     },
     {
       "id": "claim_3ba1b926b98c45148618fbd328cc20a9",
-      "statement": "AGENTS.md nạp context theo tác vụ, dẫn tới hợp đồng architecture/workflow và yêu cầu ảnh/motion thực cho đồ họa.",
+      "statement": "AGENTS.md nạp context theo tác vụ, ưu tiên mobile landscape và theme đã duyệt, dẫn tới architecture/workflow/Firebase và yêu cầu ảnh render thực.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L1-L29",
-          "version": "repo-lines-v1:sha256:9ea17e4d773dfb5553f7e763a91b871c4efcbdbb7cad3e8ec2c06f9a1833c877:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMzA1ZjI4Y2ZjOTQzNjUzNTk2NDY4OTA0MWMyZjgyODRjM2JmNmViNmZkNzMyNWVmZmYwNjUxNDJjYjA1MDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5YjQ4YzFjOTNhZjYzMmQwZDU0ZjM3NWYzNGJlNjNiZmUwODRkYTIxZGJmOThkODlmMmM1MTc0ZjRmNTY2ZWEifQ"
+          "resource": "repo://AGENTS.md",
+          "version": "repo-file-v1:sha256:778c9d561939c85b6b379e6aca6c390f4c6ec37a84c00e9f7f33cdc62cf30984"
         }
       ]
     },
     {
-      "id": "claim_2418de1bec674e88bc2940638d31dea7",
-      "statement": "Test ocean ở desktop kiểm tra sparse bright whitecap coverage trên một dải nước tiền cảnh để phát hiện thiếu bọt hoặc phủ trắng toàn mặt biển.",
+      "id": "claim_3fa0c6aabd9f4f53ad35a01c043db5d1",
+      "statement": "Browser tests kiểm tra hai client bản thử, validation, reload, readiness, đóng phòng, nhiều viewport mobile và lỗi Auth có kiểm soát.",
       "evidence": [
         {
-          "resource": "repo://tests/ocean-smoke.mjs#L35-L65",
-          "version": "repo-lines-v1:sha256:39482e76eedfe2e3434b78b59e70e9415637dce2caabf0606df3e19e25009e64:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmZWMyMTQ3ZmUwOTM3YWE3OTA0ODMwZTNmOTY3NjQ3N2Q4MDgxOTBlMjMyYzRjMTE2ZWI4ZWEwN2Q2ZTY2ZmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0MzM4NTM4ODFhYjJmOGQ5YTRmMmMzYTBkNWEzMmRmZGMzMzQyYjRkYTNkZGEwNDM4YWIyM2RmOWU1M2UzNGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmYTY1NmM1OTcxNzlmMDNkZTE2Nzc2Njk1MDUyMmQ5ZWFjMDc0OGNlODY2NDZhNWVlNTc1ZmZhYWFkZDYzMjQifQ"
+          "resource": "repo://tests/hub-browser.mjs",
+          "version": "repo-file-v1:sha256:f86d5135502582d176b9ff0990471ab06c553fdfb092aa3927a05771cc4b6178"
+        }
+      ]
+    },
+    {
+      "id": "claim_1a97e8a8418d45858f411e05eeae2475",
+      "statement": "Runner rules kiểm tra checksum/size JAR chính thức, khởi động emulator Java loopback và thử allow/deny cùng ETag bằng REST không ghi cloud.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/test-rules.mjs",
+          "version": "repo-file-v1:sha256:b80db44c3185afaaa4842ad6e7a8f7da9fcf2152e17a758c44b4c4f2dc245d3f"
+        },
+        {
+          "resource": "repo://tests/rules.test.mjs",
+          "version": "repo-file-v1:sha256:ea3f3521e8bf26aa947a3841c0cdcbdc7cecbf4aacd4b959371a04bf56ea9688"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T08:01:10.530Z"
+    "at": "2026-11-03T10:48:14.207Z"
   }
 }

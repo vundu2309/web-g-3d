@@ -1,8 +1,11 @@
 ---
 type: operations
-title: Phát triển, kiểm tra và deploy
-description: Cài đặt bằng lockfile, kiểm tra trình duyệt, deploy GitHub Pages và vận hành tích hợp OpenWiki cho Codex.
-tags: [development, testing, deployment, openwiki]
+title: Phát triển mobile, kiểm tra và publish
+description: Setup Node/Java, kiểm tra hub trên trình duyệt và emulator, publish Pages và kích hoạt Firebase riêng.
+tags: [development, testing, deployment, mobile, firebase, openwiki]
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-03T10:48:14.207Z
 sources:
   - id: openwiki-source-ab585d88aca3958f2aa6a541
     resource: repo://.codex/config.toml
@@ -14,54 +17,43 @@ sources:
     resource: repo://package.json
   - id: openwiki-source-3515d68bed1b916f693296ec
     resource: repo://scripts/test-browser.mjs
-  - id: openwiki-source-cccb7301733cfb64159c8c2f
-    resource: repo://tests/ocean-smoke.mjs
-generated: { by: "codex", at: "2026-11-03T08:01:10.530Z" }
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-03T08:01:10.530Z
+  - id: openwiki-source-4c36e1d79dd002cc49e886f0
+    resource: repo://scripts/test-rules.mjs
+  - id: openwiki-source-692b548971d3dc99c2c806f0
+    resource: repo://tests/hub-browser.mjs
+  - id: openwiki-source-be28d8122fde564d35ddd891
+    resource: repo://tests/rules.test.mjs
+generated: { by: "codex", at: "2026-11-03T10:48:14.207Z" }
 ---
 
-# Phát triển, kiểm tra và deploy
+# Phát triển mobile, kiểm tra và publish
 
-## Cài đặt và chạy
+## Setup và chạy
 
-Dùng Node.js 24 và npm 11 như README và workflow. Từ repo root, chạy `npm ci`, rồi `npm run dev`. Vite phục vụ dev server, mặc định cổng 5173; nếu bận Vite có thể chọn cổng khác. Đối chiếu log server rồi đặt `TEST_BASE_URL` khi chạy test với cổng khác.
+Dùng Node 24, npm 11 và Java 21. `npm ci` dùng lockfile; `npm run dev` chạy Vite. `npm run build` kiểm tra TypeScript trước đóng gói; `npm run preview` phục vụ bản dist hiện hành. Trong cloud home bị giới hạn ghi, dùng npm cache `/workspace/.npm-cache`; cache emulator có thể đặt qua `FIREBASE_EMULATORS_PATH=/workspace/.firebase-emulators` và config CLI qua `XDG_CONFIG_HOME=/workspace/.firebase-config`.
 
-`npm run build` chạy kiểm tra TypeScript trước Vite build. `npm run preview` phục vụ thư mục `dist`; lệnh này cần bản build hiện hành. Chạy `npm ci` khi đồng bộ lockfile thay vì tự cập nhật phiên bản dependency.
+Browser helper ưu tiên `CHROMIUM_PATH`, Chromium hệ thống, rồi Playwright-managed Chromium. Cài browser nếu thiếu với `npx --no-install playwright-core install --with-deps chromium`. Các process dev/preview/emulator phải do runner sở hữu, không giả định còn sống sau khi publish môi trường.
 
-## Kiểm tra có ý nghĩa
+## Kiểm chứng hub
 
-`npm run test:ocean` dùng Chromium kiểm tra hai viewport 1440×900 và 390×844: khởi động, nút đổi sóng, ảnh canvas thay đổi, kích thước canvas và lỗi JavaScript/shader/HTTP. Browser helper dùng `CHROMIUM_PATH`, nếu không có thì dùng Chromium hệ thống khi được cài, cuối cùng là browser do Playwright quản lý. Cài browser bằng `npx --no-install playwright-core install --with-deps chromium`. Để kiểm tra production đang chạy, đặt `TEST_BASE_URL` đến preview server.
+`npm run check` gồm lint, format, unit transitions, typecheck/build, browser và RTDB rules tests. Runner browser mở dev/preview ở cổng trống rồi đóng đúng server do mình tạo. Test chủ yếu bắt đầu từ điện thoại ngang: tạo/tham gia, mã sai/phòng không tồn tại, hai tab, escape tên, reload, ready/unready, bắt đầu/đóng phòng và Auth lỗi có kiểm soát. Nó kiểm tra thêm 667×375, 844×390, 932×430, portrait 390×844 và desktop 1440×900; ảnh nằm dưới `test-results/` được ignore.
 
-`npm run test:smoke` kiểm tra Havok trong scene thử riêng: 8 khối rơi, mô phỏng 600 bước, kiểm tra không xuyên nền, giới hạn 32 body và scene dispose. Test này import source qua Vite nên cần dev server. Nó không chứng minh thuyền có va chạm hoặc lực nổi thật.
+`npm run test:rules` dùng bộ tải chính thức Firebase để lấy JAR và kiểm tra size/checksum rồi mở Java emulator ở loopback/cổng trống. Test REST dùng danh tính giả chỉ hợp lệ cho emulator; không ghi database thật. Các trường hợp gồm đổi host/capacity, thêm quá chỗ, xóa người khác, ghi status trực tiếp để vượt readiness, quyền host-only và ETag cũ. Runner tránh lỗi proxy localhost của CLI/Node WebSocket SDK, vẫn giữ proxy/CA cho tải remote.
 
-Trên desktop, test còn giải mã ảnh canvas và kiểm tra một dải nước tiền cảnh dưới thuyền/trên HUD: cần có pixel trắng thưa, không biến mất toàn bộ và không phủ trắng mặt biển. Đây là kiểm tra regression cho whitecaps; khoảng coverage rộng không xác nhận bọt nằm đúng mọi đỉnh sóng hoặc có tính vật lý.
+Test xanh không chứng minh keyboard Safari, FPS hay trải nghiệm điện thoại thật. [Theme](../../docs/design/theme.md) yêu cầu kiểm tra ảnh render thực, vùng chạm 44px và safe areas. Các test biển/Havok không còn thuộc sản phẩm này.
 
-Hai ảnh khác nhau chỉ chứng minh có thay đổi pixel, không chứng minh mặt nước tự nhiên. Đánh giá shader bằng ảnh/video thực, cùng góc nhìn và thời điểm, kiểm tra gợn gần camera, nhịp lặp, đường chân trời và nhiễu ở xa. Hai kích thước viewport không thay thế kiểm tra GPU/điện thoại thật.
+## Publish Pages và Firebase
 
-## Kiểm chứng tự động và ngữ cảnh agent
+Workflow Pages chạy `npm run check` với Chromium trên PR/main/dispatch; PR không deploy, main/dispatch upload dist và deploy sau kiểm tra thành công. CI cài Node 24 và Java 21. Workflow không tự sinh wiki. Vite dùng base tương đối, hỗ trợ đường dẫn `/web-g-3d/`.
 
-`npm run check` chạy lint, format, unit test, build và browser tests. ESLint kiểm tra import game/platform không ngược lên app/main, và giữ `waves.ts` dependency-free. Unit test kiểm tra đảo dịch chuyển sóng tại nhiều vị trí/thời điểm/cường độ và trường phẳng khi strength bằng 0.
+User đã cho phép deploy sau cập nhật. Agent phải commit/push main, theo dõi workflow của đúng SHA đến deploy, đối chiếu entry asset public với dist đã kiểm tra rồi gửi link có query phiên bản. Push hoặc build xanh riêng lẻ chưa hoàn tất deploy. Branch protection là setting ngoài workflow.
 
-`scripts/test-browser.mjs` tự mở Vite ở cổng trống, chạy ocean/physics trên dev, đóng dev rồi mở preview và kiểm tra ocean trên production. Runner truyền exit code lỗi qua process và đóng server do chính nó tạo. `test:browser` cần build sẵn; `npm test` tự build trước.
+Pages chỉ publish frontend. Firebase backend cần Anonymous Auth, database đang hoạt động và rules namespace hub. Public config không cho quyền quản trị; [Firebase setup](../../docs/firebase.md) ghi cụ thể lỗi database bị vô hiệu hóa đã quan sát và bước khôi phục. Khi áp dụng rules phải bảo toàn dữ liệu/quyền Movieapp khác. Bản thử nhiều tab và emulator không phải chứng cứ online hai thiết bị đã hoạt động.
 
-`AGENTS.md` dẫn đến `docs/architecture.md`, `docs/workflow.md` và quyết định trong `docs/decisions/`. Agent nạp ngữ cảnh theo tác vụ, giữ code/test làm nguồn sự thật và kiểm tra ảnh/motion thật với thay đổi đồ họa. OpenWiki là chỉ mục tra cứu, không thay thế hợp đồng authored hoặc kiểm chứng thực thi.
+## Ngữ cảnh cho AI và OpenWiki
 
-## GitHub Pages
+`AGENTS.md` là entrypoint: nạp context theo tác vụ, ưu tiên điện thoại ngang và thiết kế đã duyệt, dẫn tới theme, architecture, workflow và Firebase. Giữ source/test thực thi làm nguồn sự thật; không coi wiki hoặc ảnh concept là quyền tự đổi sản phẩm.
 
-`.github/workflows/pages.yml` chạy trên pull request, push `main` và dispatch thủ công. Job build cài Node 24, npm dependencies và Chromium rồi chạy `npm run check`. PR chỉ kiểm chứng; main/dispatch upload `dist` và deploy sau khi check qua. Workflow không tự sinh wiki. Branch protection là cấu hình GitHub riêng, không được đảm bảo chỉ bởi file workflow.
+MCP OpenWiki chạy qua `npx --no-install` trong `.codex/config.toml`; công cụ và dependency thuộc dev, không được nhập vào game. Cập nhật wiki qua lifecycle sau khi source ổn định; OpenWiki quản lý Claims/index/provenance. Không hand-edit các metadata đó hay tự gọi paid model. `npm run wiki:serve` mở reader local; `npm run wiki:export` xuất reader ignored, không tự deploy lên Pages.
 
-Vite dùng `base: './'` để asset hoạt động dưới `/web-g-3d/`. URL mặc định: https://vundu2309.github.io/web-g-3d/.
-
-## OpenWiki trong Codex
-
-`openwiki` là devDependency pin 0.7.3. `.codex/config.toml` dùng `npx --no-install openwiki mcp --host codex`; cần cài dependencies và mở Codex từ repo. `.agents/skills/openwiki` chứa hướng dẫn tích hợp. Sau lần cài đầu, mở lại Codex để nạp MCP; phiên đang chạy không tự có thêm công cụ trong danh sách tool.
-
-Yêu cầu Codex cập nhật wiki từ source/test. Coding agent đọc repo và gửi từng trang qua lifecycle OpenWiki, còn OpenWiki quản lý Claims, evidence, index và metadata. Không sửa tay các file quản lý đó. Phạm vi biên soạn nằm trong `openwiki/INSTRUCTIONS.md`.
-
-`npm run wiki:serve` phục vụ đồ thị/trình đọc local; `npm run wiki:export` xuất reader tĩnh vào `.openwiki-export/`, được Git ignore. Xuất reader không tự publish hoặc đổi game trên Pages. CLI standalone `--init`/`--update` cần provider riêng; không chép API key vào source, wiki hoặc game. `.env` và local state được ignore.
-
-## Đi tiếp
-
-[Kiến trúc và vòng đời](../architecture/ocean.md) · [Bắt đầu](../quickstart.md).
+[Kiến trúc hub](../architecture/hub.md) · [Bắt đầu](../quickstart.md).

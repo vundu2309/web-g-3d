@@ -4,7 +4,7 @@ okf_version: "0.2"
 
 # Tập tin
 
-- [Bắt đầu với Hải trình](quickstart.md) - Bản đồ tác vụ để chạy, sửa sóng, hiểu vòng đời, kiểm tra và deploy web game 3D Hải trình.
+- [Bắt đầu với hub Phố Tỷ Phú](quickstart.md) - Bản đồ tác vụ cho hub board game mobile, theme đã duyệt, kiểm tra và phát hành Pages với Firebase riêng.
 
 # Thư mục
 

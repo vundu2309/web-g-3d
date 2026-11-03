@@ -1,42 +1,33 @@
-# Development and agent verification
+# Development, mobile review and release
 
-Use Node 24 (`.node-version`) and npm 11. Install dependencies with `npm ci`. OpenWiki and QA tools are development dependencies; the browser application imports neither.
+Use Node 24 (`.node-version`), npm 11 and the existing checkout. `npm ci` installs the lockfile. `npm run dev` starts Vite; `npm run build` typechecks and builds; `npm run preview` serves production output. On cloud machines with a read-only home use `npm ci --cache /workspace/.npm-cache`. Do not make a worktree unless the user asks.
 
-## Commands
+## Checks
 
-| Command | Evidence |
+| Command | What it verifies |
 | --- | --- |
-| `npm run dev` | Starts interactive Vite development server |
-| `npm run lint` | TypeScript lint and selected import boundaries |
-| `npm run format:check` | Formatting of authored executable source/config |
-| `npm run test:unit` | CPU displaced-wave inversion and zero-strength invariants |
-| `npm run build` | Strict type check and production bundle |
-| `npm run test:browser` | Starts owned ephemeral dev/preview servers and runs ocean + physics on dev, ocean on production; requires a current build |
-| `npm test` | Unit tests, build, then self-contained browser checks |
-| `npm run check` | Lint, formatting and all of the above tests |
+| `npm run lint` | TypeScript rules and hub/platform import boundaries |
+| `npm run format:check` | Authored executable formatting |
+| `npm run test:unit` | Room validation, capacity, immutable snapshots, readiness/start permissions, leave/seat reuse |
+| `npm run build` | Strict TypeScript and production asset generation |
+| `npm run test:browser` | Owned dev/preview servers; create/join/errors, two preview clients, reload, ready/start/close, mobile layout, Auth error |
+| `npm run test:rules` | Real RTDB emulator allow/deny tests, including malicious direct writes; needs Java 21 |
+| `npm run check` | Lint, format, unit, build, browser and rules tests |
 
-Browser tests use `CHROMIUM_PATH` if given, system Chromium if installed, otherwise the Playwright-managed browser. Install the last option with `npx --no-install playwright-core install --with-deps chromium`. No API key is needed. Server startup/cleanup belongs to `scripts/test-browser.mjs`; it uses free ports, propagates child failures, and closes its own servers. Lower-level `test:ocean`/`test:smoke` commands still support manual servers through `TEST_BASE_URL`.
+Browser tests use `CHROMIUM_PATH`, system `/usr/bin/chromium`, or the Playwright-managed browser. Install the managed browser with `npx --no-install playwright-core install --with-deps chromium` if needed. The runner starts servers on free ports and owns their cleanup. Failure output and screenshots belong under ignored `test-results/`; tests must not leave a user-owned server running or use live Firebase writes.
 
-## Definition of done
+## Mobile-first visual acceptance
 
-Establish the intended behavior before editing. Run focused checks while iterating; run `npm run check` once the implementation is stable. Documentation-only edits need link/content review rather than an unrelated graphics suite. Report exact failures and any checks not run.
+[Approved theme and image references](design/theme.md) are the visual contract. Inspect actual home, create, join and lobby screenshots first at **844×390 and 932×430**, with 667×375 as compact coverage. Check 390×844 portrait fallback and then 1440×900 desktop. Confirm no horizontal overflow, 44px touch controls, 16px form text, safe area padding, focus, escaped long names and readable disabled explanations. Core lobby actions/status should fit horizontal phones; forms must still scroll when the OS keyboard is open. Test on a real phone before making performance or keyboard claims: browser emulation does not reproduce all Safari/Android behavior.
 
-For shader, model, camera or UI changes, compare actual game frames and motion before/after at the same camera/viewport. Inspect both 1440×900 and 390×844, rough and calm water, console errors, horizon seams and near-surface detail. Review foam for contact plausibility. Save useful images/clips outside the checkout or under an ignored artifact directory; do not commit generated screenshots by default. Do not claim realism or mobile FPS based only on a screenshot or software-WebGL smoke test.
+Do not equate a generated image, build or screenshot with complete usability approval. Record simplifications from the concept honestly; never add unrelated visual styles without review.
 
-The ocean smoke checks loading, controls, changing canvas pixels, errors and dimensions. On desktop it also checks that a foreground water band contains sparse bright whitecaps, catching missing foam or a white-coated sea; this broad pixel-coverage check is not a realism metric. Physics smoke advances the separate Havok playground for 600 steps and checks ground collision, bounded bodies and scene disposal. These checks complement visual review; neither proves complete gameplay correctness.
+## Release to GitHub Pages
 
-## CI and release
+The user reviews completed changes on Pages and authorizes deployment after project updates. Run applicable checks, commit the coherent update and push `main`; do not ask again for permission. `.github/workflows/pages.yml` runs checks on PRs/main/manual dispatch and publishes `dist` only after success. No deployment of Firebase rules/settings is included.
 
-The Pages workflow runs `npm run check` on pull requests and pushes to `main`, installing Chromium first. PRs verify without deploying. Successful main/manual runs upload `dist` and deploy Pages. This is automatic deployment from main; pushing an approved change publishes it. Run checks before that push and monitor the resulting workflow.
+Monitor the exact commit's Actions run through deployment, not merely a green build or successful push. Compare the public entry asset with tested `dist/index.html` and inspect the public mobile interface where possible. Send `https://vundu2309.github.io/web-g-3d/?v=<short-commit>` with the deployed short SHA. The query is a review identifier, not proof of CDN freshness. If blocked, report the exact blocker and distinguish the older live version.
 
-GitHub branch protection is a separate repository setting. A workflow file does not guarantee that merges require its status; do not claim that protection has been enabled without checking settings. This project does not automatically spend model tokens or regenerate wiki in CI. The generated standalone OpenWiki schedule is intentionally Git-ignored pending separate provider configuration.
+## Context maintenance
 
-## User review happens on GitHub Pages
-
-Deployment is part of each completed project update, including configuration/documentation changes. The user has explicitly authorized this workflow: verify locally as appropriate, commit/push main, monitor the exact commit's Pages run through deployment, and verify the public build. Do not stop at a local screenshot, commit, push, or successful build. Batch edits into a coherent update rather than deploying unfinished saves.
-
-Send the live URL with `?v=<short-commit>` and state the deployed version. This query makes review links distinguishable; validate public asset names against the tested build rather than assuming it clears CDN caches. If deployment fails, investigate and fix it or report the precise blocker and that the live game has not been updated. Later user instructions may override automatic publication.
-
-## Keep context current
-
-Update authored architecture/decision docs when a contract changes. Use the installed OpenWiki lifecycle for affected generated pages and Claims. For unrelated questions, retrieve only the necessary section. Store durable facts, evidence and decisions, not conversation transcripts, secrets or speculative plans.
+Update authored docs when contracts change. Finish source edits before refreshing affected OpenWiki pages via its installed lifecycle; never hand-edit managed metadata, Claims or indexes. No model-token spending or autonomous wiki CI is enabled. `AGENTS.md` is the single agent entrypoint; do not duplicate divergent instructions across agent-specific files.

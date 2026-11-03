@@ -1,44 +1,41 @@
-# Hải trình — 3D Ocean
+# Phố Tỷ Phú
 
-Cảnh biển 3D tương tác bằng Babylon.js, TypeScript strict và Vite: sóng shader, ánh nắng, bầu trời thủ tục và thuyền buồm nhấp nhô. Kéo để xoay, cuộn/chụm để zoom, nút Sóng êm/Sóng mạnh để đổi cường độ. Đây là môi trường khởi đầu cho game; chưa có nhiệm vụ hoặc điều khiển lái thuyền.
+Hub cho board game giao dịch bất động sản, ưu tiên **điện thoại xoay ngang**. Theme giấy xanh nhạt, chữ cobalt và nút vàng theo mẫu đã duyệt. Đã bỏ cảnh biển, thuyền và engine 3D cũ.
 
-## Phát triển
+Luồng hiện tại: trang chính → tạo/tham gia phòng → phòng chờ → trạng thái hoàn tất hub. Có tên người chơi, mã mời, tối đa 2–4 người, sẵn sàng, khôi phục phòng sau reload và rời/đóng phòng. Chưa có bàn chơi, xúc xắc, mua đất hoặc gameplay Monopoly.
 
-Node.js 24, npm 11. `npm ci`, sau đó `npm run dev`. `npm run build` kiểm tra kiểu và build production. `npm run preview` phục vụ dist. Không cần backend, secret, texture tải ngoài hay CDN.
+## Chạy và kiểm tra
 
-## Kiến trúc
+Node 24, npm 11, Java 21 cho Firebase emulator:
 
-- `src/main.ts`: DOM, trạng thái khởi động và HMR.
-- `src/app/start.ts`: engine, render loop, listener và cleanup.
-- `src/game/ocean/scene.ts`: ghép scene, camera và cập nhật thời gian.
-- `src/game/ocean/waves.ts`: trường sóng dùng chung giữa shader và thuyền.
-- `src/game/ocean/materials.ts`: shader nước, phản xạ bầu trời xấp xỉ, nắng và mây thủ tục.
-- `src/game/ocean/boat.ts`: model thuyền thủ tục, tài nguyên do scene sở hữu.
-- `src/platform/physics.ts` và `src/game/playground.ts`: nền Havok và scene va chạm được giữ để phát triển gameplay sau này; scene biển không cần tải WASM vật lý.
+```sh
+npm ci
+npm run dev
+npm run check
+```
 
-Sóng Gerstner dịch chuyển đỉnh lưới theo cả chiều ngang và chiều cao. Pháp tuyến giải tích kết hợp gợn giao thoa biến dạng; phản xạ Fresnel, tán xạ nước, bọt ở đỉnh sóng và giới hạn phơi sáng. Một lưới liên tục với mật độ giảm theo khoảng cách thay cho hai mặt biển có đường nối. CPU đảo dịch chuyển ngang để lấy độ cao nổi của thuyền. Thuyền lấy độ cao và độ nghiêng từ cùng hàm sóng; đây là chuyển động nổi mô phỏng bằng toán, chưa phải lực nổi thủy động lực học Havok. Scene.dispose dọn mesh/material; app dọn loop, listener và engine. Không thêm singleton, event bus hay ECS trước khi có nhu cầu thực tế.
+`npm run build` tạo `dist`; `npm run preview` phục vụ bản production. Chromium hệ thống được tự nhận diện; hoặc cài bằng `npx --no-install playwright-core install --with-deps chromium`.
 
-## Kiểm tra
+## Online và bản thử
 
-`npm run check` là lệnh kiểm chứng chung: lint ranh giới module, format, hai unit test trường sóng, build TypeScript/Vite, kiểm tra browser trên dev và production. Runner tự mở/đóng server ở cổng trống. Chromium hệ thống được dùng nếu có; nếu không, cài bằng `npx --no-install playwright-core install --with-deps chromium`. Có thể đặt `CHROMIUM_PATH` để chọn trình duyệt khác.
+Online dùng Firebase Anonymous Auth + Realtime Database của project `movieapp-fa2d4`. Backend hiện cần bật lại database và cấu hình quyền; deploy Pages không tự làm bước đó. Xem [hướng dẫn Firebase](docs/firebase.md).
 
-Các lệnh `test:ocean`/`test:smoke` vẫn dùng được với server thủ công và `TEST_BASE_URL`. Xem [quy trình đầy đủ](docs/workflow.md), [ranh giới kiến trúc](docs/architecture.md), [quy tắc agent](AGENTS.md) và [quyết định thiết kế](docs/decisions/0001-context-and-validation.md).
+Chọn **Thử trên thiết bị này** để kiểm tra hub mà không ghi Firebase. Mở thêm tab cùng trình duyệt, chuyển tab đó sang bản thử rồi tham gia bằng mã. Chế độ này chỉ đồng bộ trên cùng thiết bị/trình duyệt, không phải multiplayer qua Internet. Giao diện luôn ghi “Bản thử”.
 
-Kiểm tra trình duyệt dùng software WebGL không đại diện FPS điện thoại thật. Giới hạn độ phân giải render trên thiết bị DPI cao; vẫn cần đo trên thiết bị mục tiêu. Engine còn tạo cảnh báo bundle lớn.
+## Tài liệu
 
-## Deploy GitHub Pages
+- [Quy tắc cho AI](AGENTS.md)
+- [Theme đã duyệt, mobile và ảnh tham chiếu](docs/design/theme.md)
+- [Kiến trúc và ranh giới module](docs/architecture.md)
+- [Kiểm tra và deploy](docs/workflow.md)
+- [Quyết định chuyển sang hub](docs/decisions/0002-mobile-board-game-hub.md)
 
-Settings → Pages → Source: GitHub Actions. Pull request chạy toàn bộ `npm run check`; push `main` hoặc chạy thủ công chỉ deploy `dist` sau khi các kiểm tra qua. Vite dùng base tương đối để asset hoạt động dưới project path.
+## GitHub Pages
 
-URL: https://vundu2309.github.io/web-g-3d/
+https://vundu2309.github.io/web-g-3d/
 
-## OpenWiki (công cụ phát triển)
+Settings → Pages → Source: GitHub Actions. Workflow chạy kiểm tra trước khi publish `dist`; main tự deploy. Firebase backend/rules là bước riêng, không có secret quản trị trong client.
 
-OpenWiki 0.7.3 được pin trong devDependencies, không được import vào game. Sau `npm ci`, mở lại Codex tại repo để nạp `.agents/skills/openwiki` và MCP `.codex/config.toml`; cấu hình dùng `npx --no-install` nên không cần cài global hoặc tải bản mới khi khởi động. Chỉ tin cậy MCP của repo mà bạn đã kiểm tra.
+## OpenWiki
 
-- `npm run wiki -- integrations list --project .`: kiểm tra tích hợp.
-- Trong Codex: “Update this repository's OpenWiki from current source and tests.” Dùng phiên model của coding agent; không cần thêm API key riêng cho cách này.
-- `npm run wiki:serve`: mở trình đọc/đồ thị local.
-- `npm run wiki:export`: xuất trình đọc tĩnh vào `.openwiki-export/`; không tự publish ra Pages.
-
-Wiki tiếng Việt bắt đầu tại [openwiki/quickstart.md](openwiki/quickstart.md). Quy tắc phạm vi trong `openwiki/INSTRUCTIONS.md`. Metadata, Claims và index do OpenWiki quản lý. CLI standalone `--init`/`--update` cần cấu hình provider riêng; không đặt API key vào source hoặc GitHub Pages. Workflow Pages chạy lint, unit test, build và test trình duyệt trước deploy; không tự sinh wiki.
+OpenWiki được pin trong devDependencies, không tải vào ứng dụng. `npm run wiki -- integrations list --project .` kiểm tra tích hợp; `npm run wiki:serve` mở trình đọc local; `npm run wiki:export` xuất vào `.openwiki-export/`. Wiki bắt đầu tại [openwiki/quickstart.md](openwiki/quickstart.md). Dùng lifecycle của skill `.agents/skills/openwiki` để cập nhật sau khi source ổn định; không sửa tay Claims/metadata/index. Không tự gọi paid provider hoặc chạy lịch AI trong CI.

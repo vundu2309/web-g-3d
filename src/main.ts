@@ -1,32 +1,15 @@
 import { start } from "./app/start";
+import "@fontsource/baloo-2/latin-800.css";
+import "@fontsource/baloo-2/vietnamese-800.css";
+import "@fontsource/be-vietnam-pro/latin-400.css";
+import "@fontsource/be-vietnam-pro/vietnamese-400.css";
+import "@fontsource/be-vietnam-pro/latin-600.css";
+import "@fontsource/be-vietnam-pro/vietnamese-600.css";
+import "@fontsource/be-vietnam-pro/latin-700.css";
+import "@fontsource/be-vietnam-pro/vietnamese-700.css";
 import "./style.css";
 
-const canvas = document.querySelector<HTMLCanvasElement>("#game");
-const button = document.querySelector<HTMLButtonElement>("#waves");
-const status = document.querySelector<HTMLElement>("#status");
-if (!canvas || !button || !status)
-  throw new Error("Missing application elements");
-
-let dispose: (() => void) | undefined;
-let active = true;
-if (import.meta.hot)
-  import.meta.hot.dispose(() => {
-    active = false;
-    dispose?.();
-  });
-
-start(canvas, button)
-  .then((cleanup) => {
-    if (!active) {
-      cleanup();
-      return;
-    }
-    dispose = cleanup;
-    status.textContent = "Kéo để nhìn quanh · Chụm hai ngón để thu phóng";
-  })
-  .catch((error: unknown) => {
-    console.error(error);
-    if (active)
-      status.textContent =
-        "Không khởi động được 3D. Hãy kiểm tra WebGL và tải lại trang.";
-  });
+const root = document.querySelector<HTMLElement>("#app");
+if (!root) throw new Error("Missing application root");
+const dispose = start(root);
+if (import.meta.hot) import.meta.hot.dispose(dispose);

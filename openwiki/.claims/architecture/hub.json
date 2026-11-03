@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:ce20bbc69596b5d067e1e8074eb46b74d5c85dc5ea5bf4a158b228fd8c049164",
+  "claims": [
+    {
+      "id": "claim_c48c88a21cf14dd39b37deb5ae6894ff",
+      "statement": "Model phòng xử lý join, ready, start và leave độc lập Firebase/DOM trên bản sao; bắt đầu đòi host, ít nhất hai người và mọi người sẵn sàng.",
+      "evidence": [
+        {
+          "resource": "repo://src/hub/model.ts",
+          "version": "repo-file-v1:sha256:afb719744833da38c1d36e2439aa5fd6e4826f407f77fd3caf2220342a4d118b"
+        }
+      ]
+    },
+    {
+      "id": "claim_bebc199be37647b28862073bf0ef9c39",
+      "statement": "Adapter online dùng Anonymous Auth, listener RTDB và REST ETag conditional writes với tối đa năm lần thử lại khi HTTP 412.",
+      "evidence": [
+        {
+          "resource": "repo://src/platform/firebase.ts",
+          "version": "repo-file-v1:sha256:ccdec6f21a106573fca6425f171f271329f21bced157cd8b6ff3a8fa1978b2d1"
+        }
+      ]
+    },
+    {
+      "id": "claim_503f22e87942497e96c77f3e88dfb0c1",
+      "statement": "Bản thử được lựa chọn rõ ràng và chỉ đồng bộ cùng origin bằng localStorage, Web Locks và storage event.",
+      "evidence": [
+        {
+          "resource": "repo://src/app/start.ts",
+          "version": "repo-file-v1:sha256:8a929c293648cedee1c3dbf7f71134431cdcc83230999e66a9d90d29de1e9316"
+        },
+        {
+          "resource": "repo://src/platform/demo.ts",
+          "version": "repo-file-v1:sha256:d4d6fabc9b7a9a92e58c51948ea37ad835cd59e7829e266fb58654d03b0f67cc"
+        }
+      ]
+    },
+    {
+      "id": "claim_9725df536e7f44beba9f99e798857799",
+      "statement": "Rules và emulator tests chặn thay host, vượt capacity, xóa người khác và bắt đầu trực tiếp khi người chơi chưa sẵn sàng.",
+      "evidence": [
+        {
+          "resource": "repo://database.rules.json",
+          "version": "repo-file-v1:sha256:24ac586195e070347924e584f9ed41a027707d931d492eaf306b0b86208087f9"
+        },
+        {
+          "resource": "repo://tests/rules.test.mjs",
+          "version": "repo-file-v1:sha256:ea3f3521e8bf26aa947a3841c0cdcbdc7cecbf4aacd4b959371a04bf56ea9688"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-03T10:52:40.016Z"
+  }
+}
