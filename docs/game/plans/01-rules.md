@@ -20,7 +20,7 @@ Ghi đủ luật Monopoly Classic US thành tài liệu có nguồn, ID và tìn
 
 - **01A.1 — Nguồn:** Đã chọn G0009 US, rulebook 2025; S-002 có URL/PDF/hash và giới hạn bằng chứng.
 - **01A.2 — Bảng tài sản:** Đã lập [bảng nháp có nguồn](../rules/property-economics.md) đủ 28 tài sản; một số trường xác minh từ S-002, phần còn lại S-004 chỉ để review. Chưa xong: cần S-003, mortgage/unmortgage và rent/giá xây Rhode Island.
-- **01A.3 — Điều kiện tính tiền:** Chưa xong; phân biệt đất màu, railroad/utility, thẻ và thế chấp.
+- **01A.3 — Điều kiện tính tiền:** Đã viết [đặc tả có nguồn và tình huống kiểm chứng](../rules/rent-conditions.md) cho rent, nhóm màu, thế chấp và điều kiện áp giá xây. Chờ review; hiệu ứng thẻ và chính sách số hóa vẫn unresolved.
 
 ## Việc tiếp theo trong 01A
 
@@ -42,3 +42,7 @@ Giao diện game, ảnh mới, thay hub/Firebase, model runtime, backend, server
 - [ ] Từng phần được duyệt; ghi trạng thái ở trang luật và plan.
 
 **Bằng chứng hiện tại:** đã có bảng giá/rent nháp và ma trận trường được xác minh ở S-002; phát hiện tên G0009 là Rhode Island Avenue. S-003 còn thiếu, chưa hoàn thành 01A và chưa có implementation.
+
+## Tiến độ nghiên cứu tiếp theo
+
+Đã kiểm tra thêm nguồn công khai ngày 2026-11-03: trang shop Hasbro được thử chuyển về trang where-to-buy, chưa cung cấp bộ Title Deed; các hình S-002 không có mặt sau. Chưa xác minh được giá còn thiếu; không coi việc tìm không thấy là bằng chứng số liệu không tồn tại. Trong lúc 01A.2 còn thiếu S-003, chỉ tiếp tục các điều kiện 01A.3 có bằng chứng độc lập, chưa mở 01B/01C hoặc implementation.

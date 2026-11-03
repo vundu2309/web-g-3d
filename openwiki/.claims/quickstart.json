@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:dca101a7e4525f4d3c34d6d4753a2fb5cd62dc607ddf84980d7ab707082d546f",
+  "pageVersion": "sha256:cd2e98e87d3651469be826581c38d651630e81c304e8d2f73394dccc5bc78162",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -104,11 +104,11 @@
         },
         {
           "resource": "repo://docs/game/plans/01-rules.md",
-          "version": "repo-file-v1:sha256:0ea38258d2b509dd0780747557ab9fa50aa04f056f2dfbee94ba178ad9b1762a"
+          "version": "repo-file-v1:sha256:5ed74de5b367536fdc410477d8f312ce7369367d0f5fa1314ddddf5756e55c34"
         },
         {
           "resource": "repo://docs/game/rules/sources.md",
-          "version": "repo-file-v1:sha256:8117373b9dc81a56e8e92733894cf8ec259a0de643c6652644f674f276e50827"
+          "version": "repo-file-v1:sha256:1ec58da7e293b6008a2eeb6425690a65ab757faf104fc5dcfc887dc40aaa7027"
         }
       ]
     },
@@ -122,17 +122,31 @@
         },
         {
           "resource": "repo://docs/game/rules/property-economics.md",
-          "version": "repo-file-v1:sha256:92dd1de28b01cd3f525fc679f94a8091d58b5a9e815226618f9ab6680048af84"
+          "version": "repo-file-v1:sha256:3f22140655df2d81f2d18b56d25225ba4f701b0b4a07aacaebdb6e4c1cf01708"
         },
         {
           "resource": "repo://docs/game/rules/sources.md",
-          "version": "repo-file-v1:sha256:8117373b9dc81a56e8e92733894cf8ec259a0de643c6652644f674f276e50827"
+          "version": "repo-file-v1:sha256:1ec58da7e293b6008a2eeb6425690a65ab757faf104fc5dcfc887dc40aaa7027"
+        }
+      ]
+    },
+    {
+      "id": "claim_3c447c61fbcd494d8cb5bbf585267ac7",
+      "statement": "01A.3 đặc tả điều kiện rent/xây/thế chấp với 7 mã luật và 15 tình huống tài liệu; dữ liệu S-003 và chính sách số hóa còn thiếu, không là implementation gameplay.",
+      "evidence": [
+        {
+          "resource": "repo://docs/game/plans/01-rules.md",
+          "version": "repo-file-v1:sha256:5ed74de5b367536fdc410477d8f312ce7369367d0f5fa1314ddddf5756e55c34"
+        },
+        {
+          "resource": "repo://docs/game/rules/rent-conditions.md",
+          "version": "repo-file-v1:sha256:bee97eb0f6e9af6f8e151c08f039129bac25d1f3ffaae7a60e48a6bd78932a3f"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T16:55:28.050Z"
+    "at": "2026-11-03T16:58:55.100Z"
   }
 }

@@ -20,6 +20,8 @@ sources:
     resource: repo://docs/game/rules/board-and-properties.md
   - id: openwiki-source-c932588d9fa043f7688a8026
     resource: repo://docs/game/rules/property-economics.md
+  - id: openwiki-source-ded398e81c989f91c49f987f
+    resource: repo://docs/game/rules/rent-conditions.md
   - id: openwiki-source-9be48765f38483590a0034ef
     resource: repo://docs/game/rules/sources.md
   - id: openwiki-source-8acf8e92f9f7b465d02fa04b
@@ -40,10 +42,10 @@ sources:
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
     resource: repo://src/platform/firestore-client.ts
-generated: { by: "codex", at: "2026-11-03T16:55:28.050Z" }
+generated: { by: "codex", at: "2026-11-03T16:58:55.100Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T16:55:28.050Z
+    at: 2026-11-03T16:58:55.100Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
@@ -83,3 +85,7 @@ Dùng [hướng dẫn đo thời gian](../docs/diagnostics.md) và [vận hành]
 ## Giá tài sản và đối chiếu edition
 
 [Bảng kinh tế 01A.2](../docs/game/rules/property-economics.md) liệt kê 28 tài sản, nhưng chưa là config runtime hoặc bảng đã duyệt. Từng trường xác minh trực tiếp từ G0009 S-002 được phân biệt với số nháp từ Wikibooks S-004. Hình rulebook G0009 ghi Rhode Island Avenue, khác Oriental Avenue trong nguồn tham khảo; không tự sao chép rent giữa hai tên. Mortgage/unmortgage và rent/giá xây Rhode Island vẫn unresolved. Không coi đủ 28 hàng là đã hoàn thành Plan 01A.
+
+## Điều kiện áp dụng giá và tiền thuê
+
+[01A.3](../docs/game/rules/rent-conditions.md) có bảy quy tắc và 15 case tài liệu đối chiếu S-002: quyền yêu cầu rent, đất đủ nhóm, công trình, railroad/utility, thế chấp và điều kiện xây. Chưa có engine/test gameplay. Giá còn thiếu S-003 và chính sách số hóa (yêu cầu rent, phép tung utility, thứ tự mạng) vẫn unresolved; 01A chưa hoàn thành và chưa mở plan sau.

@@ -6,6 +6,7 @@
 | --- | --- | --- |
 | 01A | [Bàn cờ và tài sản](board-and-properties.md) | Active, nháp để đối chiếu |
 | 01A.2 | [Bảng kinh tế có nguồn](property-economics.md) | Nháp; phân biệt S-002 xác minh và S-004 tham khảo |
+| 01A.3 | [Điều kiện tính tiền và áp giá](rent-conditions.md) | Nháp có section nguồn/case; chờ review và dữ liệu còn thiếu |
 | 01B | [Thiết lập và lượt](turns.md) | Backlog |
 | 01C | [Quản lý tài sản](assets.md) | Backlog |
 | 01D | [Ô đặc biệt và thẻ](cards-and-jail.md) | Backlog |

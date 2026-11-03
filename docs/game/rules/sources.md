@@ -46,3 +46,7 @@ Trang Hasbro en-us cho mã **C1009** hiện liên kết `C1009780B_INST_MN_CLASS
 ## Bằng chứng bổ sung S-002 cho 01A.2
 
 Đã xem hình trang 2 ở độ phóng đại đủ đọc: Kentucky Avenue (rent/giá xây), Mediterranean Avenue (rent; giá xây bị che), St. James Place (rent/giá xây), Illinois Avenue (mua 240), cụm Connecticut/Vermont/**Rhode Island Avenue** (mua 120/100/100). Bảng tên tham khảo cũ được sửa vị trí 6 theo G0009, không tự đưa rent Oriental vào Rhode Island. Railroads và Utilities trên cùng trang xác nhận công thức rent thông thường. Chưa có mặt sau để chốt mortgage/unmortgage. Danh mục 40 ô còn phải đối chiếu toàn bàn, không được gọi là đã xác minh hết.
+
+## Điều kiện giá đã đối chiếu từ S-002
+
+[01A.3](rent-conditions.md) dẫn cụ thể Owned Properties, Collect color sets!, Railroads, Utilities, Buildings, Mortgaging Property và Deals & Trades ở trang PDF 2. Các mục này xác định quyền thu, điều kiện thế chấp/xây và công thức rent thông thường; không xác minh các số tiền mặt sau thẻ còn thiếu. Phép tung utility, yêu cầu rent trước lượt tiếp theo và cách xử lý trên online cần tách chính sách số hóa, không tự mặc định auto-claim hoặc timeout.

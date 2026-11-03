@@ -1,6 +1,6 @@
 # 01A.2 — Bảng kinh tế tài sản
 
-**Trạng thái: nháp có nguồn, chưa duyệt, không phải config runtime.** Đơn vị là tiền Monopoly (M), số nguyên. `—` nghĩa là **chưa có bằng chứng**, không phải 0/miễn phí. Quyền thu rent, thế chấp, thẻ và xây được đặc tả riêng ở 01A.3/01C.
+**Trạng thái: nháp có nguồn, chưa duyệt, không phải config runtime.** Đơn vị là tiền Monopoly (M), số nguyên. `—` nghĩa là **chưa có bằng chứng**, không phải 0/miễn phí. Quyền thu rent và điều kiện áp giá nằm tại [01A.3](rent-conditions.md); đầy đủ lifecycle xây/thế chấp/thẻ thuộc 01C/01D khi được mở.
 
 ## Nguồn và mức xác minh
 
