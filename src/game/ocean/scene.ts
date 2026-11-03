@@ -1,7 +1,7 @@
 import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Matrix, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Scene } from "@babylonjs/core/scene";
@@ -13,7 +13,9 @@ import {
 } from "./materials";
 import { createBoat } from "./boat";
 import { createOceanSurface } from "./surface";
-import { heightAt } from "./waves";
+import { OceanSpectrum } from "./waves";
+import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture";
+import { Constants } from "@babylonjs/core/Engines/constants";
 
 export function createOceanScene(engine: Engine, canvas: HTMLCanvasElement) {
   const scene = new Scene(engine);
@@ -22,15 +24,15 @@ export function createOceanScene(engine: Engine, canvas: HTMLCanvasElement) {
   const camera = new ArcRotateCamera(
     "ocean-camera",
     -1.15,
-    1.36,
-    mobile ? 38 : 26,
-    new Vector3(0, mobile ? 4.5 : 2.5, 0),
+    1.51,
+    mobile ? 34 : 24,
+    new Vector3(0, mobile ? 1.8 : 0.6, 0),
     scene,
   );
   camera.lowerRadiusLimit = 10;
   camera.upperRadiusLimit = 60;
   camera.lowerBetaLimit = 0.35;
-  camera.upperBetaLimit = 1.47;
+  camera.upperBetaLimit = 1.54;
   camera.wheelPrecision = 7;
   camera.pinchPrecision = 60;
   camera.panningSensibility = 0;
@@ -51,33 +53,64 @@ export function createOceanScene(engine: Engine, canvas: HTMLCanvasElement) {
   sky.isPickable = false;
   sky.infiniteDistance = true;
   const water = createOceanSurface(scene);
+  const spectrum = new OceanSpectrum();
+  const field = RawTexture.CreateRGBATexture(
+    spectrum.displacement,
+    spectrum.size,
+    spectrum.size,
+    scene,
+    false,
+    false,
+    Constants.TEXTURE_NEAREST_SAMPLINGMODE,
+    Constants.TEXTURETYPE_FLOAT,
+  );
+  const surfaceField = RawTexture.CreateRGBATexture(
+    spectrum.surface,
+    spectrum.size,
+    spectrum.size,
+    scene,
+    false,
+    false,
+    Constants.TEXTURE_NEAREST_SAMPLINGMODE,
+    Constants.TEXTURETYPE_FLOAT,
+  );
+  field.wrapU =
+    field.wrapV =
+    surfaceField.wrapU =
+    surfaceField.wrapV =
+      Constants.TEXTURE_WRAP_ADDRESSMODE;
   const material = createOceanMaterial(scene);
   water.material = material;
+  material.setTexture("displacementMap", field);
+  material.setTexture("surfaceMap", surfaceField);
   material.setVector3("sunDirection", sunDirection);
-  material.setFloat("innerCutout", 0);
   const boat = createBoat(scene);
   boat.rotation.y = 0.55;
-  boat.position.x = mobile ? 0 : 3.5;
+  boat.position.set(mobile ? -5 : 9, 0, 14);
+  const inverseViewProjection = Matrix.Identity();
   let time = 0;
   let strength = 0.8;
   let rough = false;
   const observer = scene.onBeforeRenderObservable.add(() => {
     time += Math.min(engine.getDeltaTime() / 1000, 0.05);
     strength += ((rough ? 1.5 : 0.8) - strength) * 0.025;
-    for (const surface of [material]) {
-      surface.setFloat("time", time);
-      surface.setFloat("strength", strength);
-      surface.setVector3("cameraPosition", camera.globalPosition);
-    }
-    boat.position.y = heightAt(boat.position.x, 0, time, strength) + 0.03;
+    spectrum.update(time, strength);
+    field.update(spectrum.displacement);
+    surfaceField.update(spectrum.surface);
+    scene.getTransformMatrix().invertToRef(inverseViewProjection);
+    material.setMatrix("inverseViewProjection", inverseViewProjection);
+    material.setFloat("time", time);
+    material.setVector3("cameraPosition", camera.globalPosition);
+    boat.position.y =
+      spectrum.heightAt(boat.position.x, boat.position.z) + 0.03;
     boat.rotation.x = Math.atan2(
-      heightAt(boat.position.x, -1, time, strength) -
-        heightAt(boat.position.x, 1, time, strength),
+      spectrum.heightAt(boat.position.x, boat.position.z - 1) -
+        spectrum.heightAt(boat.position.x, boat.position.z + 1),
       2,
     );
     boat.rotation.z = Math.atan2(
-      heightAt(boat.position.x + 1, 0, time, strength) -
-        heightAt(boat.position.x - 1, 0, time, strength),
+      spectrum.heightAt(boat.position.x + 1, boat.position.z) -
+        spectrum.heightAt(boat.position.x - 1, boat.position.z),
       2,
     );
   });

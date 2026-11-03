@@ -30,7 +30,8 @@ try {
     const after = await page.locator("canvas").screenshot();
     assert.ok(!before.equals(after), "Ocean must animate");
     if (viewport.width === 1440) {
-      // Inspect a water-only foreground band below the boat and above the HUD.
+      // Inspect a water-only left band, excluding the distant boat and HUD.
+      // Random spectral whitecaps travel; do not require one at a fixed near spot.
       // The broad range tolerates GPUs/timing while catching absent whitecaps
       // or an accidentally white-coated sea. It is not a realism metric.
       const coverage = await page.evaluate(async (png) => {
@@ -43,10 +44,10 @@ try {
         const context = canvas.getContext("2d");
         context.drawImage(image, 0, 0);
         const pixels = context.getImageData(
-          20,
-          Math.floor(image.height * 0.68),
-          image.width - 40,
-          Math.floor(image.height * 0.17),
+          0,
+          Math.floor(image.height * 0.46),
+          Math.floor(image.width * 0.68),
+          Math.floor(image.height * 0.41),
         ).data;
         let white = 0;
         for (let i = 0; i < pixels.length; i += 4) {
@@ -57,10 +58,10 @@ try {
       }, after.toString("base64"));
       assert.ok(
         coverage > 0.001 && coverage < 0.2,
-        `Visible, sparse crest foam expected; foreground coverage=${coverage}`,
+        `Visible, sparse crest foam expected; water coverage=${coverage}`,
       );
       console.log(
-        `PASS visible whitecaps: ${(coverage * 100).toFixed(2)}% foreground coverage`,
+        `PASS visible whitecaps: ${(coverage * 100).toFixed(2)}% water coverage`,
       );
     }
     await button.click();
