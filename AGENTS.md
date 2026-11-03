@@ -27,6 +27,16 @@ Hải trình is a small browser ocean experience, not a general game engine. Kee
 - Never put credentials in source, docs, client bundles or task output. OpenWiki remains a development dependency.
 - Use the lockfile and Node 24. Runtime dependencies, model providers, and automated AI schedules need a concrete purpose; no autonomous paid model calls by default.
 
+## Publication contract for this project
+
+The user verifies changes on GitHub Pages and has authorized deployment after each completed project update. Treat publication as part of completion, including source/config/docs updates. Do not ask for deployment permission again within this scope. Batch implementation edits into a coherent verified update; do not publish incomplete intermediate saves.
+
+- Run the applicable local checks, commit, and push the completed update to `main`.
+- Monitor the Pages workflow for that exact commit through successful checks and deployment. Diagnose and fix failures; a push or green build alone is not completion.
+- Verify the public URL serves the deployed build (compare its entry asset with the locally tested `dist/index.html` when available). For visible changes, inspect the affected behavior in a browser as access allows.
+- Report the deployed short commit and a link such as `https://vundu2309.github.io/web-g-3d/?v=<short-commit>`. The query distinguishes review links; it does not prove CDN freshness or replace verification.
+- If publishing is blocked, state that the update is not deployed and give the concrete blocker. Do not describe an older live build as the new result. If a later user instruction says not to deploy, follow it.
+
 <!-- OPENWIKI:START -->
 
 ## OpenWiki

@@ -31,6 +31,12 @@ The Pages workflow runs `npm run check` on pull requests and pushes to `main`, i
 
 GitHub branch protection is a separate repository setting. A workflow file does not guarantee that merges require its status; do not claim that protection has been enabled without checking settings. This project does not automatically spend model tokens or regenerate wiki in CI. The generated standalone OpenWiki schedule is intentionally Git-ignored pending separate provider configuration.
 
+## User review happens on GitHub Pages
+
+Deployment is part of each completed project update, including configuration/documentation changes. The user has explicitly authorized this workflow: verify locally as appropriate, commit/push main, monitor the exact commit's Pages run through deployment, and verify the public build. Do not stop at a local screenshot, commit, push, or successful build. Batch edits into a coherent update rather than deploying unfinished saves.
+
+Send the live URL with `?v=<short-commit>` and state the deployed version. This query makes review links distinguishable; validate public asset names against the tested build rather than assuming it clears CDN caches. If deployment fails, investigate and fix it or report the precise blocker and that the live game has not been updated. Later user instructions may override automatic publication.
+
 ## Keep context current
 
 Update authored architecture/decision docs when a contract changes. Use the installed OpenWiki lifecycle for affected generated pages and Claims. For unrelated questions, retrieve only the necessary section. Store durable facts, evidence and decisions, not conversation transcripts, secrets or speculative plans.
