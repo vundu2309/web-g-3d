@@ -22,8 +22,8 @@ export function createOceanScene(engine: Engine, canvas: HTMLCanvasElement) {
     "ocean-camera",
     -1.15,
     1.36,
-    mobile ? 28 : 23,
-    new Vector3(0, mobile ? 3.5 : 1.4, 0),
+    mobile ? 38 : 26,
+    new Vector3(0, mobile ? 4.5 : 2.5, 0),
     scene,
   );
   camera.lowerRadiusLimit = 10;
@@ -71,6 +71,7 @@ export function createOceanScene(engine: Engine, canvas: HTMLCanvasElement) {
   horizonMaterial.setVector3("sunDirection", sunDirection);
   const boat = createBoat(scene);
   boat.rotation.y = 0.55;
+  boat.position.x = mobile ? 0 : 3.5;
   let time = 0;
   let strength = 0.8;
   let rough = false;
@@ -79,16 +80,19 @@ export function createOceanScene(engine: Engine, canvas: HTMLCanvasElement) {
     strength += ((rough ? 1.5 : 0.8) - strength) * 0.025;
     for (const surface of [material, horizonMaterial]) {
       surface.setFloat("time", time);
+      surface.setVector3("boatPosition", boat.position);
       surface.setFloat("strength", strength);
       surface.setVector3("cameraPosition", camera.globalPosition);
     }
-    boat.position.y = heightAt(0, 0, time, strength) + 0.03;
+    boat.position.y = heightAt(boat.position.x, 0, time, strength) + 0.03;
     boat.rotation.x = Math.atan2(
-      heightAt(0, -1, time, strength) - heightAt(0, 1, time, strength),
+      heightAt(boat.position.x, -1, time, strength) -
+        heightAt(boat.position.x, 1, time, strength),
       2,
     );
     boat.rotation.z = Math.atan2(
-      heightAt(1, 0, time, strength) - heightAt(-1, 0, time, strength),
+      heightAt(boat.position.x + 1, 0, time, strength) -
+        heightAt(boat.position.x - 1, 0, time, strength),
       2,
     );
   });
