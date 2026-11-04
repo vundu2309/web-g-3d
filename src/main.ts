@@ -11,5 +11,8 @@ import "./style.css";
 
 const root = document.querySelector<HTMLElement>("#app");
 if (!root) throw new Error("Missing application root");
-const dispose = start(root);
+const dispose =
+  new URLSearchParams(location.search).get("view") === "game"
+    ? (await import("./app/play")).startPlay(root)
+    : start(root);
 if (import.meta.hot) import.meta.hot.dispose(dispose);

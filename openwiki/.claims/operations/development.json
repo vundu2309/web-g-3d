@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:95525377cb34507a78b75071c3a9e02c579f442b0a45689b0e715da7c32fdec1",
+  "pageVersion": "sha256:c83b8a07c6338fdfa913831d3e6468365efcd972ce01b990a35e8bfd8cd1f1dc",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -12,11 +12,11 @@
         },
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:05cbc57c17543c2e50ca38c61a6d9735126d43a9d35b49a24ad9a09130fa7c9b"
+          "version": "repo-file-v1:sha256:a6232393894f1a164876a3ab9b4dba5d66a8ced6e5da267a7d8ee1ee84830a42"
         },
         {
           "resource": "repo://docs/workflow.md",
-          "version": "repo-file-v1:sha256:677bd97d521c910501f28a008290960b0e797cd22ab36c5dd5db31431b4b8147"
+          "version": "repo-file-v1:sha256:fa42f1b555a1cf7105477ea80448edc621e4e708277513c6b917b6afae7ac8d8"
         }
       ]
     },
@@ -46,11 +46,11 @@
       "evidence": [
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:adee6ae08a6539588124f4e0d682548897e4db4726ec981e7e4be45c713119c1"
+          "version": "repo-file-v1:sha256:9efe10dcabea94c7901e29409dfec15d41dbe72c2103f62685151f94d8249935"
         },
         {
           "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:63ea0694adb8c429c5aaa0068965cacd88694aa13d1b735c962571edbebab31d"
+          "version": "repo-file-v1:sha256:310061a58a1ea2aa6a92cfb0432ccf5fa97038f277482850e2e63eb34eacd38c"
         },
         {
           "resource": "repo://scripts/test-rules.mjs",
@@ -64,7 +64,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:05cbc57c17543c2e50ca38c61a6d9735126d43a9d35b49a24ad9a09130fa7c9b"
+          "version": "repo-file-v1:sha256:a6232393894f1a164876a3ab9b4dba5d66a8ced6e5da267a7d8ee1ee84830a42"
         }
       ]
     },
@@ -102,7 +102,7 @@
         },
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:1c918eaa97387910edeb9f42361f107a7d5408c76f998058f62150e03f4545fc"
+          "version": "repo-file-v1:sha256:6512e2012543c591870a4432204073eeefb7f1bf621c15d767d2f4147d4958b1"
         }
       ]
     },
@@ -116,7 +116,7 @@
         },
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:1c918eaa97387910edeb9f42361f107a7d5408c76f998058f62150e03f4545fc"
+          "version": "repo-file-v1:sha256:6512e2012543c591870a4432204073eeefb7f1bf621c15d767d2f4147d4958b1"
         }
       ]
     },
@@ -126,7 +126,7 @@
       "evidence": [
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:1c918eaa97387910edeb9f42361f107a7d5408c76f998058f62150e03f4545fc"
+          "version": "repo-file-v1:sha256:6512e2012543c591870a4432204073eeefb7f1bf621c15d767d2f4147d4958b1"
         }
       ]
     },
@@ -136,7 +136,7 @@
       "evidence": [
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:1c918eaa97387910edeb9f42361f107a7d5408c76f998058f62150e03f4545fc"
+          "version": "repo-file-v1:sha256:6512e2012543c591870a4432204073eeefb7f1bf621c15d767d2f4147d4958b1"
         }
       ]
     },
@@ -146,7 +146,7 @@
       "evidence": [
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:1c918eaa97387910edeb9f42361f107a7d5408c76f998058f62150e03f4545fc"
+          "version": "repo-file-v1:sha256:6512e2012543c591870a4432204073eeefb7f1bf621c15d767d2f4147d4958b1"
         },
         {
           "resource": "repo://tests/diagnostics.test.mjs",
@@ -156,19 +156,19 @@
     },
     {
       "id": "claim_2e542c100ba04040abe4b3ab4e5767eb",
-      "statement": "HUD02A đã được người dùng duyệt: roster căn giữa dưới không nền, không tên game, action nổi giữa phải và highlight theo lượt; 02B mua đất có concept chờ review, chưa implementation.",
+      "statement": "Bộ 24 trạng thái HUD đã duyệt và được implement dưới dạng UI preview; roster căn giữa không nền, highlight theo lượt, action gọn; state02 không text di chuyển, chưa có backend gameplay.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:05cbc57c17543c2e50ca38c61a6d9735126d43a9d35b49a24ad9a09130fa7c9b"
-        },
-        {
-          "resource": "repo://docs/game/README.md",
-          "version": "repo-file-v1:sha256:4ea705854e929af9ab4810f606cbed2d9d7e6fabb09676b41efdcd926f48e44e"
-        },
-        {
           "resource": "repo://docs/game/plans/02-mobile-ui.md",
-          "version": "repo-file-v1:sha256:85823679c13241145b00df07890a331eb729908c43a958a0d7219aad5b3703dc"
+          "version": "repo-file-v1:sha256:bf31849c680688d3868b433793ba7703aa996c759e6246bbc11625bc9b1f439c"
+        },
+        {
+          "resource": "repo://docs/game/ui-implementation.md",
+          "version": "repo-file-v1:sha256:d196999915ac34458fc9f3c5143fb30cddabc8741a4cacc3d7b92897b0f92f2b"
+        },
+        {
+          "resource": "repo://src/game-ui/model.ts",
+          "version": "repo-file-v1:sha256:bc3ae6d87c6ff8b221550cdb7b8c5fcee16517b6fbdafd7a9b587426da493705"
         }
       ]
     },
@@ -178,11 +178,11 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:05cbc57c17543c2e50ca38c61a6d9735126d43a9d35b49a24ad9a09130fa7c9b"
+          "version": "repo-file-v1:sha256:a6232393894f1a164876a3ab9b4dba5d66a8ced6e5da267a7d8ee1ee84830a42"
         },
         {
           "resource": "repo://docs/game/README.md",
-          "version": "repo-file-v1:sha256:4ea705854e929af9ab4810f606cbed2d9d7e6fabb09676b41efdcd926f48e44e"
+          "version": "repo-file-v1:sha256:ab335ddc9729bda6e7c7a1f5c263282a757723f214db5e10dbe125d10f62782c"
         },
         {
           "resource": "repo://docs/game/rules/property-economics.md",
@@ -196,25 +196,39 @@
     },
     {
       "id": "claim_e7a3c9b106f64154b5e79c7e079819e6",
-      "statement": "Tiêu chí thiết kế phiên chơi được user chốt: ngoài lượt xem cá nhân, chủ động thay đổi ván trong lượt/pha và chỉ phản hồi tác vụ phiên chỉ định ngoài lượt; kết quả chung xử lý tuần tự. Đây là ngoại lệ tương tác có chủ đích so với rulebook, chưa implement.",
+      "statement": "Tiêu chí phiên chơi đã chốt: ngoài lượt chỉ quan sát diễn biến chung, không action/Tài sản hoặc Lịch sử; người được chỉ định phản hồi trade/đấu giá có đúng action tác vụ, không tự mở tác vụ độc lập.",
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:05cbc57c17543c2e50ca38c61a6d9735126d43a9d35b49a24ad9a09130fa7c9b"
-        },
-        {
-          "resource": "repo://docs/decisions/0004-shared-session-action-policy.md",
-          "version": "repo-file-v1:sha256:f9e887034cf53dd58e07091014ce7c699a93c40cf4db9fa70b867bc2f7eada72"
+          "version": "repo-file-v1:sha256:a6232393894f1a164876a3ab9b4dba5d66a8ced6e5da267a7d8ee1ee84830a42"
         },
         {
           "resource": "repo://docs/game/shared-session-design.md",
-          "version": "repo-file-v1:sha256:d3d0420a3788e8f41aeffb80a8c141c57581561d6c4a5420a3ffdfa446e0f835"
+          "version": "repo-file-v1:sha256:83d1ddb3b4a47bef57b2ef9f66f565e8127c6c260931734366bb178ea1452657"
+        }
+      ]
+    },
+    {
+      "id": "claim_35b4c812754946518f7ad843aaba34b5",
+      "statement": "npm run check có unit/browser HUD preview trên dev và production, với 24 trạng thái và ba viewport landscape; preview không gọi Firebase, suite Auth/Firestore phòng vẫn riêng.",
+      "evidence": [
+        {
+          "resource": "repo://package.json",
+          "version": "repo-file-v1:sha256:9efe10dcabea94c7901e29409dfec15d41dbe72c2103f62685151f94d8249935"
+        },
+        {
+          "resource": "repo://scripts/test-browser.mjs",
+          "version": "repo-file-v1:sha256:310061a58a1ea2aa6a92cfb0432ccf5fa97038f277482850e2e63eb34eacd38c"
+        },
+        {
+          "resource": "repo://tests/game-ui-browser.mjs",
+          "version": "repo-file-v1:sha256:147daba44b9bde35787396eb8f79ed87e797b2854091f8e4a74aeafa1062efd0"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T03:47:09.988Z"
+    "at": "2026-11-04T04:44:25.933Z"
   }
 }

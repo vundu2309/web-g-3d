@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:c5a4839dc0aeaaebdedf61bb0d3a89ce6caaa5b9ef1d993a9248b79ca10624e0",
+  "claims": [
+    {
+      "id": "claim_7772453354ab4af78711c059117a2935",
+      "statement": "Route ?view=game lazy-load HUD preview 24 scenario, không gọi Auth/Firestore, không có engine hoặc backend kinh tế.",
+      "evidence": [
+        {
+          "resource": "repo://src/app/play.ts",
+          "version": "repo-file-v1:sha256:9d7017ecd9ddf27d8a613e01cbaeab90e43ee9170fbe0257be7ff835487d9849"
+        },
+        {
+          "resource": "repo://src/game-ui/model.ts",
+          "version": "repo-file-v1:sha256:bc3ae6d87c6ff8b221550cdb7b8c5fcee16517b6fbdafd7a9b587426da493705"
+        },
+        {
+          "resource": "repo://src/main.ts",
+          "version": "repo-file-v1:sha256:ab06349f13f84fb6c79964008559a4e8e6ebcff44c9a67561e40d12ce37c807e"
+        }
+      ]
+    },
+    {
+      "id": "claim_c9445ac2208546638135272c62a6a574",
+      "statement": "Observer không có action/Tài sản, respondent được đúng action yêu cầu; auction fixed increments, moving không có text; các quyền là UI contract, chưa là server authorization.",
+      "evidence": [
+        {
+          "resource": "repo://docs/game/ui-implementation.md",
+          "version": "repo-file-v1:sha256:d196999915ac34458fc9f3c5143fb30cddabc8741a4cacc3d7b92897b0f92f2b"
+        },
+        {
+          "resource": "repo://src/game-ui/model.ts",
+          "version": "repo-file-v1:sha256:bc3ae6d87c6ff8b221550cdb7b8c5fcee16517b6fbdafd7a9b587426da493705"
+        },
+        {
+          "resource": "repo://src/game-ui/render.ts",
+          "version": "repo-file-v1:sha256:6a3196b04e19b29b8e034a02dfb0667589c343f587a7204591dbb3bb22e5c386"
+        }
+      ]
+    },
+    {
+      "id": "claim_36ea1ee8cd334a608e4633469c7dd17c",
+      "statement": "Browser suite kiểm tra 24 scenario ở ba viewport landscape, touch target/icon/overlap, observer và response flows, offline/reload, chặn production Firebase.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/test-browser.mjs",
+          "version": "repo-file-v1:sha256:310061a58a1ea2aa6a92cfb0432ccf5fa97038f277482850e2e63eb34eacd38c"
+        },
+        {
+          "resource": "repo://tests/game-ui-browser.mjs",
+          "version": "repo-file-v1:sha256:147daba44b9bde35787396eb8f79ed87e797b2854091f8e4a74aeafa1062efd0"
+        },
+        {
+          "resource": "repo://tests/game-ui.test.mjs",
+          "version": "repo-file-v1:sha256:bb03edb22442fb2c4e2823ab565182feff422f31369d4609499902420db573e4"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-04T04:42:03.835Z"
+  }
+}

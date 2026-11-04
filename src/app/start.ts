@@ -88,7 +88,7 @@ export function start(root: HTMLElement): () => void {
       .action;
     let content: string;
     if (page === "home") {
-      content = `<main class="home" aria-labelledby="page-title"><section class="identity"><h1 id="page-title" class="wordmark">Phố<br/>Tỷ Phú</h1>${emblem}</section><section class="home-actions" aria-label="Chọn cách vào phòng"><p class="tagline">Cùng bạn bè làm chủ cuộc chơi</p>${button("create", "Tạo phòng", "plus")}${button("join", "Tham gia phòng", "door", "secondary")}<a class="help-link" href="#help">${icon("help")}Cách chơi</a>${mode === "online" ? `<div class="account-bar">${accountName ? `<span>Player: ${escape(accountName)}</span><button class="text-button" data-action="logout">Đăng xuất</button>` : `<button class="text-button" data-action="account">Đăng nhập / Đăng ký</button>`}</div>` : ""}${modeLabel()}<button class="mode-switch" data-action="mode">${mode === "online" ? "Thử trên thiết bị này" : "Chuyển sang chơi online"}</button><p class="mode-note">${mode === "demo" ? "Mở thêm tab để thử cùng nhau. Không kết nối người chơi trên thiết bị khác." : "Tạo phòng riêng và gửi mã cho bạn bè."}</p>${notice()}</section></main>`;
+      content = `<main class="home" aria-labelledby="page-title"><section class="identity"><h1 id="page-title" class="wordmark">Phố<br/>Tỷ Phú</h1>${emblem}</section><section class="home-actions" aria-label="Chọn cách vào phòng"><p class="tagline">Cùng bạn bè làm chủ cuộc chơi</p>${button("create", "Tạo phòng", "plus")}${button("join", "Tham gia phòng", "door", "secondary")}<a class="help-link game-preview-entry" href="?view=game">${icon("play")}Xem trước HUD ván chơi</a><a class="help-link" href="#help">${icon("help")}Cách chơi</a>${mode === "online" ? `<div class="account-bar">${accountName ? `<span>Player: ${escape(accountName)}</span><button class="text-button" data-action="logout">Đăng xuất</button>` : `<button class="text-button" data-action="account">Đăng nhập / Đăng ký</button>`}</div>` : ""}${modeLabel()}<button class="mode-switch" data-action="mode">${mode === "online" ? "Thử trên thiết bị này" : "Chuyển sang chơi online"}</button><p class="mode-note">${mode === "demo" ? "Mở thêm tab để thử cùng nhau. Không kết nối người chơi trên thiết bị khác." : "Tạo phòng riêng và gửi mã cho bạn bè."}</p>${notice()}</section></main>`;
     } else if (page === "rooms") {
       content = `${header()}<main class="rooms-page"><h1 id="page-title">Chọn phòng</h1><p>Chọn phòng của bạn bè hoặc nhập mã phòng.</p><div class="room-directory" aria-live="polite">${
         listingLoading
@@ -135,7 +135,7 @@ export function start(root: HTMLElement): () => void {
         },
       ).join(
         "",
-      )}</div>${notice()}<div class="lobby-controls">${started ? `<p class="session-note">Hub đã hoàn tất. Bàn chơi đang được phát triển.</p>${button("leave", "Rời phòng", "back", "secondary")}` : host ? `${button("start", busy ? "Đang bắt đầu…" : "Bắt đầu", "play", "primary", busy || !room || !canStart(room))}<p class="waiting-reason" role="status">${escape(reason)}</p>` : `${button("ready", busy ? "Đang cập nhật…" : self?.ready ? "Hủy sẵn sàng" : "Sẵn sàng", "check", self?.ready ? "secondary" : "primary", busy || !self)}<p class="waiting-reason">Chủ phòng sẽ bắt đầu khi mọi người sẵn sàng.</p>`}</div></main>`;
+      )}</div>${notice()}<div class="lobby-controls">${started ? `<p class="session-note">HUD ván chơi đã có bản xem trước. Luật và đồng bộ ván sẽ được nối ở bước gameplay.</p><a class="button primary" href="?view=game">${icon("play")}Xem trước HUD</a>${button("leave", "Rời phòng", "back", "secondary")}` : host ? `${button("start", busy ? "Đang bắt đầu…" : "Bắt đầu", "play", "primary", busy || !room || !canStart(room))}<p class="waiting-reason" role="status">${escape(reason)}</p>` : `${button("ready", busy ? "Đang cập nhật…" : self?.ready ? "Hủy sẵn sàng" : "Sẵn sàng", "check", self?.ready ? "secondary" : "primary", busy || !self)}<p class="waiting-reason">Chủ phòng sẽ bắt đầu khi mọi người sẵn sàng.</p>`}</div></main>`;
     }
     root.innerHTML =
       content +
@@ -274,6 +274,9 @@ export function start(root: HTMLElement): () => void {
       code,
       (value, fromCache) => {
         if (disposed || leaving) return;
+        // Directory queries may cache a pre-join roster. A cache miss or missing
+        // membership cannot authoritatively evict a newly joined/resuming player.
+        if (fromCache && (!value || !value.players[store!.uid])) return;
         const initial = first;
         first = false;
         if (initial) endSnapshot?.(fromCache ? "cached" : "ok");

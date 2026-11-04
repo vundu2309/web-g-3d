@@ -8,8 +8,6 @@ sources:
     resource: repo://AGENTS.md
   - id: openwiki-source-de23c649f29de7b7defa1fe3
     resource: repo://docs/decisions/0002-mobile-board-game-hub.md
-  - id: openwiki-source-d2af7d5d6c732484bd8c1c05
-    resource: repo://docs/decisions/0004-shared-session-action-policy.md
   - id: openwiki-source-523a2ee371c511874cedf68c
     resource: repo://docs/design/theme.md
   - id: openwiki-source-1207dc6dc9df1cc76b6da2de
@@ -28,14 +26,20 @@ sources:
     resource: repo://docs/game/rules/sources.md
   - id: openwiki-source-e337f5bab9183e3a12f77158
     resource: repo://docs/game/shared-session-design.md
+  - id: openwiki-source-63e8f904736888c1397b0a2b
+    resource: repo://docs/game/ui-implementation.md
   - id: openwiki-source-8acf8e92f9f7b465d02fa04b
     resource: repo://firestore.indexes.json
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
     resource: repo://package.json
   - id: openwiki-source-2d276ab0949853064e1a4208
     resource: repo://src/app/diagnostics.ts
+  - id: openwiki-source-de5ab1ed905c7bd08fbdce6f
+    resource: repo://src/app/play.ts
   - id: openwiki-source-fc82ffca2def259f088b8cf9
     resource: repo://src/app/start.ts
+  - id: openwiki-source-dba8152f894fe338575ac7a6
+    resource: repo://src/game-ui/model.ts
   - id: openwiki-source-435a4eb0dedae12246227bd4
     resource: repo://src/hub/diagnostics.ts
   - id: openwiki-source-d4189bbeecb62806cb297b5a
@@ -46,10 +50,10 @@ sources:
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
     resource: repo://src/platform/firestore-client.ts
-generated: { by: "codex", at: "2026-11-04T03:47:09.988Z" }
+generated: { by: "codex", at: "2026-11-04T04:42:03.835Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T03:47:09.988Z
+    at: 2026-11-04T04:44:25.933Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
@@ -66,7 +70,7 @@ Phố Tỷ Phú là hub cho board game giao dịch bất động sản, ưu tiê
 | Sửa Firebase hoặc bản thử | [Kiến trúc hub](architecture/hub.md), [Firebase setup](../docs/firebase.md), adapter, `firestore.rules`, `firestore.indexes.json` và tests |
 | Chạy test, setup và deploy | [Phát triển](operations/development.md), [workflow authored](../docs/workflow.md) |
 
-`src/main.ts` nạp font/CSS và gọi app `start`, đăng ký cleanup HMR. App sở hữu DOM, navigation và subscription phòng. Model thuần không nhập Firebase; store contract tách các adapter. Màu cobalt/sky/yellow và các màn riêng là hướng đã duyệt, không phải chỗ tự đổi style tùy ý.
+`src/main.ts` nạp font/CSS, chọn hub hoặc lazy HUD preview theo query và đăng ký cleanup HMR. App sở hữu DOM, navigation và subscription phòng. Model thuần không nhập Firebase; store contract tách các adapter. Màu cobalt/sky/yellow và các màn riêng là hướng đã duyệt, không phải chỗ tự đổi style tùy ý.
 
 ## Chạy và xác nhận đúng phạm vi
 
@@ -84,7 +88,7 @@ Dùng [hướng dẫn đo thời gian](../docs/diagnostics.md) và [vận hành]
 
 ## Đặc tả gameplay theo từng phần
 
-[Game contract](../docs/game/README.md) giữ baseline Monopoly Classic US truyền thống, không tự thêm house rules; tiêu chí phiên chơi đã duyệt giới hạn hành động chủ động ngoài lượt. Người dùng yêu cầu chốt tài liệu hiện có và sang [Plan 02 mobile UI](../docs/game/plans/02-mobile-ui.md): HUD 02A đã duyệt và hiện active 02B chi tiết tài sản/mua đất. Plan 01 tạm dừng nghiên cứu, chưa đồng nghĩa mọi số liệu/luật đã xác minh hoặc có gameplay. Các mục còn thiếu giữ backlog trước implementation; không tiếp tục dò từng thẻ. Thiết kế từng màn với ảnh review riêng trước code.
+[Game contract](../docs/game/README.md) giữ baseline Monopoly Classic US truyền thống, không tự thêm house rules; tiêu chí phiên chơi đã duyệt giới hạn hành động chủ động ngoài lượt. Người dùng yêu cầu chốt tài liệu hiện có và sang [Plan 02 mobile UI](../docs/game/plans/02-mobile-ui.md): bộ 24 trạng thái HUD đã duyệt, UI preview đã được implement. Plan 01 tạm dừng nghiên cứu, chưa đồng nghĩa mọi số liệu/luật đã xác minh hoặc có gameplay. Các mục còn thiếu giữ backlog trước implementation; không tiếp tục dò từng thẻ. Thiết kế từng màn với ảnh review riêng trước code.
 
 ## Giá tài sản và đối chiếu edition
 
@@ -100,8 +104,12 @@ Quy ước đã được người dùng đồng ý: dùng rulebook Hasbro cho lu
 
 ## HUD được duyệt và tác vụ hiện hành
 
-[Plan02]( ../docs/game/plans/02-mobile-ui.md ) lưu ảnh HUD được duyệt: roster dưới căn giữa không nền, không tên game, action nổi giữa cạnh phải, highlight đổi theo người đến lượt. Concept mua đất 02B v1 đang chờ review; bàn cờ chi tiết/tên ô trong ảnh gen không phải dữ liệu chuẩn. Chưa sửa runtime, chưa deploy.
+[Plan02]( ../docs/game/plans/02-mobile-ui.md ) lưu ảnh HUD được duyệt: roster dưới căn giữa không nền, không tên game, action nổi giữa cạnh phải, highlight đổi theo người đến lượt. Bộ 24 trạng thái đã duyệt và UI preview đã implement; v1 bị bác bỏ không là chuẩn. Board3D/backend gameplay còn để bước sau.
 
 ## Tiêu chí thiết kế phiên chơi đã chốt
 
-[Một diễn biến chung](../docs/game/shared-session-design.md) quy định: ngoài lượt chỉ xem cá nhân; khởi tạo trade/xây/bán/thế chấp trong lượt/pha; người được chỉ định vẫn phản hồi trade/đấu giá hoặc nghĩa vụ chung ngoài lượt. Giao dịch xử lý lần lượt và thông báo kết quả chung. Đây là điều chỉnh tương tác được user chốt, khác quyền ngoài lượt trong rulebook; không thay kinh tế, không tự thêm timer/auto-forfeit hoặc quyết định topology thiết bị. Plan02B v1 đã bị bác bỏ; thẻ phải giữ design gốc và action gọn theo các chỉnh sửa, chưa có ảnh 02B được chốt.
+[Một diễn biến chung](../docs/game/shared-session-design.md) quy định: ngoài lượt chỉ quan sát diễn biến chung, không action/Tài sản hoặc Lịch sử; khởi tạo trade/xây/bán/thế chấp trong lượt/pha; người được chỉ định vẫn phản hồi trade/đấu giá hoặc nghĩa vụ chung ngoài lượt. Giao dịch xử lý lần lượt và thông báo kết quả chung. Đây là điều chỉnh tương tác được user chốt, khác quyền ngoài lượt trong rulebook; không thay kinh tế, không tự thêm timer/auto-forfeit hoặc quyết định topology thiết bị. Plan02B v1 đã bị bác bỏ; thẻ phải giữ design gốc và action gọn theo các chỉnh sửa, bộ trạng thái đã được chốt để implement UI preview.
+
+## Mở HUD ván chơi
+
+Chọn Xem trước HUD ván chơi ở home hoặc ?view=game; bánh răng chọn 24 trạng thái, query state giữ scenario khi reload. [Kiến trúc HUD](architecture/gameplay-ui.md) và [implementation contract](../docs/game/ui-implementation.md) ghi scope UI/local fixture, không Firebase hoặc engine, không movement text ở02. Các concept đã duyệt trong docs/design/game-states-*.png không thay test browser/điện thoại thật.

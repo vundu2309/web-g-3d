@@ -167,6 +167,7 @@ export async function createFirebaseStore(trace?: Trace): Promise<RoomStore> {
     watch: (code, update, error) =>
       onSnapshot(
         reference(code),
+        { includeMetadataChanges: true },
         (snapshot) => {
           try {
             update(

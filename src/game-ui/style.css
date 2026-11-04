@@ -1,0 +1,1001 @@
+.game-screen {
+  --action-width: clamp(150px, 21vw, 190px);
+  --game-ink: #153b80;
+  position: relative;
+  isolation: isolate;
+  height: 100svh;
+  min-height: 340px;
+  width: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 14% 24%, #fff9 0, #fff0 38%),
+    radial-gradient(ellipse at 88% 62%, #fff9 0, #fff0 36%),
+    linear-gradient(145deg, #e7f5ff, #c4e4ff 70%, #dceeff);
+  color: var(--game-ink);
+  font-family: "Be Vietnam Pro", sans-serif;
+}
+.game-preview-label {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.8;
+  z-index: 2;
+}
+.game-settings {
+  position: absolute;
+  right: max(12px, env(safe-area-inset-right));
+  top: max(5px, env(safe-area-inset-top));
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  border: 0;
+  background: none;
+  color: var(--game-ink);
+  z-index: 4;
+  cursor: pointer;
+}
+.game-settings svg {
+  width: 24px;
+  height: 24px;
+}
+.game-scene {
+  position: absolute;
+  inset: 24px 0 88px;
+  pointer-events: none;
+}
+.board-mat {
+  width: min(67vw, calc(100svh - 111px));
+  height: min(67vw, calc(100svh - 111px));
+  position: absolute;
+  left: 42%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  grid-template: repeat(11, 1fr) / repeat(11, 1fr);
+  padding: 3px;
+  background: #153b80;
+  border: 2px solid #153b80;
+  border-radius: 10px;
+  box-shadow:
+    0 5px 0 #2461a9,
+    0 10px 18px #153b8030;
+  gap: 1px;
+}
+.board-middle {
+  grid-area: 2 / 2 / 11 / 11;
+  position: relative;
+  background: linear-gradient(140deg, #dceeff, #b9def9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.board-middle > small {
+  position: absolute;
+  bottom: 7%;
+  font-size: 8px;
+  opacity: 0.6;
+}
+.board-tile {
+  position: relative;
+  background: #fffcf4;
+  text-align: center;
+  display: grid;
+  align-items: center;
+  padding: 3px 1px 1px;
+  overflow: visible;
+}
+.board-tile > span {
+  font-family: Arial, sans-serif;
+  font-size: clamp(3px, 0.6vw, 6px);
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+  color: #1c2e51;
+}
+.board-tile::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 17%;
+  background: var(--tile-color, transparent);
+}
+.tile-corner {
+  font-weight: bold;
+  background: #fffef3;
+}
+.tile-corner > span {
+  font-size: clamp(4px, 0.7vw, 8px);
+}
+.tile-brown {
+  --tile-color: #935738;
+}
+.tile-blue {
+  --tile-color: #aee1f4;
+}
+.tile-pink {
+  --tile-color: #df56a5;
+}
+.tile-orange {
+  --tile-color: #f29b29;
+}
+.tile-red {
+  --tile-color: #ed3241;
+}
+.tile-yellow {
+  --tile-color: #f5d333;
+}
+.tile-green {
+  --tile-color: #3bb867;
+}
+.tile-darkblue {
+  --tile-color: #2875ce;
+}
+.board-token {
+  position: absolute;
+  width: 12px;
+  height: 15px;
+  bottom: 0;
+  left: 40%;
+  border-radius: 50% 50% 35% 35%;
+  background: var(--token);
+  box-shadow:
+    inset -2px -2px 2px #0003,
+    0 2px 2px #153b8030;
+  z-index: 1;
+}
+.board-token::before {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  left: 2px;
+  top: -5px;
+  background: var(--token);
+}
+.token-0 {
+  --token: #f2c438;
+}
+.token-1 {
+  --token: #e76757;
+}
+.token-2 {
+  --token: #38b966;
+}
+.token-3 {
+  --token: #4188d8;
+}
+.current-token {
+  filter: drop-shadow(0 0 3px #ffdd23);
+  outline: 1px solid #ffde51;
+}
+.mini-deck {
+  position: absolute;
+  width: 24%;
+  aspect-ratio: 1.4;
+  border: 2px solid white;
+  border-radius: 5px;
+  box-shadow:
+    1px 3px 0 #dbd8d1,
+    1px 5px 3px #153b8025;
+  display: grid;
+  place-items: center;
+  color: white;
+  transform: rotate(-15deg);
+  font-size: 28px;
+  font-weight: 700;
+}
+.deck-chance {
+  background: #f5a547;
+  left: 12%;
+  top: 17%;
+}
+.deck-chest {
+  background: #5ab5e8;
+  right: 10%;
+  bottom: 15%;
+  transform: rotate(-15deg);
+}
+.deck-chest svg {
+  width: 55%;
+}
+.preview-dice {
+  display: flex;
+  gap: 5px;
+  transform: rotate(-12deg);
+  font:
+    45px/1 Arial,
+    sans-serif;
+  color: #293654;
+  text-shadow:
+    2px 4px 1px #ffffff,
+    3px 6px 2px #153b8030;
+}
+.is-moving {
+  animation: preview-roll 700ms ease-in-out infinite alternate;
+}
+@keyframes preview-roll {
+  to {
+    transform: rotate(40deg) translateY(-8px);
+  }
+}
+.has-task .board-mat {
+  left: 23%;
+  filter: blur(1.8px);
+  opacity: 0.58;
+}
+.game-actions {
+  position: absolute;
+  width: var(--action-width);
+  right: max(18px, env(safe-area-inset-right));
+  top: 45%;
+  transform: translateY(-50%);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.game-actions h1 {
+  font-family: "Baloo 2", sans-serif;
+  font-size: clamp(17px, 2.4vw, 23px);
+  line-height: 1.15;
+  margin: 0 0 2px;
+  text-wrap: balance;
+}
+.game-actions > p {
+  font-size: 12px;
+  line-height: 1.55;
+  margin: 0 0 4px;
+}
+.game-action {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  width: 100%;
+  border: 1.5px solid #153b80;
+  border-radius: 13px;
+  padding: 9px 10px;
+  background: linear-gradient(#fff, #f5faff);
+  box-shadow:
+    0 4px 0 #2361aa,
+    0 6px 9px #153b801c;
+  color: #153b80;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.game-action svg {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+}
+.game-action.action-primary {
+  background: linear-gradient(#ffe57a, #ffd14a);
+}
+.game-action:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #2361aa;
+}
+.game-action:disabled {
+  background: #e3e8eb;
+  color: #65717e;
+  border-color: #98a5b5;
+  box-shadow: 0 3px 0 #a0aab5;
+  cursor: not-allowed;
+}
+.game-action:focus-visible,
+.game-screen button:focus-visible {
+  outline: 3px solid #174ebd;
+  outline-offset: 4px;
+}
+.game-task {
+  position: absolute;
+  right: calc(var(--action-width) + 38px);
+  top: 44%;
+  transform: translateY(-50%);
+  z-index: 2;
+  max-height: calc(100svh - 122px);
+}
+.title-deed {
+  background: #fffefb;
+  color: #111;
+  border: 1px solid #111;
+  outline: 4px solid #fffefb;
+  box-shadow: 0 3px 9px #153b803d;
+  width: clamp(180px, 25vw, 232px);
+  padding: 7px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.deed-caption {
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.title-deed h2 {
+  margin: 0 0 7px;
+  background: #d8172a;
+  color: #fff;
+  font:
+    bold 16px/1.1 Arial,
+    sans-serif;
+  padding: 13px 3px;
+  text-align: center;
+  text-transform: uppercase;
+}
+.title-deed table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  line-height: 1.1;
+}
+.title-deed th,
+.title-deed td {
+  padding: 4px 1px;
+  border-bottom: 1px solid #d2d1ca;
+}
+.title-deed th {
+  font-weight: normal;
+  text-align: left;
+}
+.title-deed td {
+  text-align: right;
+  white-space: nowrap;
+}
+.title-deed footer {
+  border-top: 1.5px solid black;
+  margin-top: 6px;
+  padding-top: 7px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.title-deed footer small {
+  font-size: 10px;
+}
+.printed-house {
+  display: inline-grid;
+  place-items: center;
+  background: #008641;
+  color: white;
+  width: 17px;
+  height: 14px;
+  clip-path: polygon(
+    50% 0,
+    100% 30%,
+    90% 30%,
+    90% 100%,
+    10% 100%,
+    10% 30%,
+    0 30%
+  );
+  font-size: 10px;
+}
+.printed-hotel {
+  color: #d8172a;
+  font-size: 17px;
+  line-height: 12px;
+}
+.deed-reverse {
+  background: #c72130;
+  color: white;
+  text-align: center;
+  border: 4px double white;
+  outline: 2px solid #b91c2c;
+  padding: 18px 10px;
+  min-height: 235px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.deed-reverse h2 {
+  background: none;
+  padding: 3px;
+  border-bottom: 1px solid white;
+  padding-bottom: 12px;
+  font-size: 16px;
+}
+.deed-reverse p {
+  font:
+    11px/1.2 Arial,
+    sans-serif;
+  margin: 8px;
+}
+.deed-reverse strong {
+  font:
+    bold 28px/1 Arial,
+    sans-serif;
+}
+.deed-reverse small {
+  font:
+    10px/1.4 Arial,
+    sans-serif;
+}
+.game-roster {
+  position: absolute;
+  bottom: max(13px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  gap: clamp(16px, 4vw, 48px);
+  width: max-content;
+  max-width: calc(100% - 32px);
+  z-index: 3;
+}
+.game-player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  min-width: 95px;
+}
+.player-avatar {
+  position: relative;
+  display: block;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 3px #153b8020;
+}
+.player-avatar svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+.game-player > div {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.game-player strong {
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.game-player strong span {
+  font-size: 10px;
+}
+.player-cash {
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.turn-active .player-avatar {
+  border-color: #ffd141;
+  box-shadow:
+    0 0 0 2px #fff9ad,
+    0 0 0 4px #ffc927,
+    0 0 15px #ffd141e0;
+}
+.turn-active .player-avatar::before {
+  content: "";
+  position: absolute;
+  top: -16px;
+  left: 12px;
+  border-top: 10px solid #eab41f;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+}
+.turn-label,
+.response-label {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 800;
+  padding: 4px 5px;
+  border-radius: 8px;
+  background: #ffd34d;
+  white-space: nowrap;
+}
+.response-label {
+  background: white;
+  border: 1px solid #153b80;
+  font-size: 7px;
+}
+.player-bankrupt .player-avatar {
+  filter: grayscale(1);
+}
+.game-feedback {
+  position: absolute;
+  bottom: 77px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 80%;
+  background: #fffdf0;
+  border-radius: 9px;
+  padding: 7px 12px;
+  color: #153b80;
+  z-index: 5;
+  box-shadow: 0 2px 7px #153b8020;
+  font-size: 11px;
+  text-align: center;
+}
+.game-feedback:empty {
+  display: none;
+}
+.assets-surface {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.asset-collection {
+  width: clamp(145px, 20vw, 190px);
+  color: #153b80;
+}
+.asset-collection h2 {
+  font:
+    700 16px/1.2 "Baloo 2",
+    sans-serif;
+  margin: 0 0 8px;
+}
+.asset-collection > small {
+  display: block;
+  font-size: 9px;
+  margin-top: 6px;
+}
+.asset-items {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.asset-item {
+  display: grid;
+  grid-template-columns: 9px 1fr;
+  column-gap: 7px;
+  align-items: center;
+  background: #fffef7;
+  border: 1px solid #9dacc3;
+  border-radius: 4px;
+  min-height: 44px;
+  padding: 4px;
+  color: #1b2541;
+  font:
+    700 10px Arial,
+    sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+.asset-item i {
+  background: #d8172a;
+  height: 100%;
+  grid-row: span 2;
+}
+.asset-item small {
+  grid-column: 2;
+  color: #24804a;
+  font-size: 10px;
+}
+.asset-item.is-selected {
+  outline: 2px solid #edbd20;
+}
+.trade-sheet {
+  width: min(42vw, 380px);
+  background: #ffffffbb;
+  border-radius: 16px;
+  padding: 12px;
+  border: 1px solid #afc7e0;
+}
+.trade-sheet h2 {
+  font:
+    700 18px/1.2 "Baloo 2",
+    sans-serif;
+  margin: 0 0 8px;
+}
+.trade-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+.trade-columns > div {
+  border: 1px solid #9ab8db;
+  border-radius: 8px;
+  padding: 7px;
+  text-align: center;
+  background: #fff9;
+}
+.trade-columns h3 {
+  font-size: 12px;
+  margin: 0 0 8px;
+}
+.trade-property {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 52px;
+  border: 1px solid #949dae;
+  background: white;
+  color: #161b27;
+  font:
+    bold 10px Arial,
+    sans-serif;
+  padding: 5px;
+}
+.trade-property:disabled {
+  opacity: 1;
+}
+.trade-property small {
+  font:
+    8px Arial,
+    sans-serif;
+}
+.property-swatch {
+  align-self: stretch;
+  width: 8px;
+  flex: 0 0 8px;
+  background: #d8172a;
+}
+.swatch-pink {
+  background: #df56a5;
+}
+.offer-money {
+  display: block;
+  font-size: 13px;
+  margin: 8px 0;
+}
+.offer-steps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+.offer-steps button {
+  border: 1px solid #b39537;
+  background: #ffda65;
+  border-radius: 7px;
+  min-height: 44px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #153b80;
+  cursor: pointer;
+}
+.trade-sheet > p {
+  font-size: 10px;
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+.event-card,
+.jail-card {
+  width: clamp(195px, 29vw, 270px);
+  background: #fffaf0;
+  border: 2px solid #a97937;
+  box-shadow: 0 4px 8px #153b8020;
+  padding: 12px;
+  text-align: center;
+  color: #2c221c;
+  font-family: Arial, sans-serif;
+}
+.event-card header {
+  background: #f79c3e;
+  color: white;
+  font-size: 17px;
+  font-weight: bold;
+  padding: 9px;
+}
+.event-card > div {
+  padding: 14px;
+}
+.event-card strong {
+  font-size: 45px;
+  color: #e99435;
+}
+.event-card p {
+  font-style: italic;
+  font-size: 16px;
+}
+.event-card small {
+  font-size: 9px;
+}
+.jail-card {
+  background: #f8e7b0;
+}
+.jail-card h2 {
+  font:
+    bold 20px/1.3 Arial,
+    sans-serif;
+}
+.jail-card svg {
+  width: 32px;
+  height: 32px;
+}
+.jail-card p {
+  font-size: 12px;
+}
+.results-sheet {
+  width: min(42vw, 360px);
+  border: 1px solid #b7c8dc;
+  border-radius: 14px;
+  padding: 14px;
+  background: #fffdf7;
+}
+.result-trophy {
+  text-align: center;
+  color: #d49d1e;
+}
+.result-trophy svg {
+  height: 34px;
+  width: 34px;
+}
+.results-sheet h2 {
+  margin: 0;
+  text-align: center;
+  font:
+    800 23px/1.2 "Baloo 2",
+    sans-serif;
+}
+.results-sheet > p {
+  font-size: 10px;
+  text-align: center;
+}
+.results-sheet dl {
+  margin: 8px 0 0;
+}
+.results-sheet dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border-top: 1px solid #d3dce5;
+  padding: 7px 0;
+  font-size: 11px;
+}
+.results-sheet dd {
+  margin: 0;
+  font-size: 10px;
+}
+.game-preview-dialog {
+  color: #153b80;
+  border: 2px solid #153b80;
+  border-radius: 16px;
+  padding: 18px;
+  width: min(720px, 94vw);
+  max-height: 90svh;
+  background: #f5fbff;
+}
+.game-preview-dialog::backdrop {
+  background: #0e2a5d88;
+}
+.game-preview-dialog h2 {
+  margin: 0;
+  font-family: "Baloo 2", sans-serif;
+}
+.game-preview-dialog p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.scenario-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 12px 0;
+}
+.scenario-grid button {
+  min-height: 44px;
+  text-align: left;
+  background: white;
+  border: 1px solid #9cb5d2;
+  border-radius: 8px;
+  padding: 8px;
+  color: #153b80;
+  font:
+    600 12px/1.4 "Be Vietnam Pro",
+    sans-serif;
+  cursor: pointer;
+}
+.scenario-grid button[aria-current="true"] {
+  background: #ffe282;
+}
+.preview-dialog-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.preview-dialog-footer button,
+.preview-dialog-footer a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: #153b80;
+  font-weight: bold;
+}
+.connection-lost .game-scene {
+  filter: grayscale(0.5);
+  opacity: 0.6;
+}
+@media (max-width: 720px) and (orientation: landscape) {
+  .game-screen {
+    --action-width: 146px;
+  }
+  .game-actions {
+    right: 12px;
+    gap: 7px;
+  }
+  .game-actions h1 {
+    font-size: 17px;
+  }
+  .game-actions > p {
+    font-size: 10px;
+    line-height: 1.4;
+  }
+  .game-action {
+    font-size: 12px;
+    padding: 9px 8px;
+  }
+  .game-task {
+    right: calc(var(--action-width) + 25px);
+  }
+  .title-deed {
+    width: 180px;
+    padding: 5px;
+  }
+  .title-deed h2 {
+    font-size: 13px;
+    padding: 11px 3px;
+    margin-bottom: 5px;
+  }
+  .title-deed th,
+  .title-deed td {
+    padding: 3px 0;
+  }
+  .title-deed table {
+    font-size: 11px;
+  }
+  .title-deed footer {
+    font-size: 10px;
+  }
+  .assets-surface {
+    gap: 9px;
+  }
+  .asset-collection {
+    width: 115px;
+  }
+  .asset-collection h2 {
+    font-size: 14px;
+  }
+  .game-roster {
+    gap: 20px;
+  }
+  .game-player {
+    min-width: 90px;
+    gap: 6px;
+  }
+  .player-avatar {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+  }
+  .game-player strong {
+    font-size: 11px;
+  }
+  .player-cash {
+    font-size: 10px;
+  }
+  .trade-sheet {
+    width: 285px;
+    padding: 9px;
+  }
+  .trade-sheet h2 {
+    font-size: 16px;
+  }
+}
+@media (orientation: portrait) {
+  .game-screen {
+    min-height: 760px;
+    height: 100svh;
+    overflow-y: auto;
+  }
+  .game-scene {
+    inset: 44px 0 auto;
+    height: 340px;
+  }
+  .board-mat {
+    left: 50%;
+    width: min(88vw, 335px);
+    height: min(88vw, 335px);
+  }
+  .has-task .board-mat {
+    left: 50%;
+    opacity: 0.25;
+  }
+  .game-actions {
+    top: auto;
+    bottom: 134px;
+    right: 16px;
+    width: calc(100% - 32px);
+    transform: none;
+    gap: 9px;
+  }
+  .game-actions h1 {
+    font-size: 20px;
+  }
+  .game-actions > p {
+    font-size: 12px;
+  }
+  .game-task {
+    top: 52px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    max-height: none;
+  }
+  .title-deed {
+    width: 205px;
+  }
+  .game-action {
+    font-size: 14px;
+  }
+  .game-roster {
+    bottom: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px 35px;
+  }
+  .game-feedback {
+    bottom: 120px;
+  }
+  .assets-surface {
+    gap: 10px;
+  }
+  .asset-collection {
+    width: 110px;
+  }
+  .trade-sheet {
+    width: min(90vw, 350px);
+  }
+  .results-sheet {
+    width: min(87vw, 335px);
+  }
+  .scenario-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .is-moving {
+    animation: none;
+  }
+}
+#app.game-root {
+  padding: 0;
+  max-width: none;
+}
+/* Keep tall contextual actions and the full deed above the transparent roster. */
+@media (orientation: landscape) {
+  .game-actions {
+    top: 41%;
+    gap: 7px;
+  }
+  .game-actions > p {
+    font-size: 11px;
+    line-height: 1.4;
+    margin-bottom: 2px;
+  }
+  .title-deed th,
+  .title-deed td {
+    padding-block: 3px;
+  }
+  .title-deed h2 {
+    padding-block: 10px;
+    margin-bottom: 5px;
+  }
+  .title-deed footer {
+    padding-top: 5px;
+    margin-top: 5px;
+    line-height: 1.35;
+  }
+}

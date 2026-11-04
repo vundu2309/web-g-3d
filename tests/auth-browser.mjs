@@ -146,6 +146,17 @@ try {
   blockProfileReads = false;
 
   await guest.screenshot({ path: "test-results/rooms-online-emulator.png" });
+  // The directory has cached the pre-join roster. Delay the listener transport
+  // so its cached first event cannot be treated as a server membership rejection.
+  await guest
+    .context()
+    .route(
+      "**/google.firestore.v1.Firestore/Listen/channel**",
+      async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        return route.continue();
+      },
+    );
   await guest
     .locator(".room-row")
     .getByRole("button", { name: "Vào phòng", exact: true })

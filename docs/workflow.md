@@ -37,3 +37,7 @@ Update authored docs when contracts change. Finish source edits before refreshin
 ## Investigating room latency
 
 Use the opt-in [timing panel](diagnostics.md) on the affected phone before attributing slow create/join operations to billing or region. No production timing is inferred from emulator tests.
+
+## HUD preview checks
+
+The browser runner also exercises `tests/game-ui-browser.mjs` against dev and production builds. It checks the 24 scenario layouts at landscape phone sizes, no observer actions, fixed-step bids, touch-only trade controls, active-turn/respondent markers and local offline/reload behavior. The route is a local UI preview with no production Firebase requests; it is not a real multiplayer game test. See [HUD implementation](game/ui-implementation.md).

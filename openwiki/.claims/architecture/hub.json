@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:d0436b2bb0948990f3989caef65936080e44ca3e31c1157b65596295052aecd9",
+  "pageVersion": "sha256:a8ef9301356097872c1fde4aa25555b2e01e09382a70398ba87fbe907e13f54b",
   "claims": [
     {
       "id": "claim_c48c88a21cf14dd39b37deb5ae6894ff",
@@ -18,7 +18,7 @@
       "evidence": [
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:9eb078d7beaf558c314e602838242c0d9f5fb75b476662ea6e2aad76143374e6"
+          "version": "repo-file-v1:sha256:4923a2ea8278eb12f2f00dda6a7dad3d4bc30c0be13acfcafc36644a9a9da0fd"
         },
         {
           "resource": "repo://src/platform/firestore-client.ts",
@@ -36,7 +36,7 @@
       "evidence": [
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:38dfae1541c4bbc472bdf4f6f78710797d7806e7ff7faac827aa506a572a1ae2"
+          "version": "repo-file-v1:sha256:84146a4645e43ebfd79000cd3087ed321ecca4ef967dd44b884b8140fd1dc549"
         },
         {
           "resource": "repo://src/platform/demo.ts",
@@ -72,7 +72,7 @@
         },
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:9eb078d7beaf558c314e602838242c0d9f5fb75b476662ea6e2aad76143374e6"
+          "version": "repo-file-v1:sha256:4923a2ea8278eb12f2f00dda6a7dad3d4bc30c0be13acfcafc36644a9a9da0fd"
         }
       ]
     },
@@ -86,7 +86,7 @@
         },
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:38dfae1541c4bbc472bdf4f6f78710797d7806e7ff7faac827aa506a572a1ae2"
+          "version": "repo-file-v1:sha256:84146a4645e43ebfd79000cd3087ed321ecca4ef967dd44b884b8140fd1dc549"
         },
         {
           "resource": "repo://src/platform/account.ts",
@@ -104,7 +104,7 @@
         },
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:9eb078d7beaf558c314e602838242c0d9f5fb75b476662ea6e2aad76143374e6"
+          "version": "repo-file-v1:sha256:4923a2ea8278eb12f2f00dda6a7dad3d4bc30c0be13acfcafc36644a9a9da0fd"
         },
         {
           "resource": "repo://src/platform/profile.ts",
@@ -136,7 +136,7 @@
         },
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:9eb078d7beaf558c314e602838242c0d9f5fb75b476662ea6e2aad76143374e6"
+          "version": "repo-file-v1:sha256:4923a2ea8278eb12f2f00dda6a7dad3d4bc30c0be13acfcafc36644a9a9da0fd"
         },
         {
           "resource": "repo://src/platform/profile.ts",
@@ -161,10 +161,28 @@
           "version": "repo-file-v1:sha256:4108ffaff4df02a7389615c62b4bb4d6e28d4c70f532156b186c6e9c27b220eb"
         }
       ]
+    },
+    {
+      "id": "claim_0ed98aced9264da38e4b07bf92c1bd42",
+      "statement": "Room watch không evict player chỉ từ cached first snapshot thiếu membership; includeMetadataChanges cho phép xử lý server-confirmed absence dù data không đổi.",
+      "evidence": [
+        {
+          "resource": "repo://src/app/start.ts",
+          "version": "repo-file-v1:sha256:84146a4645e43ebfd79000cd3087ed321ecca4ef967dd44b884b8140fd1dc549"
+        },
+        {
+          "resource": "repo://src/platform/firebase.ts",
+          "version": "repo-file-v1:sha256:4923a2ea8278eb12f2f00dda6a7dad3d4bc30c0be13acfcafc36644a9a9da0fd"
+        },
+        {
+          "resource": "repo://tests/auth-browser.mjs",
+          "version": "repo-file-v1:sha256:6512e2012543c591870a4432204073eeefb7f1bf621c15d767d2f4147d4958b1"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T16:08:25.086Z"
+    "at": "2026-11-04T04:42:03.835Z"
   }
 }

@@ -1,90 +1,51 @@
-# Plan 02 — Giao diện mobile
+# Plan 02 — Giao diện mobile / HUD
 
-**Trạng thái:** Active, bắt đầu **02B — chi tiết tài sản và mua đất** theo yêu cầu chuyển plan của người dùng. Chỉ thiết kế và review, chưa sửa UI runtime hoặc triển khai gameplay.
+**Trạng thái:** Thiết kế 24 trạng thái đã được người dùng chốt ngày 2026-11-04, UI preview đã triển khai. Phần board/hiệu ứng di chuyển và backend ván chưa được triển khai. Đây không phải hoàn thành một game Monopoly hoạt động.
 
-## Mục tiêu và đầu vào
+## Quyết định cuối cùng
 
-Thiết kế trải nghiệm Monopoly truyền thống trên điện thoại xoay ngang, giữ tên đất Mỹ và [theme sky/cobalt/yellow đã duyệt](../../design/theme.md). [Baseline Plan 01](01-rules.md) cung cấp danh mục và quy tắc hiện có; số liệu/luật còn thiếu nằm trong checklist bàn giao, không cần tìm đủ từng thẻ mới được vẽ bố cục. Dữ liệu demo trong concept phải ghi rõ là minh họa, không là trạng thái Firebase thật.
+- Dùng [theme đã duyệt](../../design/theme.md), mobile landscape ưu tiên 844×390, 932×430 và 667×375.
+- Người chơi căn giữa ở dưới không nền; highlight theo người đến lượt. Nhãn Bạn độc lập Cần phản hồi.
+- Không có tên game trong màn chơi. Action nổi giữa phải, icon nhỏ và text một dòng, cùng kiểu và vùng chạm tối thiểu 44px.
+- Thẻ đất giữ cấu trúc in gốc, font đen/English/cạnh vuông, sát cụm action; không thay bảng rent bằng hình nhà trang trí. Không có bảng Tiền của bạn/Sau khi mua.
+- Đấu giá dùng nút +10/+20/+50 dựa giá cao nhất; trade chọn tài sản và tăng/giảm tiền bằng nút, tránh bật bàn phím.
+- Ngoài lượt không có action/Tài sản. Bỏ Lịch sử. Observer vẫn thấy các quyết định chung; người được chỉ định phản hồi có đúng action của tác vụ.
+- Trạng thái 02 không có text di chuyển. Board/animation chuyển quân là phần sau; CSS dice trong preview chỉ minh họa.
 
-Hub hiện có giữ nguyên. Concept bàn chơi là đề xuất mới cần được duyệt; ảnh hub đã duyệt không đồng nghĩa bàn chơi đã được duyệt. Không chọn engine/camera runtime/backend hoặc bật Blaze trong plan này.
+[Contract implementation](../ui-implementation.md) là tài liệu đầy đủ cho route, 24 trạng thái, quyền tương tác, tests và giới hạn. [Tiêu chí phiên](../shared-session-design.md) áp dụng xuyên suốt.
 
-## Thứ tự làm từng màn
+## Ảnh concept được duyệt
 
-| Phần | Màn / tác vụ | Trạng thái |
+- [01–06: lượt, mua/đấu giá và quan sát](../../design/game-states-01-06.png).
+- [07–12: tài sản và trao đổi](../../design/game-states-07-12.png).
+- [13–18: nghĩa vụ, nhà tù/thẻ, kết quả](../../design/game-states-13-18.png).
+- [19–24: chờ, tung tiếp, phá sản, kết nối](../../design/game-states-19-24.png).
+
+Ngoại lệ đã chốt: bỏ text di chuyển ở 02. Nội dung minh họa/tên ô trong ảnh gen không thay thế dữ liệu source hay bằng chứng luật.
+
+## Tiến độ theo màn
+
+| Phần | Phạm vi | Trạng thái |
 | --- | --- | --- |
-| 02A | Bàn chơi chính: xem bàn, biết lượt ai, hành động hiện tại | HUD đã được duyệt; bàn cờ chi tiết chưa được duyệt |
-| 02B | Chi tiết tài sản và quyết định mua | Active: concept mua đất đầu tiên chờ review |
-| 02C | Đấu giá một tài sản | Backlog |
-| 02D | Tài sản cá nhân, xây/bán/thế chấp | Backlog |
-| 02E | Đề nghị và xác nhận trao đổi | Backlog |
-| 02F | Thẻ/nhà tù và xử lý nợ | Backlog |
-| 02G | Kết quả ván và trạng thái mất kết nối/vào lại | Backlog |
+| 02A | HUD chính, đầu lượt/chờ/di chuyển/tung tiếp | Thiết kế duyệt, UI preview có |
+| 02B | Thẻ tài sản và mua, observer mua | Thiết kế duyệt, UI preview có |
+| 02C | Đấu giá và observer | Thiết kế duyệt, UI preview có |
+| 02D | Tài sản, xây/bán, mortgage/unmortgage | Thiết kế duyệt, UI preview có |
+| 02E | Đề nghị/phản hồi/quan sát trade | Thiết kế duyệt, UI preview có |
+| 02F | Thanh toán/nợ, nhà tù/thẻ, phá sản | Thiết kế duyệt, UI preview có |
+| 02G | Kết quả, mất kết nối và khôi phục | Thiết kế duyệt, UI preview có |
 
-Đây là danh mục màn, không phải cho phép làm đồng loạt. Mỗi phần: brief → ảnh concept riêng → người dùng review → ghi quyết định → sang màn tiếp theo. Không gen tất cả các màn ghép chung một ảnh. Plan 02 chỉ hoàn thành khi các màn cần thiết được duyệt; implementation thuộc các plan sau.
+## Tiêu chí implementation trong phạm vi HUD
 
-## 02A — Brief màn bàn chơi chính
+- [x] Tách presentation model, render và preview controller khỏi Firebase/luật room.
+- [x] Có lối vào preview rõ ràng; dữ liệu mẫu không được gọi là ván online.
+- [x] Có selector cho 24 trạng thái và kiểm tra đúng action/người phản hồi.
+- [x] Kiểm tra layout, vùng bấm và icons trên các viewport điện thoại bằng browser.
+- [ ] Kiểm tra ergonomics trên điện thoại thật với người dùng.
+- [ ] Nối engine/backend authoritative khi các plan tương ứng được mở.
 
-### Việc người chơi phải hiểu ngay
+## Bằng chứng và giới hạn
 
-1. Mình ở đâu trên bàn, ai đang có lượt và hành động tiếp theo là gì.
-2. Tiền của mình và tình hình những người còn lại.
-3. Cách xem đất/quân cụ thể mà không cần đọc chữ rất nhỏ trên toàn bàn.
+Các concept đã duyệt trong chat là hướng visual. Các ảnh v1 lưu trước đây là lịch sử bị bác bỏ; không copy thiết kế panel/số dư cũ trở lại UI. Screenshot render mới thuộc test-results/ và không commit. Renderer hiện dùng schematic board CSS làm nền; không tuyên bố board đó là đồ họa 3D cuối cùng hoặc engine đã di chuyển quân.
 
-### HUD đã duyệt
-
-Nguồn: [ảnh HUD đã chốt](../../design/game-hud-approved.png). Người dùng đã duyệt bố cục HUD, không đồng nghĩa duyệt tên/thứ tự ô bị sai trong ảnh gen hoặc đồ họa bàn chi tiết.
-
-- Thông tin 2–4 người chơi ở cạnh dưới, cả nhóm căn giữa màn hình; avatar/tên/tiền không có background panel hoặc thanh nền.
-- Không hiển thị tên game trong màn chơi, kể cả logo giữa bàn.
-- Người đến lượt có viền vàng quanh avatar, mũi tên và nhãn **ĐẾN LƯỢT**. Dấu này chuyển theo lượt, độc lập nhãn **Bạn**; không highlight cố định người dùng local.
-- Nút hành động chính nổi ở khoảng giữa cạnh phải, chừa khoảng cách với mép và bàn cờ; không đặt sát góc dưới. Nội dung thay theo trạng thái, không luôn hiện Tung xúc xắc.
-- Tài sản/Lịch sử là lối vào phụ gọn bên trái, settings nhỏ góc trên. Không thêm sidebar lớn hoặc đổi theme đã duyệt.
-- Bàn cờ dùng làm ngữ cảnh, chưa chốt rendering 3D/engine; tên và thứ tự phải lấy dữ liệu source, không chép lỗi của ảnh.
-
-### Khả năng thao tác trên điện thoại
-
-Ưu tiên 844×390 và 932×430, kiểm tra thêm 667×375. Bàn 40 ô trên màn ngang có nhiều ô nhỏ hơn 44 px: không tuyên bố mọi ô đã đạt touch target chỉ vì bàn hiển thị đủ. Cần cơ chế phóng to/chọn vùng hoặc danh sách tài sản để mở chi tiết với vùng chạm đủ lớn; chọn giải pháp sau review concept, không ép mọi thông tin lên chữ nhỏ.
-
-Không đòi đọc rõ toàn bộ tên đất cùng lúc. Tên đầy đủ, chủ sở hữu, giá và rent phải đọc được khi chọn tài sản ở 02B. Màn chính dùng overview, màu nhóm, quân và dấu chọn. Nút chính >=44 px, safe area không che nút/roster. Portrait cần bố cục sử dụng được, không ép fullscreen/xoay màn bằng API.
-
-### Trạng thái cần thiết kế sau khi duyệt bố cục cơ sở
-
-- Đến lượt mình: chỉ rõ quyền tung và hành động đang chờ.
-- Đang chờ người khác: giữ xem bàn/tài sản, không đưa nút tung có vẻ bấm được.
-- Đang giải quyết ô: focus vị trí quân; chuyển qua tác vụ liên quan thay vì chồng tất cả thao tác.
-- Đang reconnect: thông báo trạng thái, không hiển thị kết quả giả hoặc tự kết thúc lượt. Chính sách đồng bộ thuộc Plan 05.
-
-### Checklist duyệt riêng 02A
-
-- [x] Gen/revise màn bàn chính và HUD riêng.
-- [x] Người dùng duyệt HUD: roster dưới căn giữa không nền, không tên game, action giữa phải, highlight theo lượt. Bàn 3D chi tiết vẫn chưa chốt.
-- [ ] Chốt cách mở/phóng to tài sản trên màn nhỏ; nêu rõ giới hạn của ảnh concept.
-- [x] Lưu ảnh và quyết định HUD, mở 02B theo yêu cầu người dùng.
-
-## 02B — Chi tiết tài sản và quyết định mua
-
-**Active, chưa duyệt.** [Concept mua đất v1](../../design/property-purchase-draft.png) kế thừa HUD đã chốt; không tự chuyển sang đấu giá hoặc gen nhiều màn đồng thời.
-
-Tác vụ: người đang dừng trên tài sản chưa có chủ xem **thẻ đất đầy đủ**, rồi chọn **Mua** hoặc **Đấu giá**. Không có bỏ qua để tránh đấu giá. Concept v1 đã bị người dùng bác bỏ; giữ file cũ chỉ làm lịch sử, không dùng làm thiết kế được duyệt.
-
-Yêu cầu người dùng đã chỉnh trong review:
-
-- Thẻ đất giữ thiết kế in gốc và nội dung tiếng Anh của bộ đã chọn: màu nhóm, tên, toàn bộ rent tiers, giá xây; mặt sau có mortgage/unmortgage. Không Việt hóa, bo góc hoặc áp font/theme HUD lên thẻ. Ảnh gen không phải artwork gốc đã xác minh.
-- Thẻ nằm sát bên trái cụm action giữa cạnh phải, không ở giữa một modal lớn. Không dùng hình ngôi nhà trang trí thay bảng rent.
-- Không hiển thị thêm “Tiền của bạn”/“Sau khi mua”. Giá mua có thể nằm trên action mua; số dư người chơi vẫn ở roster.
-- Action cùng kiểu/kích thước: icon nhỏ tương đương chiều cao chữ (đề xuất 18px với chữ 16px), icon + text trên một dòng, không dùng icon lớn phía trên text. Không coi Lucide là dependency đã chọn/cài; đó mới là đề xuất cho implementation.
-- Cụm action đủ gọn để mở rộng theo trạng thái, không thêm kho đồ/xây nhà vào trạng thái mua nếu không hợp lệ. Nút tung nền phải ẩn/vô hiệu khi đang quyết định mua.
-- [Tiêu chí phiên chơi](../shared-session-design.md) áp dụng cho mọi màn: ngoài lượt xem tài sản/lịch sử; chủ động thay đổi ván theo lượt/pha; phản hồi bắt buộc chỉ cho người được chỉ định. Khi khóa phải nêu lý do, không chỉ ẩn toàn bộ thông tin.
-- [x] Có chuỗi concept mua đất để review; v1 bị bác bỏ.
-- [ ] Người dùng chốt riêng concept 02B sau các chỉnh sửa; chưa tự đánh dấu đã duyệt.
-- [ ] Chốt 02B trước khi mở concept 02C đấu giá.
-
-## Ngoài phạm vi
-
-Không sửa code UI, model, Firebase hoặc backend; không gen toàn bộ các màn một lượt; không tự thêm luật/timeout để giải quyết bố cục. Không deploy Pages cho thay đổi tài liệu/concept chưa ảnh hưởng UI/UX đang chạy.
-
-## Tiêu chí hoàn thành Plan 02
-
-Có luồng và ảnh được duyệt cho từng tác vụ chính, trạng thái chờ/lỗi rõ ràng, ghi layout mobile và hành vi tương tác. Không xem ảnh gen là bằng chứng UI đã render, touch targets đã đo hoặc game đã chơi được; kiểm chứng trình duyệt/thiết bị khi implementation được mở.
-
-**Bằng chứng hiện tại:** HUD 02A đã duyệt và lưu ảnh; 02B đã có chuỗi concept; v1 bị bác bỏ, thiết kế thẻ gốc + action gọn đang chờ chốt. Chưa có UI gameplay trong runtime, chưa chọn engine hoặc sửa Firebase. Khả năng chạm/phóng to bàn phải kiểm chứng khi implementation được mở.
+Tài sản/tiền, auction resolution và trade thật còn thuộc plan model/backend. Giá chưa xác minh ở Plan01 không được tự lấp để triển khai kinh tế. UI preview không mở các plan gameplay đó.

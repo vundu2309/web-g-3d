@@ -59,3 +59,9 @@ The production rules preserve the pre-existing outside-hub Test-mode allowance u
 ## Optional operation timing
 
 The [diagnostics panel](diagnostics.md) is enabled only by `?diagnostics=1`. Pure bounded traces live in `src/hub/diagnostics.ts`; the app owns the dialog, operation lifetime and animation frames. The Firebase adapter records read/transaction spans and a diagnostic-only token readiness preflight. Reports stay in memory without player/room identifiers. Cached snapshots, overlapping reads and SDK retry waits are distinguished; emulator timing is not production latency evidence.
+
+## Gameplay HUD preview
+
+[HUD implementation](game/ui-implementation.md) is a lazy-loaded UI route at `?view=game`, separate from the online room service. `src/game-ui` owns presentation scenarios/rendering, `src/app/play.ts` owns local preview lifecycle and scripted interactions. It makes no Firebase calls. All 24 approved states can be reviewed in settings; board is a CSS placeholder, not the 3D gameplay engine. Preview permission guards supplement display logic but do not replace future backend authorization.
+
+Room membership rejection now waits for an authoritative server snapshot if the cached first room is missing or has a pre-join roster. Room subscriptions request metadata changes so a server-confirmed absence is still handled when document data matches the cache. Valid cached membership may render immediately. This does not change rules or eliminate latency; it prevents a stale cached directory result from evicting a successful join.

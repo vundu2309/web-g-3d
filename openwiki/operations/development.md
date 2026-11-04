@@ -10,8 +10,6 @@ sources:
     resource: repo://.github/workflows/pages.yml
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
-  - id: openwiki-source-d2af7d5d6c732484bd8c1c05
-    resource: repo://docs/decisions/0004-shared-session-action-policy.md
   - id: openwiki-source-e357e023868ea4db450d34ad
     resource: repo://docs/game/plans/02-mobile-ui.md
   - id: openwiki-source-03d3729a6d1fb321fab7b6df
@@ -22,6 +20,8 @@ sources:
     resource: repo://docs/game/rules/sources.md
   - id: openwiki-source-e337f5bab9183e3a12f77158
     resource: repo://docs/game/shared-session-design.md
+  - id: openwiki-source-63e8f904736888c1397b0a2b
+    resource: repo://docs/game/ui-implementation.md
   - id: openwiki-source-cc7175a0c3a0d5f1359efcc1
     resource: repo://docs/workflow.md
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
@@ -30,20 +30,24 @@ sources:
     resource: repo://scripts/test-browser.mjs
   - id: openwiki-source-4c36e1d79dd002cc49e886f0
     resource: repo://scripts/test-rules.mjs
+  - id: openwiki-source-dba8152f894fe338575ac7a6
+    resource: repo://src/game-ui/model.ts
   - id: openwiki-source-554339f52225d7d8edff3ed0
     resource: repo://src/style.css
   - id: openwiki-source-d6f301bba4bff3a816376dbe
     resource: repo://tests/auth-browser.mjs
   - id: openwiki-source-23d81adb7ef7cfcf251d7e3a
     resource: repo://tests/diagnostics.test.mjs
+  - id: openwiki-source-bcd61b642f291bcc011c6bcd
+    resource: repo://tests/game-ui-browser.mjs
   - id: openwiki-source-692b548971d3dc99c2c806f0
     resource: repo://tests/hub-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-04T03:47:09.988Z" }
+generated: { by: "codex", at: "2026-11-04T04:42:03.835Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T03:47:09.988Z
+    at: 2026-11-04T04:44:25.933Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -100,7 +104,7 @@ Unit tests kiểm tra thời gian chồng lấn, mã lỗi an toàn, retry, gi�
 
 ## Quy ước đặc tả luật cho AI
 
-AGENTS dẫn tới [game contract](../../docs/game/README.md), [Plan 02 hiện hành](../../docs/game/plans/02-mobile-ui.md) và trang luật liên quan. HUD 02A đã được duyệt; hiện Plan 02 / 02B chi tiết tài sản/mua đất active cho thiết kế. Plan 01 đã bàn giao baseline và tạm dừng nghiên cứu, các khoảng trống luật/số liệu giữ lại trước gameplay. Không coi plan là cho phép implementation hoặc tự chọn renderer/backend/Blaze. Luật truyền thống Mỹ giữ tên đất, phải có đấu giá/trao đổi/thế chấp; không tự thêm house rules; điều chỉnh tương tác theo lượt đã được người dùng chốt. Nguồn rulebook đã chốt G0009 US copyright 2025 theo S-002; số liệu và thẻ chưa đủ bằng chứng S-003 vẫn ghi unresolved. Đặc tả đã duyệt xác định hành vi mong đợi, source/test mô tả hiện trạng; sai lệch cần được xử lý chứ không sửa đặc tả để che bug.
+AGENTS dẫn tới [game contract](../../docs/game/README.md), [Plan 02 hiện hành](../../docs/game/plans/02-mobile-ui.md) và trang luật liên quan. Bộ 24 trạng thái HUD đã được duyệt và implement thành preview; chưa mở engine/backend. Plan 01 đã bàn giao baseline và tạm dừng nghiên cứu, các khoảng trống luật/số liệu giữ lại trước gameplay. Không coi plan là cho phép implementation hoặc tự chọn renderer/backend/Blaze. Luật truyền thống Mỹ giữ tên đất, phải có đấu giá/trao đổi/thế chấp; không tự thêm house rules; điều chỉnh tương tác theo lượt đã được người dùng chốt. Nguồn rulebook đã chốt G0009 US copyright 2025 theo S-002; số liệu và thẻ chưa đủ bằng chứng S-003 vẫn ghi unresolved. Đặc tả đã duyệt xác định hành vi mong đợi, source/test mô tả hiện trạng; sai lệch cần được xử lý chứ không sửa đặc tả để che bug.
 
 ## Giảm chi phí đối chiếu luật và bảng giá
 
@@ -108,8 +112,12 @@ AGENTS dẫn tới [game contract](../../docs/game/README.md), [Plan 02 hiện h
 
 ## HUD được duyệt và tác vụ hiện hành
 
-[Plan02]( ../../docs/game/plans/02-mobile-ui.md ) lưu ảnh HUD được duyệt: roster dưới căn giữa không nền, không tên game, action nổi giữa cạnh phải, highlight đổi theo người đến lượt. Concept mua đất 02B v1 đang chờ review; bàn cờ chi tiết/tên ô trong ảnh gen không phải dữ liệu chuẩn. Chưa sửa runtime, chưa deploy.
+[Plan02]( ../../docs/game/plans/02-mobile-ui.md ) lưu ảnh HUD được duyệt: roster dưới căn giữa không nền, không tên game, action nổi giữa cạnh phải, highlight đổi theo người đến lượt. Bộ 24 trạng thái đã duyệt và UI preview đã implement; v1 bị bác bỏ không là chuẩn. Board3D/backend gameplay còn để bước sau.
 
 ## Tiêu chí thiết kế phiên chơi đã chốt
 
-[Một diễn biến chung](../../docs/game/shared-session-design.md) quy định: ngoài lượt chỉ xem cá nhân; khởi tạo trade/xây/bán/thế chấp trong lượt/pha; người được chỉ định vẫn phản hồi trade/đấu giá hoặc nghĩa vụ chung ngoài lượt. Giao dịch xử lý lần lượt và thông báo kết quả chung. Đây là điều chỉnh tương tác được user chốt, khác quyền ngoài lượt trong rulebook; không thay kinh tế, không tự thêm timer/auto-forfeit hoặc quyết định topology thiết bị. Plan02B v1 đã bị bác bỏ; thẻ phải giữ design gốc và action gọn theo các chỉnh sửa, chưa có ảnh 02B được chốt.
+[Một diễn biến chung](../../docs/game/shared-session-design.md) quy định: ngoài lượt chỉ quan sát diễn biến chung, không action/Tài sản hoặc Lịch sử; khởi tạo trade/xây/bán/thế chấp trong lượt/pha; người được chỉ định vẫn phản hồi trade/đấu giá hoặc nghĩa vụ chung ngoài lượt. Giao dịch xử lý lần lượt và thông báo kết quả chung. Đây là điều chỉnh tương tác được user chốt, khác quyền ngoài lượt trong rulebook; không thay kinh tế, không tự thêm timer/auto-forfeit hoặc quyết định topology thiết bị. Plan02B v1 đã bị bác bỏ; thẻ phải giữ design gốc và action gọn theo các chỉnh sửa, bộ trạng thái đã được chốt để implement UI preview.
+
+## Kiểm chứng UI preview 24 trạng thái
+
+Runner browser chạy thêm tests/game-ui-browser.mjs trên dev và production:24 scenario ở667×375,844×390,932×430, touch44px/icon<=18px, không đè roster, observer/response, fixed bid và trade không input, offline/reload. Unit tests game-ui kiểm tra permissions, increments và moving không text. Đây là UI preview không gọi Firebase; không phải engine hoặc multiplayer ván thật. Xem [kiến trúc HUD](../architecture/gameplay-ui.md).

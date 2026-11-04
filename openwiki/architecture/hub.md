@@ -3,9 +3,6 @@ type: architecture
 title: Kiến trúc hub và đồng bộ phòng
 description: Luồng giao diện mobile, luật phòng thuần, adapter bản thử và Firebase, quyền truy cập và giới hạn trước khi có bàn chơi.
 tags: [hub, rooms, mobile, firebase, architecture]
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-03T16:08:25.086Z
 sources:
   - id: openwiki-source-1207dc6dc9df1cc76b6da2de
     resource: repo://docs/diagnostics.md
@@ -33,9 +30,14 @@ sources:
     resource: repo://src/platform/firestore-client.ts
   - id: openwiki-source-6475f92dc7ed4bc9b5b6546c
     resource: repo://src/platform/profile.ts
+  - id: openwiki-source-d6f301bba4bff3a816376dbe
+    resource: repo://tests/auth-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-03T16:08:25.086Z" }
+generated: { by: "codex", at: "2026-11-04T04:42:03.835Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-04T04:42:03.835Z
 ---
 
 # Kiến trúc hub và đồng bộ phòng
@@ -86,3 +88,7 @@ Khởi tạo store chỉ xác nhận tài khoản, không đợi đồng bộ pr
 ## Chẩn đoán độ trễ có chủ đích
 
 Cờ URL `?diagnostics=1` bật dialog đo tạo/vào phòng. Trace thuần trong src/hub/diagnostics.ts giới hạn 100 samples mỗi thao tác; UI giữ năm báo cáo trong bộ nhớ, không tự upload. Các span SDK, session/token, đọc phòng/profile, transaction/commit, snapshot đầu và khung hình có thể chồng lấn. Adapter kiểm tra token riêng khi bật đo; việc này có thể làm ấm token nên không coi đây là timing thụ động hoàn toàn. Cached snapshot không chứng minh round trip server. Số callback transaction không phải mọi transport retry; commit gồm chờ SDK/mạng/backoff. Xem [hướng dẫn đo](../../docs/diagnostics.md) và [kiểm tra](../operations/development.md).
+
+## HUD preview và cached roster
+
+Trang chính/phòng started có lối vào [HUD preview](gameplay-ui.md), dữ liệu fixture local chứ không tự tạo ván cloud. Room watch dùng includeMetadataChanges; cached first room thiếu membership không đủ để trả người vừa join về home. Listener chờ server xác nhận absence, còn cached membership hợp lệ có thể hiển thị ngay. Suite Auth/Firestore emulator làm chậm listener sau directory cache để kiểm tra đường này.

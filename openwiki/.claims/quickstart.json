@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:47db9ef265439aefbd130a1bbcde52fc60e200ba2ea57b1c0827fc16e65b94ed",
+  "pageVersion": "sha256:386d17bd56f1a2d3b08d3c5190fa78e5664cca293bf3a5c9786b04a52f70b667",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -8,11 +8,11 @@
       "evidence": [
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:38dfae1541c4bbc472bdf4f6f78710797d7806e7ff7faac827aa506a572a1ae2"
+          "version": "repo-file-v1:sha256:84146a4645e43ebfd79000cd3087ed321ecca4ef967dd44b884b8140fd1dc549"
         },
         {
           "resource": "repo://src/main.ts",
-          "version": "repo-file-v1:sha256:3dee4f6c005028e3eafff2990bb0aecb2010eef56c699f4e73c5dbc94786aeb9"
+          "version": "repo-file-v1:sha256:ab06349f13f84fb6c79964008559a4e8e6ebcff44c9a67561e40d12ce37c807e"
         }
       ]
     },
@@ -22,7 +22,7 @@
       "evidence": [
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:adee6ae08a6539588124f4e0d682548897e4db4726ec981e7e4be45c713119c1"
+          "version": "repo-file-v1:sha256:9efe10dcabea94c7901e29409dfec15d41dbe72c2103f62685151f94d8249935"
         }
       ]
     },
@@ -46,7 +46,7 @@
       "evidence": [
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:38dfae1541c4bbc472bdf4f6f78710797d7806e7ff7faac827aa506a572a1ae2"
+          "version": "repo-file-v1:sha256:84146a4645e43ebfd79000cd3087ed321ecca4ef967dd44b884b8140fd1dc549"
         },
         {
           "resource": "repo://src/platform/account.ts",
@@ -64,7 +64,7 @@
         },
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:9eb078d7beaf558c314e602838242c0d9f5fb75b476662ea6e2aad76143374e6"
+          "version": "repo-file-v1:sha256:4923a2ea8278eb12f2f00dda6a7dad3d4bc30c0be13acfcafc36644a9a9da0fd"
         },
         {
           "resource": "repo://src/platform/firestore-client.ts",
@@ -92,19 +92,19 @@
     },
     {
       "id": "claim_93b00f5ea349493b897f7f2ba4773072",
-      "statement": "HUD02A đã được người dùng duyệt: roster căn giữa dưới không nền, không tên game, action nổi giữa phải và highlight theo lượt; 02B mua đất có concept chờ review, chưa implementation.",
+      "statement": "Bộ 24 trạng thái HUD đã duyệt và được implement dưới dạng UI preview; roster căn giữa không nền, highlight theo lượt, action gọn; state02 không text di chuyển, chưa có backend gameplay.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:05cbc57c17543c2e50ca38c61a6d9735126d43a9d35b49a24ad9a09130fa7c9b"
-        },
-        {
-          "resource": "repo://docs/game/README.md",
-          "version": "repo-file-v1:sha256:4ea705854e929af9ab4810f606cbed2d9d7e6fabb09676b41efdcd926f48e44e"
-        },
-        {
           "resource": "repo://docs/game/plans/02-mobile-ui.md",
-          "version": "repo-file-v1:sha256:85823679c13241145b00df07890a331eb729908c43a958a0d7219aad5b3703dc"
+          "version": "repo-file-v1:sha256:bf31849c680688d3868b433793ba7703aa996c759e6246bbc11625bc9b1f439c"
+        },
+        {
+          "resource": "repo://docs/game/ui-implementation.md",
+          "version": "repo-file-v1:sha256:d196999915ac34458fc9f3c5143fb30cddabc8741a4cacc3d7b92897b0f92f2b"
+        },
+        {
+          "resource": "repo://src/game-ui/model.ts",
+          "version": "repo-file-v1:sha256:bc3ae6d87c6ff8b221550cdb7b8c5fcee16517b6fbdafd7a9b587426da493705"
         }
       ]
     },
@@ -142,11 +142,11 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:05cbc57c17543c2e50ca38c61a6d9735126d43a9d35b49a24ad9a09130fa7c9b"
+          "version": "repo-file-v1:sha256:a6232393894f1a164876a3ab9b4dba5d66a8ced6e5da267a7d8ee1ee84830a42"
         },
         {
           "resource": "repo://docs/game/README.md",
-          "version": "repo-file-v1:sha256:4ea705854e929af9ab4810f606cbed2d9d7e6fabb09676b41efdcd926f48e44e"
+          "version": "repo-file-v1:sha256:ab335ddc9729bda6e7c7a1f5c263282a757723f214db5e10dbe125d10f62782c"
         },
         {
           "resource": "repo://docs/game/rules/property-economics.md",
@@ -160,25 +160,43 @@
     },
     {
       "id": "claim_705aaf10654345bd8e7df1db3960f915",
-      "statement": "Tiêu chí thiết kế phiên chơi được user chốt: ngoài lượt xem cá nhân, chủ động thay đổi ván trong lượt/pha và chỉ phản hồi tác vụ phiên chỉ định ngoài lượt; kết quả chung xử lý tuần tự. Đây là ngoại lệ tương tác có chủ đích so với rulebook, chưa implement.",
+      "statement": "Tiêu chí phiên chơi đã chốt: ngoài lượt chỉ quan sát diễn biến chung, không action/Tài sản hoặc Lịch sử; người được chỉ định phản hồi trade/đấu giá có đúng action tác vụ, không tự mở tác vụ độc lập.",
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:05cbc57c17543c2e50ca38c61a6d9735126d43a9d35b49a24ad9a09130fa7c9b"
-        },
-        {
-          "resource": "repo://docs/decisions/0004-shared-session-action-policy.md",
-          "version": "repo-file-v1:sha256:f9e887034cf53dd58e07091014ce7c699a93c40cf4db9fa70b867bc2f7eada72"
+          "version": "repo-file-v1:sha256:a6232393894f1a164876a3ab9b4dba5d66a8ced6e5da267a7d8ee1ee84830a42"
         },
         {
           "resource": "repo://docs/game/shared-session-design.md",
-          "version": "repo-file-v1:sha256:d3d0420a3788e8f41aeffb80a8c141c57581561d6c4a5420a3ffdfa446e0f835"
+          "version": "repo-file-v1:sha256:83d1ddb3b4a47bef57b2ef9f66f565e8127c6c260931734366bb178ea1452657"
+        }
+      ]
+    },
+    {
+      "id": "claim_673796af3d6543b49b2288acbf247145",
+      "statement": "Home/started lobby có link HUD preview; bánh răng chọn 24 trạng thái, query giữ scenario; source UI không là ván online và board3D chưa implement.",
+      "evidence": [
+        {
+          "resource": "repo://docs/game/ui-implementation.md",
+          "version": "repo-file-v1:sha256:d196999915ac34458fc9f3c5143fb30cddabc8741a4cacc3d7b92897b0f92f2b"
+        },
+        {
+          "resource": "repo://src/app/play.ts",
+          "version": "repo-file-v1:sha256:9d7017ecd9ddf27d8a613e01cbaeab90e43ee9170fbe0257be7ff835487d9849"
+        },
+        {
+          "resource": "repo://src/app/start.ts",
+          "version": "repo-file-v1:sha256:84146a4645e43ebfd79000cd3087ed321ecca4ef967dd44b884b8140fd1dc549"
+        },
+        {
+          "resource": "repo://src/main.ts",
+          "version": "repo-file-v1:sha256:ab06349f13f84fb6c79964008559a4e8e6ebcff44c9a67561e40d12ce37c807e"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T03:47:09.988Z"
+    "at": "2026-11-04T04:44:25.933Z"
   }
 }
