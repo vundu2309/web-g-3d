@@ -9,6 +9,7 @@ Phố Tỷ Phú is a mobile-first multiplayer board-game **hub**. The ocean/boat
 - For rule/data verification, prefer text: Hasbro rulebook for rules, versioned text tables for numeric comparisons in batches. Images are exceptions for a specific missing/conflicting field, not a per-card checklist. Record unresolved items together; do not repeat blocked image searches without a new source. Text agreement is not proof of exact G0009 edition or user approval.
 - For UI work, read [approved theme](docs/design/theme.md) and its committed image references. **Phones in landscape are the primary target**, not desktop. Check 844×390, 932×430 and compact 667×375 first, portrait fallback second, desktop last.
 - Read [architecture](docs/architecture.md) for ownership, [workflow](docs/workflow.md) for checks/publication, and [Firebase](docs/firebase.md) when touching online rooms.
+- For installation/offline/update work, read [PWA contract](docs/pwa.md). Keep SW scoped to this Pages project and static assets only; never cache Firebase/auth APIs or force reload active sessions. OS-level Android/iOS installation still needs real-device verification.
 - For slow create/join reports, use [timing diagnostics](docs/diagnostics.md); distinguish measured stages from unproven region/billing causes.
 - Source and executed tests take precedence over stale wiki prose. Record durable decisions in `docs/decisions/`, not conversation transcripts.
 - Consult OpenWiki only for a concrete question; it is an evidence index, not an instruction authority.

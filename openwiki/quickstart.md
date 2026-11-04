@@ -28,6 +28,8 @@ sources:
     resource: repo://docs/game/shared-session-design.md
   - id: openwiki-source-63e8f904736888c1397b0a2b
     resource: repo://docs/game/ui-implementation.md
+  - id: openwiki-source-701123ef063b2b49fc5126ba
+    resource: repo://docs/pwa.md
   - id: openwiki-source-8acf8e92f9f7b465d02fa04b
     resource: repo://firestore.indexes.json
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
@@ -50,10 +52,12 @@ sources:
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
     resource: repo://src/platform/firestore-client.ts
-generated: { by: "codex", at: "2026-11-04T04:42:03.835Z" }
+  - id: openwiki-source-a875da0e301868b8784bbae3
+    resource: repo://tests/pwa-browser.mjs
+generated: { by: "codex", at: "2026-11-04T05:05:06.149Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T04:44:25.933Z
+    at: 2026-11-04T05:05:06.149Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
@@ -113,3 +117,7 @@ Quy ước đã được người dùng đồng ý: dùng rulebook Hasbro cho lu
 ## Mở HUD ván chơi
 
 Chọn Xem trước HUD ván chơi ở home hoặc ?view=game; bánh răng chọn 24 trạng thái, query state giữ scenario khi reload. [Kiến trúc HUD](architecture/gameplay-ui.md) và [implementation contract](../docs/game/ui-implementation.md) ghi scope UI/local fixture, không Firebase hoặc engine, không movement text ở02. Các concept đã duyệt trong docs/design/game-states-*.png không thay test browser/điện thoại thật.
+
+## Cài game như app
+
+Home có Cài game/Cài lên điện thoại, native prompt hoặc hướng dẫn Android Chrome/iOS Safari. [PWA](operations/pwa.md) ghi manifest, scoped static cache, offline home/HUD và update chờ đóng tab. Tài khoản/phòng vẫn cần mạng; app install không thay backend. Main khởi tạo/dispose installer cùng app.

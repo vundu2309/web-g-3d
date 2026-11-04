@@ -6,10 +6,14 @@ tags: [hub, rooms, mobile, firebase, architecture]
 sources:
   - id: openwiki-source-1207dc6dc9df1cc76b6da2de
     resource: repo://docs/diagnostics.md
+  - id: openwiki-source-701123ef063b2b49fc5126ba
+    resource: repo://docs/pwa.md
   - id: openwiki-source-8acf8e92f9f7b465d02fa04b
     resource: repo://firestore.indexes.json
   - id: openwiki-source-60b51f83565a4de6497fc329
     resource: repo://firestore.rules
+  - id: openwiki-source-5b54a58d1b51cd490b0e7162
+    resource: repo://package.json
   - id: openwiki-source-3cc44dcb42d14ad2fffb83f2
     resource: repo://src/app/account.ts
   - id: openwiki-source-2d276ab0949853064e1a4208
@@ -32,12 +36,14 @@ sources:
     resource: repo://src/platform/profile.ts
   - id: openwiki-source-d6f301bba4bff3a816376dbe
     resource: repo://tests/auth-browser.mjs
+  - id: openwiki-source-a875da0e301868b8784bbae3
+    resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-04T04:42:03.835Z" }
+generated: { by: "codex", at: "2026-11-04T05:05:59.020Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T04:42:03.835Z
+    at: 2026-11-04T05:05:59.020Z
 ---
 
 # Kiến trúc hub và đồng bộ phòng
@@ -92,3 +98,7 @@ Cờ URL `?diagnostics=1` bật dialog đo tạo/vào phòng. Trace thuần tron
 ## HUD preview và cached roster
 
 Trang chính/phòng started có lối vào [HUD preview](gameplay-ui.md), dữ liệu fixture local chứ không tự tạo ván cloud. Room watch dùng includeMetadataChanges; cached first room thiếu membership không đủ để trả người vừa join về home. Listener chờ server xác nhận absence, còn cached membership hợp lệ có thể hiển thị ngay. Suite Auth/Firestore emulator làm chậm listener sau directory cache để kiểm tra đường này.
+
+## PWA và vòng đời shell
+
+Test browser chạy thêm tests/pwa-browser.mjs trên build thật tại subpath /web-g-3d/. Kiểm tra icon/manifest, handler cài và hướng dẫn, offline home/lazy HUD, API không cache, worker waiting không ép reload và cleanup khi client đóng. Xem [PWA](../operations/pwa.md); chưa thay test cài OS thực tế.

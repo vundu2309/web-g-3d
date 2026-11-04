@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:dd64d1023da6c7bd75882d19f46383b23556d5a691871f58ef5529c1155fb4a3",
+  "claims": [
+    {
+      "id": "claim_36eb6868133740c2b9b12b0cfa109cc8",
+      "statement": "PWA có manifest/icon và install UI dùng native prompt khi khả dụng, fallback hướng dẫn Chrome/Safari; standalone/appinstalled ẩn nút, synthetic event chưa là kiểm chứng OS install.",
+      "evidence": [
+        {
+          "resource": "repo://index.html",
+          "version": "repo-file-v1:sha256:95ef5c607ac28a5aa0a9bf7e6fb0255a0b2fff24db736e6a47801a14178768ee"
+        },
+        {
+          "resource": "repo://public/manifest.webmanifest",
+          "version": "repo-file-v1:sha256:2f56f16793546cd6f1bb4f13970454d0063224879aa4425ed14bfe49b86d51bf"
+        },
+        {
+          "resource": "repo://src/app/pwa.ts",
+          "version": "repo-file-v1:sha256:c5b4c6a217435bc19bafc42d618b25d63198a20be01fbc1dbe38b54d101a939a"
+        },
+        {
+          "resource": "repo://tests/pwa-browser.mjs",
+          "version": "repo-file-v1:sha256:4a6783d9576043792024854f9d5c08694d5494021f01ca7cc5dac2fdd8b2644b"
+        }
+      ]
+    },
+    {
+      "id": "claim_e643b54ab1fd4cd790b705423b9e287e",
+      "statement": "Worker production cache allowlist shell tĩnh theo repo scope/version, bỏ API/cross-origin/POST; home và lazy HUD có thể reload offline sau precache, không bổ sung multiplayer offline.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/pwa-build.mjs",
+          "version": "repo-file-v1:sha256:bc166f155e1619b81cea90530d8b6c6cad144f987372278a139827b7ea2ed092"
+        },
+        {
+          "resource": "repo://scripts/service-worker.js",
+          "version": "repo-file-v1:sha256:21025e340cc23881a57fe0778e7af56e7e4f7fd797d736e5b9ddb82d60a2d5da"
+        },
+        {
+          "resource": "repo://src/platform/pwa.ts",
+          "version": "repo-file-v1:sha256:e5ad1f8a3e6c57d02e4c157f7dd1302626d727ec2f41bf6f2ed44e352bbe50c7"
+        },
+        {
+          "resource": "repo://tests/pwa-browser.mjs",
+          "version": "repo-file-v1:sha256:4a6783d9576043792024854f9d5c08694d5494021f01ca7cc5dac2fdd8b2644b"
+        }
+      ]
+    },
+    {
+      "id": "claim_1c19baae1f4644a398a621487cd59520",
+      "statement": "Update worker chờ đóng các client cũ, không skipWaiting/reload phiên; activate dọn cache chỉ cùng prefix/scope, foreground check throttle60giây.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/service-worker.js",
+          "version": "repo-file-v1:sha256:21025e340cc23881a57fe0778e7af56e7e4f7fd797d736e5b9ddb82d60a2d5da"
+        },
+        {
+          "resource": "repo://src/app/pwa.ts",
+          "version": "repo-file-v1:sha256:c5b4c6a217435bc19bafc42d618b25d63198a20be01fbc1dbe38b54d101a939a"
+        },
+        {
+          "resource": "repo://src/platform/pwa.ts",
+          "version": "repo-file-v1:sha256:e5ad1f8a3e6c57d02e4c157f7dd1302626d727ec2f41bf6f2ed44e352bbe50c7"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-04T05:05:06.149Z"
+  }
+}

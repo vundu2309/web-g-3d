@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:a8ef9301356097872c1fde4aa25555b2e01e09382a70398ba87fbe907e13f54b",
+  "pageVersion": "sha256:9da0c8226a551640d40e41b74d483eb87986da749d5950e77a4df70eb3514a17",
   "claims": [
     {
       "id": "claim_c48c88a21cf14dd39b37deb5ae6894ff",
@@ -36,7 +36,7 @@
       "evidence": [
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:84146a4645e43ebfd79000cd3087ed321ecca4ef967dd44b884b8140fd1dc549"
+          "version": "repo-file-v1:sha256:c8dfcf47c72760127dc6db043f748d79f082fbf364a18dd7b829d24bc011a401"
         },
         {
           "resource": "repo://src/platform/demo.ts",
@@ -86,7 +86,7 @@
         },
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:84146a4645e43ebfd79000cd3087ed321ecca4ef967dd44b884b8140fd1dc549"
+          "version": "repo-file-v1:sha256:c8dfcf47c72760127dc6db043f748d79f082fbf364a18dd7b829d24bc011a401"
         },
         {
           "resource": "repo://src/platform/account.ts",
@@ -168,7 +168,7 @@
       "evidence": [
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:84146a4645e43ebfd79000cd3087ed321ecca4ef967dd44b884b8140fd1dc549"
+          "version": "repo-file-v1:sha256:c8dfcf47c72760127dc6db043f748d79f082fbf364a18dd7b829d24bc011a401"
         },
         {
           "resource": "repo://src/platform/firebase.ts",
@@ -179,10 +179,28 @@
           "version": "repo-file-v1:sha256:6512e2012543c591870a4432204073eeefb7f1bf621c15d767d2f4147d4958b1"
         }
       ]
+    },
+    {
+      "id": "claim_2316197019d34092a8503a545850fbfa",
+      "statement": "Browser suite có test PWA trên production build/subpath kiểm tra manifest/icons, install handler, offline reload và waiting update; cài OS trên Android/iOS còn cần real-device verification.",
+      "evidence": [
+        {
+          "resource": "repo://docs/pwa.md",
+          "version": "repo-file-v1:sha256:e96b4af8dd948b5a5c47def9b596f1b7242a3f87cc0f4187c86ab6a67412b5c1"
+        },
+        {
+          "resource": "repo://package.json",
+          "version": "repo-file-v1:sha256:4a5380c73c678026e2a458b90d1ed71d60d31b5caa06f8c260aee54e0e65099a"
+        },
+        {
+          "resource": "repo://tests/pwa-browser.mjs",
+          "version": "repo-file-v1:sha256:4a6783d9576043792024854f9d5c08694d5494021f01ca7cc5dac2fdd8b2644b"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T04:42:03.835Z"
+    "at": "2026-11-04T05:05:59.020Z"
   }
 }

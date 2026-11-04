@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:c83b8a07c6338fdfa913831d3e6468365efcd972ce01b990a35e8bfd8cd1f1dc",
+  "pageVersion": "sha256:7efe51e8fe4bc4c579df2ac8e4abfdf765c435eefaa20bb6fc1c53520c452cb2",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -12,11 +12,11 @@
         },
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:a6232393894f1a164876a3ab9b4dba5d66a8ced6e5da267a7d8ee1ee84830a42"
+          "version": "repo-file-v1:sha256:5cd338dae39d1e81558b559ae0bdef54915b0e5748e1ed9499661a6d44443748"
         },
         {
           "resource": "repo://docs/workflow.md",
-          "version": "repo-file-v1:sha256:fa42f1b555a1cf7105477ea80448edc621e4e708277513c6b917b6afae7ac8d8"
+          "version": "repo-file-v1:sha256:1b831e923bd096317160a892dbc0688ad2d35e567037fe0f461f3f02befe63b1"
         }
       ]
     },
@@ -46,7 +46,7 @@
       "evidence": [
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:9efe10dcabea94c7901e29409dfec15d41dbe72c2103f62685151f94d8249935"
+          "version": "repo-file-v1:sha256:4a5380c73c678026e2a458b90d1ed71d60d31b5caa06f8c260aee54e0e65099a"
         },
         {
           "resource": "repo://scripts/test-browser.mjs",
@@ -64,7 +64,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:a6232393894f1a164876a3ab9b4dba5d66a8ced6e5da267a7d8ee1ee84830a42"
+          "version": "repo-file-v1:sha256:5cd338dae39d1e81558b559ae0bdef54915b0e5748e1ed9499661a6d44443748"
         }
       ]
     },
@@ -112,7 +112,7 @@
       "evidence": [
         {
           "resource": "repo://src/style.css",
-          "version": "repo-file-v1:sha256:227a7d27409ff4d3ebc26a550d56137ffbc8836d2564b88e7dca1edd6cff76f8"
+          "version": "repo-file-v1:sha256:318f168727a72730cb40f04c421518fcbc47768a53055f10dc5dc82cdc921722"
         },
         {
           "resource": "repo://tests/auth-browser.mjs",
@@ -178,7 +178,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:a6232393894f1a164876a3ab9b4dba5d66a8ced6e5da267a7d8ee1ee84830a42"
+          "version": "repo-file-v1:sha256:5cd338dae39d1e81558b559ae0bdef54915b0e5748e1ed9499661a6d44443748"
         },
         {
           "resource": "repo://docs/game/README.md",
@@ -200,7 +200,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:a6232393894f1a164876a3ab9b4dba5d66a8ced6e5da267a7d8ee1ee84830a42"
+          "version": "repo-file-v1:sha256:5cd338dae39d1e81558b559ae0bdef54915b0e5748e1ed9499661a6d44443748"
         },
         {
           "resource": "repo://docs/game/shared-session-design.md",
@@ -214,7 +214,7 @@
       "evidence": [
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:9efe10dcabea94c7901e29409dfec15d41dbe72c2103f62685151f94d8249935"
+          "version": "repo-file-v1:sha256:4a5380c73c678026e2a458b90d1ed71d60d31b5caa06f8c260aee54e0e65099a"
         },
         {
           "resource": "repo://scripts/test-browser.mjs",
@@ -225,10 +225,28 @@
           "version": "repo-file-v1:sha256:147daba44b9bde35787396eb8f79ed87e797b2854091f8e4a74aeafa1062efd0"
         }
       ]
+    },
+    {
+      "id": "claim_191d90b63cdc48dbbe22625f77df5148",
+      "statement": "Browser suite có test PWA trên production build/subpath kiểm tra manifest/icons, install handler, offline reload và waiting update; cài OS trên Android/iOS còn cần real-device verification.",
+      "evidence": [
+        {
+          "resource": "repo://docs/pwa.md",
+          "version": "repo-file-v1:sha256:e96b4af8dd948b5a5c47def9b596f1b7242a3f87cc0f4187c86ab6a67412b5c1"
+        },
+        {
+          "resource": "repo://package.json",
+          "version": "repo-file-v1:sha256:4a5380c73c678026e2a458b90d1ed71d60d31b5caa06f8c260aee54e0e65099a"
+        },
+        {
+          "resource": "repo://tests/pwa-browser.mjs",
+          "version": "repo-file-v1:sha256:4a6783d9576043792024854f9d5c08694d5494021f01ca7cc5dac2fdd8b2644b"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T04:44:25.933Z"
+    "at": "2026-11-04T05:05:06.149Z"
   }
 }

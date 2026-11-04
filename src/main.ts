@@ -1,3 +1,4 @@
+import { startPwa } from "./app/pwa";
 import { start } from "./app/start";
 import "@fontsource/baloo-2/latin-800.css";
 import "@fontsource/baloo-2/vietnamese-800.css";
@@ -11,8 +12,13 @@ import "./style.css";
 
 const root = document.querySelector<HTMLElement>("#app");
 if (!root) throw new Error("Missing application root");
+const disposePwa = startPwa(root);
 const dispose =
   new URLSearchParams(location.search).get("view") === "game"
     ? (await import("./app/play")).startPlay(root)
     : start(root);
-if (import.meta.hot) import.meta.hot.dispose(dispose);
+if (import.meta.hot)
+  import.meta.hot.dispose(() => {
+    dispose();
+    disposePwa();
+  });

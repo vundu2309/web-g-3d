@@ -5,10 +5,14 @@ description: Route UI 24 trạng thái, quyền hiển thị theo lượt và ra
 tags: [gameplay, ui, mobile, preview, state]
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T04:42:03.835Z
+    at: 2026-11-04T05:05:59.020Z
 sources:
   - id: openwiki-source-63e8f904736888c1397b0a2b
     resource: repo://docs/game/ui-implementation.md
+  - id: openwiki-source-701123ef063b2b49fc5126ba
+    resource: repo://docs/pwa.md
+  - id: openwiki-source-5b54a58d1b51cd490b0e7162
+    resource: repo://package.json
   - id: openwiki-source-3515d68bed1b916f693296ec
     resource: repo://scripts/test-browser.mjs
   - id: openwiki-source-de5ab1ed905c7bd08fbdce6f
@@ -23,7 +27,9 @@ sources:
     resource: repo://tests/game-ui-browser.mjs
   - id: openwiki-source-0753321c1f0f7198373c0847
     resource: repo://tests/game-ui.test.mjs
-generated: { by: "codex", at: "2026-11-04T04:42:03.835Z" }
+  - id: openwiki-source-a875da0e301868b8784bbae3
+    resource: repo://tests/pwa-browser.mjs
+generated: { by: "codex", at: "2026-11-04T05:05:59.020Z" }
 ---
 
 # HUD ván chơi và adapter preview
@@ -57,3 +63,7 @@ Các flow UI cục bộ giúp review: roll chuyển moving rồi mua, buy/pay ch
 Unit tests kiểm tra observer/respondent permissions, fixed increments và moving không text. Browser tests chạy dev/production, cả24 scenario ở667×375,844×390,932×430, không overflow/đè roster, touch44px/icon nhỏ; kiểm tra flow, offline và reload. Preview tests chặn request Firebase production. Emulator tests của hub là suite riêng. Chưa có test engine, real-phone ergonomics hoặc production multiplayer gameplay.
 
 Xem [implementation contract](../../docs/game/ui-implementation.md), [hub](hub.md), [workflow](../operations/development.md).
+
+## PWA và vòng đời shell
+
+Test browser chạy thêm tests/pwa-browser.mjs trên build thật tại subpath /web-g-3d/. Kiểm tra icon/manifest, handler cài và hướng dẫn, offline home/lazy HUD, API không cache, worker waiting không ép reload và cleanup khi client đóng. Xem [PWA](../operations/pwa.md); chưa thay test cài OS thực tế.

@@ -1208,3 +1208,77 @@ input::placeholder {
   border-bottom: 1px solid #dceeff;
   overflow-wrap: anywhere;
 }
+.home-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  column-gap: 16px;
+}
+.home-actions .home-shortcuts .help-link {
+  font-size: 0.85rem;
+  min-height: 44px;
+  margin-top: 0;
+  gap: 6px;
+}
+.home-shortcuts [data-pwa-install] {
+  min-height: 44px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-underline-offset: 4px;
+}
+.home-shortcuts [hidden] {
+  display: none;
+}
+.pwa-dialog {
+  color: var(--ink);
+  background: #f6fbff;
+  border: var(--line);
+  border-radius: 20px;
+  width: min(520px, 92vw);
+  max-height: 88svh;
+  padding: 22px;
+}
+.pwa-dialog::backdrop {
+  background: #153b8077;
+}
+.pwa-dialog h2 {
+  font-size: 1.7rem;
+}
+.pwa-dialog p {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  margin-block: 10px;
+}
+.pwa-dialog ol {
+  padding-left: 22px;
+}
+.pwa-dialog li {
+  margin-block: 16px;
+}
+.pwa-dialog .pwa-hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.pwa-dialog .button {
+  min-height: 44px;
+  margin-top: 10px;
+}
+.pwa-update {
+  position: fixed;
+  left: 50%;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  max-width: min(92vw, 600px);
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: #fffbea;
+  color: var(--ink);
+  box-shadow: 0 2px 12px #153b8030;
+  font-size: 12px;
+  line-height: 1.5;
+  z-index: 20;
+}
+.pwa-update[hidden] {
+  display: none;
+}

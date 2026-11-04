@@ -22,6 +22,8 @@ sources:
     resource: repo://docs/game/shared-session-design.md
   - id: openwiki-source-63e8f904736888c1397b0a2b
     resource: repo://docs/game/ui-implementation.md
+  - id: openwiki-source-701123ef063b2b49fc5126ba
+    resource: repo://docs/pwa.md
   - id: openwiki-source-cc7175a0c3a0d5f1359efcc1
     resource: repo://docs/workflow.md
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
@@ -42,12 +44,14 @@ sources:
     resource: repo://tests/game-ui-browser.mjs
   - id: openwiki-source-692b548971d3dc99c2c806f0
     resource: repo://tests/hub-browser.mjs
+  - id: openwiki-source-a875da0e301868b8784bbae3
+    resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-04T04:42:03.835Z" }
+generated: { by: "codex", at: "2026-11-04T05:05:06.149Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T04:44:25.933Z
+    at: 2026-11-04T05:05:06.149Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -121,3 +125,7 @@ AGENTS dẫn tới [game contract](../../docs/game/README.md), [Plan 02 hiện h
 ## Kiểm chứng UI preview 24 trạng thái
 
 Runner browser chạy thêm tests/game-ui-browser.mjs trên dev và production:24 scenario ở667×375,844×390,932×430, touch44px/icon<=18px, không đè roster, observer/response, fixed bid và trade không input, offline/reload. Unit tests game-ui kiểm tra permissions, increments và moving không text. Đây là UI preview không gọi Firebase; không phải engine hoặc multiplayer ván thật. Xem [kiến trúc HUD](../architecture/gameplay-ui.md).
+
+## PWA production checks
+
+Test browser chạy thêm tests/pwa-browser.mjs trên build thật tại subpath /web-g-3d/. Kiểm tra icon/manifest, handler cài và hướng dẫn, offline home/lazy HUD, API không cache, worker waiting không ép reload và cleanup khi client đóng. Xem [PWA](pwa.md); chưa thay test cài OS thực tế.

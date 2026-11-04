@@ -41,3 +41,7 @@ Use the opt-in [timing panel](diagnostics.md) on the affected phone before attri
 ## HUD preview checks
 
 The browser runner also exercises `tests/game-ui-browser.mjs` against dev and production builds. It checks the 24 scenario layouts at landscape phone sizes, no observer actions, fixed-step bids, touch-only trade controls, active-turn/respondent markers and local offline/reload behavior. The route is a local UI preview with no production Firebase requests; it is not a real multiplayer game test. See [HUD implementation](game/ui-implementation.md).
+
+## PWA checks
+
+`npm run build` generates a versioned static-shell worker. The browser suite additionally runs `tests/pwa-browser.mjs` on a dedicated local server under the Pages subpath, testing offline reload, install handler/guide, API cache exclusion and waiting-worker updates. See [PWA](pwa.md). Native OS install is not covered by synthetic browser events.
