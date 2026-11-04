@@ -2,6 +2,10 @@
 
 Phố Tỷ Phú is a mobile-first multiplayer board-game **hub**. The ocean/boat experience is retired. A local 3D board preview is implemented; the economy and authoritative multiplayer gameplay are not yet implemented. Keep work scoped to the user's selected step; do not restore old ocean code or add speculative gameplay.
 
+## Infrastructure transition
+
+The user selected Vercel (frontend/PWA), Render (API) and Supabase (Auth/PostgreSQL). Follow [transition decision](docs/decisions/0006-infrastructure-transition.md). This is a target migration, not a completed cutover: current production still uses Pages/Firebase. Preserve existing data/services until new resources and account-migration strategy are verified. Do not claim provider access from a ChatGPT connection alone or put admin secrets in client code.
+
 ## Load context progressively
 
 - Start here, `package.json`, and relevant source files.

@@ -62,10 +62,14 @@ The [diagnostics panel](diagnostics.md) is enabled only by `?diagnostics=1`. Pur
 
 ## Gameplay HUD preview
 
-[HUD implementation](game/ui-implementation.md) is a lazy-loaded UI route at `?view=game`, separate from the online room service. `src/game-ui` owns presentation scenarios/rendering, `src/app/play.ts` owns local preview lifecycle and scripted interactions. It makes no Firebase calls. All 24 approved states can be reviewed in settings; board is a CSS placeholder, not the 3D gameplay engine. Preview permission guards supplement display logic but do not replace future backend authorization.
+[HUD implementation](game/ui-implementation.md) is a lazy-loaded UI route at `?view=game`, separate from the online room service. `src/game-ui` owns presentation scenarios/rendering, `src/app/play.ts` owns local preview lifecycle and scripted interactions. It makes no Firebase calls. All 24 approved states can be reviewed in settings; board is a local Three.js preview, not the authoritative gameplay engine. Preview permission guards supplement display logic but do not replace future backend authorization.
 
 Room membership rejection now waits for an authoritative server snapshot if the cached first room is missing or has a pre-join roster. Room subscriptions request metadata changes so a server-confirmed absence is still handled when document data matches the cache. Valid cached membership may render immediately. This does not change rules or eliminate latency; it prevents a stale cached directory result from evicting a successful join.
 
 ## Installable static shell
 
 The [PWA layer](pwa.md) registers a production-only, scope-local worker for static build assets and home/HUD offline navigation. It excludes account/Firebase requests, keeps updates waiting until current clients close, and does not force reload an active session. Manifest and icon resources use project-relative URLs. Install guides belong to src/app/pwa.ts and are available independently of Auth.
+
+## Target infrastructure transition
+
+The user selected Vercel frontend/PWA, Render API and Supabase Auth/PostgreSQL. [Decision0006](decisions/0006-infrastructure-transition.md) records adapter boundaries, transaction/permission requirements, data/PWA-origin migration and staged cutover. This is not deployed: Pages/Firebase remain current production until the replacement is provisioned and verified.

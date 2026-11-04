@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:2ecf18fd76ca3c06f0df2ed0ca4f9f91991ff8dd34c6fea8fc99dd81288ad1f2",
+  "claims": [
+    {
+      "id": "claim_cb9f461bae9f49ba941f3364da33567f",
+      "statement": "The selected migration target is Vercel frontend/PWA, Render API, Supabase Auth/PostgreSQL. It is not implemented or deployed; Pages/Firebase remain current production. Decision0006 records adapter, data-preservation, authorization, concurrency and cross-origin PWA cutover requirements. Provider access/project identity is still required.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md",
+          "version": "repo-file-v1:sha256:72791afe71ede7e8a7f3bad67636768490d05f73a905c598e0dec43679cf6670"
+        },
+        {
+          "resource": "repo://docs/architecture.md",
+          "version": "repo-file-v1:sha256:1acaf22a47e72394599d81d12c723ed2e12cf09527c11f643a29511ef73b095c"
+        },
+        {
+          "resource": "repo://docs/decisions/0006-infrastructure-transition.md",
+          "version": "repo-file-v1:sha256:914aaa389b3a06bc0900cc23a2127dd727c66c1952528c62cdfd0c909df829a7"
+        },
+        {
+          "resource": "repo://src/hub/store.ts",
+          "version": "repo-file-v1:sha256:3c4e2542d4686277dd6f95b82ddcdb4cb43f70e1fc4718dac79e87b69426255e"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-04T07:39:13.991Z"
+  }
+}

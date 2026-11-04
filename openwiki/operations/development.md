@@ -10,6 +10,10 @@ sources:
     resource: repo://.github/workflows/pages.yml
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
+  - id: openwiki-source-115b2dad781e2a2c5b5a980d
+    resource: repo://docs/architecture.md
+  - id: openwiki-source-96aca2295370362abfc54588
+    resource: repo://docs/decisions/0006-infrastructure-transition.md
   - id: openwiki-source-e357e023868ea4db450d34ad
     resource: repo://docs/game/plans/02-mobile-ui.md
   - id: openwiki-source-03d3729a6d1fb321fab7b6df
@@ -50,6 +54,8 @@ sources:
     resource: repo://src/game-ui/render.ts
   - id: openwiki-source-a09d1fc6a11ce8c081c67432
     resource: repo://src/game-ui/style.css
+  - id: openwiki-source-22c382245dd906dd1c064e27
+    resource: repo://src/hub/store.ts
   - id: openwiki-source-77110d1e1f1125ab5211f920
     resource: repo://src/platform/pwa.ts
   - id: openwiki-source-554339f52225d7d8edff3ed0
@@ -72,10 +78,10 @@ sources:
     resource: repo://tests/rules.test.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-04T07:11:51.775Z" }
+generated: { by: "codex", at: "2026-11-04T07:39:13.991Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T07:16:09.992Z
+    at: 2026-11-04T07:39:13.991Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -165,3 +171,7 @@ Waiting PWA updates never auto-reload; Cập nhật ngay requires confirmation a
 ## Local 3D board preview
 
 The local ?view=game preview uses one Three.js renderer across HUD redraws, a shared40-space grid with2.2-deep tiles, outward-readable labels and buildings on inner property stripes. Focus follows the active fixture token; Overview supports orbit/pan/zoom. WebGL fallback preserves a flat board. No authoritative economy or multiplayer gameplay is added. Tests/board-layout.test.mjs and tests/board-browser.mjs cover geometry and real WebGL camera/lifecycle/fallback behavior on dev/production. Mobile physical-device verification remains pending.
+
+## Selected target, current production unchanged
+
+The selected migration target is Vercel frontend/PWA, Render API, Supabase Auth/PostgreSQL. It is not implemented or deployed; Pages/Firebase remain current production. Decision0006 records adapter, data-preservation, authorization, concurrency and cross-origin PWA cutover requirements. Provider access/project identity is still required.

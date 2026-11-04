@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:cd7bf6c9fce4df45c53df17c4498cbaeb206c1bdc214b76bc3d11960441bb3ce",
+  "pageVersion": "sha256:eaa3bfd257e706ff01494537361fc2a8fcc1a1bf7e8a79647d3556f538db6e74",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -142,7 +142,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:e3327ab9bbe442bf58d87890aae31ded1fec6cbefd13ad5032bfa922bc7208b4"
+          "version": "repo-file-v1:sha256:72791afe71ede7e8a7f3bad67636768490d05f73a905c598e0dec43679cf6670"
         },
         {
           "resource": "repo://docs/game/README.md",
@@ -164,7 +164,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:e3327ab9bbe442bf58d87890aae31ded1fec6cbefd13ad5032bfa922bc7208b4"
+          "version": "repo-file-v1:sha256:72791afe71ede7e8a7f3bad67636768490d05f73a905c598e0dec43679cf6670"
         },
         {
           "resource": "repo://docs/game/shared-session-design.md",
@@ -293,10 +293,32 @@
           "version": "repo-file-v1:sha256:f6d0c2e39a7a80adbd96b947ce776b3ca0b09a5be66349a3231e0bc16057c445"
         }
       ]
+    },
+    {
+      "id": "claim_69fd370ae67f4958b05715194efc950d",
+      "statement": "The selected migration target is Vercel frontend/PWA, Render API, Supabase Auth/PostgreSQL. It is not implemented or deployed; Pages/Firebase remain current production. Decision0006 records adapter, data-preservation, authorization, concurrency and cross-origin PWA cutover requirements. Provider access/project identity is still required.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md",
+          "version": "repo-file-v1:sha256:72791afe71ede7e8a7f3bad67636768490d05f73a905c598e0dec43679cf6670"
+        },
+        {
+          "resource": "repo://docs/architecture.md",
+          "version": "repo-file-v1:sha256:1acaf22a47e72394599d81d12c723ed2e12cf09527c11f643a29511ef73b095c"
+        },
+        {
+          "resource": "repo://docs/decisions/0006-infrastructure-transition.md",
+          "version": "repo-file-v1:sha256:914aaa389b3a06bc0900cc23a2127dd727c66c1952528c62cdfd0c909df829a7"
+        },
+        {
+          "resource": "repo://src/hub/store.ts",
+          "version": "repo-file-v1:sha256:3c4e2542d4686277dd6f95b82ddcdb4cb43f70e1fc4718dac79e87b69426255e"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T07:16:09.992Z"
+    "at": "2026-11-04T07:39:13.991Z"
   }
 }
