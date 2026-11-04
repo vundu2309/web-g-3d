@@ -49,7 +49,7 @@ const server = createServer(async (request, response) => {
           ? worker
           : worker.replace(
               /const VERSION = "[^"]+";/,
-              'const VERSION = "pwa-update-test";',
+              `const VERSION = "pwa-update-test-${revision}";`,
             ),
       );
       return;
@@ -172,10 +172,52 @@ try {
   await page.waitForFunction(async () => {
     const names = await caches.keys();
     return (
-      names.some((n) => n.endsWith(":pwa-update-test")) &&
+      names.some((n) => n.endsWith(":pwa-update-test-2")) &&
       names.filter((n) => n.startsWith("photyphu-shell:")).length === 1
     );
   });
+  // Explicit apply can be cancelled; other scoped windows prevent activation.
+  revision = 3;
+  await page.evaluate(async () =>
+    (await navigator.serviceWorker.getRegistration()).update(),
+  );
+  await page.locator(".pwa-update").waitFor({ state: "visible" });
+  const other = await context.newPage();
+  await other.goto(base);
+  await page.evaluate(() => {
+    window.pwaSentinel = "manual-update";
+  });
+  page.once("dialog", (dialog) => dialog.dismiss());
+  await page
+    .getByRole("button", { name: "Cập nhật ngay", exact: true })
+    .click();
+  assert.equal(await page.evaluate(() => window.pwaSentinel), "manual-update");
+  page.once("dialog", (dialog) => dialog.accept());
+  await page
+    .getByRole("button", { name: "Cập nhật ngay", exact: true })
+    .click();
+  await page
+    .getByText("Hãy đóng các tab hoặc cửa sổ game khác rồi bấm cập nhật lại.", {
+      exact: true,
+    })
+    .waitFor();
+  assert.equal(
+    await other.evaluate(() => !!navigator.serviceWorker.controller),
+    true,
+  );
+  await other.close();
+  page.once("dialog", (dialog) => dialog.accept());
+  await Promise.all([
+    page.waitForEvent("load"),
+    page.getByRole("button", { name: "Cập nhật ngay", exact: true }).click(),
+  ]);
+  await page.waitForFunction(() => !window.pwaSentinel);
+  await page.locator(".pwa-update").waitFor({ state: "hidden" });
+  await page.waitForFunction(async () =>
+    (await caches.keys())
+      .filter((n) => n.startsWith("photyphu-shell:"))
+      .every((n) => n.endsWith(":pwa-update-test-3")),
+  );
   await page.evaluate(() => dispatchEvent(new Event("appinstalled")));
   assert.equal(await page.locator("[data-pwa-install]").isVisible(), false);
   assert.deepEqual(errors, []);

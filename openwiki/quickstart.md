@@ -34,12 +34,16 @@ sources:
     resource: repo://firestore.indexes.json
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
     resource: repo://package.json
+  - id: openwiki-source-e40960a4e3d6b8d6193113c1
+    resource: repo://scripts/service-worker.js
   - id: openwiki-source-3515d68bed1b916f693296ec
     resource: repo://scripts/test-browser.mjs
   - id: openwiki-source-2d276ab0949853064e1a4208
     resource: repo://src/app/diagnostics.ts
   - id: openwiki-source-de5ab1ed905c7bd08fbdce6f
     resource: repo://src/app/play.ts
+  - id: openwiki-source-fdc97d585e693e9f422ad7ae
+    resource: repo://src/app/pwa.ts
   - id: openwiki-source-fc82ffca2def259f088b8cf9
     resource: repo://src/app/start.ts
   - id: openwiki-source-dba8152f894fe338575ac7a6
@@ -58,16 +62,18 @@ sources:
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
     resource: repo://src/platform/firestore-client.ts
+  - id: openwiki-source-77110d1e1f1125ab5211f920
+    resource: repo://src/platform/pwa.ts
   - id: openwiki-source-554339f52225d7d8edff3ed0
     resource: repo://src/style.css
   - id: openwiki-source-a875da0e301868b8784bbae3
     resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-04T05:25:07.199Z" }
+generated: { by: "codex", at: "2026-11-04T05:40:12.093Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T05:25:07.199Z
+    at: 2026-11-04T05:40:12.093Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
@@ -135,3 +141,7 @@ Home có Cài game/Cài lên điện thoại, native prompt hoặc hướng dẫ
 ## Shared mobile safe area
 
 HUD foreground uses one `.game-safe` inset container with shared `--safe-*` tokens mapped to CSS env values; background remains full bleed. Cards size against container units, while landscape action/task regions scroll when height is constrained. Dialogs and the update notice also respect device insets. Do not double-apply insets on HUD children. Browser tests simulate asymmetric cutouts and home indicators over all24 states on dev/production; this is not physical-device verification.
+
+## Confirmed update action
+
+Waiting PWA updates never auto-reload; Cập nhật ngay requires confirmation and the requesting client to be the only window in scope before skipWaiting. Only that requester reloads on controllerchange; another window blocks apply with a visible message. Closing all clients still permits natural activation. Tests cover cancellation, two-window rejection, confirmed reload and notice disappearance. Old installed shells without this button must close all game tabs/windows once to load the new UI. No app removal or data clearing is needed.

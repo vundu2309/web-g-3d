@@ -53,3 +53,21 @@ self.addEventListener("fetch", (event) => {
     })(),
   );
 });
+
+// Apply only after an explicit user confirmation, with no other scoped windows.
+self.addEventListener("message", (event) => {
+  if (event.data?.type !== "APPLY_UPDATE" || !event.ports[0]) return;
+  event.waitUntil(
+    (async () => {
+      const clients = (
+        await self.clients.matchAll({
+          type: "window",
+          includeUncontrolled: true,
+        })
+      ).filter((client) => client.url.startsWith(ROOT));
+      const ok = clients.length === 1 && clients[0].id === event.source?.id;
+      event.ports[0].postMessage({ ok });
+      if (ok) await self.skipWaiting();
+    })(),
+  );
+});

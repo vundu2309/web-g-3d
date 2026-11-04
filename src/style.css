@@ -1306,3 +1306,11 @@ dialog:modal {
     calc(100vw - var(--safe-left) - var(--safe-right) - 24px)
   );
 }
+
+.pwa-update .button {
+  display: block;
+  min-height: 44px;
+  padding: 8px 14px;
+  font-size: 13px;
+  margin-top: 8px;
+}

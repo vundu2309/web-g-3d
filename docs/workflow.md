@@ -49,3 +49,5 @@ The browser runner also exercises `tests/game-ui-browser.mjs` against dev and pr
 ## Safe-area regression
 
 `tests/safe-area-browser.mjs` runs on dev and production in the browser runner: all24 HUD scenarios with asymmetric left/right and bottom inset profiles, touch-target reachability and portrait dialog bounds. It overrides shared CSS inset tokens to simulate cutouts; real Android/iOS browser and installed-app verification remains necessary.
+
+PWA update regression also covers cancelling confirmation, rejecting apply with another scoped window, and a single confirmed reload after that window closes. Waiting updates never reload automatically.

@@ -4,6 +4,8 @@ title: Cài PWA, offline shell và cập nhật
 description: Cách cài game trên điện thoại, scope/cache PWA và kiểm chứng cập nhật không reload phiên.
 tags: [pwa, install, offline, caching, mobile]
 sources:
+  - id: openwiki-source-701123ef063b2b49fc5126ba
+    resource: repo://docs/pwa.md
   - id: openwiki-source-f8d10828394c4129061d5b0e
     resource: repo://index.html
   - id: openwiki-source-e21de4e070e82eb7a1025ce0
@@ -28,10 +30,10 @@ sources:
     resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-04T05:25:07.199Z" }
+generated: { by: "codex", at: "2026-11-04T05:40:12.093Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T05:25:07.199Z
+    at: 2026-11-04T05:40:12.093Z
 ---
 
 # PWA của Phố Tỷ Phú
@@ -52,7 +54,7 @@ Chỉ GET của allowlist tĩnh chính xác và navigation root/index trong scop
 
 ## Cập nhật không phá phiên
 
-Không skipWaiting hoặc ép reload. Worker mới chờ mọi cửa sổ/tab đang dùng worker cũ đóng, UI thông báo cách áp dụng. Khi activation, dọn cache cũ cùng prefix/scope và claim clients. Không xóa localStorage/IndexedDB hay cache repo khác. Kiểm tra update khi foreground được throttle60giây; browser cũng quản lý update lifecycle. Precache lỗi xóa cache chưa đủ và không activate phiên bản hỏng.
+Không tự skipWaiting hoặc ép reload. Nút Cập nhật ngay yêu cầu xác nhận tải lại và worker kiểm tra chỉ còn cửa sổ yêu cầu trong scope; nếu có tab khác thì từ chối. Chỉ requester reload khi controllerchange. Đóng toàn bộ client vẫn kích hoạt tự nhiên. Khi activation, dọn cache cũ cùng prefix/scope và claim clients. Không xóa localStorage/IndexedDB hay cache repo khác. Kiểm tra update khi foreground được throttle60giây; browser cũng quản lý update lifecycle. Precache lỗi xóa cache chưa đủ và không activate phiên bản hỏng.
 
 ## Kiểm chứng
 
@@ -63,3 +65,7 @@ Xem [hướng dẫn authored](../../docs/pwa.md), [workflow](development.md), [H
 ## Shared mobile safe area
 
 HUD foreground uses one `.game-safe` inset container with shared `--safe-*` tokens mapped to CSS env values; background remains full bleed. Cards size against container units, while landscape action/task regions scroll when height is constrained. Dialogs and the update notice also respect device insets. Do not double-apply insets on HUD children. Browser tests simulate asymmetric cutouts and home indicators over all24 states on dev/production; this is not physical-device verification.
+
+## Confirmed update action
+
+Waiting PWA updates never auto-reload; Cập nhật ngay requires confirmation and the requesting client to be the only window in scope before skipWaiting. Only that requester reloads on controllerchange; another window blocks apply with a visible message. Closing all clients still permits natural activation. Tests cover cancellation, two-window rejection, confirmed reload and notice disappearance. Old installed shells without this button must close all game tabs/windows once to load the new UI. No app removal or data clearing is needed.

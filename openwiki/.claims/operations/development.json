@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:2daf8fbaf950d60aa7a8723ca3e7b4ad5a7fcf041c483071dc846c770ea3b510",
+  "pageVersion": "sha256:50b0db5d3d695297faadc66619da4fce15e550318fcb88338cb9377c0003a87f",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -16,7 +16,7 @@
         },
         {
           "resource": "repo://docs/workflow.md",
-          "version": "repo-file-v1:sha256:443e639455bc0a3df8aad9e9e09b5c1eb8cadfa638aa1d2cc04bb76707cbd90f"
+          "version": "repo-file-v1:sha256:eb837dd1dc06c93476a95c030b594235a5ea6a1108fdde4198c100e5158c4210"
         }
       ]
     },
@@ -112,7 +112,7 @@
       "evidence": [
         {
           "resource": "repo://src/style.css",
-          "version": "repo-file-v1:sha256:cc4203c79b2a007819b7d8710c01665d5e4bbf987c3c832cdfc00d1a9858552b"
+          "version": "repo-file-v1:sha256:22535ebde876805dd07a10282d58d838c3721f5206402052a4da5c342af1ea2f"
         },
         {
           "resource": "repo://tests/auth-browser.mjs",
@@ -232,7 +232,7 @@
       "evidence": [
         {
           "resource": "repo://docs/pwa.md",
-          "version": "repo-file-v1:sha256:eb75fa5bb55c97fa11a68452b1121ab1da9f009ccf13e2cdcbc76d7a59bdd205"
+          "version": "repo-file-v1:sha256:94f5f14aeba412fa133ac77cb77100f64fe15cd67af505246e12eb123ce3f2c5"
         },
         {
           "resource": "repo://package.json",
@@ -240,7 +240,7 @@
         },
         {
           "resource": "repo://tests/pwa-browser.mjs",
-          "version": "repo-file-v1:sha256:4a6783d9576043792024854f9d5c08694d5494021f01ca7cc5dac2fdd8b2644b"
+          "version": "repo-file-v1:sha256:21a43103c558e9a3e50c6a1762ee97976d6057fadb4092e3d38b11f9dab720f0"
         }
       ]
     },
@@ -262,17 +262,43 @@
         },
         {
           "resource": "repo://src/style.css",
-          "version": "repo-file-v1:sha256:cc4203c79b2a007819b7d8710c01665d5e4bbf987c3c832cdfc00d1a9858552b"
+          "version": "repo-file-v1:sha256:22535ebde876805dd07a10282d58d838c3721f5206402052a4da5c342af1ea2f"
         },
         {
           "resource": "repo://tests/safe-area-browser.mjs",
           "version": "repo-file-v1:sha256:3c4a61b02d8e6360d2efadd3fb5b82edd30ce01eca978f38d7c8e33ba8f4cc3a"
         }
       ]
+    },
+    {
+      "id": "claim_9dfdd1cc04ce44f5aa4e8f1a2d333890",
+      "statement": "Waiting PWA updates never auto-reload; Cập nhật ngay requires confirmation and the requesting client to be the only window in scope before skipWaiting. Only that requester reloads on controllerchange; another window blocks apply with a visible message. Closing all clients still permits natural activation.",
+      "evidence": [
+        {
+          "resource": "repo://docs/pwa.md",
+          "version": "repo-file-v1:sha256:94f5f14aeba412fa133ac77cb77100f64fe15cd67af505246e12eb123ce3f2c5"
+        },
+        {
+          "resource": "repo://scripts/service-worker.js",
+          "version": "repo-file-v1:sha256:d47b180a9d42cb7ef5d6f7ed467a853dfc9b50ac40b13574b71be2f147c37c08"
+        },
+        {
+          "resource": "repo://src/app/pwa.ts",
+          "version": "repo-file-v1:sha256:6cd71a674089cb42a1def4bd1ef26d804d5a24a2f98c91257708b8f18a9807f8"
+        },
+        {
+          "resource": "repo://src/platform/pwa.ts",
+          "version": "repo-file-v1:sha256:881b0887e386fd110f2512de2245d2ebfc55e2b95a2bfc223ce8c2a357f3490a"
+        },
+        {
+          "resource": "repo://tests/pwa-browser.mjs",
+          "version": "repo-file-v1:sha256:21a43103c558e9a3e50c6a1762ee97976d6057fadb4092e3d38b11f9dab720f0"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T05:25:07.199Z"
+    "at": "2026-11-04T05:40:12.093Z"
   }
 }

@@ -26,16 +26,18 @@ Giao diện home/HUD có thể mở lại offline sau khi cache shell hoàn tấ
 
 SW precache đúng allowlist file build tĩnh, dùng cache riêng theo scope URL và version. GET navigation chỉ fallback index cho root/index trong scope; query như `?view=game&state=5` vẫn mở được shell offline. Các URL khác ngoài allowlist, POST, query asset không nhận diện và cross-origin đều đi thẳng network. Không cache Firebase API, tài khoản/token, dữ liệu phòng hoặc origin/repository khác.
 
-App shell dùng version cache nhất quán thay vì ghép HTML mới với chunk cũ. Worker mới cài xong **chờ** khi vẫn còn cửa sổ/tab dùng worker cũ; không gọi skipWaiting, không tự reload giữa phiên. Thông báo hướng dẫn đóng các cửa sổ game rồi mở lại. Khi worker mới được activate, xóa cache cũ chỉ trong prefix/scope của app, không xóa dữ liệu localStorage/IndexedDB hay cache ứng dụng khác. App kiểm tra update theo lifecycle trình duyệt và khi trở lại foreground, throttle 60 giây, không polling liên tục.
+App shell dùng version cache nhất quán thay vì ghép HTML mới với chunk cũ. Worker mới cài xong **chờ** khi vẫn còn cửa sổ/tab dùng worker cũ; không tự gọi skipWaiting hoặc reload giữa phiên. Thông báo có nút Cập nhật ngay: người dùng xác nhận tải lại, worker kiểm tra chỉ còn đúng cửa sổ yêu cầu trong scope rồi mới skipWaiting. Nếu có tab/cửa sổ game khác, từ chối và yêu cầu đóng chúng. Chỉ cửa sổ đã yêu cầu mới reload khi controllerchange; không tự tải lại các client khác. Thông báo ẩn khi không còn worker chờ. Có thể vẫn dùng cách đóng toàn bộ cửa sổ rồi mở lại. Khi worker mới được activate, xóa cache cũ chỉ trong prefix/scope của app, không xóa dữ liệu localStorage/IndexedDB hay cache ứng dụng khác. App kiểm tra update theo lifecycle trình duyệt và khi trở lại foreground, throttle 60 giây, không polling liên tục.
 
 Nếu precache lỗi, không activate bộ cache chưa đầy đủ. Đăng ký SW thất bại không làm hỏng game hoặc lời hướng dẫn cài. Không tuyên bố offline sẵn sàng chỉ vì có icon trên màn hình chính.
 
 ## Kiểm chứng
 
-`tests/pwa-browser.mjs` phục vụ build thật dưới `/web-g-3d/` bằng server do test sở hữu. Test kiểm tra manifest scope/start URL, kích thước PNG, install dialog và synthetic beforeinstallprompt gesture, offline home + lazy HUD chưa từng mở + reload, API không vào cache, update waiting không ép reload và cleanup cache sau đóng client.
+`tests/pwa-browser.mjs` phục vụ build thật dưới `/web-g-3d/` bằng server do test sở hữu. Test kiểm tra manifest scope/start URL, kích thước PNG, install dialog và synthetic beforeinstallprompt gesture, offline home + lazy HUD chưa từng mở + reload, API không vào cache, update waiting không ép reload, cleanup cache sau đóng client, hủy xác nhận cập nhật, chặn khi có tab khác và áp dụng sau xác nhận chỉ còn một cửa sổ.
 
 Test chạy sau browser dev/production trong `npm run test:browser`, và thuộc `npm run check`. Synthetic install event chỉ kiểm tra handler, không chứng minh thao tác cài ở cấp hệ điều hành. Cần người dùng thử cài thực tế trên Android/iOS; browser emulation không thay thế kiểm chứng đó.
 
 ## Safe area trên điện thoại
 
 Các token `--safe-top/right/bottom/left` lấy từ CSS env. HUD dùng một vùng tọa độ an toàn chung; dialog cài đặt/tài khoản và thông báo cập nhật cũng tránh cutout/home indicator. Nền vẫn phủ màn hình. Khi thiếu chiều cao, tác vụ và nút cho phép cuộn thay vì thu nhỏ vùng bấm. Kiểm tra browser mô phỏng inset không thay kiểm chứng Safari/Chrome và standalone trên máy thật.
+
+Bản PWA cũ chỉ có thông báo chờ cần đóng toàn bộ cửa sổ game/tab cùng origin một lần để nhận UI có nút cập nhật. Không cần xóa dữ liệu hay gỡ app.

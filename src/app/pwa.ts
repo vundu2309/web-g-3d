@@ -18,8 +18,35 @@ export function startPwa(root: HTMLElement): () => void {
   update.className = "pwa-update";
   update.setAttribute("role", "status");
   update.hidden = true;
-  update.textContent =
-    "Có phiên bản mới. Đóng các cửa sổ game rồi mở lại để cập nhật; phiên đang mở không bị tải lại.";
+  update.innerHTML = `<span data-update-text>Có phiên bản mới đã tải xong.</span><button class="button primary" type="button" data-update-apply>Cập nhật ngay</button>`;
+  const updateButton = update.querySelector<HTMLButtonElement>(
+    "[data-update-apply]",
+  )!;
+  const updateText = update.querySelector<HTMLElement>("[data-update-text]")!;
+  let applyUpdate: (() => Promise<void>) | undefined;
+  updateButton.addEventListener(
+    "click",
+    () => {
+      if (
+        !applyUpdate ||
+        !window.confirm(
+          "Cập nhật sẽ tải lại game và đóng màn hình hiện tại. Cập nhật ngay?",
+        )
+      )
+        return;
+      updateButton.disabled = true;
+      updateText.textContent = "Đang cập nhật…";
+      void applyUpdate().catch((error: unknown) => {
+        if (disposed) return;
+        updateText.textContent =
+          error instanceof Error
+            ? error.message
+            : "Chưa cập nhật được. Hãy thử lại.";
+        updateButton.disabled = false;
+      });
+    },
+    { signal: abort.signal },
+  );
   document.body.append(dialog, update);
   function standalone() {
     return (
@@ -86,7 +113,8 @@ export function startPwa(root: HTMLElement): () => void {
     },
     { signal: abort.signal },
   );
-  const stopShell = registerShell((waiting) => {
+  const stopShell = registerShell((waiting, apply) => {
+    applyUpdate = apply;
     if (!disposed) update.hidden = !waiting;
   });
   refreshButtons();

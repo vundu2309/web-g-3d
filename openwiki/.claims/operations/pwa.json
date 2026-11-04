@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:bf237ba308a6389caade58b14362eec639d48f4a8b4bcb0d2377b21e88230d74",
+  "pageVersion": "sha256:fb1e1119bef05ecb31606ba8246ee63627eb5fe3a076fa17f4a612c8779400e0",
   "claims": [
     {
       "id": "claim_36eb6868133740c2b9b12b0cfa109cc8",
@@ -16,11 +16,11 @@
         },
         {
           "resource": "repo://src/app/pwa.ts",
-          "version": "repo-file-v1:sha256:c5b4c6a217435bc19bafc42d618b25d63198a20be01fbc1dbe38b54d101a939a"
+          "version": "repo-file-v1:sha256:6cd71a674089cb42a1def4bd1ef26d804d5a24a2f98c91257708b8f18a9807f8"
         },
         {
           "resource": "repo://tests/pwa-browser.mjs",
-          "version": "repo-file-v1:sha256:4a6783d9576043792024854f9d5c08694d5494021f01ca7cc5dac2fdd8b2644b"
+          "version": "repo-file-v1:sha256:21a43103c558e9a3e50c6a1762ee97976d6057fadb4092e3d38b11f9dab720f0"
         }
       ]
     },
@@ -34,33 +34,41 @@
         },
         {
           "resource": "repo://scripts/service-worker.js",
-          "version": "repo-file-v1:sha256:21025e340cc23881a57fe0778e7af56e7e4f7fd797d736e5b9ddb82d60a2d5da"
+          "version": "repo-file-v1:sha256:d47b180a9d42cb7ef5d6f7ed467a853dfc9b50ac40b13574b71be2f147c37c08"
         },
         {
           "resource": "repo://src/platform/pwa.ts",
-          "version": "repo-file-v1:sha256:e5ad1f8a3e6c57d02e4c157f7dd1302626d727ec2f41bf6f2ed44e352bbe50c7"
+          "version": "repo-file-v1:sha256:881b0887e386fd110f2512de2245d2ebfc55e2b95a2bfc223ce8c2a357f3490a"
         },
         {
           "resource": "repo://tests/pwa-browser.mjs",
-          "version": "repo-file-v1:sha256:4a6783d9576043792024854f9d5c08694d5494021f01ca7cc5dac2fdd8b2644b"
+          "version": "repo-file-v1:sha256:21a43103c558e9a3e50c6a1762ee97976d6057fadb4092e3d38b11f9dab720f0"
         }
       ]
     },
     {
       "id": "claim_1c19baae1f4644a398a621487cd59520",
-      "statement": "Update worker chờ đóng các client cũ, không skipWaiting/reload phiên; activate dọn cache chỉ cùng prefix/scope, foreground check throttle60giây.",
+      "statement": "Waiting PWA updates never auto-reload; Cập nhật ngay requires confirmation and the requesting client to be the only window in scope before skipWaiting. Only that requester reloads on controllerchange; another window blocks apply with a visible message. Closing all clients still permits natural activation.",
       "evidence": [
         {
+          "resource": "repo://docs/pwa.md",
+          "version": "repo-file-v1:sha256:94f5f14aeba412fa133ac77cb77100f64fe15cd67af505246e12eb123ce3f2c5"
+        },
+        {
           "resource": "repo://scripts/service-worker.js",
-          "version": "repo-file-v1:sha256:21025e340cc23881a57fe0778e7af56e7e4f7fd797d736e5b9ddb82d60a2d5da"
+          "version": "repo-file-v1:sha256:d47b180a9d42cb7ef5d6f7ed467a853dfc9b50ac40b13574b71be2f147c37c08"
         },
         {
           "resource": "repo://src/app/pwa.ts",
-          "version": "repo-file-v1:sha256:c5b4c6a217435bc19bafc42d618b25d63198a20be01fbc1dbe38b54d101a939a"
+          "version": "repo-file-v1:sha256:6cd71a674089cb42a1def4bd1ef26d804d5a24a2f98c91257708b8f18a9807f8"
         },
         {
           "resource": "repo://src/platform/pwa.ts",
-          "version": "repo-file-v1:sha256:e5ad1f8a3e6c57d02e4c157f7dd1302626d727ec2f41bf6f2ed44e352bbe50c7"
+          "version": "repo-file-v1:sha256:881b0887e386fd110f2512de2245d2ebfc55e2b95a2bfc223ce8c2a357f3490a"
+        },
+        {
+          "resource": "repo://tests/pwa-browser.mjs",
+          "version": "repo-file-v1:sha256:21a43103c558e9a3e50c6a1762ee97976d6057fadb4092e3d38b11f9dab720f0"
         }
       ]
     },
@@ -82,7 +90,7 @@
         },
         {
           "resource": "repo://src/style.css",
-          "version": "repo-file-v1:sha256:cc4203c79b2a007819b7d8710c01665d5e4bbf987c3c832cdfc00d1a9858552b"
+          "version": "repo-file-v1:sha256:22535ebde876805dd07a10282d58d838c3721f5206402052a4da5c342af1ea2f"
         },
         {
           "resource": "repo://tests/safe-area-browser.mjs",
@@ -93,6 +101,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T05:25:07.199Z"
+    "at": "2026-11-04T05:40:12.093Z"
   }
 }
