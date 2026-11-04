@@ -1,8 +1,17 @@
 ---
 type: architecture
 title: HUD ván chơi và adapter preview
-description: Route UI 24 trạng thái, quyền hiển thị theo lượt và ranh giới với backend Monopoly chưa triển khai.
-tags: [gameplay, ui, mobile, preview, state]
+description: Route UI 24 trạng thái, quyền hiển thị theo lượt và ranh giới với
+  backend Monopoly chưa triển khai.
+tags:
+  - gameplay
+  - ui
+  - mobile
+  - preview
+  - state
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-04T08:51:23.933Z
 sources:
   - id: openwiki-source-63e8f904736888c1397b0a2b
     resource: repo://docs/game/ui-implementation.md
@@ -51,9 +60,6 @@ sources:
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
 generated: { by: "codex", at: "2026-11-04T07:11:51.775Z" }
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-04T07:19:37.851Z
 ---
 
 # HUD ván chơi và adapter preview

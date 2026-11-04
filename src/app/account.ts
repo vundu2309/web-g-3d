@@ -5,7 +5,7 @@ import {
   registerPlayer,
   resetPassword,
 } from "../platform/account";
-import type { User } from "firebase/auth";
+import type { PlayerAccount as User } from "../platform/account";
 async function openAccount(signal?: AbortSignal): Promise<User | null> {
   const user = await currentPlayer();
   if (user) return user;

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:331063f84e2b0aa2625778eb6233482365d9eb352d5faa8812ea661f10f88d13",
+  "pageVersion": "sha256:c4b72edb57decee67c16a7d06b195bbed8d474be9e8079eaaaaa828c210db0ac",
   "claims": [
     {
       "id": "claim_7772453354ab4af78711c059117a2935",
@@ -66,7 +66,7 @@
         },
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:c9e53aa64c0661ec6ebc3a827d9feb72f42c01661af01a6ba102d6c8f44ab348"
+          "version": "repo-file-v1:sha256:685ed9d1a4c48017588f632831d443dd34d36b9cc8b013337cf8ebc8922838bd"
         },
         {
           "resource": "repo://tests/pwa-browser.mjs",
@@ -159,6 +159,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T07:19:37.851Z"
+    "at": "2026-11-04T08:51:23.933Z"
   }
 }

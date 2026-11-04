@@ -1,3 +1,4 @@
+import { useSupabase } from "../platform/online-config";
 import { diagnosticsView } from "./diagnostics";
 import type { Trace } from "../hub/diagnostics";
 import { canStart, HubError, playerName, roomCode } from "../hub/model";
@@ -227,6 +228,10 @@ export function start(root: HTMLElement): () => void {
                 ? trace.measure("sdk", load)
                 : load());
               return module.createDemoStore();
+            }
+            if (useSupabase) {
+              const module = await import("../platform/api");
+              return module.createApiStore();
             }
             const load = () => import("../platform/firebase");
             const module = await (trace ? trace.measure("sdk", load) : load());

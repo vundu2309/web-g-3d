@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:eaa3bfd257e706ff01494537361fc2a8fcc1a1bf7e8a79647d3556f538db6e74",
+  "pageVersion": "sha256:083f485e2966c4172100aad676fa53ed4d916e7889508fecf014cf0ed6c41645",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -8,7 +8,7 @@
       "evidence": [
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:c8dfcf47c72760127dc6db043f748d79f082fbf364a18dd7b829d24bc011a401"
+          "version": "repo-file-v1:sha256:5cc82f5dc90cdf1bda8cebbdb142e0a8e9a5fca83b20dd21730e286502e5c19c"
         },
         {
           "resource": "repo://src/main.ts",
@@ -22,7 +22,7 @@
       "evidence": [
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:c9e53aa64c0661ec6ebc3a827d9feb72f42c01661af01a6ba102d6c8f44ab348"
+          "version": "repo-file-v1:sha256:685ed9d1a4c48017588f632831d443dd34d36b9cc8b013337cf8ebc8922838bd"
         }
       ]
     },
@@ -46,11 +46,11 @@
       "evidence": [
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:c8dfcf47c72760127dc6db043f748d79f082fbf364a18dd7b829d24bc011a401"
+          "version": "repo-file-v1:sha256:5cc82f5dc90cdf1bda8cebbdb142e0a8e9a5fca83b20dd21730e286502e5c19c"
         },
         {
           "resource": "repo://src/platform/account.ts",
-          "version": "repo-file-v1:sha256:4c40ff3e6183ff30dbcb47de56ffee17fb38712aa7299009fdf0819f20c157d1"
+          "version": "repo-file-v1:sha256:ae95a8cc06fad844f95a14feafea6fe18ebe290485e7b410647b775c84ad2671"
         }
       ]
     },
@@ -64,7 +64,7 @@
         },
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:4923a2ea8278eb12f2f00dda6a7dad3d4bc30c0be13acfcafc36644a9a9da0fd"
+          "version": "repo-file-v1:sha256:d32270d2c3599a3d843e114dfe5b033a338a78aafaf49a8524ee5346e92d903d"
         },
         {
           "resource": "repo://src/platform/firestore-client.ts",
@@ -142,7 +142,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:72791afe71ede7e8a7f3bad67636768490d05f73a905c598e0dec43679cf6670"
+          "version": "repo-file-v1:sha256:4fd6dc3d104913187e88e678ee0a4b6535d6d3b169d57455be5c29eb701fdbf7"
         },
         {
           "resource": "repo://docs/game/README.md",
@@ -164,7 +164,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:72791afe71ede7e8a7f3bad67636768490d05f73a905c598e0dec43679cf6670"
+          "version": "repo-file-v1:sha256:4fd6dc3d104913187e88e678ee0a4b6535d6d3b169d57455be5c29eb701fdbf7"
         },
         {
           "resource": "repo://docs/game/shared-session-design.md",
@@ -186,7 +186,7 @@
         },
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:c8dfcf47c72760127dc6db043f748d79f082fbf364a18dd7b829d24bc011a401"
+          "version": "repo-file-v1:sha256:5cc82f5dc90cdf1bda8cebbdb142e0a8e9a5fca83b20dd21730e286502e5c19c"
         },
         {
           "resource": "repo://src/main.ts",
@@ -204,7 +204,7 @@
         },
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:c9e53aa64c0661ec6ebc3a827d9feb72f42c01661af01a6ba102d6c8f44ab348"
+          "version": "repo-file-v1:sha256:685ed9d1a4c48017588f632831d443dd34d36b9cc8b013337cf8ebc8922838bd"
         },
         {
           "resource": "repo://tests/pwa-browser.mjs",
@@ -296,29 +296,33 @@
     },
     {
       "id": "claim_69fd370ae67f4958b05715194efc950d",
-      "statement": "The selected migration target is Vercel frontend/PWA, Render API, Supabase Auth/PostgreSQL. It is not implemented or deployed; Pages/Firebase remain current production. Decision0006 records adapter, data-preservation, authorization, concurrency and cross-origin PWA cutover requirements. Provider access/project identity is still required.",
+      "statement": "Hạ tầng đích đã có API Socket.IO, schema PostgreSQL private và adapter Supabase opt-in trong source. PostgreSQL LISTEN/NOTIFY đẩy invalidation sau commit tới từng API instance; reconnect tải lại snapshot có xác thực. Đây là staging: cần DATABASE_URL trên Render và kiểm chứng Auth/callbacks trước cutover; mặc định frontend vẫn dùng Firebase và người dùng chọn đăng ký tài khoản Supabase mới.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:72791afe71ede7e8a7f3bad67636768490d05f73a905c598e0dec43679cf6670"
+          "resource": "repo://docs/infrastructure.md",
+          "version": "repo-file-v1:sha256:f64be298d2b8ceaee1b07d1b3786eb151b3f6e85ef2c75e8f25f5a47fdda58b1"
         },
         {
-          "resource": "repo://docs/architecture.md",
-          "version": "repo-file-v1:sha256:1acaf22a47e72394599d81d12c723ed2e12cf09527c11f643a29511ef73b095c"
+          "resource": "repo://server/notifications.mjs",
+          "version": "repo-file-v1:sha256:5e4633d0836d4f3c7e69242d5c66c10f8df5ffd7fba30db686343045b29079d4"
         },
         {
-          "resource": "repo://docs/decisions/0006-infrastructure-transition.md",
-          "version": "repo-file-v1:sha256:914aaa389b3a06bc0900cc23a2127dd727c66c1952528c62cdfd0c909df829a7"
+          "resource": "repo://server/socket.mjs",
+          "version": "repo-file-v1:sha256:7970d46cddaec2917ed80b41d287271663d4d94b09e6c9d7e507a00934bbdd93"
         },
         {
-          "resource": "repo://src/hub/store.ts",
-          "version": "repo-file-v1:sha256:3c4e2542d4686277dd6f95b82ddcdb4cb43f70e1fc4718dac79e87b69426255e"
+          "resource": "repo://src/platform/api.ts",
+          "version": "repo-file-v1:sha256:4cad97b0fbf28b35e18c4349dae4cb7c7dfa6a4ef8755f104c0dfe14d9e9ec4e"
+        },
+        {
+          "resource": "repo://src/platform/online-config.ts",
+          "version": "repo-file-v1:sha256:46d0918e1c1098cd707e087060add8b11f7981d883d37cdc6ae1e48c210653b5"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T07:39:13.991Z"
+    "at": "2026-11-04T08:51:23.933Z"
   }
 }

@@ -4,7 +4,7 @@ Phố Tỷ Phú is a mobile-first multiplayer board-game **hub**. The ocean/boat
 
 ## Infrastructure transition
 
-The user selected Vercel (frontend/PWA), Render (API) and Supabase (Auth/PostgreSQL). Follow [transition decision](docs/decisions/0006-infrastructure-transition.md). This is a target migration, not a completed cutover: current production still uses Pages/Firebase. Preserve existing data/services until new resources and account-migration strategy are verified. Do not claim provider access from a ChatGPT connection alone or put admin secrets in client code.
+The user selected Vercel (frontend/PWA), Render (API) and Supabase (Auth/PostgreSQL). Follow [transition decision](docs/decisions/0006-infrastructure-transition.md). The Socket.IO Render API, private PostgreSQL RPC schema and opt-in Supabase adapters are staged; see [infrastructure status](docs/infrastructure.md). Supabase schema is provisioned; the frontend cutover and live API verification are not complete. Current player runtime still uses Firebase. The user selected new Supabase account registration, preserving old accounts/data. Use Socket.IO with PostgreSQL LISTEN/NOTIFY, not client polling. Preserve existing data/services until new resources and account-migration strategy are verified. Do not claim provider access from a ChatGPT connection alone or put admin secrets in client code.
 
 ## Load context progressively
 

@@ -1,11 +1,22 @@
 ---
 type: architecture
 title: Kiến trúc hub và đồng bộ phòng
-description: Luồng giao diện mobile, luật phòng thuần, adapter bản thử và Firebase, quyền truy cập và giới hạn trước khi có bàn chơi.
-tags: [hub, rooms, mobile, firebase, architecture]
+description: Luồng giao diện mobile, luật phòng thuần, adapter bản thử và
+  Firebase, quyền truy cập và giới hạn trước khi có bàn chơi.
+tags:
+  - hub
+  - rooms
+  - mobile
+  - firebase
+  - architecture
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-04T08:51:23.933Z
 sources:
   - id: openwiki-source-1207dc6dc9df1cc76b6da2de
     resource: repo://docs/diagnostics.md
+  - id: openwiki-source-b26fdac5f2b9ba8a19fdd0f6
+    resource: repo://docs/infrastructure.md
   - id: openwiki-source-701123ef063b2b49fc5126ba
     resource: repo://docs/pwa.md
   - id: openwiki-source-8acf8e92f9f7b465d02fa04b
@@ -18,6 +29,10 @@ sources:
     resource: repo://scripts/service-worker.js
   - id: openwiki-source-3515d68bed1b916f693296ec
     resource: repo://scripts/test-browser.mjs
+  - id: openwiki-source-815fd09a9443c0dae46b118a
+    resource: repo://server/notifications.mjs
+  - id: openwiki-source-2c932c82640807a2da8d8358
+    resource: repo://server/socket.mjs
   - id: openwiki-source-3cc44dcb42d14ad2fffb83f2
     resource: repo://src/app/account.ts
   - id: openwiki-source-2d276ab0949853064e1a4208
@@ -44,12 +59,16 @@ sources:
     resource: repo://src/hub/model.ts
   - id: openwiki-source-a516dc77b4f57ace3d032e8c
     resource: repo://src/platform/account.ts
+  - id: openwiki-source-2a80fab523f1197e079cba62
+    resource: repo://src/platform/api.ts
   - id: openwiki-source-073cd1426719ad5862d4f152
     resource: repo://src/platform/demo.ts
   - id: openwiki-source-0eacf94e25ae0c7320c6f741
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
     resource: repo://src/platform/firestore-client.ts
+  - id: openwiki-source-251f2e8a88e22f47e29d5975
+    resource: repo://src/platform/online-config.ts
   - id: openwiki-source-6475f92dc7ed4bc9b5b6546c
     resource: repo://src/platform/profile.ts
   - id: openwiki-source-77110d1e1f1125ab5211f920
@@ -68,10 +87,7 @@ sources:
     resource: repo://tests/rules.test.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-04T07:11:51.775Z" }
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-04T07:16:09.992Z
+generated: { by: "codex", at: "2026-11-04T08:51:23.933Z" }
 ---
 
 # Kiến trúc hub và đồng bộ phòng
@@ -142,3 +158,10 @@ Waiting PWA updates never auto-reload; Cập nhật ngay requires confirmation a
 ## Local 3D board preview
 
 The local ?view=game preview uses one Three.js renderer across HUD redraws, a shared40-space grid with2.2-deep tiles, outward-readable labels and buildings on inner property stripes. Focus follows the active fixture token; Overview supports orbit/pan/zoom. WebGL fallback preserves a flat board. No authoritative economy or multiplayer gameplay is added. Tests/board-layout.test.mjs and tests/board-browser.mjs cover geometry and real WebGL camera/lifecycle/fallback behavior on dev/production. Mobile physical-device verification remains pending.
+
+
+## Socket.IO và Supabase ở staging
+
+Hạ tầng đích đã có API Socket.IO, schema PostgreSQL private và adapter Supabase opt-in trong source. PostgreSQL LISTEN/NOTIFY đẩy invalidation sau commit tới từng API instance; reconnect tải lại snapshot có xác thực. Đây là staging: cần DATABASE_URL trên Render và kiểm chứng Auth/callbacks trước cutover; mặc định frontend vẫn dùng Firebase và người dùng chọn đăng ký tài khoản Supabase mới.
+
+Client nhận sự kiện qua WebSocket Socket.IO, không polling. Mỗi snapshot và mutation kiểm tra phiên đăng nhập/quyền PostgreSQL. Schema khóa hàng phòng cho join/start/leave; private tables không cấp quyền ghi trực tiếp. Database notification không chứa dữ liệu phòng. `npm run test:api` kiểm tra Auth, hai socket client và reconnect; `npm run test:postgres` kiểm tra quyền, cạnh tranh chỗ và thông báo sau commit trong database dùng một lần. Tham khảo [hướng dẫn hạ tầng](../../docs/infrastructure.md).

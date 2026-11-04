@@ -13,7 +13,7 @@ import {
 } from "firebase/firestore";
 import type { DocumentData } from "firebase/firestore";
 import { playerDatabase } from "./firestore-client";
-import { currentPlayer } from "./account";
+import { currentPlayer } from "./firebase-account";
 import { playerProfile } from "./profile";
 import { applyCommand, createRoom, generateCode, HubError } from "../hub/model";
 import type { Room } from "../hub/model";

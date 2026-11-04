@@ -1,17 +1,21 @@
 ---
 type: quickstart
 title: Bắt đầu với hub Phố Tỷ Phú
-description: Bản đồ tác vụ cho hub board game mobile, theme đã duyệt, kiểm tra và phát hành Pages với Firebase riêng.
-tags: [quickstart, hub, mobile, context]
+description: Bản đồ tác vụ cho hub board game mobile, theme đã duyệt, kiểm tra
+  và phát hành Pages với Firebase riêng.
+tags:
+  - quickstart
+  - hub
+  - mobile
+  - context
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-04T08:51:23.933Z
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
-  - id: openwiki-source-115b2dad781e2a2c5b5a980d
-    resource: repo://docs/architecture.md
   - id: openwiki-source-de23c649f29de7b7defa1fe3
     resource: repo://docs/decisions/0002-mobile-board-game-hub.md
-  - id: openwiki-source-96aca2295370362abfc54588
-    resource: repo://docs/decisions/0006-infrastructure-transition.md
   - id: openwiki-source-523a2ee371c511874cedf68c
     resource: repo://docs/design/theme.md
   - id: openwiki-source-1207dc6dc9df1cc76b6da2de
@@ -32,6 +36,8 @@ sources:
     resource: repo://docs/game/shared-session-design.md
   - id: openwiki-source-63e8f904736888c1397b0a2b
     resource: repo://docs/game/ui-implementation.md
+  - id: openwiki-source-b26fdac5f2b9ba8a19fdd0f6
+    resource: repo://docs/infrastructure.md
   - id: openwiki-source-701123ef063b2b49fc5126ba
     resource: repo://docs/pwa.md
   - id: openwiki-source-8acf8e92f9f7b465d02fa04b
@@ -42,6 +48,10 @@ sources:
     resource: repo://scripts/service-worker.js
   - id: openwiki-source-3515d68bed1b916f693296ec
     resource: repo://scripts/test-browser.mjs
+  - id: openwiki-source-815fd09a9443c0dae46b118a
+    resource: repo://server/notifications.mjs
+  - id: openwiki-source-2c932c82640807a2da8d8358
+    resource: repo://server/socket.mjs
   - id: openwiki-source-2d276ab0949853064e1a4208
     resource: repo://src/app/diagnostics.ts
   - id: openwiki-source-de5ab1ed905c7bd08fbdce6f
@@ -66,16 +76,18 @@ sources:
     resource: repo://src/game-ui/style.css
   - id: openwiki-source-435a4eb0dedae12246227bd4
     resource: repo://src/hub/diagnostics.ts
-  - id: openwiki-source-22c382245dd906dd1c064e27
-    resource: repo://src/hub/store.ts
   - id: openwiki-source-d4189bbeecb62806cb297b5a
     resource: repo://src/main.ts
   - id: openwiki-source-a516dc77b4f57ace3d032e8c
     resource: repo://src/platform/account.ts
+  - id: openwiki-source-2a80fab523f1197e079cba62
+    resource: repo://src/platform/api.ts
   - id: openwiki-source-0eacf94e25ae0c7320c6f741
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
     resource: repo://src/platform/firestore-client.ts
+  - id: openwiki-source-251f2e8a88e22f47e29d5975
+    resource: repo://src/platform/online-config.ts
   - id: openwiki-source-77110d1e1f1125ab5211f920
     resource: repo://src/platform/pwa.ts
   - id: openwiki-source-554339f52225d7d8edff3ed0
@@ -88,10 +100,7 @@ sources:
     resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-04T07:39:13.991Z" }
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-04T07:39:13.991Z
+generated: { by: "codex", at: "2026-11-04T08:51:23.933Z" }
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
@@ -170,4 +179,11 @@ The local ?view=game preview uses one Three.js renderer across HUD redraws, a sh
 
 ## Selected target, current production unchanged
 
-The selected migration target is Vercel frontend/PWA, Render API, Supabase Auth/PostgreSQL. It is not implemented or deployed; Pages/Firebase remain current production. Decision0006 records adapter, data-preservation, authorization, concurrency and cross-origin PWA cutover requirements. Provider access/project identity is still required.
+Hạ tầng đích đã có API Socket.IO, schema PostgreSQL private và adapter Supabase opt-in trong source. PostgreSQL LISTEN/NOTIFY đẩy invalidation sau commit tới từng API instance; reconnect tải lại snapshot có xác thực. Đây là staging: cần DATABASE_URL trên Render và kiểm chứng Auth/callbacks trước cutover; mặc định frontend vẫn dùng Firebase và người dùng chọn đăng ký tài khoản Supabase mới.
+
+
+## Socket.IO và Supabase ở staging
+
+Hạ tầng đích đã có API Socket.IO, schema PostgreSQL private và adapter Supabase opt-in trong source. PostgreSQL LISTEN/NOTIFY đẩy invalidation sau commit tới từng API instance; reconnect tải lại snapshot có xác thực. Đây là staging: cần DATABASE_URL trên Render và kiểm chứng Auth/callbacks trước cutover; mặc định frontend vẫn dùng Firebase và người dùng chọn đăng ký tài khoản Supabase mới.
+
+Client nhận sự kiện qua WebSocket Socket.IO, không polling. Mỗi snapshot và mutation kiểm tra phiên đăng nhập/quyền PostgreSQL. Schema khóa hàng phòng cho join/start/leave; private tables không cấp quyền ghi trực tiếp. Database notification không chứa dữ liệu phòng. `npm run test:api` kiểm tra Auth, hai socket client và reconnect; `npm run test:postgres` kiểm tra quyền, cạnh tranh chỗ và thông báo sau commit trong database dùng một lần. Tham khảo [hướng dẫn hạ tầng](../docs/infrastructure.md).

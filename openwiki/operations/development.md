@@ -1,8 +1,18 @@
 ---
 type: operations
 title: Phát triển mobile, kiểm tra và publish
-description: Setup Node/Java, kiểm tra hub trên trình duyệt và emulator, publish Pages và kích hoạt Firebase riêng.
-tags: [development, testing, deployment, mobile, firebase, openwiki]
+description: Setup Node/Java, kiểm tra hub trên trình duyệt và emulator, publish
+  Pages và kích hoạt Firebase riêng.
+tags:
+  - development
+  - testing
+  - deployment
+  - mobile
+  - firebase
+  - openwiki
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-04T08:51:23.933Z
 sources:
   - id: openwiki-source-ab585d88aca3958f2aa6a541
     resource: repo://.codex/config.toml
@@ -10,10 +20,6 @@ sources:
     resource: repo://.github/workflows/pages.yml
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
-  - id: openwiki-source-115b2dad781e2a2c5b5a980d
-    resource: repo://docs/architecture.md
-  - id: openwiki-source-96aca2295370362abfc54588
-    resource: repo://docs/decisions/0006-infrastructure-transition.md
   - id: openwiki-source-e357e023868ea4db450d34ad
     resource: repo://docs/game/plans/02-mobile-ui.md
   - id: openwiki-source-03d3729a6d1fb321fab7b6df
@@ -26,6 +32,8 @@ sources:
     resource: repo://docs/game/shared-session-design.md
   - id: openwiki-source-63e8f904736888c1397b0a2b
     resource: repo://docs/game/ui-implementation.md
+  - id: openwiki-source-b26fdac5f2b9ba8a19fdd0f6
+    resource: repo://docs/infrastructure.md
   - id: openwiki-source-701123ef063b2b49fc5126ba
     resource: repo://docs/pwa.md
   - id: openwiki-source-cc7175a0c3a0d5f1359efcc1
@@ -38,6 +46,10 @@ sources:
     resource: repo://scripts/test-browser.mjs
   - id: openwiki-source-4c36e1d79dd002cc49e886f0
     resource: repo://scripts/test-rules.mjs
+  - id: openwiki-source-815fd09a9443c0dae46b118a
+    resource: repo://server/notifications.mjs
+  - id: openwiki-source-2c932c82640807a2da8d8358
+    resource: repo://server/socket.mjs
   - id: openwiki-source-fdc97d585e693e9f422ad7ae
     resource: repo://src/app/pwa.ts
   - id: openwiki-source-49557827443d53e9eeae17f4
@@ -54,8 +66,10 @@ sources:
     resource: repo://src/game-ui/render.ts
   - id: openwiki-source-a09d1fc6a11ce8c081c67432
     resource: repo://src/game-ui/style.css
-  - id: openwiki-source-22c382245dd906dd1c064e27
-    resource: repo://src/hub/store.ts
+  - id: openwiki-source-2a80fab523f1197e079cba62
+    resource: repo://src/platform/api.ts
+  - id: openwiki-source-251f2e8a88e22f47e29d5975
+    resource: repo://src/platform/online-config.ts
   - id: openwiki-source-77110d1e1f1125ab5211f920
     resource: repo://src/platform/pwa.ts
   - id: openwiki-source-554339f52225d7d8edff3ed0
@@ -78,10 +92,7 @@ sources:
     resource: repo://tests/rules.test.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-04T07:39:13.991Z" }
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-04T07:39:13.991Z
+generated: { by: "codex", at: "2026-11-04T08:51:23.933Z" }
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -174,4 +185,11 @@ The local ?view=game preview uses one Three.js renderer across HUD redraws, a sh
 
 ## Selected target, current production unchanged
 
-The selected migration target is Vercel frontend/PWA, Render API, Supabase Auth/PostgreSQL. It is not implemented or deployed; Pages/Firebase remain current production. Decision0006 records adapter, data-preservation, authorization, concurrency and cross-origin PWA cutover requirements. Provider access/project identity is still required.
+Hạ tầng đích đã có API Socket.IO, schema PostgreSQL private và adapter Supabase opt-in trong source. PostgreSQL LISTEN/NOTIFY đẩy invalidation sau commit tới từng API instance; reconnect tải lại snapshot có xác thực. Đây là staging: cần DATABASE_URL trên Render và kiểm chứng Auth/callbacks trước cutover; mặc định frontend vẫn dùng Firebase và người dùng chọn đăng ký tài khoản Supabase mới.
+
+
+## Socket.IO và Supabase ở staging
+
+Hạ tầng đích đã có API Socket.IO, schema PostgreSQL private và adapter Supabase opt-in trong source. PostgreSQL LISTEN/NOTIFY đẩy invalidation sau commit tới từng API instance; reconnect tải lại snapshot có xác thực. Đây là staging: cần DATABASE_URL trên Render và kiểm chứng Auth/callbacks trước cutover; mặc định frontend vẫn dùng Firebase và người dùng chọn đăng ký tài khoản Supabase mới.
+
+Client nhận sự kiện qua WebSocket Socket.IO, không polling. Mỗi snapshot và mutation kiểm tra phiên đăng nhập/quyền PostgreSQL. Schema khóa hàng phòng cho join/start/leave; private tables không cấp quyền ghi trực tiếp. Database notification không chứa dữ liệu phòng. `npm run test:api` kiểm tra Auth, hai socket client và reconnect; `npm run test:postgres` kiểm tra quyền, cạnh tranh chỗ và thông báo sau commit trong database dùng một lần. Tham khảo [hướng dẫn hạ tầng](../../docs/infrastructure.md).
