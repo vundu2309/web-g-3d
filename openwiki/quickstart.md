@@ -8,9 +8,6 @@ tags:
   - hub
   - mobile
   - context
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-04T08:51:23.933Z
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
@@ -101,6 +98,9 @@ sources:
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
 generated: { by: "codex", at: "2026-11-04T08:51:23.933Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-04T09:10:09.701Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú

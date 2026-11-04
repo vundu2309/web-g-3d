@@ -6,9 +6,6 @@ tags:
   - infrastructure
   - socketio
   - supabase
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-04T08:51:23.933Z
 sources:
   - id: openwiki-source-b26fdac5f2b9ba8a19fdd0f6
     resource: repo://docs/infrastructure.md
@@ -21,6 +18,9 @@ sources:
   - id: openwiki-source-251f2e8a88e22f47e29d5975
     resource: repo://src/platform/online-config.ts
 generated: { by: "codex", at: "2026-11-04T08:51:23.933Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-04T09:10:09.701Z
 ---
 
 # Target infrastructure transition

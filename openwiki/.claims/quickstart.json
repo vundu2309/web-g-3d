@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:083f485e2966c4172100aad676fa53ed4d916e7889508fecf014cf0ed6c41645",
+  "pageVersion": "sha256:e7a860fcc56ee8e7a3c4fa1712ff326a923d56662a358e3a5397a258ffa59a5b",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -304,7 +304,7 @@
         },
         {
           "resource": "repo://server/notifications.mjs",
-          "version": "repo-file-v1:sha256:5e4633d0836d4f3c7e69242d5c66c10f8df5ffd7fba30db686343045b29079d4"
+          "version": "repo-file-v1:sha256:f26417cff5303cb534b2b9cda37bd216aa4dca5769ecd6a7e3ead4d050d6efc3"
         },
         {
           "resource": "repo://server/socket.mjs",
@@ -323,6 +323,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T08:51:23.933Z"
+    "at": "2026-11-04T09:10:09.701Z"
   }
 }

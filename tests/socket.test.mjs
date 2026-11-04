@@ -105,10 +105,12 @@ test("PostgreSQL listener recovers missed messages by invalidating after LISTEN 
     async end() {}
   }
   const ready = [];
+  const reasons = [];
   let changes = 0;
   const listener = listenForChanges({
     connectionString: "postgresql://test",
     Client: FakeClient,
+    log: (reason) => reasons.push(reason),
     ready: (value) => ready.push(value),
     changed: () => changes++,
   });
@@ -117,7 +119,8 @@ test("PostgreSQL listener recovers missed messages by invalidating after LISTEN 
   assert.equal(changes, 1);
   client.emit("notification", { channel: "hub_changes" });
   assert.equal(changes, 2);
-  client.emit("error", new Error("connection lost"));
+  client.emit("error", new Error("connection lost: secret-password"));
+  assert.deepEqual(reasons, ["CONNECTION_FAILED"]);
   assert.equal(listener.isReady(), false);
   assert.deepEqual(ready, [true, false]);
   await listener.close();

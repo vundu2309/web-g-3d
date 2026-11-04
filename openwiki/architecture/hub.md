@@ -11,7 +11,7 @@ tags:
   - architecture
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T08:51:23.933Z
+    at: 2026-11-04T09:10:09.701Z
 sources:
   - id: openwiki-source-1207dc6dc9df1cc76b6da2de
     resource: repo://docs/diagnostics.md

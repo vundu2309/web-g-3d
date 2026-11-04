@@ -10,9 +10,6 @@ tags:
   - mobile
   - firebase
   - openwiki
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-04T08:51:23.933Z
 sources:
   - id: openwiki-source-ab585d88aca3958f2aa6a541
     resource: repo://.codex/config.toml
@@ -93,6 +90,9 @@ sources:
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
 generated: { by: "codex", at: "2026-11-04T08:51:23.933Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-04T09:10:09.701Z
 ---
 
 # Phát triển mobile, kiểm tra và publish

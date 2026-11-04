@@ -8,6 +8,7 @@ export function listenForChanges({
   changed,
   ready,
   Client = pg.Client,
+  log = (reason) => console.warn(`Database listener: ${reason}`),
 }) {
   if (!connectionString)
     throw new Error("DATABASE_URL is required for Socket.IO notifications");
@@ -30,11 +31,40 @@ export function listenForChanges({
     });
     client = current;
     let failed = false;
-    function reconnect() {
+    function reconnect(error) {
       if (failed) return;
       failed = true;
       connected = false;
       ready(false);
+      if (!stopped) {
+        const known = [
+          "ENETUNREACH",
+          "ECONNREFUSED",
+          "ETIMEDOUT",
+          "ENOTFOUND",
+          "CERT_HAS_EXPIRED",
+          "UNABLE_TO_VERIFY_LEAF_SIGNATURE",
+          "SELF_SIGNED_CERT_IN_CHAIN",
+          "DEPTH_ZERO_SELF_SIGNED_CERT",
+          "ERR_TLS_CERT_ALTNAME_INVALID",
+          "28P01",
+          "28000",
+          "53300",
+          "57P03",
+        ];
+        const message =
+          typeof error?.message === "string" ? error.message.toLowerCase() : "";
+        const reason = known.includes(error?.code)
+          ? error.code
+          : message.includes("tenant or user not found")
+            ? "TENANT_OR_USER_NOT_FOUND"
+            : message.includes("password authentication failed")
+              ? "INVALID_PASSWORD"
+              : message.includes("certificate")
+                ? "CERTIFICATE_ERROR"
+                : "CONNECTION_FAILED";
+        log(reason);
+      }
       void current.end().catch(() => {});
       if (!stopped) retry = setTimeout(() => void connect(), 2000);
     }
@@ -53,8 +83,8 @@ export function listenForChanges({
       connected = true;
       ready(true);
       changed();
-    } catch {
-      reconnect();
+    } catch (error) {
+      reconnect(error);
     }
   }
   void connect();
