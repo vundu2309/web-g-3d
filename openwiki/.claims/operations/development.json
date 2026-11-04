@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:612329e9dbf3c1341dd2241a1cc85e9100d3be905349357940411a8361e0dbda",
+  "pageVersion": "sha256:c64da494fcfdb6486981b6cd9e0c18bf2fab4d1d4e50f00cc8f4b7de8bcf08c2",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -12,7 +12,7 @@
         },
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:e1b6e554bd04f1a105ae670895839f363e392adcca0002898ed2d32f656ab362"
+          "version": "repo-file-v1:sha256:eab7e66d31dc91c604209a9b2ebc14ca86706aab9df32f31ed2d34598adcf0cb"
         },
         {
           "resource": "repo://docs/workflow.md",
@@ -64,7 +64,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:e1b6e554bd04f1a105ae670895839f363e392adcca0002898ed2d32f656ab362"
+          "version": "repo-file-v1:sha256:eab7e66d31dc91c604209a9b2ebc14ca86706aab9df32f31ed2d34598adcf0cb"
         }
       ]
     },
@@ -156,23 +156,19 @@
     },
     {
       "id": "claim_2e542c100ba04040abe4b3ab4e5767eb",
-      "statement": "Người dùng chốt baseline tài liệu hiện có để sang Plan02 mobile UI, active02A màn bàn chơi chính; Plan01 tạm dừng nghiên cứu, số liệu/luật còn thiếu giữ backlog trước gameplay, thiết kế từng màn và review ảnh trước code.",
+      "statement": "HUD02A đã được người dùng duyệt: roster căn giữa dưới không nền, không tên game, action nổi giữa phải và highlight theo lượt; 02B mua đất có concept chờ review, chưa implementation.",
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:e1b6e554bd04f1a105ae670895839f363e392adcca0002898ed2d32f656ab362"
+          "version": "repo-file-v1:sha256:eab7e66d31dc91c604209a9b2ebc14ca86706aab9df32f31ed2d34598adcf0cb"
         },
         {
           "resource": "repo://docs/game/README.md",
-          "version": "repo-file-v1:sha256:1e5b6056248c8a18e8214fcc72db2b5cf8e0916689c13d99425bc0fb826ca6fd"
-        },
-        {
-          "resource": "repo://docs/game/plans/01-rules.md",
-          "version": "repo-file-v1:sha256:f9b86cbeaa3adfab384f79ea85050bd3d74c25403bdb67924cf4bbc0ae716b99"
+          "version": "repo-file-v1:sha256:3a06e2794a097da9b1fc9f83bb3fa9b38504bf54b9ac5f04e33c022922412653"
         },
         {
           "resource": "repo://docs/game/plans/02-mobile-ui.md",
-          "version": "repo-file-v1:sha256:fc9aa9717e20fc7f32c6086a4ab1bee020b29e04b47ccae19a6cba898fd622f2"
+          "version": "repo-file-v1:sha256:0206535fcd49fcd4dcb582254103c60d88a7bd97a688411fae64ce2c260a313d"
         }
       ]
     },
@@ -182,11 +178,11 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:e1b6e554bd04f1a105ae670895839f363e392adcca0002898ed2d32f656ab362"
+          "version": "repo-file-v1:sha256:eab7e66d31dc91c604209a9b2ebc14ca86706aab9df32f31ed2d34598adcf0cb"
         },
         {
           "resource": "repo://docs/game/README.md",
-          "version": "repo-file-v1:sha256:1e5b6056248c8a18e8214fcc72db2b5cf8e0916689c13d99425bc0fb826ca6fd"
+          "version": "repo-file-v1:sha256:3a06e2794a097da9b1fc9f83bb3fa9b38504bf54b9ac5f04e33c022922412653"
         },
         {
           "resource": "repo://docs/game/rules/property-economics.md",
@@ -201,6 +197,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-03T17:31:08.931Z"
+    "at": "2026-11-04T03:12:58.045Z"
   }
 }

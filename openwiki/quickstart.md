@@ -42,10 +42,10 @@ sources:
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
     resource: repo://src/platform/firestore-client.ts
-generated: { by: "codex", at: "2026-11-03T17:31:08.931Z" }
+generated: { by: "codex", at: "2026-11-04T03:12:58.045Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-03T17:31:08.931Z
+    at: 2026-11-04T03:12:58.045Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
@@ -80,7 +80,7 @@ Dùng [hướng dẫn đo thời gian](../docs/diagnostics.md) và [vận hành]
 
 ## Đặc tả gameplay theo từng phần
 
-[Game contract](../docs/game/README.md) giữ baseline Monopoly Classic US truyền thống, không house rules. Người dùng yêu cầu chốt tài liệu hiện có và sang [Plan 02 mobile UI](../docs/game/plans/02-mobile-ui.md): hiện active 02A màn bàn chơi chính. Plan 01 tạm dừng nghiên cứu, chưa đồng nghĩa mọi số liệu/luật đã xác minh hoặc có gameplay. Các mục còn thiếu giữ backlog trước implementation; không tiếp tục dò từng thẻ. Thiết kế từng màn với ảnh review riêng trước code.
+[Game contract](../docs/game/README.md) giữ baseline Monopoly Classic US truyền thống, không house rules. Người dùng yêu cầu chốt tài liệu hiện có và sang [Plan 02 mobile UI](../docs/game/plans/02-mobile-ui.md): HUD 02A đã duyệt và hiện active 02B chi tiết tài sản/mua đất. Plan 01 tạm dừng nghiên cứu, chưa đồng nghĩa mọi số liệu/luật đã xác minh hoặc có gameplay. Các mục còn thiếu giữ backlog trước implementation; không tiếp tục dò từng thẻ. Thiết kế từng màn với ảnh review riêng trước code.
 
 ## Giá tài sản và đối chiếu edition
 
@@ -93,3 +93,7 @@ Dùng [hướng dẫn đo thời gian](../docs/diagnostics.md) và [vận hành]
 ## Đối chiếu số liệu ưu tiên text
 
 Quy ước đã được người dùng đồng ý: dùng rulebook Hasbro cho luật, bảng text có revision cho giá và so hàng loạt. Đã kiểm tra 21 đất màu × 9 trường = 189 số trong bảng nháp khớp S-004. Không ánh xạ Oriental sang Rhode Island; không coi khớp text là bằng chứng cả bộ G0009 hoặc phê duyệt. Ngoại lệ được gom trong [sổ nguồn](../docs/game/rules/sources.md); ảnh chỉ dùng cho mục thiếu/mâu thuẫn cụ thể, không dò từng thẻ.
+
+## HUD được duyệt và tác vụ hiện hành
+
+[Plan02]( ../docs/game/plans/02-mobile-ui.md ) lưu ảnh HUD được duyệt: roster dưới căn giữa không nền, không tên game, action nổi giữa cạnh phải, highlight đổi theo người đến lượt. Concept mua đất 02B v1 đang chờ review; bàn cờ chi tiết/tên ô trong ảnh gen không phải dữ liệu chuẩn. Chưa sửa runtime, chưa deploy.

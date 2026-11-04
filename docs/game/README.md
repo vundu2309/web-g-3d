@@ -17,7 +17,7 @@
 ## Cách AI làm việc
 
 1. Đọc trang này, [plan hiện hành](plans/02-mobile-ui.md), rồi đúng trang luật liên quan.
-2. Chỉ thực hiện phần đang active và được giao. Hiện **Plan 02 / 02A — màn bàn chơi chính** đang mở cho thiết kế mobile và review concept. Plan 01 đã bàn giao baseline và tạm dừng nghiên cứu; các khoảng trống chưa được coi là xác minh xong. Không tự implement gameplay hoặc quay lại dò từng thẻ.
+2. Chỉ thực hiện phần đang active và được giao. Hiện **Plan 02 / 02B — chi tiết tài sản và mua đất** đang mở cho thiết kế mobile và review concept. HUD 02A đã được duyệt: roster căn giữa bên dưới không nền, không tên game, action nổi giữa phải, highlight theo lượt. Plan 01 đã bàn giao baseline và tạm dừng nghiên cứu; các khoảng trống chưa được coi là xác minh xong. Không tự implement gameplay hoặc quay lại dò từng thẻ.
 3. Phân biệt **đã duyệt**, **nháp cần xác minh**, **chưa xác định**, **đã implement** và **đã kiểm chứng**. Không suy từ đề xuất trong plan thành phê duyệt của người dùng.
 4. Luật dùng rulebook Hasbro làm chuẩn. Số liệu tài sản ưu tiên bảng text có nguồn/version, đối chiếu hàng loạt; không bắt buộc tìm ảnh từng thẻ. Mỗi luật/dữ liệu cần ID, nguồn và ví dụ; ghi rõ khác biệt edition. Chỉ xem ảnh khi có mục thiếu/mâu thuẫn cụ thể và ghi câu hỏi đó trước khi xem. Chưa đủ bằng chứng thì gom vào [sổ câu hỏi](rules/sources.md), tiếp tục phần độc lập; không đoán số hoặc coi nguồn cộng đồng là xác minh G0009 chính thức.
 5. Khi implementation được giao, ánh xạ test tới mã luật. Source thực thi thể hiện hiện trạng, không tự sửa đặc tả đã duyệt để hợp thức hóa bug. Báo sai lệch và sửa phần sai theo yêu cầu được giao.
@@ -29,7 +29,7 @@
 | Plan độc lập | Trạng thái |
 | --- | --- |
 | [01 — Luật chơi](plans/01-rules.md) | Baseline đã chốt để thiết kế; nghiên cứu tạm dừng, còn backlog trước gameplay |
-| [02 — Giao diện mobile](plans/02-mobile-ui.md) | Active: 02A màn bàn chơi chính |
+| [02 — Giao diện mobile](plans/02-mobile-ui.md) | Active: 02B mua đất; HUD 02A đã duyệt |
 | [03 — Model và luật thuần](plans/03-domain-model.md) | Backlog |
 | [04 — Backend gameplay](plans/04-game-backend.md) | Backlog |
 | [05 — Multiplayer](plans/05-multiplayer.md) | Backlog |
