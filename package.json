@@ -21,7 +21,8 @@
     "test:rules": "node scripts/test-rules.mjs",
     "test:api": "node --test tests/api.test.mjs tests/socket.test.mjs",
     "start:api": "node server/index.mjs",
-    "test:postgres": "node scripts/test-postgres.mjs"
+    "test:postgres": "node scripts/test-postgres.mjs",
+    "test:supabase": "node scripts/test-supabase.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

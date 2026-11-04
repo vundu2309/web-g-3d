@@ -28,7 +28,7 @@ export async function registerPlayer(
   email: string,
   password: string,
   name: string,
-): Promise<PlayerAccount> {
+): Promise<PlayerAccount | null> {
   if (!useSupabase)
     return (await legacy()).registerPlayer(email, password, name);
   const { data, error } = await (
@@ -38,14 +38,13 @@ export async function registerPlayer(
     password,
     options: {
       data: { display_name: playerName(name) },
-      emailRedirectTo: location.origin + location.pathname,
+      emailRedirectTo:
+        import.meta.env.VITE_AUTH_REDIRECT_URL ||
+        location.origin + location.pathname,
     },
   });
   if (error) throw error;
-  if (!data.session)
-    throw new HubError(
-      "Đã gửi yêu cầu đăng ký. Hãy kiểm tra email để xác nhận rồi đăng nhập.",
-    );
+  if (!data.session) return null;
   return identity(data.user)!;
 }
 export async function loginPlayer(
@@ -64,7 +63,9 @@ export async function resetPassword(email: string) {
   const { error } = await (
     await client()
   ).auth.resetPasswordForEmail(email.trim(), {
-    redirectTo: location.origin + location.pathname,
+    redirectTo:
+      import.meta.env.VITE_AUTH_REDIRECT_URL ||
+      location.origin + location.pathname,
   });
   if (error) throw error;
 }

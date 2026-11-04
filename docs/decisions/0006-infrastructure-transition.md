@@ -55,3 +55,8 @@ Người dùng chọn Socket.IO và đăng ký tài khoản mới trên Supabase
 Sau commit, trigger PostgreSQL NOTIFY tới dedicated LISTEN connection của từng API instance. Socket.IO đẩy invalidation không chứa dữ liệu phòng; client lấy snapshot có xác thực qua socket, và tải lại khi reconnect. Không dùng polling client. Database connection phải là direct/session pooler với TLS được kiểm chứng; không dùng transaction pooler. `/health` chưa ready nếu LISTEN chưa hoạt động. Xem `docs/infrastructure.md`.
 
 Đây là staging, chưa hoàn tất cutover: backend cần DATABASE_URL trong Render, Auth callbacks và hai browser cần kiểm chứng trên hạ tầng thật trước khi bật frontend Supabase. Firebase/Pages và tài khoản cũ được giữ nguyên.
+
+
+## Frontend sẵn sàng chuyển đổi
+
+Đã hoàn tất facade Auth, trạng thái chờ xác nhận email, màn đặt lại mật khẩu và adapter phòng Socket.IO; người dùng đã lưu Site URL/redirect allowlist Vercel trong Supabase. Test local full stack dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser context xác nhận signup/email, tạo/vào/sẵn sàng/start/close, reconnect và đổi mật khẩu/đăng nhập lại. Render đã kết nối shared session pooler bằng role listener giới hạn quyền và TLS có CA xác minh. Trạng thái phát hành phải được đối chiếu với deployment thực tế; không coi branch/PR là đã cutover. Giữ nguyên Pages/Firebase cho rollback.

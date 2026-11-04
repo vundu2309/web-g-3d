@@ -54,6 +54,8 @@ jobs:
         run: npx --no-install playwright-core install --with-deps chromium
       - name: Verify source and browser behavior
         run: npm run check
+      - name: Verify Supabase Auth and Socket.IO with a disposable stack
+        run: npm run test:supabase
       - uses: actions/upload-pages-artifact@v3
         if: steps.publication.outputs.publish == 'true'
         with:

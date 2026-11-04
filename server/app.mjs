@@ -138,7 +138,8 @@ export function createApi({
   });
   server.io = attachSockets(server, {
     origins,
-    authenticate: (token) => (ready() ? authenticate(token) : null),
+    authenticate,
+    ready,
     snapshot: async (token, input) => {
       const response = await upstream("/rest/v1/rpc/hub_command", token, {
         p_action: input.action,

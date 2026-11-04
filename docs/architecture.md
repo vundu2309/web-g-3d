@@ -73,3 +73,8 @@ The [PWA layer](pwa.md) registers a production-only, scope-local worker for stat
 ## Target infrastructure transition
 
 The user selected Vercel frontend/PWA, Render API and Supabase Auth/PostgreSQL. [Decision0006](decisions/0006-infrastructure-transition.md) records adapter boundaries, transaction/permission requirements, data/PWA-origin migration and staged cutover. This is not deployed: Pages/Firebase remain current production until the replacement is provisioned and verified.
+
+
+## Supabase / Socket.IO runtime
+
+The Vercel build selects the Supabase facade in `src/platform/account.ts` and the Socket.IO/HTTP RoomStore in `src/platform/api.ts` using VITE_ONLINE_BACKEND. Firebase is retained behind the old/default build for rollback. `src/app/password-recovery.ts` owns the recovery dialog; SDK PASSWORD_RECOVERY events arrive through the owned Auth subscription. Signups without a session show an email-confirmation status instead of treating successful registration as a failure. Account and room lifecycle remain separate from the local board preview. See [deployment and test contract](infrastructure.md).

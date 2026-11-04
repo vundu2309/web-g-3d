@@ -110,7 +110,12 @@ async function openAccount(signal?: AbortSignal): Promise<User | null> {
                       password,
                       String(data.get("displayName") || ""),
                     );
-              close(signedIn);
+              if (signedIn) close(signedIn);
+              else {
+                form.reset();
+                status.textContent =
+                  "Hãy kiểm tra email để xác nhận tài khoản, rồi quay lại đăng nhập. Tài khoản cũ cần đăng ký lại trên hệ thống mới.";
+              }
             }
           } catch (e) {
             error.textContent = accountError(e);

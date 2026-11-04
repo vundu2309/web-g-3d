@@ -39,3 +39,8 @@ Settings → Pages → Source: GitHub Actions. Workflow chạy kiểm tra trư�
 ## OpenWiki
 
 OpenWiki được pin trong devDependencies, không tải vào ứng dụng. `npm run wiki -- integrations list --project .` kiểm tra tích hợp; `npm run wiki:serve` mở trình đọc local; `npm run wiki:export` xuất vào `.openwiki-export/`. Wiki bắt đầu tại [openwiki/quickstart.md](openwiki/quickstart.md). Dùng lifecycle của skill `.agents/skills/openwiki` để cập nhật sau khi source ổn định; không sửa tay Claims/metadata/index. Không tự gọi paid provider hoặc chạy lịch AI trong CI.
+
+
+## Hạ tầng mới
+
+Frontend mới dùng Vercel, Supabase Email/Password Auth/PostgreSQL và API Render với Socket.IO qua WebSocket. Người chơi đăng ký tài khoản mới; dữ liệu Firebase cũ được giữ lại. Xem [cấu hình và kiểm thử](docs/infrastructure.md). `npm run test:supabase` chạy luồng hai browser với Supabase Auth/PostgREST/PostgreSQL thật và SMTP local trong stack Docker dùng một lần; không ghi vào hệ thống thật. Bản build không đặt VITE_ONLINE_BACKEND=supabase vẫn dùng adapter Firebase để rollback.

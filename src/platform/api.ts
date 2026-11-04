@@ -46,6 +46,8 @@ export async function createApiStore(): Promise<RoomStore> {
     let pending = false;
     let dirty = false;
     let previous: string | undefined;
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    let retryDelay = 1000;
     // Each subscription owns its socket, handlers and reconnect lifecycle.
     const socket = io(base, {
       transports: ["websocket"],
@@ -60,7 +62,8 @@ export async function createApiStore(): Promise<RoomStore> {
                   ? data.session.access_token
                   : "",
             });
-          });
+          })
+          .catch(() => callback({ token: "" }));
       },
     });
     async function refresh() {
@@ -91,14 +94,37 @@ export async function createApiStore(): Promise<RoomStore> {
         }
       }
     }
-    socket.on("connect", () => void refresh());
+    socket.on("connect", () => {
+      clearTimeout(retry);
+      retryDelay = 1000;
+      previous = undefined;
+      void refresh();
+    });
     socket.on("hub:changed", () => void refresh());
     socket.on("hub:unavailable", () => {
+      previous = undefined;
       if (!stopped)
         error(new HubError("Dịch vụ phòng đang kết nối lại database…"));
     });
-    socket.on("connect_error", () => {
-      if (!stopped) error(new HubError("Mất kết nối phòng. Đang kết nối lại…"));
+    socket.on("connect_error", (reason) => {
+      if (stopped) return;
+      previous = undefined;
+      const details = (reason as Error & { data?: { code?: unknown } }).data;
+      const needsLogin = details?.code === "AUTH_REQUIRED";
+      error(
+        new HubError(
+          needsLogin
+            ? "Hãy đăng nhập lại."
+            : "Mất kết nối phòng. Đang kết nối lại…",
+        ),
+      );
+      if (!needsLogin && !socket.active) {
+        clearTimeout(retry);
+        retry = setTimeout(() => {
+          if (!stopped) socket.connect();
+        }, retryDelay);
+        retryDelay = Math.min(30000, retryDelay * 2);
+      }
     });
     socket.on("disconnect", () => {
       if (!stopped) error(new HubError("Mất kết nối phòng. Đang kết nối lại…"));
@@ -113,6 +139,7 @@ export async function createApiStore(): Promise<RoomStore> {
     );
     const stop = () => {
       stopped = true;
+      clearTimeout(retry);
       socket.removeAllListeners();
       socket.disconnect();
       authListener.subscription.unsubscribe();

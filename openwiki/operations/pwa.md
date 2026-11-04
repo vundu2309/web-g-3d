@@ -1,9 +1,17 @@
 ---
 type: operations
 title: Cài PWA, offline shell và cập nhật
-description: Cách cài game trên điện thoại, scope/cache PWA và kiểm chứng cập nhật không reload phiên.
-tags: [pwa, install, offline, caching, mobile]
+description: Cách cài game trên điện thoại, scope/cache PWA và kiểm chứng cập
+  nhật không reload phiên.
+tags:
+  - pwa
+  - install
+  - offline
+  - caching
+  - mobile
 sources:
+  - id: openwiki-source-b26fdac5f2b9ba8a19fdd0f6
+    resource: repo://docs/infrastructure.md
   - id: openwiki-source-701123ef063b2b49fc5126ba
     resource: repo://docs/pwa.md
   - id: openwiki-source-f8d10828394c4129061d5b0e
@@ -16,6 +24,10 @@ sources:
     resource: repo://scripts/service-worker.js
   - id: openwiki-source-3515d68bed1b916f693296ec
     resource: repo://scripts/test-browser.mjs
+  - id: openwiki-source-9d81102c99fa0be75f0562d6
+    resource: repo://scripts/test-supabase.mjs
+  - id: openwiki-source-32d34de3adc601eacf7364ad
+    resource: repo://src/app/password-recovery.ts
   - id: openwiki-source-fdc97d585e693e9f422ad7ae
     resource: repo://src/app/pwa.ts
   - id: openwiki-source-49557827443d53e9eeae17f4
@@ -30,6 +42,10 @@ sources:
     resource: repo://src/game-ui/render.ts
   - id: openwiki-source-a09d1fc6a11ce8c081c67432
     resource: repo://src/game-ui/style.css
+  - id: openwiki-source-a516dc77b4f57ace3d032e8c
+    resource: repo://src/platform/account.ts
+  - id: openwiki-source-2a80fab523f1197e079cba62
+    resource: repo://src/platform/api.ts
   - id: openwiki-source-77110d1e1f1125ab5211f920
     resource: repo://src/platform/pwa.ts
   - id: openwiki-source-554339f52225d7d8edff3ed0
@@ -42,10 +58,10 @@ sources:
     resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-04T07:11:51.775Z" }
+generated: { by: "codex", at: "2026-11-04T09:34:07.893Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T07:16:09.992Z
+    at: 2026-11-04T09:38:50.588Z
 ---
 
 # PWA của Phố Tỷ Phú
@@ -85,3 +101,10 @@ Waiting PWA updates never auto-reload; Cập nhật ngay requires confirmation a
 ## Local 3D board preview
 
 The local ?view=game preview uses one Three.js renderer across HUD redraws, a shared40-space grid with2.2-deep tiles, outward-readable labels and buildings on inner property stripes. Focus follows the active fixture token; Overview supports orbit/pan/zoom. WebGL fallback preserves a flat board. No authoritative economy or multiplayer gameplay is added. Tests/board-layout.test.mjs and tests/board-browser.mjs cover geometry and real WebGL camera/lifecycle/fallback behavior on dev/production. Mobile physical-device verification remains pending.
+
+
+## Frontend Auth và kiểm thử full stack
+
+Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.
+
+Cấu hình email redirect được giới hạn về origin Vercel đã duyệt qua VITE_AUTH_REDIRECT_URL; CA công khai của Supabase được pin cho listener trong khi giữ xác minh TLS/hostname. `npm run test:supabase` chạy stack dùng một lần và CI cũng gọi bài kiểm thử này. Kiểm thử local không tự chứng minh email thật đã đến hộp thư bên ngoài.

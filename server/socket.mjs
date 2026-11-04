@@ -1,7 +1,10 @@
 import { Server } from "socket.io";
 
 // Push invalidations only. Authorized snapshots always come from PostgreSQL.
-export function attachSockets(server, { origins, authenticate, snapshot }) {
+export function attachSockets(
+  server,
+  { origins, authenticate, snapshot, ready = () => true },
+) {
   const allowed = new Set(origins);
   const io = new Server(server, {
     transports: ["websocket"],
@@ -11,16 +14,27 @@ export function attachSockets(server, { origins, authenticate, snapshot }) {
       done(null, !req.headers.origin || allowed.has(req.headers.origin)),
   });
   io.use(async (socket, next) => {
+    const reject = (code) => {
+      const error = new Error(
+        code === "AUTH_REQUIRED"
+          ? "Hãy đăng nhập lại."
+          : "Dịch vụ phòng đang kết nối lại.",
+      );
+      error.data = { code };
+      next(error);
+    };
+    if (!ready()) return reject("SERVICE_UNAVAILABLE");
     try {
       const token = socket.handshake.auth?.token;
-      if (typeof token !== "string" || token.length > 8192) throw new Error();
+      if (typeof token !== "string" || token.length > 8192)
+        return reject("AUTH_REQUIRED");
       const user = await authenticate(token);
-      if (!user) throw new Error();
+      if (!user) return reject("AUTH_REQUIRED");
       socket.data.token = token;
       socket.data.uid = user.id;
       next();
     } catch {
-      next(new Error("Hãy đăng nhập lại."));
+      reject("SERVICE_UNAVAILABLE");
     }
   });
   io.on("connection", (socket) => {

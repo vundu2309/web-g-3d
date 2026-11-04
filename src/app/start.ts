@@ -46,7 +46,8 @@ export function start(root: HTMLElement): () => void {
   let connecting: Promise<RoomStore> | undefined;
   let connectionGeneration = 0;
   let room: Room | null = null;
-  let code = sessionStorage.getItem("hub:room") || "";
+  const roomSessionKey = useSupabase ? "hub:supabase:room" : "hub:room";
+  let code = sessionStorage.getItem(roomSessionKey) || "";
   let stopWatch: (() => void) | undefined;
   let busy = false;
   let disposed = false;
@@ -63,6 +64,15 @@ export function start(root: HTMLElement): () => void {
   let stopList: (() => void) | undefined;
   let stopAuth: (() => void) | undefined;
   const abort = new AbortController();
+  window.addEventListener(
+    "account-password-recovery",
+    () => {
+      void import("./password-recovery").then(({ openPasswordRecovery }) => {
+        if (!disposed) openPasswordRecovery(abort.signal);
+      });
+    },
+    { signal: abort.signal },
+  );
   const toast = document.querySelector<HTMLElement>("#announcement")!;
   const announce = (text: string) => {
     toast.textContent = text;
@@ -82,14 +92,14 @@ export function start(root: HTMLElement): () => void {
   const notice = () =>
     `<p class="form-error" role="alert" ${errorText ? "" : "hidden"}>${escape(errorText)}</p>`;
   const modeLabel = () =>
-    `<span class="mode-label">${mode === "demo" ? "Bản thử · Chỉ cùng trình duyệt" : "Chơi online · Firebase"}</span>`;
+    `<span class="mode-label">${mode === "demo" ? "Bản thử · Chỉ cùng trình duyệt" : useSupabase ? "Chơi online" : "Chơi online · Firebase"}</span>`;
   function render(focus = false) {
     if (disposed) return;
     const activeAction = (document.activeElement as HTMLElement | null)?.dataset
       .action;
     let content: string;
     if (page === "home") {
-      content = `<main class="home" aria-labelledby="page-title"><section class="identity"><h1 id="page-title" class="wordmark">Phố<br/>Tỷ Phú</h1>${emblem}</section><section class="home-actions" aria-label="Chọn cách vào phòng"><p class="tagline">Cùng bạn bè làm chủ cuộc chơi</p>${button("create", "Tạo phòng", "plus")}${button("join", "Tham gia phòng", "door", "secondary")}<div class="home-shortcuts"><a class="help-link game-preview-entry" href="?view=game">${icon("play")}Xem trước HUD ván chơi</a><a class="help-link" href="#help">${icon("help")}Cách chơi</a><button type="button" class="text-button" data-pwa-install>Cài lên điện thoại</button></div>${mode === "online" ? `<div class="account-bar">${accountName ? `<span>Player: ${escape(accountName)}</span><button class="text-button" data-action="logout">Đăng xuất</button>` : `<button class="text-button" data-action="account">Đăng nhập / Đăng ký</button>`}</div>` : ""}${modeLabel()}<button class="mode-switch" data-action="mode">${mode === "online" ? "Thử trên thiết bị này" : "Chuyển sang chơi online"}</button><p class="mode-note">${mode === "demo" ? "Mở thêm tab để thử cùng nhau. Không kết nối người chơi trên thiết bị khác." : "Tạo phòng riêng và gửi mã cho bạn bè."}</p>${notice()}</section></main>`;
+      content = `<main class="home" aria-labelledby="page-title"><section class="identity"><h1 id="page-title" class="wordmark">Phố<br/>Tỷ Phú</h1>${emblem}</section><section class="home-actions" aria-label="Chọn cách vào phòng"><p class="tagline">Cùng bạn bè làm chủ cuộc chơi</p>${button("create", "Tạo phòng", "plus")}${button("join", "Tham gia phòng", "door", "secondary")}<div class="home-shortcuts"><a class="help-link game-preview-entry" href="?view=game">${icon("play")}Xem trước HUD ván chơi</a><a class="help-link" href="#help">${icon("help")}Cách chơi</a><button type="button" class="text-button" data-pwa-install>Cài lên điện thoại</button></div>${mode === "online" ? `<div class="account-bar">${accountName ? `<span>Player: ${escape(accountName)}</span><button class="text-button" data-action="logout">Đăng xuất</button>` : `<button class="text-button" data-action="account">Đăng nhập / Đăng ký</button>`}</div>` : ""}${modeLabel()}<button class="mode-switch" data-action="mode">${mode === "online" ? "Thử trên thiết bị này" : "Chuyển sang chơi online"}</button><p class="mode-note">${mode === "demo" ? "Mở thêm tab để thử cùng nhau. Không kết nối người chơi trên thiết bị khác." : useSupabase ? "Hệ thống tài khoản mới: hãy đăng ký lại để chơi online." : "Tạo phòng riêng và gửi mã cho bạn bè."}</p>${notice()}</section></main>`;
     } else if (page === "rooms") {
       content = `${header()}<main class="rooms-page"><h1 id="page-title">Chọn phòng</h1><p>Chọn phòng của bạn bè hoặc nhập mã phòng.</p><div class="room-directory" aria-live="polite">${
         listingLoading
@@ -265,14 +275,14 @@ export function start(root: HTMLElement): () => void {
     stopWatch = undefined;
     room = null;
     code = "";
-    sessionStorage.removeItem("hub:room");
+    sessionStorage.removeItem(roomSessionKey);
     confirmLeave = false;
   }
   function watchRoom(trace?: Trace) {
     let first = true;
     const endSnapshot = trace?.begin("first_snapshot");
     page = "lobby";
-    sessionStorage.setItem("hub:room", code);
+    sessionStorage.setItem(roomSessionKey, code);
     history.replaceState(null, "", "#lobby");
     stopWatch?.();
     stopWatch = store!.watch(

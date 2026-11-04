@@ -10,9 +10,11 @@ import { EventEmitter } from "node:events";
 test("Socket.IO authenticates, pushes committed invalidations, and rechecks authorization after reconnect", async () => {
   const server = createServer();
   let revoked = false;
+  let available = true;
   let version = 1;
   const io = attachSockets(server, {
     origins: ["https://game.test"],
+    ready: () => available,
     authenticate: async (token) =>
       token === "valid" && !revoked ? { id: "player" } : null,
     snapshot: async (_token, input) => {
@@ -49,6 +51,11 @@ test("Socket.IO authenticates, pushes committed invalidations, and rechecks auth
     wrongOrigin.connect();
     await blocked;
     assert.equal(wrongOrigin.connected, false);
+    available = false;
+    const unavailable = once(first, "connect_error");
+    first.connect();
+    assert.equal((await unavailable)[0].data.code, "SERVICE_UNAVAILABLE");
+    available = true;
     const connected = Promise.all([
       once(first, "connect"),
       once(second, "connect"),
