@@ -40,7 +40,7 @@ Use the opt-in [timing panel](diagnostics.md) on the affected phone before attri
 
 ## HUD preview checks
 
-The browser runner also exercises `tests/game-ui-browser.mjs` against dev and production builds. It checks the 24 scenario layouts at landscape phone sizes, no observer actions, fixed-step bids, touch-only trade controls, active-turn/respondent markers and local offline/reload behavior. The route is a local UI preview with no production Firebase requests; it is not a real multiplayer game test. See [HUD implementation](game/ui-implementation.md).
+The browser runner also exercises `tests/game-ui-browser.mjs` and `tests/board-browser.mjs` against dev and production builds. The board suite checks a single WebGL context across redraws, Focus/Overview gestures, resize, context loss and the flat fallback; unit geometry lives in `tests/board-layout.test.mjs`. It checks the 24 scenario layouts at landscape phone sizes, no observer actions, fixed-step bids, touch-only trade controls, active-turn/respondent markers and local offline/reload behavior. The route is a local UI preview with no production Firebase requests; it is not a real multiplayer game test. See [HUD implementation](game/ui-implementation.md).
 
 ## PWA checks
 

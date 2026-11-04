@@ -57,6 +57,7 @@ try {
           r.bottom <= safe.bottom + 1;
         for (const selector of [
           ".game-roster",
+          ".board-camera",
           ".game-settings",
           ".game-preview-label",
           ".game-actions",

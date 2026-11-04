@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:589a81e85a6c8039dddf1543dade34fdfe7d0657401031992941aac36afb78eb",
+  "pageVersion": "sha256:331063f84e2b0aa2625778eb6233482365d9eb352d5faa8812ea661f10f88d13",
   "claims": [
     {
       "id": "claim_7772453354ab4af78711c059117a2935",
@@ -8,7 +8,7 @@
       "evidence": [
         {
           "resource": "repo://src/app/play.ts",
-          "version": "repo-file-v1:sha256:9d7017ecd9ddf27d8a613e01cbaeab90e43ee9170fbe0257be7ff835487d9849"
+          "version": "repo-file-v1:sha256:40569151d1f48a9b191cce2ea1a06628c2ea40d0578f317e128fac2647ba02da"
         },
         {
           "resource": "repo://src/game-ui/model.ts",
@@ -26,7 +26,7 @@
       "evidence": [
         {
           "resource": "repo://docs/game/ui-implementation.md",
-          "version": "repo-file-v1:sha256:84f1b813332903f843c500f2557cb601968d9e9bbc9d4b6348cfa94e5bbce3ca"
+          "version": "repo-file-v1:sha256:1aa296420de0c58ae3ef96aed6e95f5b374f81976bd3f9c2ca3b02aa39e1fc02"
         },
         {
           "resource": "repo://src/game-ui/model.ts",
@@ -34,7 +34,7 @@
         },
         {
           "resource": "repo://src/game-ui/render.ts",
-          "version": "repo-file-v1:sha256:1e9795dee5ae1002b7f143130be6c6821cc08b5853d7ef37239b5156acbe784e"
+          "version": "repo-file-v1:sha256:d8f84dc971532046032a05311f549d86400a9d8992e665bc28b5911a22612d9e"
         }
       ]
     },
@@ -44,7 +44,7 @@
       "evidence": [
         {
           "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:0af5b2d94459c8b6fac2465bcb069a31fac485127d23a56c44f272c617d62923"
+          "version": "repo-file-v1:sha256:3d97f3e2897d6ac6f747ee4407ebadbfbb006eb9bd7c43feffdde08093dcb078"
         },
         {
           "resource": "repo://tests/game-ui-browser.mjs",
@@ -66,7 +66,7 @@
         },
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:4a5380c73c678026e2a458b90d1ed71d60d31b5caa06f8c260aee54e0e65099a"
+          "version": "repo-file-v1:sha256:c9e53aa64c0661ec6ebc3a827d9feb72f42c01661af01a6ba102d6c8f44ab348"
         },
         {
           "resource": "repo://tests/pwa-browser.mjs",
@@ -80,15 +80,15 @@
       "evidence": [
         {
           "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:0af5b2d94459c8b6fac2465bcb069a31fac485127d23a56c44f272c617d62923"
+          "version": "repo-file-v1:sha256:3d97f3e2897d6ac6f747ee4407ebadbfbb006eb9bd7c43feffdde08093dcb078"
         },
         {
           "resource": "repo://src/game-ui/render.ts",
-          "version": "repo-file-v1:sha256:1e9795dee5ae1002b7f143130be6c6821cc08b5853d7ef37239b5156acbe784e"
+          "version": "repo-file-v1:sha256:d8f84dc971532046032a05311f549d86400a9d8992e665bc28b5911a22612d9e"
         },
         {
           "resource": "repo://src/game-ui/style.css",
-          "version": "repo-file-v1:sha256:354f02408ff0c997dc7eb1cdbea671d4efca6e905033a246e2bee5b65d86ac48"
+          "version": "repo-file-v1:sha256:6f8026ae157c86b147b5dfc5297e502ebbab5baaaa3ef40763b824ad9529ffaa"
         },
         {
           "resource": "repo://src/style.css",
@@ -96,7 +96,7 @@
         },
         {
           "resource": "repo://tests/safe-area-browser.mjs",
-          "version": "repo-file-v1:sha256:3c4a61b02d8e6360d2efadd3fb5b82edd30ce01eca978f38d7c8e33ba8f4cc3a"
+          "version": "repo-file-v1:sha256:ee8ae0f23f771c78acb7811493d39647007951a6f456b2c4247c89cd019bd0d1"
         }
       ]
     },
@@ -125,10 +125,40 @@
           "version": "repo-file-v1:sha256:21a43103c558e9a3e50c6a1762ee97976d6057fadb4092e3d38b11f9dab720f0"
         }
       ]
+    },
+    {
+      "id": "claim_f8cc6a4ada194085a4873fe47c1ec55d",
+      "statement": "The local ?view=game preview uses one Three.js renderer across HUD redraws, a shared40-space grid with2.2-deep tiles, outward-readable labels and buildings on inner property stripes. Focus follows the active fixture token; Overview supports orbit/pan/zoom. WebGL fallback preserves a flat board. No authoritative economy or multiplayer gameplay is added.",
+      "evidence": [
+        {
+          "resource": "repo://src/board/layout.ts",
+          "version": "repo-file-v1:sha256:707a5ca84d90e0f049dc1698900f17dfd1a947e7c1c3249701fefacb2abf0292"
+        },
+        {
+          "resource": "repo://src/board/scene.ts",
+          "version": "repo-file-v1:sha256:ea08534ead1252304514aa5984e08ab962e64fd76342c1a276a617f5e8890641"
+        },
+        {
+          "resource": "repo://src/board/stage.ts",
+          "version": "repo-file-v1:sha256:e3b3a580fb9ba2a5d83c25a1ab0a037e7dc53165d9af3014def9480b389cb29f"
+        },
+        {
+          "resource": "repo://src/game-ui/board-preview.ts",
+          "version": "repo-file-v1:sha256:d75d3f96ce1ef1965aa7fa409f869a31778a17bd1cd3f3d85e53589bc8f68dff"
+        },
+        {
+          "resource": "repo://tests/board-browser.mjs",
+          "version": "repo-file-v1:sha256:c78c56eeaf103d65f5be1cb5e78e9ed0c0f8f850285884f49c96abf994b472b5"
+        },
+        {
+          "resource": "repo://tests/board-layout.test.mjs",
+          "version": "repo-file-v1:sha256:f6d0c2e39a7a80adbd96b947ce776b3ca0b09a5be66349a3231e0bc16057c445"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T05:40:12.093Z"
+    "at": "2026-11-04T07:19:37.851Z"
   }
 }

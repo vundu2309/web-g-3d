@@ -9,6 +9,8 @@ import {
 } from "../game-ui/model";
 import { escape } from "../game-ui/icons";
 import { renderGame, type Presentation } from "../game-ui/render";
+import { BoardStage } from "../board/stage";
+import { previewBoardState } from "../game-ui/board-preview";
 
 /** UI review adapter only. No Firebase import, cloud writes, or production economy. */
 export function startPlay(root: HTMLElement): () => void {
@@ -29,7 +31,9 @@ export function startPlay(root: HTMLElement): () => void {
     selected: 2,
     mortgage: false,
     notice: "",
+    camera: "overview",
   };
+  const board = new BoardStage();
   const dialog = document.createElement("dialog");
   dialog.className = "game-preview-dialog";
   dialog.setAttribute("aria-labelledby", "preview-settings-title");
@@ -40,6 +44,8 @@ export function startPlay(root: HTMLElement): () => void {
     const previous = (document.activeElement as HTMLElement)?.dataset
       .gameAction;
     root.innerHTML = renderGame(p);
+    board.setState(previewBoardState(p));
+    board.mount(root.querySelector<HTMLElement>("[data-board-host]"));
     if (previous)
       root
         .querySelector<HTMLButtonElement>(`[data-game-action="${previous}"]`)
@@ -57,6 +63,8 @@ export function startPlay(root: HTMLElement): () => void {
       p.selected = 2;
       p.mortgage = false;
       p.notice = "";
+      p.camera = "overview";
+      board.setMode("overview");
       origin = 1;
     }
     const url = new URL(location.href);
@@ -77,7 +85,7 @@ export function startPlay(root: HTMLElement): () => void {
     draw();
   }
   function showSettings() {
-    dialog.innerHTML = `<h2 id="preview-settings-title">Xem trước HUD ván chơi</h2><p>24 trạng thái giao diện mẫu. Thao tác chỉ diễn ra trên máy này, chưa xử lý luật hoặc đồng bộ ván qua Firebase. Board 3D và hiệu ứng di chuyển sẽ được phát triển ở bước sau.</p><div class="scenario-grid">${scenarios.map((s) => `<button type="button" data-scenario="${s.id}" aria-current="${p.scenario.id === s.id}">${String(s.id).padStart(2, "0")} · ${escape(s.name)}</button>`).join("")}</div><div class="preview-dialog-footer"><a href="./#lobby">Về phòng chờ / trang chính</a><button class="text-button" type="button" data-close-preview>Đóng</button></div>`;
+    dialog.innerHTML = `<h2 id="preview-settings-title">Xem trước HUD ván chơi</h2><p>24 trạng thái giao diện mẫu. Thao tác chỉ diễn ra trên máy này, chưa xử lý luật hoặc đồng bộ ván qua Firebase. Bàn 3D chỉ là minh họa cục bộ: Theo dõi bám theo quân đang có lượt; Toàn cảnh cho phép kéo, chụm hoặc dùng phím mũi tên và dấu +/− để xem.</p><div class="scenario-grid">${scenarios.map((s) => `<button type="button" data-scenario="${s.id}" aria-current="${p.scenario.id === s.id}">${String(s.id).padStart(2, "0")} · ${escape(s.name)}</button>`).join("")}</div><div class="preview-dialog-footer"><a href="./#lobby">Về phòng chờ / trang chính</a><button class="text-button" type="button" data-close-preview>Đóng</button></div>`;
     dialog.showModal();
   }
   function dispatch(action: ActionId) {
@@ -201,7 +209,7 @@ export function startPlay(root: HTMLElement): () => void {
         break;
       case "continue":
         p.notice =
-          "Bản mẫu: Minh rút Advance to GO. Board và hiệu ứng sẽ xử lý ở bước gameplay.";
+          "Bản mẫu: Minh rút Advance to GO. Quân cờ 3D chỉ minh họa; luật và đồng bộ ván sẽ xử lý ở bước gameplay.";
         setScenario(17);
         break;
       case "end":
@@ -226,6 +234,20 @@ export function startPlay(root: HTMLElement): () => void {
       const action = target.dataset.gameAction;
       if (action) {
         dispatch(action as ActionId);
+        return;
+      }
+      const camera = target.dataset.boardCamera;
+      if (camera === "focus" || camera === "overview") {
+        p.camera = camera;
+        board.setMode(camera);
+        root
+          .querySelectorAll<HTMLElement>("[data-board-camera]")
+          .forEach((button) =>
+            button.setAttribute(
+              "aria-pressed",
+              String(button.dataset.boardCamera === camera),
+            ),
+          );
         return;
       }
       if (p.scenario.active !== 0) return;
@@ -296,6 +318,7 @@ export function startPlay(root: HTMLElement): () => void {
     disposed = true;
     abort.abort();
     if (timer) clearTimeout(timer);
+    board.dispose();
     dialog.remove();
     root.classList.remove("game-root");
     root.innerHTML = "";

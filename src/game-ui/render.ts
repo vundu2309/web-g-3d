@@ -1,4 +1,5 @@
 import { allowed, money, type ActionId, type Scenario } from "./model";
+import type { CameraMode } from "../board/camera-math";
 import { escape, glyph } from "./icons";
 export interface Presentation {
   scenario: Scenario;
@@ -10,6 +11,7 @@ export interface Presentation {
   selected: number;
   mortgage: boolean;
   notice: string;
+  camera: CameraMode;
 }
 const propertyNames = ["Kentucky Avenue", "Indiana Avenue", "Illinois Avenue"];
 const rents = [18, 36, 90, 250, 700, 875, 1050];
@@ -26,68 +28,28 @@ export function avatar(index: number): string {
   const hair = ["#49352e", "#6d362a", "#252b32", "#e8794d"][index];
   return `<svg aria-hidden="true" viewBox="0 0 64 64"><circle cx="32" cy="32" r="31" fill="${["#f8d16f", "#ffd5c6", "#b7e2ca", "#ffc5aa"][index]}"/><path d="M8 64c0-19 48-19 48 0" fill="${["#3384d5", "#f48782", "#4ca77f", "#e9683c"][index]}"/><path d="M13 31c-3-30 42-30 39 0v16H13" fill="${hair}"/><ellipse cx="32" cy="31" rx="17" ry="20" fill="#ffd4ae"/><path d="M14 25c2-25 35-24 38 0-13-1-16-12-17-13-3 9-13 12-21 13" fill="${hair}"/><g fill="#303146"><circle cx="25" cy="30" r="2"/><circle cx="39" cy="30" r="2"/></g><path d="M26 41q6 6 12 0" fill="none" stroke="#a3493b" stroke-width="2" stroke-linecap="round"/>${index === 2 ? '<g fill="none" stroke="#303146" stroke-width="2"><rect x="18" y="25" width="12" height="10" rx="4"/><rect x="34" y="25" width="12" height="10" rx="4"/><path d="M30 29h4"/></g>' : ""}</svg>`;
 }
-const tiles = [
-  ["GO", "corner"],
-  ["Mediterranean Avenue", "brown"],
-  ["Community Chest", "special"],
-  ["Baltic Avenue", "brown"],
-  ["Income Tax", "special"],
-  ["Reading Railroad", "rail"],
-  ["Rhode Island Avenue", "blue"],
-  ["Chance", "chance"],
-  ["Vermont Avenue", "blue"],
-  ["Connecticut Avenue", "blue"],
-  ["Jail / Just Visiting", "corner"],
-  ["St. Charles Place", "pink"],
-  ["Electric Company", "special"],
-  ["States Avenue", "pink"],
-  ["Virginia Avenue", "pink"],
-  ["Pennsylvania Railroad", "rail"],
-  ["St. James Place", "orange"],
-  ["Community Chest", "special"],
-  ["Tennessee Avenue", "orange"],
-  ["New York Avenue", "orange"],
-  ["Free Parking", "corner"],
-  ["Kentucky Avenue", "red"],
-  ["Chance", "chance"],
-  ["Indiana Avenue", "red"],
-  ["Illinois Avenue", "red"],
-  ["B. & O. Railroad", "rail"],
-  ["Atlantic Avenue", "yellow"],
-  ["Ventnor Avenue", "yellow"],
-  ["Water Works", "special"],
-  ["Marvin Gardens", "yellow"],
-  ["Go To Jail", "corner"],
-  ["Pacific Avenue", "green"],
-  ["North Carolina Avenue", "green"],
-  ["Community Chest", "special"],
-  ["Pennsylvania Avenue", "green"],
-  ["Short Line", "rail"],
-  ["Chance", "chance"],
-  ["Park Place", "darkblue"],
-  ["Luxury Tax", "special"],
-  ["Boardwalk", "darkblue"],
-];
-export function board(s: Scenario): string {
-  return `<div class="board-mat" aria-label="Sơ đồ minh họa bàn cờ; board 3D sẽ được phát triển sau"><div class="board-middle"><div class="mini-deck deck-chance">?</div><div class="preview-dice ${s.id === 2 ? "is-moving" : ""}" aria-hidden="true"><span>⚄</span><span>${s.id === 20 ? "⚄" : "⚂"}</span></div><div class="mini-deck deck-chest">${glyph("wallet")}</div><small>Sơ đồ minh họa</small></div>${tiles
-    .map(([name, color], i) => {
-      let row: number, col: number;
-      if (i <= 10) {
-        row = 11;
-        col = 11 - i;
-      } else if (i <= 20) {
-        row = 21 - i;
-        col = 1;
-      } else if (i <= 30) {
-        row = 1;
-        col = i - 19;
-      } else {
-        row = i - 29;
-        col = 11;
-      }
-      const token = [8, 24, 32, 13].indexOf(i);
-      return `<div class="board-tile tile-${color}" style="grid-row:${row};grid-column:${col}"><span>${color === "chance" ? "?" : color === "rail" ? "▤" : name}</span>${token >= 0 ? `<i class="board-token token-${token} ${s.active === token ? "current-token" : ""}"></i>` : ""}</div>`;
-    })
+const cameraIcons: Record<CameraMode, string> = {
+  focus:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  overview:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+const cameraLabels: Record<CameraMode, string> = {
+  focus: "Theo dõi lượt",
+  overview: "Toàn cảnh bàn",
+};
+/** 3D board host. play.ts mounts the single WebGL canvas here after every HUD redraw. */
+export function board(): string {
+  return `<div class="board-host" data-board-host tabindex="0" role="group" aria-label="Bàn cờ 3D minh họa. Ở chế độ toàn cảnh: kéo để xoay, chụm hoặc tách hai ngón để phóng to, phím mũi tên để xoay và dấu cộng hoặc trừ để phóng."></div>`;
+}
+/** Camera-only controls: viewing affordances for everyone, not gameplay actions. */
+export function cameraControls(p: Presentation): string {
+  const modes: CameraMode[] = ["focus", "overview"];
+  return `<div class="board-camera" role="group" aria-label="Chế độ xem bàn cờ">${modes
+    .map(
+      (mode) =>
+        `<button type="button" data-board-camera="${mode}" aria-pressed="${p.camera === mode}" aria-label="${cameraLabels[mode]}" title="${cameraLabels[mode]}">${cameraIcons[mode]}</button>`,
+    )
     .join("")}</div>`;
 }
 const labels: Record<ActionId, [string, string]> = {
@@ -184,7 +146,7 @@ export function renderGame(p: Presentation): string {
       : s.id === 5 && p.highest + 10 > p.balances[0]!
         ? "Không đủ tiền để nâng giá"
         : "";
-  return `<main class="game-screen ${hasSurface ? "has-task" : ""} ${s.id === 23 ? "connection-lost" : ""} ${s.id === 2 ? "moving-state" : ""}" aria-label="HUD ván chơi — bản xem trước"><div class="game-safe"><div class="game-preview-label">Bản xem trước · Dữ liệu minh họa</div><button class="game-settings" data-game-settings type="button" aria-label="Tùy chọn bản xem trước">${glyph("settings")}</button><div class="game-scene">${board(s)}</div>${hasSurface ? `<div class="game-task">${surface(p)}</div>` : ""}<section class="game-actions" aria-label="${s.observer ? "Diễn biến chung" : "Thao tác hiện tại"}">${title ? `<h1>${escape(title)}</h1>` : ""}${[5, 6].includes(s.id) ? `<p>Giá cao nhất: <strong>${money(p.highest)}</strong><br>${escape(p.leader)} đang dẫn</p>` : ""}${s.detail ? `<p>${escape(s.detail)}</p>` : ""}${s.actions
+  return `<main class="game-screen ${hasSurface ? "has-task" : ""} ${s.id === 23 ? "connection-lost" : ""} ${s.id === 2 ? "moving-state" : ""}" aria-label="HUD ván chơi — bản xem trước"><div class="game-safe"><div class="game-preview-label">Bản xem trước · Dữ liệu minh họa</div><button class="game-settings" data-game-settings type="button" aria-label="Tùy chọn bản xem trước">${glyph("settings")}</button><div class="game-scene">${board()}</div>${cameraControls(p)}${hasSurface ? `<div class="game-task">${surface(p)}</div>` : ""}<section class="game-actions" aria-label="${s.observer ? "Diễn biến chung" : "Thao tác hiện tại"}">${title ? `<h1>${escape(title)}</h1>` : ""}${[5, 6].includes(s.id) ? `<p>Giá cao nhất: <strong>${money(p.highest)}</strong><br>${escape(p.leader)} đang dẫn</p>` : ""}${s.detail ? `<p>${escape(s.detail)}</p>` : ""}${s.actions
     .filter((a) => allowed(s, a))
     .map((a, i) => actionButton(a, p, i))
     .join(

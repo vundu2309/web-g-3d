@@ -2,7 +2,7 @@
 
 Hub cho board game giao dịch bất động sản, ưu tiên **điện thoại xoay ngang**. Theme giấy xanh nhạt, chữ cobalt và nút vàng theo mẫu đã duyệt. Đã bỏ cảnh biển, thuyền và engine 3D cũ.
 
-Luồng hiện tại: trang chính → tạo/tham gia phòng → phòng chờ → trạng thái hoàn tất hub. Có đăng ký/đăng nhập email-mật khẩu qua Firebase Auth, hồ sơ player, danh sách phòng theo tên/chủ phòng, mã mời, tối đa 2–4 người, sẵn sàng, khôi phục phòng sau reload và rời/đóng phòng. Chưa có bàn chơi, xúc xắc, mua đất hoặc gameplay Monopoly.
+Luồng hiện tại: trang chính → tạo/tham gia phòng → phòng chờ → trạng thái hoàn tất hub. Có đăng ký/đăng nhập email-mật khẩu qua Firebase Auth, hồ sơ player, danh sách phòng theo tên/chủ phòng, mã mời, tối đa 2–4 người, sẵn sàng, khôi phục phòng sau reload và rời/đóng phòng. Có bản xem trước bàn 3D tại `?view=game`: 40 ô, quân/công trình/xúc xắc minh họa và camera Theo dõi/Toàn cảnh. Chưa có luật mua đất, economy hoặc multiplayer gameplay authoritative.
 
 ## Chạy và kiểm tra
 

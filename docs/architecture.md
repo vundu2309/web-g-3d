@@ -1,6 +1,6 @@
 # Architecture and context map
 
-Phố Tỷ Phú is a TypeScript/Vite browser hub for a future property-trading board game. The ocean, Babylon and Havok code/dependencies are removed. No board, 3D renderer, monetary economy or gameplay simulation is implemented yet.
+Phố Tỷ Phú is a TypeScript/Vite browser hub for a future property-trading board game. The ocean, Babylon and Havok code/dependencies are removed. A local Three.js board preview is implemented in `src/board`, isolated from hub/Firebase. Monetary economy and authoritative gameplay are not implemented.
 
 | Layer | Ownership | Dependencies |
 | --- | --- | --- |

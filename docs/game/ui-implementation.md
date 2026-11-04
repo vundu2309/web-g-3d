@@ -16,7 +16,7 @@ Phòng Auth/Firestore cũ tiếp tục hoạt động. Bắt đầu phòng chưa
 - Observer vẫn thấy thẻ, người đang quyết định, mức giá/đề nghị và kết quả. Không phải màn trống chỉ ghi “chờ”. Không triển khai mọi người tự mở task riêng song song.
 - Thẻ đất giữ cấu trúc thẻ in: dải màu/tên, full rent ladder, giá xây, mặt sau riêng. Font đen Arial/Helvetica và góc vuông, không áp font/bo góc của HUD lên thẻ. Đây là template HTML/CSS, không tuyên bố là file artwork Hasbro gốc đã được xác minh.
 - Mua/đấu giá ở cạnh thẻ; không hiển thị bảng “Tiền của bạn / Sau khi mua”. Không mở bàn phím để đấu giá: nút +10/+20/+50 cộng vào giá cao nhất, ghi rõ tổng mới. Đây là quy tắc tương tác do người dùng chọn, không khẳng định là quy định duy nhất của Monopoly gốc.
-- Trạng thái 02 không có heading/detail hoặc action. CSS dice animation chỉ là minh họa preview; chuyển quân và board 3D chưa được xây dựng.
+- Trạng thái 02 không có heading/detail hoặc action. Chuyển quân 3D chỉ là minh họa preview, không quyết định kết quả luật.
 - Kết thúc ván theo người cuối chưa phá sản; không xếp người có số dư dương thành thắng/thua kiểu ván tính giờ.
 
 ## Ownership và đường nối backend sau này
@@ -38,10 +38,37 @@ Các thao tác mẫu: tung → trạng thái 02 → quyết định mua; mua/tha
 
 `tests/game-ui.test.mjs` kiểm tra observer/response permissions, bid dựa giá cao nhất, trạng thái 02 không text/action, tung tiếp không có end-turn. `tests/game-ui-browser.mjs` kiểm tra flow mẫu, chính xác marker chủ lượt/respondent, không bàn phím trade/auction, đủ 7 rent rows, icon nhỏ, touch target, overflow/overlap trên 667×375, 844×390, 932×430; portrait, offline/online và reload. Test preview chặn Firebase production; không ghi dữ liệu thật. Auth integration cũng làm chậm room-listener transport sau khi directory đã cache roster cũ để kiểm tra join không bị kết luận rời phòng từ cache.
 
-Sơ đồ bàn chỉ là placeholder HTML/CSS với 40 ô, chưa phải board 3D, chưa có animation di chuyển quân. Tài sản, tiền, giá và kết quả là fixture; thiếu sót nguồn ở Plan 01 vẫn cần xử lý trước engine. Ngân hàng, thẻ đầy đủ, auction resolution, trade acceptance qua nhiều máy và reconnect server chưa implement. Trình duyệt mô phỏng không chứng minh ergonomics/hiệu năng trên điện thoại thật.
+Bàn 3D (xem mục [Bàn 3D xem trước](#bàn-3d-xem-trước)) là **bản xem trước cục bộ**: quân, nhà và xúc xắc lấy từ fixture `src/game-ui/board-preview.ts`, không phải trạng thái authoritative. Chuyển quân trong trạng thái 02 chỉ là minh họa, không có luật di chuyển hay tiền qua GO. Tài sản, tiền, giá và kết quả là fixture; thiếu sót nguồn ở Plan 01 vẫn cần xử lý trước engine. Ngân hàng, thẻ đầy đủ, auction resolution, trade acceptance qua nhiều máy và reconnect server chưa implement. Trình duyệt mô phỏng không chứng minh ergonomics/hiệu năng trên điện thoại thật.
 
 ## Mobile safe area
 
 HUD foreground shares one `.game-safe` coordinate system inset by the four `--safe-*` tokens mapped to CSS `env(safe-area-inset-*)`. Background remains full bleed. Size responsive cards against the safe container (cqw/cqh), not the glass viewport. Landscape task cards and action trays scroll independently when vertical space is limited; preserve 44px actions and keep the bottom roster clear. Do not apply a second inset to individual HUD children.
 
 `tests/safe-area-browser.mjs` checks all 24 states with asymmetric left/right cutouts and bottom home-indicator insets, reachable actions and portrait modal bounds against dev/production. These are CSS inset simulations, not physical-device verification.
+
+## Bàn 3D xem trước
+
+Phạm vi đã được người dùng duyệt: bàn 3D WebGL (Three.js) trong `?view=game`, thay thế sơ đồ HTML cũ, cùng hai chế độ camera và các điều khiển xem. Đây vẫn là **bản xem trước cục bộ**: không ghi Firestore, không gửi lệnh gameplay, không thay đổi quyền thao tác. Camera không phải action; observer cũng dùng được.
+
+| File | Trách nhiệm |
+| --- | --- |
+| `src/board/spaces.ts` | Dữ liệu 40 ô theo `docs/game/rules/board-and-properties.md` (G0009, Rhode Island Avenue ở ô 6), nhóm màu |
+| `src/board/layout.ts` | Hình học thuần: một lưới seam `GRID` dùng chung, chỉ số ô, hướng nhãn, dải màu, vị trí token/nhà |
+| `src/board/camera-math.ts` | Pose camera thuần: toàn cảnh (fit theo góc chiếu thật) và theo dõi (quay về phía ô của quân) |
+| `src/board/texture.ts` | Vẽ mặt bàn bằng canvas 2D (một texture duy nhất); cũng dùng cho bản phẳng dự phòng |
+| `src/board/models.ts` | Token nguyên thủy (xe, mũ, tàu, chó), nhà, khách sạn, xúc xắc, chồng bài |
+| `src/board/scene.ts` | Nội dung cảnh: mặt bàn, slab, quân di chuyển theo đường đi, công trình; không tạo renderer |
+| `src/board/stage.ts` | `BoardStage`: một renderer suốt đời game view, một canvas di chuyển giữa các host sau mỗi lần HUD vẽ lại |
+| `src/game-ui/board-preview.ts` | Adapter fixture từ presentation sang trạng thái bàn |
+
+**Hình học.** Ô ngoài có chiều dài 1 đơn vị (frontage) và chiều sâu `RING_DEPTH` = 2.2. Bốn góc là hình vuông cạnh 2.2. Mọi seam lấy từ 12 toạ độ `GRID`, nên ô liền kề và góc khớp chính xác, không có bậc ở GO. Dải màu nằm phía trong ô (`STRIPE_DEPTH` 0.4). Tên nằm trong dải trắng, token nằm vùng ngoài. Nhà 0.19 đơn vị nằm trọn trong dải; khách sạn dài 0.5.
+
+**Hướng chữ.** Đỉnh chữ hướng về tâm bàn: hàng dưới đứng thẳng, hàng trên lộn ngược, cột trái xoay 90° theo chiều kim đồng hồ, cột phải ngược chiều kim đồng hồ. Hằng số `LABEL_UP_SIGN = -1` điều khiển việc này. Vì thế người đứng phía ngoài mỗi cạnh đọc chữ đúng chiều; chữ không billboard hướng theo camera.
+
+**Camera.** Toàn cảnh: kéo một ngón để xoay, hai ngón để kéo vị trí và chụm/tách để phóng (chuột phải kéo, con lăn phóng), phím mũi tên xoay, `+`/`-` phóng. Khoảng cách được tìm bằng cách chiếu 8 góc mặt bàn qua phép chiếu perspective, không dùng công thức chiều rộng phẳng. Theo dõi: camera đứng ở phía ngoài của cạnh có quân đang có lượt, nhìn vào trong; quân di chuyển thì camera bám theo. Khi bảng bên phải mở (thẻ hoặc tray), bàn được dịch sang trái bằng `setViewOffset`.
+
+**Vòng đời.** Một `WebGLRenderer` cho suốt game view. Mỗi lần HUD `innerHTML` thay host, canvas được gắn lại vào host mới; texture, geometry, material và renderer chỉ hủy khi rời game view. Render theo yêu cầu (thay đổi trạng thái, camera, animation); dừng khi host ngoài màn hình hoặc tab ẩn. Mất ngữ cảnh WebGL hiển thị bản phẳng có cùng hình học, khôi phục thì quay lại 3D. Không có WebGL: cũng hiển thị bản phẳng, không trắng trang.
+
+**Giới hạn đã biết.** Ở 844×390 mặt bàn toàn cảnh chỉ cao khoảng 225 px, nên tên ô đọc được chủ yếu khi phóng hoặc ở chế độ theo dõi. Texture 3072 px tốn bộ nhớ GPU cỡ 36 MB cộng mipmap; cần kiểm tra trên điện thoại thật. Gói `three` làm chunk `play` khoảng 150 KB gzip, chỉ tải trên `?view=game`. Kiểm tra trên thiết bị thật, Safari/Android và đo hiệu năng chưa được thực hiện.
+
+**Kiểm chứng.** `tests/board-layout.test.mjs` (unit): 40 ô đúng thứ tự, khớp seam và góc, hướng nhãn, dải màu, vị trí nhà/token không chồng tên, toàn cảnh nằm trong khung nhìn theo phép chiếu three.js. `tests/board-browser.mjs` (dev và production): một canvas và một WebGL context qua nhiều lần vẽ lại, theo dõi/toàn cảnh, kéo, phím, đổi kích thước, mất/khôi phục context và bản dự phòng khi không có WebGL.

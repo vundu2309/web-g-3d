@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:56779aa09b6dd5bc479160643cdbcdd6334b1e1df9ab530c5e898c69e1beb22b",
+  "claims": [
+    {
+      "id": "claim_c4ff174dab0046f9bcf50f89f7c05072",
+      "statement": "The local ?view=game preview uses one Three.js renderer across HUD redraws, a shared40-space grid with2.2-deep tiles, outward-readable labels and buildings on inner property stripes. Focus follows the active fixture token; Overview supports orbit/pan/zoom. WebGL fallback preserves a flat board. No authoritative economy or multiplayer gameplay is added.",
+      "evidence": [
+        {
+          "resource": "repo://src/board/layout.ts",
+          "version": "repo-file-v1:sha256:707a5ca84d90e0f049dc1698900f17dfd1a947e7c1c3249701fefacb2abf0292"
+        },
+        {
+          "resource": "repo://src/board/scene.ts",
+          "version": "repo-file-v1:sha256:ea08534ead1252304514aa5984e08ab962e64fd76342c1a276a617f5e8890641"
+        },
+        {
+          "resource": "repo://src/board/stage.ts",
+          "version": "repo-file-v1:sha256:e3b3a580fb9ba2a5d83c25a1ab0a037e7dc53165d9af3014def9480b389cb29f"
+        },
+        {
+          "resource": "repo://src/game-ui/board-preview.ts",
+          "version": "repo-file-v1:sha256:d75d3f96ce1ef1965aa7fa409f869a31778a17bd1cd3f3d85e53589bc8f68dff"
+        },
+        {
+          "resource": "repo://tests/board-browser.mjs",
+          "version": "repo-file-v1:sha256:c78c56eeaf103d65f5be1cb5e78e9ed0c0f8f850285884f49c96abf994b472b5"
+        },
+        {
+          "resource": "repo://tests/board-layout.test.mjs",
+          "version": "repo-file-v1:sha256:f6d0c2e39a7a80adbd96b947ce776b3ca0b09a5be66349a3231e0bc16057c445"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-04T07:19:37.851Z"
+  }
+}

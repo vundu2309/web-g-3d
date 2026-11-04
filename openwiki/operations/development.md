@@ -36,6 +36,14 @@ sources:
     resource: repo://scripts/test-rules.mjs
   - id: openwiki-source-fdc97d585e693e9f422ad7ae
     resource: repo://src/app/pwa.ts
+  - id: openwiki-source-49557827443d53e9eeae17f4
+    resource: repo://src/board/layout.ts
+  - id: openwiki-source-1475654f7d7ee4e91ea6389a
+    resource: repo://src/board/scene.ts
+  - id: openwiki-source-e10546cfd06c4716552b2c32
+    resource: repo://src/board/stage.ts
+  - id: openwiki-source-d151d0d577d3bf13071b48d2
+    resource: repo://src/game-ui/board-preview.ts
   - id: openwiki-source-dba8152f894fe338575ac7a6
     resource: repo://src/game-ui/model.ts
   - id: openwiki-source-25f090f2d86f09b560443170
@@ -48,6 +56,10 @@ sources:
     resource: repo://src/style.css
   - id: openwiki-source-d6f301bba4bff3a816376dbe
     resource: repo://tests/auth-browser.mjs
+  - id: openwiki-source-956a523ed721749c7e5f092a
+    resource: repo://tests/board-browser.mjs
+  - id: openwiki-source-df13702d635f30aac30177fb
+    resource: repo://tests/board-layout.test.mjs
   - id: openwiki-source-23d81adb7ef7cfcf251d7e3a
     resource: repo://tests/diagnostics.test.mjs
   - id: openwiki-source-bcd61b642f291bcc011c6bcd
@@ -60,10 +72,10 @@ sources:
     resource: repo://tests/rules.test.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-04T05:40:12.093Z" }
+generated: { by: "codex", at: "2026-11-04T07:11:51.775Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T05:40:12.093Z
+    at: 2026-11-04T07:16:09.992Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -149,3 +161,7 @@ HUD foreground uses one `.game-safe` inset container with shared `--safe-*` toke
 ## Confirmed update action
 
 Waiting PWA updates never auto-reload; Cập nhật ngay requires confirmation and the requesting client to be the only window in scope before skipWaiting. Only that requester reloads on controllerchange; another window blocks apply with a visible message. Closing all clients still permits natural activation. Tests cover cancellation, two-window rejection, confirmed reload and notice disappearance. Old installed shells without this button must close all game tabs/windows once to load the new UI. No app removal or data clearing is needed.
+
+## Local 3D board preview
+
+The local ?view=game preview uses one Three.js renderer across HUD redraws, a shared40-space grid with2.2-deep tiles, outward-readable labels and buildings on inner property stripes. Focus follows the active fixture token; Overview supports orbit/pan/zoom. WebGL fallback preserves a flat board. No authoritative economy or multiplayer gameplay is added. Tests/board-layout.test.mjs and tests/board-browser.mjs cover geometry and real WebGL camera/lifecycle/fallback behavior on dev/production. Mobile physical-device verification remains pending.

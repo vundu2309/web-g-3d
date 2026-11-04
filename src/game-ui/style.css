@@ -45,187 +45,102 @@
   inset: 24px 0 88px;
   pointer-events: none;
 }
-.board-mat {
-  width: min(67cqw, calc(100cqh - 111px));
-  height: min(67cqw, calc(100cqh - 111px));
+/* Single host for the WebGL canvas; the board owns its own pixels (src/board). */
+.board-host {
   position: absolute;
-  left: 42%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  display: grid;
-  grid-template: repeat(11, 1fr) / repeat(11, 1fr);
-  padding: 3px;
-  background: #153b80;
-  border: 2px solid #153b80;
-  border-radius: 10px;
-  box-shadow:
-    0 5px 0 #2461a9,
-    0 10px 18px #153b8030;
-  gap: 1px;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 14px;
 }
-.board-middle {
-  grid-area: 2 / 2 / 11 / 11;
-  position: relative;
-  background: linear-gradient(140deg, #dceeff, #b9def9);
+.board-host.is-interactive {
+  pointer-events: auto;
+}
+.board-host:focus-visible {
+  outline: 3px solid #174ebd;
+  outline-offset: -4px;
+}
+.board-canvas,
+.board-host canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.board-host.is-interactive .board-canvas {
+  touch-action: none;
+  cursor: grab;
+}
+.board-canvas[hidden],
+.board-flat[hidden] {
+  display: none;
+}
+.board-flat {
+  position: absolute;
+  inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 6px;
+  padding: 4px 56px;
 }
-.board-middle > small {
-  position: absolute;
-  bottom: 7%;
-  font-size: 8px;
-  opacity: 0.6;
+.board-flat-canvas {
+  height: calc(100% - 30px);
+  width: auto;
+  aspect-ratio: 1 / 1;
+  max-width: 100%;
+  box-shadow: 0 5px 0 #2461a9;
+  border: 2px solid #153b80;
+  border-radius: 6px;
 }
-.board-tile {
-  position: relative;
-  background: #fffcf4;
+.board-flat-note {
+  margin: 0;
+  padding: 2px 10px;
+  border-radius: 8px;
+  background: #ffffffd9;
+  font-size: 11px;
+  line-height: 1.35;
   text-align: center;
-  display: grid;
-  align-items: center;
-  padding: 3px 1px 1px;
-  overflow: visible;
+  max-width: 100%;
 }
-.board-tile > span {
-  font-family: Arial, sans-serif;
-  font-size: clamp(3px, 0.6vw, 6px);
-  line-height: 1.05;
-  overflow-wrap: anywhere;
-  color: #1c2e51;
+.has-task .board-host {
+  opacity: 0.82;
 }
-.board-tile::before {
-  content: "";
+/* Camera toggles sit on the left edge, away from the action tray, roster and settings. */
+.board-camera {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 17%;
-  background: var(--tile-color, transparent);
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
-.tile-corner {
-  font-weight: bold;
-  background: #fffef3;
-}
-.tile-corner > span {
-  font-size: clamp(4px, 0.7vw, 8px);
-}
-.tile-brown {
-  --tile-color: #935738;
-}
-.tile-blue {
-  --tile-color: #aee1f4;
-}
-.tile-pink {
-  --tile-color: #df56a5;
-}
-.tile-orange {
-  --tile-color: #f29b29;
-}
-.tile-red {
-  --tile-color: #ed3241;
-}
-.tile-yellow {
-  --tile-color: #f5d333;
-}
-.tile-green {
-  --tile-color: #3bb867;
-}
-.tile-darkblue {
-  --tile-color: #2875ce;
-}
-.board-token {
-  position: absolute;
-  width: 12px;
-  height: 15px;
-  bottom: 0;
-  left: 40%;
-  border-radius: 50% 50% 35% 35%;
-  background: var(--token);
-  box-shadow:
-    inset -2px -2px 2px #0003,
-    0 2px 2px #153b8030;
-  z-index: 1;
-}
-.board-token::before {
-  content: "";
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  left: 2px;
-  top: -5px;
-  background: var(--token);
-}
-.token-0 {
-  --token: #f2c438;
-}
-.token-1 {
-  --token: #e76757;
-}
-.token-2 {
-  --token: #38b966;
-}
-.token-3 {
-  --token: #4188d8;
-}
-.current-token {
-  filter: drop-shadow(0 0 3px #ffdd23);
-  outline: 1px solid #ffde51;
-}
-.mini-deck {
-  position: absolute;
-  width: 24%;
-  aspect-ratio: 1.4;
-  border: 2px solid white;
-  border-radius: 5px;
-  box-shadow:
-    1px 3px 0 #dbd8d1,
-    1px 5px 3px #153b8025;
+.board-camera button {
+  width: 44px;
+  height: 44px;
+  padding: 0;
   display: grid;
   place-items: center;
-  color: white;
-  transform: rotate(-15deg);
-  font-size: 28px;
-  font-weight: 700;
+  border: 1.5px solid #153b80;
+  border-radius: 12px;
+  background: linear-gradient(#fff, #f5faff);
+  color: #153b80;
+  box-shadow: 0 3px 0 #2361aa;
+  cursor: pointer;
 }
-.deck-chance {
-  background: #f5a547;
-  left: 12%;
-  top: 17%;
+.board-camera button[aria-pressed="true"] {
+  background: linear-gradient(#ffe57a, #ffd14a);
 }
-.deck-chest {
-  background: #5ab5e8;
-  right: 10%;
-  bottom: 15%;
-  transform: rotate(-15deg);
+.board-camera button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #2361aa;
 }
-.deck-chest svg {
-  width: 55%;
-}
-.preview-dice {
-  display: flex;
-  gap: 5px;
-  transform: rotate(-12deg);
-  font:
-    45px/1 Arial,
-    sans-serif;
-  color: #293654;
-  text-shadow:
-    2px 4px 1px #ffffff,
-    3px 6px 2px #153b8030;
-}
-.is-moving {
-  animation: preview-roll 700ms ease-in-out infinite alternate;
-}
-@keyframes preview-roll {
-  to {
-    transform: rotate(40deg) translateY(-8px);
-  }
-}
-.has-task .board-mat {
-  left: 23%;
-  filter: blur(1.8px);
-  opacity: 0.58;
+.board-camera svg {
+  width: 22px;
+  height: 22px;
 }
 .game-actions {
   position: absolute;
@@ -904,15 +819,6 @@
     inset: 44px 0 auto;
     height: 340px;
   }
-  .board-mat {
-    left: 50%;
-    width: min(88cqw, 335px);
-    height: min(88cqw, 335px);
-  }
-  .has-task .board-mat {
-    left: 50%;
-    opacity: 0.25;
-  }
   .game-actions {
     top: auto;
     bottom: 134px;
@@ -966,9 +872,6 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .is-moving {
-    animation: none;
-  }
 }
 #app.game-root {
   padding: 0;
