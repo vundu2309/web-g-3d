@@ -8,6 +8,8 @@ sources:
     resource: repo://AGENTS.md
   - id: openwiki-source-de23c649f29de7b7defa1fe3
     resource: repo://docs/decisions/0002-mobile-board-game-hub.md
+  - id: openwiki-source-d2af7d5d6c732484bd8c1c05
+    resource: repo://docs/decisions/0004-shared-session-action-policy.md
   - id: openwiki-source-523a2ee371c511874cedf68c
     resource: repo://docs/design/theme.md
   - id: openwiki-source-1207dc6dc9df1cc76b6da2de
@@ -24,6 +26,8 @@ sources:
     resource: repo://docs/game/rules/rent-conditions.md
   - id: openwiki-source-9be48765f38483590a0034ef
     resource: repo://docs/game/rules/sources.md
+  - id: openwiki-source-e337f5bab9183e3a12f77158
+    resource: repo://docs/game/shared-session-design.md
   - id: openwiki-source-8acf8e92f9f7b465d02fa04b
     resource: repo://firestore.indexes.json
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
@@ -42,10 +46,10 @@ sources:
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
     resource: repo://src/platform/firestore-client.ts
-generated: { by: "codex", at: "2026-11-04T03:12:58.045Z" }
+generated: { by: "codex", at: "2026-11-04T03:47:09.988Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T03:12:58.045Z
+    at: 2026-11-04T03:47:09.988Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
@@ -80,7 +84,7 @@ Dùng [hướng dẫn đo thời gian](../docs/diagnostics.md) và [vận hành]
 
 ## Đặc tả gameplay theo từng phần
 
-[Game contract](../docs/game/README.md) giữ baseline Monopoly Classic US truyền thống, không house rules. Người dùng yêu cầu chốt tài liệu hiện có và sang [Plan 02 mobile UI](../docs/game/plans/02-mobile-ui.md): HUD 02A đã duyệt và hiện active 02B chi tiết tài sản/mua đất. Plan 01 tạm dừng nghiên cứu, chưa đồng nghĩa mọi số liệu/luật đã xác minh hoặc có gameplay. Các mục còn thiếu giữ backlog trước implementation; không tiếp tục dò từng thẻ. Thiết kế từng màn với ảnh review riêng trước code.
+[Game contract](../docs/game/README.md) giữ baseline Monopoly Classic US truyền thống, không tự thêm house rules; tiêu chí phiên chơi đã duyệt giới hạn hành động chủ động ngoài lượt. Người dùng yêu cầu chốt tài liệu hiện có và sang [Plan 02 mobile UI](../docs/game/plans/02-mobile-ui.md): HUD 02A đã duyệt và hiện active 02B chi tiết tài sản/mua đất. Plan 01 tạm dừng nghiên cứu, chưa đồng nghĩa mọi số liệu/luật đã xác minh hoặc có gameplay. Các mục còn thiếu giữ backlog trước implementation; không tiếp tục dò từng thẻ. Thiết kế từng màn với ảnh review riêng trước code.
 
 ## Giá tài sản và đối chiếu edition
 
@@ -97,3 +101,7 @@ Quy ước đã được người dùng đồng ý: dùng rulebook Hasbro cho lu
 ## HUD được duyệt và tác vụ hiện hành
 
 [Plan02]( ../docs/game/plans/02-mobile-ui.md ) lưu ảnh HUD được duyệt: roster dưới căn giữa không nền, không tên game, action nổi giữa cạnh phải, highlight đổi theo người đến lượt. Concept mua đất 02B v1 đang chờ review; bàn cờ chi tiết/tên ô trong ảnh gen không phải dữ liệu chuẩn. Chưa sửa runtime, chưa deploy.
+
+## Tiêu chí thiết kế phiên chơi đã chốt
+
+[Một diễn biến chung](../docs/game/shared-session-design.md) quy định: ngoài lượt chỉ xem cá nhân; khởi tạo trade/xây/bán/thế chấp trong lượt/pha; người được chỉ định vẫn phản hồi trade/đấu giá hoặc nghĩa vụ chung ngoài lượt. Giao dịch xử lý lần lượt và thông báo kết quả chung. Đây là điều chỉnh tương tác được user chốt, khác quyền ngoài lượt trong rulebook; không thay kinh tế, không tự thêm timer/auto-forfeit hoặc quyết định topology thiết bị. Plan02B v1 đã bị bác bỏ; thẻ phải giữ design gốc và action gọn theo các chỉnh sửa, chưa có ảnh 02B được chốt.

@@ -4,7 +4,7 @@
 
 - **D-001 — Đã duyệt:** Monopoly Classic bản Mỹ, luật truyền thống, không rút gọn.
 - **D-002 — Đã duyệt:** Giữ tên tiếng Anh và thứ tự khu đất của bản Mỹ, gồm Boardwalk/Park Place, bốn railroad và hai utility. Không đổi thành tên Việt hoặc tên tự sáng tác.
-- **D-003 — Đã duyệt:** Không thêm house rules; phải có đấu giá, trao đổi và thế chấp trong phạm vi bản luật đầy đủ. Free Parking không phát tiền thưởng.
+- **D-003 — Đã duyệt:** Không tự thêm house rules; ngoại lệ tương tác được người dùng chốt ở D-009. Phải có đấu giá, trao đổi và thế chấp trong phạm vi bản luật đầy đủ. Free Parking không phát tiền thưởng.
 - **D-004 — Đã duyệt:** Chia plan riêng, làm từng phần; ưu tiên mobile landscape. Thiết kế hình ảnh phải được review trước implementation.
 - **D-005 — Phạm vi hiện tại:** Giữ hub/Firebase/diagnostics đang chạy. Công việc hiện tại chỉ thiết lập tài liệu luật và plan; chưa cho phép bắt đầu gameplay hoặc đổi database/gói billing.
 
@@ -13,6 +13,8 @@
 **D-007 — Quy trình đối chiếu đã duyệt:** Ưu tiên text và kiểm tra theo bảng. Hasbro là chuẩn luật; nguồn text cộng đồng được dùng cho bảng số có ghi mức xác minh. Ảnh chỉ dùng xử lý ngoại lệ, không dò tuần tự từng thẻ hoặc lặp tìm ảnh mỗi lượt nếu không có nguồn mới.
 
 **D-008 — Chuyển bước theo yêu cầu người dùng:** Chốt tài liệu luật/tài sản hiện có làm baseline thiết kế và mở Plan 02. Không tiếp tục vòng tìm nguồn cho từng thẻ. Các mục còn thiếu được dời về checklist trước implementation, không gọi là đã xác minh đầy đủ hoặc tự điền giá.
+
+**D-009 — Tiêu chí thiết kế đã chốt:** Mọi người cùng theo dõi một diễn biến chung. Ngoài lượt chỉ xem; chủ động trade/xây/bán/thế chấp trong lượt/pha cho phép; ngoài lượt chỉ phản hồi tác vụ phiên chỉ định như trade/đấu giá. Xem [tiêu chí phiên chơi](shared-session-design.md), bao gồm khác biệt với quyền hành động ngoài lượt của Monopoly gốc. Không tự thêm các ngoại lệ khác.
 
 ## Cách AI làm việc
 

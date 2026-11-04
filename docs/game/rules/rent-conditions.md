@@ -78,3 +78,7 @@ Phân biệt ba việc: thế chấp tài sản, chuyển tài sản thế chấ
 - [ ] Đối chiếu đủ S-003 cho giá và hiệu ứng thẻ; không còn giá unresolved khi implement.
 - [ ] Chốt chính sách số hóa về yêu cầu rent, thứ tự sự kiện và phép tung utility.
 - [ ] Người dùng review 01A; các case trên chưa là test engine, chưa có code gameplay.
+
+## Tiêu chí tương tác đã chốt cho phiên chơi
+
+[Tiêu chí phiên chơi](../shared-session-design.md) giới hạn khởi tạo trade/xây/bán/thế chấp vào lượt/pha cho phép, dù rulebook gốc có quyền hành động ngoài lượt. Đây là yêu cầu sản phẩm được người dùng chốt; không thay đổi giá thuê hoặc tự quyết chính sách yêu cầu rent còn mở ở US-RENT-001. Xem cá nhân và phản hồi do phiên yêu cầu vẫn có thể thực hiện ngoài lượt.

@@ -65,15 +65,18 @@ Không đòi đọc rõ toàn bộ tên đất cùng lúc. Tên đầy đủ, ch
 
 **Active, chưa duyệt.** [Concept mua đất v1](../../design/property-purchase-draft.png) kế thừa HUD đã chốt; không tự chuyển sang đấu giá hoặc gen nhiều màn đồng thời.
 
-Tác vụ: người đang dừng trên tài sản chưa có chủ xem tên/nhóm, giá mua, tiền đang có và số dư sau mua. Hai lựa chọn là **Mua** và **Đưa ra đấu giá**; không có bỏ qua để tránh đấu giá. Giá/rent trong concept Illinois Avenue là ví dụ từ baseline tài liệu, không chứng minh runtime hoặc mọi trường G0009 đã xác minh.
+Tác vụ: người đang dừng trên tài sản chưa có chủ xem **thẻ đất đầy đủ**, rồi chọn **Mua** hoặc **Đấu giá**. Không có bỏ qua để tránh đấu giá. Concept v1 đã bị người dùng bác bỏ; giữ file cũ chỉ làm lịch sử, không dùng làm thiết kế được duyệt.
 
-- Surface tác vụ tập trung ở giữa, tách với roster không nền. Bàn có thể làm mờ để tập trung quyết định; modal nền trắng là surface tác vụ, không phục hồi sidebar HUD cũ.
-- Thẻ tài sản có tên tiếng Anh, trạng thái chủ sở hữu và preview rent; xem đủ rent là chi tiết phụ. Hình ngôi nhà trên thẻ là minh họa tài sản, không có nghĩa đất đã xây.
-- Hành động mua phải cho thấy giá và số dư sau mua. Tương lai thiếu tiền thì giải thích và không cho mua giả định.
-- Trong tác vụ này nút tung xúc xắc của nền phải ẩn hoặc vô hiệu hóa, không cho thực hiện hai hành động đồng thời. Ảnh v1 vẫn có nút mờ phía nền; đây là điểm cần sửa/kiểm chứng khi hiện thực, không là cho phép bấm.
-- Concept này chỉ là trạng thái mua. Trạng thái xem tài sản đã có chủ, thiếu tiền và bảng rent đầy đủ cần review riêng khi cần; chưa thêm nút xây/thế chấp ngoài phạm vi.
-- [x] Gen concept v1 riêng.
-- [ ] Người dùng review bố cục, vùng bấm và nội dung mua/đấu giá.
+Yêu cầu người dùng đã chỉnh trong review:
+
+- Thẻ đất giữ thiết kế in gốc và nội dung tiếng Anh của bộ đã chọn: màu nhóm, tên, toàn bộ rent tiers, giá xây; mặt sau có mortgage/unmortgage. Không Việt hóa, bo góc hoặc áp font/theme HUD lên thẻ. Ảnh gen không phải artwork gốc đã xác minh.
+- Thẻ nằm sát bên trái cụm action giữa cạnh phải, không ở giữa một modal lớn. Không dùng hình ngôi nhà trang trí thay bảng rent.
+- Không hiển thị thêm “Tiền của bạn”/“Sau khi mua”. Giá mua có thể nằm trên action mua; số dư người chơi vẫn ở roster.
+- Action cùng kiểu/kích thước: icon nhỏ tương đương chiều cao chữ (đề xuất 18px với chữ 16px), icon + text trên một dòng, không dùng icon lớn phía trên text. Không coi Lucide là dependency đã chọn/cài; đó mới là đề xuất cho implementation.
+- Cụm action đủ gọn để mở rộng theo trạng thái, không thêm kho đồ/xây nhà vào trạng thái mua nếu không hợp lệ. Nút tung nền phải ẩn/vô hiệu khi đang quyết định mua.
+- [Tiêu chí phiên chơi](../shared-session-design.md) áp dụng cho mọi màn: ngoài lượt xem tài sản/lịch sử; chủ động thay đổi ván theo lượt/pha; phản hồi bắt buộc chỉ cho người được chỉ định. Khi khóa phải nêu lý do, không chỉ ẩn toàn bộ thông tin.
+- [x] Có chuỗi concept mua đất để review; v1 bị bác bỏ.
+- [ ] Người dùng chốt riêng concept 02B sau các chỉnh sửa; chưa tự đánh dấu đã duyệt.
 - [ ] Chốt 02B trước khi mở concept 02C đấu giá.
 
 ## Ngoài phạm vi
@@ -84,4 +87,4 @@ Không sửa code UI, model, Firebase hoặc backend; không gen toàn bộ các
 
 Có luồng và ảnh được duyệt cho từng tác vụ chính, trạng thái chờ/lỗi rõ ràng, ghi layout mobile và hành vi tương tác. Không xem ảnh gen là bằng chứng UI đã render, touch targets đã đo hoặc game đã chơi được; kiểm chứng trình duyệt/thiết bị khi implementation được mở.
 
-**Bằng chứng hiện tại:** HUD 02A đã duyệt và lưu ảnh; 02B có concept mua đất v1 chờ review. Chưa có UI gameplay trong runtime, chưa chọn engine hoặc sửa Firebase. Khả năng chạm/phóng to bàn phải kiểm chứng khi implementation được mở.
+**Bằng chứng hiện tại:** HUD 02A đã duyệt và lưu ảnh; 02B đã có chuỗi concept; v1 bị bác bỏ, thiết kế thẻ gốc + action gọn đang chờ chốt. Chưa có UI gameplay trong runtime, chưa chọn engine hoặc sửa Firebase. Khả năng chạm/phóng to bàn phải kiểm chứng khi implementation được mở.

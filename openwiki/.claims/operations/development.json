@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:c64da494fcfdb6486981b6cd9e0c18bf2fab4d1d4e50f00cc8f4b7de8bcf08c2",
+  "pageVersion": "sha256:95525377cb34507a78b75071c3a9e02c579f442b0a45689b0e715da7c32fdec1",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -12,7 +12,7 @@
         },
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:eab7e66d31dc91c604209a9b2ebc14ca86706aab9df32f31ed2d34598adcf0cb"
+          "version": "repo-file-v1:sha256:05cbc57c17543c2e50ca38c61a6d9735126d43a9d35b49a24ad9a09130fa7c9b"
         },
         {
           "resource": "repo://docs/workflow.md",
@@ -64,7 +64,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:eab7e66d31dc91c604209a9b2ebc14ca86706aab9df32f31ed2d34598adcf0cb"
+          "version": "repo-file-v1:sha256:05cbc57c17543c2e50ca38c61a6d9735126d43a9d35b49a24ad9a09130fa7c9b"
         }
       ]
     },
@@ -160,15 +160,15 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:eab7e66d31dc91c604209a9b2ebc14ca86706aab9df32f31ed2d34598adcf0cb"
+          "version": "repo-file-v1:sha256:05cbc57c17543c2e50ca38c61a6d9735126d43a9d35b49a24ad9a09130fa7c9b"
         },
         {
           "resource": "repo://docs/game/README.md",
-          "version": "repo-file-v1:sha256:3a06e2794a097da9b1fc9f83bb3fa9b38504bf54b9ac5f04e33c022922412653"
+          "version": "repo-file-v1:sha256:4ea705854e929af9ab4810f606cbed2d9d7e6fabb09676b41efdcd926f48e44e"
         },
         {
           "resource": "repo://docs/game/plans/02-mobile-ui.md",
-          "version": "repo-file-v1:sha256:0206535fcd49fcd4dcb582254103c60d88a7bd97a688411fae64ce2c260a313d"
+          "version": "repo-file-v1:sha256:85823679c13241145b00df07890a331eb729908c43a958a0d7219aad5b3703dc"
         }
       ]
     },
@@ -178,11 +178,11 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:eab7e66d31dc91c604209a9b2ebc14ca86706aab9df32f31ed2d34598adcf0cb"
+          "version": "repo-file-v1:sha256:05cbc57c17543c2e50ca38c61a6d9735126d43a9d35b49a24ad9a09130fa7c9b"
         },
         {
           "resource": "repo://docs/game/README.md",
-          "version": "repo-file-v1:sha256:3a06e2794a097da9b1fc9f83bb3fa9b38504bf54b9ac5f04e33c022922412653"
+          "version": "repo-file-v1:sha256:4ea705854e929af9ab4810f606cbed2d9d7e6fabb09676b41efdcd926f48e44e"
         },
         {
           "resource": "repo://docs/game/rules/property-economics.md",
@@ -193,10 +193,28 @@
           "version": "repo-file-v1:sha256:f59dbe4791e9ddd3e5e590109aa89fd31ed06ddac2ac13136814699b69aa3f16"
         }
       ]
+    },
+    {
+      "id": "claim_e7a3c9b106f64154b5e79c7e079819e6",
+      "statement": "Tiêu chí thiết kế phiên chơi được user chốt: ngoài lượt xem cá nhân, chủ động thay đổi ván trong lượt/pha và chỉ phản hồi tác vụ phiên chỉ định ngoài lượt; kết quả chung xử lý tuần tự. Đây là ngoại lệ tương tác có chủ đích so với rulebook, chưa implement.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md",
+          "version": "repo-file-v1:sha256:05cbc57c17543c2e50ca38c61a6d9735126d43a9d35b49a24ad9a09130fa7c9b"
+        },
+        {
+          "resource": "repo://docs/decisions/0004-shared-session-action-policy.md",
+          "version": "repo-file-v1:sha256:f9e887034cf53dd58e07091014ce7c699a93c40cf4db9fa70b867bc2f7eada72"
+        },
+        {
+          "resource": "repo://docs/game/shared-session-design.md",
+          "version": "repo-file-v1:sha256:d3d0420a3788e8f41aeffb80a8c141c57581561d6c4a5420a3ffdfa446e0f835"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T03:12:58.045Z"
+    "at": "2026-11-04T03:47:09.988Z"
   }
 }

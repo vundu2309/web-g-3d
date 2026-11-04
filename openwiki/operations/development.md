@@ -10,6 +10,8 @@ sources:
     resource: repo://.github/workflows/pages.yml
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
+  - id: openwiki-source-d2af7d5d6c732484bd8c1c05
+    resource: repo://docs/decisions/0004-shared-session-action-policy.md
   - id: openwiki-source-e357e023868ea4db450d34ad
     resource: repo://docs/game/plans/02-mobile-ui.md
   - id: openwiki-source-03d3729a6d1fb321fab7b6df
@@ -18,6 +20,8 @@ sources:
     resource: repo://docs/game/rules/property-economics.md
   - id: openwiki-source-9be48765f38483590a0034ef
     resource: repo://docs/game/rules/sources.md
+  - id: openwiki-source-e337f5bab9183e3a12f77158
+    resource: repo://docs/game/shared-session-design.md
   - id: openwiki-source-cc7175a0c3a0d5f1359efcc1
     resource: repo://docs/workflow.md
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
@@ -36,10 +40,10 @@ sources:
     resource: repo://tests/hub-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-04T03:12:58.045Z" }
+generated: { by: "codex", at: "2026-11-04T03:47:09.988Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T03:12:58.045Z
+    at: 2026-11-04T03:47:09.988Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -96,7 +100,7 @@ Unit tests kiểm tra thời gian chồng lấn, mã lỗi an toàn, retry, gi�
 
 ## Quy ước đặc tả luật cho AI
 
-AGENTS dẫn tới [game contract](../../docs/game/README.md), [Plan 02 hiện hành](../../docs/game/plans/02-mobile-ui.md) và trang luật liên quan. HUD 02A đã được duyệt; hiện Plan 02 / 02B chi tiết tài sản/mua đất active cho thiết kế. Plan 01 đã bàn giao baseline và tạm dừng nghiên cứu, các khoảng trống luật/số liệu giữ lại trước gameplay. Không coi plan là cho phép implementation hoặc tự chọn renderer/backend/Blaze. Luật truyền thống Mỹ giữ tên đất, phải có đấu giá/trao đổi/thế chấp; không thêm house rules. Nguồn rulebook đã chốt G0009 US copyright 2025 theo S-002; số liệu và thẻ chưa đủ bằng chứng S-003 vẫn ghi unresolved. Đặc tả đã duyệt xác định hành vi mong đợi, source/test mô tả hiện trạng; sai lệch cần được xử lý chứ không sửa đặc tả để che bug.
+AGENTS dẫn tới [game contract](../../docs/game/README.md), [Plan 02 hiện hành](../../docs/game/plans/02-mobile-ui.md) và trang luật liên quan. HUD 02A đã được duyệt; hiện Plan 02 / 02B chi tiết tài sản/mua đất active cho thiết kế. Plan 01 đã bàn giao baseline và tạm dừng nghiên cứu, các khoảng trống luật/số liệu giữ lại trước gameplay. Không coi plan là cho phép implementation hoặc tự chọn renderer/backend/Blaze. Luật truyền thống Mỹ giữ tên đất, phải có đấu giá/trao đổi/thế chấp; không tự thêm house rules; điều chỉnh tương tác theo lượt đã được người dùng chốt. Nguồn rulebook đã chốt G0009 US copyright 2025 theo S-002; số liệu và thẻ chưa đủ bằng chứng S-003 vẫn ghi unresolved. Đặc tả đã duyệt xác định hành vi mong đợi, source/test mô tả hiện trạng; sai lệch cần được xử lý chứ không sửa đặc tả để che bug.
 
 ## Giảm chi phí đối chiếu luật và bảng giá
 
@@ -105,3 +109,7 @@ AGENTS dẫn tới [game contract](../../docs/game/README.md), [Plan 02 hiện h
 ## HUD được duyệt và tác vụ hiện hành
 
 [Plan02]( ../../docs/game/plans/02-mobile-ui.md ) lưu ảnh HUD được duyệt: roster dưới căn giữa không nền, không tên game, action nổi giữa cạnh phải, highlight đổi theo người đến lượt. Concept mua đất 02B v1 đang chờ review; bàn cờ chi tiết/tên ô trong ảnh gen không phải dữ liệu chuẩn. Chưa sửa runtime, chưa deploy.
+
+## Tiêu chí thiết kế phiên chơi đã chốt
+
+[Một diễn biến chung](../../docs/game/shared-session-design.md) quy định: ngoài lượt chỉ xem cá nhân; khởi tạo trade/xây/bán/thế chấp trong lượt/pha; người được chỉ định vẫn phản hồi trade/đấu giá hoặc nghĩa vụ chung ngoài lượt. Giao dịch xử lý lần lượt và thông báo kết quả chung. Đây là điều chỉnh tương tác được user chốt, khác quyền ngoài lượt trong rulebook; không thay kinh tế, không tự thêm timer/auto-forfeit hoặc quyết định topology thiết bị. Plan02B v1 đã bị bác bỏ; thẻ phải giữ design gốc và action gọn theo các chỉnh sửa, chưa có ảnh 02B được chốt.
