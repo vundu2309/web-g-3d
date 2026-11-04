@@ -184,7 +184,7 @@ export function renderGame(p: Presentation): string {
       : s.id === 5 && p.highest + 10 > p.balances[0]!
         ? "Không đủ tiền để nâng giá"
         : "";
-  return `<main class="game-screen ${hasSurface ? "has-task" : ""} ${s.id === 23 ? "connection-lost" : ""} ${s.id === 2 ? "moving-state" : ""}" aria-label="HUD ván chơi — bản xem trước"><div class="game-preview-label">Bản xem trước · Dữ liệu minh họa</div><button class="game-settings" data-game-settings type="button" aria-label="Tùy chọn bản xem trước">${glyph("settings")}</button><div class="game-scene">${board(s)}</div>${hasSurface ? `<div class="game-task">${surface(p)}</div>` : ""}<section class="game-actions" aria-label="${s.observer ? "Diễn biến chung" : "Thao tác hiện tại"}">${title ? `<h1>${escape(title)}</h1>` : ""}${[5, 6].includes(s.id) ? `<p>Giá cao nhất: <strong>${money(p.highest)}</strong><br>${escape(p.leader)} đang dẫn</p>` : ""}${s.detail ? `<p>${escape(s.detail)}</p>` : ""}${s.actions
+  return `<main class="game-screen ${hasSurface ? "has-task" : ""} ${s.id === 23 ? "connection-lost" : ""} ${s.id === 2 ? "moving-state" : ""}" aria-label="HUD ván chơi — bản xem trước"><div class="game-safe"><div class="game-preview-label">Bản xem trước · Dữ liệu minh họa</div><button class="game-settings" data-game-settings type="button" aria-label="Tùy chọn bản xem trước">${glyph("settings")}</button><div class="game-scene">${board(s)}</div>${hasSurface ? `<div class="game-task">${surface(p)}</div>` : ""}<section class="game-actions" aria-label="${s.observer ? "Diễn biến chung" : "Thao tác hiện tại"}">${title ? `<h1>${escape(title)}</h1>` : ""}${[5, 6].includes(s.id) ? `<p>Giá cao nhất: <strong>${money(p.highest)}</strong><br>${escape(p.leader)} đang dẫn</p>` : ""}${s.detail ? `<p>${escape(s.detail)}</p>` : ""}${s.actions
     .filter((a) => allowed(s, a))
     .map((a, i) => actionButton(a, p, i))
     .join(
@@ -198,5 +198,5 @@ export function renderGame(p: Presentation): string {
     })
     .join(
       "",
-    )}</footer><p class="game-feedback" role="status" aria-live="polite">${escape(p.notice)}</p></main>`;
+    )}</footer><p class="game-feedback" role="status" aria-live="polite">${escape(p.notice)}</p></div></main>`;
 }

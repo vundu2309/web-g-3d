@@ -45,3 +45,7 @@ The browser runner also exercises `tests/game-ui-browser.mjs` against dev and pr
 ## PWA checks
 
 `npm run build` generates a versioned static-shell worker. The browser suite additionally runs `tests/pwa-browser.mjs` on a dedicated local server under the Pages subpath, testing offline reload, install handler/guide, API cache exclusion and waiting-worker updates. See [PWA](pwa.md). Native OS install is not covered by synthetic browser events.
+
+## Safe-area regression
+
+`tests/safe-area-browser.mjs` runs on dev and production in the browser runner: all24 HUD scenarios with asymmetric left/right and bottom inset profiles, touch-target reachability and portrait dialog bounds. It overrides shared CSS inset tokens to simulate cutouts; real Android/iOS browser and installed-app verification remains necessary.

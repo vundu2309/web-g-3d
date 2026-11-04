@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:dd64d1023da6c7bd75882d19f46383b23556d5a691871f58ef5529c1155fb4a3",
+  "pageVersion": "sha256:bf237ba308a6389caade58b14362eec639d48f4a8b4bcb0d2377b21e88230d74",
   "claims": [
     {
       "id": "claim_36eb6868133740c2b9b12b0cfa109cc8",
@@ -63,10 +63,36 @@
           "version": "repo-file-v1:sha256:e5ad1f8a3e6c57d02e4c157f7dd1302626d727ec2f41bf6f2ed44e352bbe50c7"
         }
       ]
+    },
+    {
+      "id": "claim_0f229a2f49ba4c8f9de818c096df8991",
+      "statement": "HUD shares one safe-area container and scrollable landscape task/action regions; dev/production tests simulate cutouts across24 states, without claiming real-device verification.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/test-browser.mjs",
+          "version": "repo-file-v1:sha256:0af5b2d94459c8b6fac2465bcb069a31fac485127d23a56c44f272c617d62923"
+        },
+        {
+          "resource": "repo://src/game-ui/render.ts",
+          "version": "repo-file-v1:sha256:1e9795dee5ae1002b7f143130be6c6821cc08b5853d7ef37239b5156acbe784e"
+        },
+        {
+          "resource": "repo://src/game-ui/style.css",
+          "version": "repo-file-v1:sha256:354f02408ff0c997dc7eb1cdbea671d4efca6e905033a246e2bee5b65d86ac48"
+        },
+        {
+          "resource": "repo://src/style.css",
+          "version": "repo-file-v1:sha256:cc4203c79b2a007819b7d8710c01665d5e4bbf987c3c832cdfc00d1a9858552b"
+        },
+        {
+          "resource": "repo://tests/safe-area-browser.mjs",
+          "version": "repo-file-v1:sha256:3c4a61b02d8e6360d2efadd3fb5b82edd30ce01eca978f38d7c8e33ba8f4cc3a"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T05:05:06.149Z"
+    "at": "2026-11-04T05:25:07.199Z"
   }
 }

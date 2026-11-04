@@ -3,9 +3,6 @@ type: operations
 title: Cài PWA, offline shell và cập nhật
 description: Cách cài game trên điện thoại, scope/cache PWA và kiểm chứng cập nhật không reload phiên.
 tags: [pwa, install, offline, caching, mobile]
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-04T05:05:06.149Z
 sources:
   - id: openwiki-source-f8d10828394c4129061d5b0e
     resource: repo://index.html
@@ -15,13 +12,26 @@ sources:
     resource: repo://scripts/pwa-build.mjs
   - id: openwiki-source-e40960a4e3d6b8d6193113c1
     resource: repo://scripts/service-worker.js
+  - id: openwiki-source-3515d68bed1b916f693296ec
+    resource: repo://scripts/test-browser.mjs
   - id: openwiki-source-fdc97d585e693e9f422ad7ae
     resource: repo://src/app/pwa.ts
+  - id: openwiki-source-25f090f2d86f09b560443170
+    resource: repo://src/game-ui/render.ts
+  - id: openwiki-source-a09d1fc6a11ce8c081c67432
+    resource: repo://src/game-ui/style.css
   - id: openwiki-source-77110d1e1f1125ab5211f920
     resource: repo://src/platform/pwa.ts
+  - id: openwiki-source-554339f52225d7d8edff3ed0
+    resource: repo://src/style.css
   - id: openwiki-source-a875da0e301868b8784bbae3
     resource: repo://tests/pwa-browser.mjs
-generated: { by: "codex", at: "2026-11-04T05:05:06.149Z" }
+  - id: openwiki-source-489032183ad2ac8548be7b60
+    resource: repo://tests/safe-area-browser.mjs
+generated: { by: "codex", at: "2026-11-04T05:25:07.199Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-04T05:25:07.199Z
 ---
 
 # PWA của Phố Tỷ Phú
@@ -49,3 +59,7 @@ Không skipWaiting hoặc ép reload. Worker mới chờ mọi cửa sổ/tab đ
 Tests/pwa-browser.mjs dùng build thật trên server loopback có subpath /web-g-3d/: manifest start/scope, PNG dimensions, synthetic install handler và guide, offline cold navigation vào home/HUD lazy route và reload, API cache exclusion, waiting update không reload và cleanup sau đóng client. Suite thuộc npm run test:browser và npm run check. Synthetic event không là test cài ở cấp OS; cần người dùng xác nhận Android/iOS thực tế.
 
 Xem [hướng dẫn authored](../../docs/pwa.md), [workflow](development.md), [HUD](../architecture/gameplay-ui.md).
+
+## Shared mobile safe area
+
+HUD foreground uses one `.game-safe` inset container with shared `--safe-*` tokens mapped to CSS env values; background remains full bleed. Cards size against container units, while landscape action/task regions scroll when height is constrained. Dialogs and the update notice also respect device insets. Do not double-apply insets on HUD children. Browser tests simulate asymmetric cutouts and home indicators over all24 states on dev/production; this is not physical-device verification.

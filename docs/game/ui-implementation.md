@@ -39,3 +39,9 @@ Các thao tác mẫu: tung → trạng thái 02 → quyết định mua; mua/tha
 `tests/game-ui.test.mjs` kiểm tra observer/response permissions, bid dựa giá cao nhất, trạng thái 02 không text/action, tung tiếp không có end-turn. `tests/game-ui-browser.mjs` kiểm tra flow mẫu, chính xác marker chủ lượt/respondent, không bàn phím trade/auction, đủ 7 rent rows, icon nhỏ, touch target, overflow/overlap trên 667×375, 844×390, 932×430; portrait, offline/online và reload. Test preview chặn Firebase production; không ghi dữ liệu thật. Auth integration cũng làm chậm room-listener transport sau khi directory đã cache roster cũ để kiểm tra join không bị kết luận rời phòng từ cache.
 
 Sơ đồ bàn chỉ là placeholder HTML/CSS với 40 ô, chưa phải board 3D, chưa có animation di chuyển quân. Tài sản, tiền, giá và kết quả là fixture; thiếu sót nguồn ở Plan 01 vẫn cần xử lý trước engine. Ngân hàng, thẻ đầy đủ, auction resolution, trade acceptance qua nhiều máy và reconnect server chưa implement. Trình duyệt mô phỏng không chứng minh ergonomics/hiệu năng trên điện thoại thật.
+
+## Mobile safe area
+
+HUD foreground shares one `.game-safe` coordinate system inset by the four `--safe-*` tokens mapped to CSS `env(safe-area-inset-*)`. Background remains full bleed. Size responsive cards against the safe container (cqw/cqh), not the glass viewport. Landscape task cards and action trays scroll independently when vertical space is limited; preserve 44px actions and keep the bottom roster clear. Do not apply a second inset to individual HUD children.
+
+`tests/safe-area-browser.mjs` checks all 24 states with asymmetric left/right cutouts and bottom home-indicator insets, reachable actions and portrait modal bounds against dev/production. These are CSS inset simulations, not physical-device verification.

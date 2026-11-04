@@ -35,3 +35,7 @@ Nếu precache lỗi, không activate bộ cache chưa đầy đủ. Đăng ký 
 `tests/pwa-browser.mjs` phục vụ build thật dưới `/web-g-3d/` bằng server do test sở hữu. Test kiểm tra manifest scope/start URL, kích thước PNG, install dialog và synthetic beforeinstallprompt gesture, offline home + lazy HUD chưa từng mở + reload, API không vào cache, update waiting không ép reload và cleanup cache sau đóng client.
 
 Test chạy sau browser dev/production trong `npm run test:browser`, và thuộc `npm run check`. Synthetic install event chỉ kiểm tra handler, không chứng minh thao tác cài ở cấp hệ điều hành. Cần người dùng thử cài thực tế trên Android/iOS; browser emulation không thay thế kiểm chứng đó.
+
+## Safe area trên điện thoại
+
+Các token `--safe-top/right/bottom/left` lấy từ CSS env. HUD dùng một vùng tọa độ an toàn chung; dialog cài đặt/tài khoản và thông báo cập nhật cũng tránh cutout/home indicator. Nền vẫn phủ màn hình. Khi thiếu chiều cao, tác vụ và nút cho phép cuộn thay vì thu nhỏ vùng bấm. Kiểm tra browser mô phỏng inset không thay kiểm chứng Safari/Chrome và standalone trên máy thật.

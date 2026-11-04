@@ -27,6 +27,7 @@ try {
   const port = dev.httpServer.address().port;
   await run("tests/hub-browser.mjs", port);
   await run("tests/game-ui-browser.mjs", port);
+  await run("tests/safe-area-browser.mjs", port);
   await dev.close();
   dev = undefined;
   production = await preview({
@@ -35,6 +36,10 @@ try {
   });
   await run("tests/hub-browser.mjs", production.httpServer.address().port);
   await run("tests/game-ui-browser.mjs", production.httpServer.address().port);
+  await run(
+    "tests/safe-area-browser.mjs",
+    production.httpServer.address().port,
+  );
 } catch (error) {
   console.error(error);
   process.exitCode = 1;

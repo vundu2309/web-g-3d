@@ -14,12 +14,18 @@ sources:
     resource: repo://firestore.rules
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
     resource: repo://package.json
+  - id: openwiki-source-3515d68bed1b916f693296ec
+    resource: repo://scripts/test-browser.mjs
   - id: openwiki-source-3cc44dcb42d14ad2fffb83f2
     resource: repo://src/app/account.ts
   - id: openwiki-source-2d276ab0949853064e1a4208
     resource: repo://src/app/diagnostics.ts
   - id: openwiki-source-fc82ffca2def259f088b8cf9
     resource: repo://src/app/start.ts
+  - id: openwiki-source-25f090f2d86f09b560443170
+    resource: repo://src/game-ui/render.ts
+  - id: openwiki-source-a09d1fc6a11ce8c081c67432
+    resource: repo://src/game-ui/style.css
   - id: openwiki-source-435a4eb0dedae12246227bd4
     resource: repo://src/hub/diagnostics.ts
   - id: openwiki-source-32927955437a252a5e197780
@@ -34,16 +40,20 @@ sources:
     resource: repo://src/platform/firestore-client.ts
   - id: openwiki-source-6475f92dc7ed4bc9b5b6546c
     resource: repo://src/platform/profile.ts
+  - id: openwiki-source-554339f52225d7d8edff3ed0
+    resource: repo://src/style.css
   - id: openwiki-source-d6f301bba4bff3a816376dbe
     resource: repo://tests/auth-browser.mjs
   - id: openwiki-source-a875da0e301868b8784bbae3
     resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-04T05:05:59.020Z" }
+  - id: openwiki-source-489032183ad2ac8548be7b60
+    resource: repo://tests/safe-area-browser.mjs
+generated: { by: "codex", at: "2026-11-04T05:25:07.199Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T05:05:59.020Z
+    at: 2026-11-04T05:25:07.199Z
 ---
 
 # Kiến trúc hub và đồng bộ phòng
@@ -102,3 +112,7 @@ Trang chính/phòng started có lối vào [HUD preview](gameplay-ui.md), dữ l
 ## PWA và vòng đời shell
 
 Test browser chạy thêm tests/pwa-browser.mjs trên build thật tại subpath /web-g-3d/. Kiểm tra icon/manifest, handler cài và hướng dẫn, offline home/lazy HUD, API không cache, worker waiting không ép reload và cleanup khi client đóng. Xem [PWA](../operations/pwa.md); chưa thay test cài OS thực tế.
+
+## Shared mobile safe area
+
+HUD foreground uses one `.game-safe` inset container with shared `--safe-*` tokens mapped to CSS env values; background remains full bleed. Cards size against container units, while landscape action/task regions scroll when height is constrained. Dialogs and the update notice also respect device insets. Do not double-apply insets on HUD children. Browser tests simulate asymmetric cutouts and home indicators over all24 states on dev/production; this is not physical-device verification.

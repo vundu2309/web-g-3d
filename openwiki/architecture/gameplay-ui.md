@@ -5,7 +5,7 @@ description: Route UI 24 trạng thái, quyền hiển thị theo lượt và ra
 tags: [gameplay, ui, mobile, preview, state]
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T05:05:59.020Z
+    at: 2026-11-04T05:25:07.199Z
 sources:
   - id: openwiki-source-63e8f904736888c1397b0a2b
     resource: repo://docs/game/ui-implementation.md
@@ -21,15 +21,21 @@ sources:
     resource: repo://src/game-ui/model.ts
   - id: openwiki-source-25f090f2d86f09b560443170
     resource: repo://src/game-ui/render.ts
+  - id: openwiki-source-a09d1fc6a11ce8c081c67432
+    resource: repo://src/game-ui/style.css
   - id: openwiki-source-d4189bbeecb62806cb297b5a
     resource: repo://src/main.ts
+  - id: openwiki-source-554339f52225d7d8edff3ed0
+    resource: repo://src/style.css
   - id: openwiki-source-bcd61b642f291bcc011c6bcd
     resource: repo://tests/game-ui-browser.mjs
   - id: openwiki-source-0753321c1f0f7198373c0847
     resource: repo://tests/game-ui.test.mjs
   - id: openwiki-source-a875da0e301868b8784bbae3
     resource: repo://tests/pwa-browser.mjs
-generated: { by: "codex", at: "2026-11-04T05:05:59.020Z" }
+  - id: openwiki-source-489032183ad2ac8548be7b60
+    resource: repo://tests/safe-area-browser.mjs
+generated: { by: "codex", at: "2026-11-04T05:25:07.199Z" }
 ---
 
 # HUD ván chơi và adapter preview
@@ -67,3 +73,7 @@ Xem [implementation contract](../../docs/game/ui-implementation.md), [hub](hub.m
 ## PWA và vòng đời shell
 
 Test browser chạy thêm tests/pwa-browser.mjs trên build thật tại subpath /web-g-3d/. Kiểm tra icon/manifest, handler cài và hướng dẫn, offline home/lazy HUD, API không cache, worker waiting không ép reload và cleanup khi client đóng. Xem [PWA](../operations/pwa.md); chưa thay test cài OS thực tế.
+
+## Shared mobile safe area
+
+HUD foreground uses one `.game-safe` inset container with shared `--safe-*` tokens mapped to CSS env values; background remains full bleed. Cards size against container units, while landscape action/task regions scroll when height is constrained. Dialogs and the update notice also respect device insets. Do not double-apply insets on HUD children. Browser tests simulate asymmetric cutouts and home indicators over all24 states on dev/production; this is not physical-device verification.

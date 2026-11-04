@@ -34,6 +34,10 @@ sources:
     resource: repo://scripts/test-rules.mjs
   - id: openwiki-source-dba8152f894fe338575ac7a6
     resource: repo://src/game-ui/model.ts
+  - id: openwiki-source-25f090f2d86f09b560443170
+    resource: repo://src/game-ui/render.ts
+  - id: openwiki-source-a09d1fc6a11ce8c081c67432
+    resource: repo://src/game-ui/style.css
   - id: openwiki-source-554339f52225d7d8edff3ed0
     resource: repo://src/style.css
   - id: openwiki-source-d6f301bba4bff3a816376dbe
@@ -48,10 +52,12 @@ sources:
     resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
-generated: { by: "codex", at: "2026-11-04T05:05:06.149Z" }
+  - id: openwiki-source-489032183ad2ac8548be7b60
+    resource: repo://tests/safe-area-browser.mjs
+generated: { by: "codex", at: "2026-11-04T05:25:07.199Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T05:05:06.149Z
+    at: 2026-11-04T05:25:07.199Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -129,3 +135,7 @@ Runner browser chạy thêm tests/game-ui-browser.mjs trên dev và production:2
 ## PWA production checks
 
 Test browser chạy thêm tests/pwa-browser.mjs trên build thật tại subpath /web-g-3d/. Kiểm tra icon/manifest, handler cài và hướng dẫn, offline home/lazy HUD, API không cache, worker waiting không ép reload và cleanup khi client đóng. Xem [PWA](pwa.md); chưa thay test cài OS thực tế.
+
+## Shared mobile safe area
+
+HUD foreground uses one `.game-safe` inset container with shared `--safe-*` tokens mapped to CSS env values; background remains full bleed. Cards size against container units, while landscape action/task regions scroll when height is constrained. Dialogs and the update notice also respect device insets. Do not double-apply insets on HUD children. Browser tests simulate asymmetric cutouts and home indicators over all24 states on dev/production; this is not physical-device verification.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:e5f31062a6672efba81bd05293b363d365c14974571bbe3a5fc3474304466a11",
+  "pageVersion": "sha256:afc854142166d8c025541eff16ef4d599c1f31fe9903443b257fda2d6a6296bd",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -100,7 +100,7 @@
         },
         {
           "resource": "repo://docs/game/ui-implementation.md",
-          "version": "repo-file-v1:sha256:d196999915ac34458fc9f3c5143fb30cddabc8741a4cacc3d7b92897b0f92f2b"
+          "version": "repo-file-v1:sha256:84f1b813332903f843c500f2557cb601968d9e9bbc9d4b6348cfa94e5bbce3ca"
         },
         {
           "resource": "repo://src/game-ui/model.ts",
@@ -142,7 +142,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:5cd338dae39d1e81558b559ae0bdef54915b0e5748e1ed9499661a6d44443748"
+          "version": "repo-file-v1:sha256:a93066f51606010b7657806de96158d26637b420e1939c0b26ecd2f467678c39"
         },
         {
           "resource": "repo://docs/game/README.md",
@@ -164,7 +164,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:5cd338dae39d1e81558b559ae0bdef54915b0e5748e1ed9499661a6d44443748"
+          "version": "repo-file-v1:sha256:a93066f51606010b7657806de96158d26637b420e1939c0b26ecd2f467678c39"
         },
         {
           "resource": "repo://docs/game/shared-session-design.md",
@@ -178,7 +178,7 @@
       "evidence": [
         {
           "resource": "repo://docs/game/ui-implementation.md",
-          "version": "repo-file-v1:sha256:d196999915ac34458fc9f3c5143fb30cddabc8741a4cacc3d7b92897b0f92f2b"
+          "version": "repo-file-v1:sha256:84f1b813332903f843c500f2557cb601968d9e9bbc9d4b6348cfa94e5bbce3ca"
         },
         {
           "resource": "repo://src/app/play.ts",
@@ -200,7 +200,7 @@
       "evidence": [
         {
           "resource": "repo://docs/pwa.md",
-          "version": "repo-file-v1:sha256:e96b4af8dd948b5a5c47def9b596f1b7242a3f87cc0f4187c86ab6a67412b5c1"
+          "version": "repo-file-v1:sha256:eb75fa5bb55c97fa11a68452b1121ab1da9f009ccf13e2cdcbc76d7a59bdd205"
         },
         {
           "resource": "repo://package.json",
@@ -211,10 +211,36 @@
           "version": "repo-file-v1:sha256:4a6783d9576043792024854f9d5c08694d5494021f01ca7cc5dac2fdd8b2644b"
         }
       ]
+    },
+    {
+      "id": "claim_2c6402c604834e58bbbe56b84f1c8989",
+      "statement": "HUD shares one safe-area container and scrollable landscape task/action regions; dev/production tests simulate cutouts across24 states, without claiming real-device verification.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/test-browser.mjs",
+          "version": "repo-file-v1:sha256:0af5b2d94459c8b6fac2465bcb069a31fac485127d23a56c44f272c617d62923"
+        },
+        {
+          "resource": "repo://src/game-ui/render.ts",
+          "version": "repo-file-v1:sha256:1e9795dee5ae1002b7f143130be6c6821cc08b5853d7ef37239b5156acbe784e"
+        },
+        {
+          "resource": "repo://src/game-ui/style.css",
+          "version": "repo-file-v1:sha256:354f02408ff0c997dc7eb1cdbea671d4efca6e905033a246e2bee5b65d86ac48"
+        },
+        {
+          "resource": "repo://src/style.css",
+          "version": "repo-file-v1:sha256:cc4203c79b2a007819b7d8710c01665d5e4bbf987c3c832cdfc00d1a9858552b"
+        },
+        {
+          "resource": "repo://tests/safe-area-browser.mjs",
+          "version": "repo-file-v1:sha256:3c4a61b02d8e6360d2efadd3fb5b82edd30ce01eca978f38d7c8e33ba8f4cc3a"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T05:05:06.149Z"
+    "at": "2026-11-04T05:25:07.199Z"
   }
 }

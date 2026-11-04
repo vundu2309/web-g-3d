@@ -34,6 +34,8 @@ sources:
     resource: repo://firestore.indexes.json
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
     resource: repo://package.json
+  - id: openwiki-source-3515d68bed1b916f693296ec
+    resource: repo://scripts/test-browser.mjs
   - id: openwiki-source-2d276ab0949853064e1a4208
     resource: repo://src/app/diagnostics.ts
   - id: openwiki-source-de5ab1ed905c7bd08fbdce6f
@@ -42,6 +44,10 @@ sources:
     resource: repo://src/app/start.ts
   - id: openwiki-source-dba8152f894fe338575ac7a6
     resource: repo://src/game-ui/model.ts
+  - id: openwiki-source-25f090f2d86f09b560443170
+    resource: repo://src/game-ui/render.ts
+  - id: openwiki-source-a09d1fc6a11ce8c081c67432
+    resource: repo://src/game-ui/style.css
   - id: openwiki-source-435a4eb0dedae12246227bd4
     resource: repo://src/hub/diagnostics.ts
   - id: openwiki-source-d4189bbeecb62806cb297b5a
@@ -52,12 +58,16 @@ sources:
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
     resource: repo://src/platform/firestore-client.ts
+  - id: openwiki-source-554339f52225d7d8edff3ed0
+    resource: repo://src/style.css
   - id: openwiki-source-a875da0e301868b8784bbae3
     resource: repo://tests/pwa-browser.mjs
-generated: { by: "codex", at: "2026-11-04T05:05:06.149Z" }
+  - id: openwiki-source-489032183ad2ac8548be7b60
+    resource: repo://tests/safe-area-browser.mjs
+generated: { by: "codex", at: "2026-11-04T05:25:07.199Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T05:05:06.149Z
+    at: 2026-11-04T05:25:07.199Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
@@ -121,3 +131,7 @@ Chọn Xem trước HUD ván chơi ở home hoặc ?view=game; bánh răng chọ
 ## Cài game như app
 
 Home có Cài game/Cài lên điện thoại, native prompt hoặc hướng dẫn Android Chrome/iOS Safari. [PWA](operations/pwa.md) ghi manifest, scoped static cache, offline home/HUD và update chờ đóng tab. Tài khoản/phòng vẫn cần mạng; app install không thay backend. Main khởi tạo/dispose installer cùng app.
+
+## Shared mobile safe area
+
+HUD foreground uses one `.game-safe` inset container with shared `--safe-*` tokens mapped to CSS env values; background remains full bleed. Cards size against container units, while landscape action/task regions scroll when height is constrained. Dialogs and the update notice also respect device insets. Do not double-apply insets on HUD children. Browser tests simulate asymmetric cutouts and home indicators over all24 states on dev/production; this is not physical-device verification.

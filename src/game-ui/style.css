@@ -1,10 +1,10 @@
 .game-screen {
-  --action-width: clamp(150px, 21vw, 190px);
+  --action-width: clamp(150px, 21cqw, 190px);
   --game-ink: #153b80;
   position: relative;
   isolation: isolate;
-  height: 100svh;
-  min-height: 340px;
+  height: 100dvh;
+  min-height: 0;
   width: 100%;
   overflow: hidden;
   background:
@@ -16,8 +16,8 @@
 }
 .game-preview-label {
   position: absolute;
-  top: max(10px, env(safe-area-inset-top));
-  left: max(12px, env(safe-area-inset-left));
+  top: 10px;
+  left: 12px;
   font-size: 10px;
   font-weight: 600;
   opacity: 0.8;
@@ -25,8 +25,8 @@
 }
 .game-settings {
   position: absolute;
-  right: max(12px, env(safe-area-inset-right));
-  top: max(5px, env(safe-area-inset-top));
+  right: 12px;
+  top: 5px;
   width: 44px;
   height: 44px;
   padding: 10px;
@@ -46,8 +46,8 @@
   pointer-events: none;
 }
 .board-mat {
-  width: min(67vw, calc(100svh - 111px));
-  height: min(67vw, calc(100svh - 111px));
+  width: min(67cqw, calc(100cqh - 111px));
+  height: min(67cqw, calc(100cqh - 111px));
   position: absolute;
   left: 42%;
   top: 50%;
@@ -230,7 +230,7 @@
 .game-actions {
   position: absolute;
   width: var(--action-width);
-  right: max(18px, env(safe-area-inset-right));
+  right: 18px;
   top: 45%;
   transform: translateY(-50%);
   z-index: 3;
@@ -303,7 +303,7 @@
   top: 44%;
   transform: translateY(-50%);
   z-index: 2;
-  max-height: calc(100svh - 122px);
+  max-height: calc(100cqh - 100px);
 }
 .title-deed {
   background: #fffefb;
@@ -311,7 +311,7 @@
   border: 1px solid #111;
   outline: 4px solid #fffefb;
   box-shadow: 0 3px 9px #153b803d;
-  width: clamp(180px, 25vw, 232px);
+  width: clamp(180px, 25cqw, 232px);
   padding: 7px;
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -424,7 +424,7 @@
 }
 .game-roster {
   position: absolute;
-  bottom: max(13px, env(safe-area-inset-bottom));
+  bottom: 13px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -537,7 +537,7 @@
   align-items: center;
 }
 .asset-collection {
-  width: clamp(145px, 20vw, 190px);
+  width: clamp(145px, 20cqw, 190px);
   color: #153b80;
 }
 .asset-collection h2 {
@@ -587,7 +587,7 @@
   outline: 2px solid #edbd20;
 }
 .trade-sheet {
-  width: min(42vw, 380px);
+  width: min(42cqw, 380px);
   background: #ffffffbb;
   border-radius: 16px;
   padding: 12px;
@@ -673,7 +673,7 @@
 }
 .event-card,
 .jail-card {
-  width: clamp(195px, 29vw, 270px);
+  width: clamp(195px, 29cqw, 270px);
   background: #fffaf0;
   border: 2px solid #a97937;
   box-shadow: 0 4px 8px #153b8020;
@@ -719,7 +719,7 @@
   font-size: 12px;
 }
 .results-sheet {
-  width: min(42vw, 360px);
+  width: min(42cqw, 360px);
   border: 1px solid #b7c8dc;
   border-radius: 14px;
   padding: 14px;
@@ -906,8 +906,8 @@
   }
   .board-mat {
     left: 50%;
-    width: min(88vw, 335px);
-    height: min(88vw, 335px);
+    width: min(88cqw, 335px);
+    height: min(88cqw, 335px);
   }
   .has-task .board-mat {
     left: 50%;
@@ -956,10 +956,10 @@
     width: 110px;
   }
   .trade-sheet {
-    width: min(90vw, 350px);
+    width: min(90cqw, 350px);
   }
   .results-sheet {
-    width: min(87vw, 335px);
+    width: min(87cqw, 335px);
   }
   .scenario-grid {
     grid-template-columns: 1fr;
@@ -997,5 +997,32 @@
     padding-top: 5px;
     margin-top: 5px;
     line-height: 1.35;
+  }
+}
+
+/* Every HUD foreground shares one coordinate system inside the device safe area. */
+.game-safe {
+  position: absolute;
+  inset: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+  container-type: size;
+}
+@media (orientation: landscape) {
+  .game-actions {
+    top: 18px;
+    bottom: 86px;
+    transform: none;
+    justify-content: safe center;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: 5px;
+  }
+  .game-actions > * {
+    flex-shrink: 0;
+  }
+  .game-task {
+    max-height: calc(100cqh - 100px);
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 4px;
   }
 }

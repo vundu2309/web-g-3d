@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:abc4940b9e5b69e4f0cc5929867839f4c29abb6c0c5c344fee819a300c8e6e3f",
+  "pageVersion": "sha256:b620bd25a43713b03d0b2f9cb69e3826a2c21480903466046872b3e563d514e0",
   "claims": [
     {
       "id": "claim_7772453354ab4af78711c059117a2935",
@@ -26,7 +26,7 @@
       "evidence": [
         {
           "resource": "repo://docs/game/ui-implementation.md",
-          "version": "repo-file-v1:sha256:d196999915ac34458fc9f3c5143fb30cddabc8741a4cacc3d7b92897b0f92f2b"
+          "version": "repo-file-v1:sha256:84f1b813332903f843c500f2557cb601968d9e9bbc9d4b6348cfa94e5bbce3ca"
         },
         {
           "resource": "repo://src/game-ui/model.ts",
@@ -34,7 +34,7 @@
         },
         {
           "resource": "repo://src/game-ui/render.ts",
-          "version": "repo-file-v1:sha256:6a3196b04e19b29b8e034a02dfb0667589c343f587a7204591dbb3bb22e5c386"
+          "version": "repo-file-v1:sha256:1e9795dee5ae1002b7f143130be6c6821cc08b5853d7ef37239b5156acbe784e"
         }
       ]
     },
@@ -44,7 +44,7 @@
       "evidence": [
         {
           "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:310061a58a1ea2aa6a92cfb0432ccf5fa97038f277482850e2e63eb34eacd38c"
+          "version": "repo-file-v1:sha256:0af5b2d94459c8b6fac2465bcb069a31fac485127d23a56c44f272c617d62923"
         },
         {
           "resource": "repo://tests/game-ui-browser.mjs",
@@ -62,7 +62,7 @@
       "evidence": [
         {
           "resource": "repo://docs/pwa.md",
-          "version": "repo-file-v1:sha256:e96b4af8dd948b5a5c47def9b596f1b7242a3f87cc0f4187c86ab6a67412b5c1"
+          "version": "repo-file-v1:sha256:eb75fa5bb55c97fa11a68452b1121ab1da9f009ccf13e2cdcbc76d7a59bdd205"
         },
         {
           "resource": "repo://package.json",
@@ -73,10 +73,36 @@
           "version": "repo-file-v1:sha256:4a6783d9576043792024854f9d5c08694d5494021f01ca7cc5dac2fdd8b2644b"
         }
       ]
+    },
+    {
+      "id": "claim_be5c53bf989c4af3a5b8134c6f2fab4b",
+      "statement": "HUD shares one safe-area container and scrollable landscape task/action regions; dev/production tests simulate cutouts across24 states, without claiming real-device verification.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/test-browser.mjs",
+          "version": "repo-file-v1:sha256:0af5b2d94459c8b6fac2465bcb069a31fac485127d23a56c44f272c617d62923"
+        },
+        {
+          "resource": "repo://src/game-ui/render.ts",
+          "version": "repo-file-v1:sha256:1e9795dee5ae1002b7f143130be6c6821cc08b5853d7ef37239b5156acbe784e"
+        },
+        {
+          "resource": "repo://src/game-ui/style.css",
+          "version": "repo-file-v1:sha256:354f02408ff0c997dc7eb1cdbea671d4efca6e905033a246e2bee5b65d86ac48"
+        },
+        {
+          "resource": "repo://src/style.css",
+          "version": "repo-file-v1:sha256:cc4203c79b2a007819b7d8710c01665d5e4bbf987c3c832cdfc00d1a9858552b"
+        },
+        {
+          "resource": "repo://tests/safe-area-browser.mjs",
+          "version": "repo-file-v1:sha256:3c4a61b02d8e6360d2efadd3fb5b82edd30ce01eca978f38d7c8e33ba8f4cc3a"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T05:05:59.020Z"
+    "at": "2026-11-04T05:25:07.199Z"
   }
 }
