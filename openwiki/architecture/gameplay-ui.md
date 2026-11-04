@@ -11,7 +11,7 @@ tags:
   - state
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T08:51:23.933Z
+    at: 2026-11-04T09:13:08.522Z
 sources:
   - id: openwiki-source-63e8f904736888c1397b0a2b
     resource: repo://docs/game/ui-implementation.md

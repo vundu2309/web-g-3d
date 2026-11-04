@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:e7a860fcc56ee8e7a3c4fa1712ff326a923d56662a358e3a5397a258ffa59a5b",
+  "pageVersion": "sha256:60ef017a69e7ec0fb17bd47218ae9023e4de9b73feada16479ac600cc0e0f56b",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -300,11 +300,11 @@
       "evidence": [
         {
           "resource": "repo://docs/infrastructure.md",
-          "version": "repo-file-v1:sha256:f64be298d2b8ceaee1b07d1b3786eb151b3f6e85ef2c75e8f25f5a47fdda58b1"
+          "version": "repo-file-v1:sha256:facadaf078b605ad5ed798503b94e0c14d50a3dc847aecd6b7d9b0c7779b2ca8"
         },
         {
           "resource": "repo://server/notifications.mjs",
-          "version": "repo-file-v1:sha256:f26417cff5303cb534b2b9cda37bd216aa4dca5769ecd6a7e3ead4d050d6efc3"
+          "version": "repo-file-v1:sha256:2f88aa136257fd9e44f015329cc2901a7e0482ac4a8dc1649ea5e5729a1af3d9"
         },
         {
           "resource": "repo://server/socket.mjs",
@@ -323,6 +323,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T09:10:09.701Z"
+    "at": "2026-11-04T09:13:08.522Z"
   }
 }

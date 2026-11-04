@@ -97,6 +97,7 @@ test("PostgreSQL listener recovers missed messages by invalidating after LISTEN 
       super();
       client = this;
       assert.equal(config.ssl.rejectUnauthorized, true);
+      assert.match(config.ssl.ca, /BEGIN CERTIFICATE/);
     }
     async connect() {}
     async query(sql) {

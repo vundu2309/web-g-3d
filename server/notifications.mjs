@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import pg from "pg";
 
 // Every API instance LISTENs to the same committed database notifications.
@@ -25,7 +26,13 @@ export function listenForChanges({
     if (stopped) return;
     const current = new Client({
       connectionString: databaseUrl.toString(),
-      ssl: { rejectUnauthorized: true },
+      ssl: {
+        rejectUnauthorized: true,
+        ca: readFileSync(
+          new URL("./supabase-root-ca.crt", import.meta.url),
+          "utf8",
+        ),
+      },
       connectionTimeoutMillis: 10000,
       keepAlive: true,
     });

@@ -9,9 +9,6 @@ tags:
   - mobile
   - firebase
   - architecture
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-04T09:10:09.701Z
 sources:
   - id: openwiki-source-1207dc6dc9df1cc76b6da2de
     resource: repo://docs/diagnostics.md
@@ -88,6 +85,9 @@ sources:
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
 generated: { by: "codex", at: "2026-11-04T08:51:23.933Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-04T09:13:08.522Z
 ---
 
 # Kiến trúc hub và đồng bộ phòng

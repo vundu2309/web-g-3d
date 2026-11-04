@@ -100,7 +100,7 @@ sources:
 generated: { by: "codex", at: "2026-11-04T08:51:23.933Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T09:10:09.701Z
+    at: 2026-11-04T09:13:08.522Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
