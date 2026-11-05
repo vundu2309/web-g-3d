@@ -1,5 +1,6 @@
 import "../ocean/style.css";
 import { icon } from "../ui/art";
+import { wakeApi } from "../platform/wake";
 
 const escape = (value: string) =>
   value.replace(
@@ -10,6 +11,8 @@ const escape = (value: string) =>
       ]!,
   );
 export function startHarbor(root: HTMLElement) {
+  // Free hosting sleeps when idle; nudging it now overlaps its wake-up with the engine download.
+  wakeApi();
   const abort = new AbortController();
   let disposed = false;
   let busy = false;
@@ -33,6 +36,7 @@ export function startHarbor(root: HTMLElement) {
   }
   async function enter() {
     if (busy || playing) return;
+    wakeApi();
     busy = true;
     error = "";
     render();

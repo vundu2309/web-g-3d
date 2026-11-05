@@ -325,3 +325,145 @@
   outline: none;
   touch-action: none;
 }
+
+/* Loading card: steps while the engine downloads and the server wakes. */
+.ocean-hud {
+  z-index: 2;
+}
+.ocean-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: 72px 16px 16px;
+  background: linear-gradient(#cfe6ff, #8fc4ee);
+  transition: opacity 0.4s ease;
+}
+.ocean-loading[hidden] {
+  display: none;
+}
+/* Once the sea is drawing, show it behind the card instead of a plain backdrop. */
+.ocean-loading.has-scene {
+  background: transparent;
+}
+.ocean-loading.is-done {
+  opacity: 0;
+  pointer-events: none;
+}
+.ocean-loading-card {
+  box-sizing: border-box;
+  width: min(360px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 16px 20px;
+  border: 3px solid #153b80;
+  border-radius: 22px;
+  background: #f6fbfff2;
+  color: #153b80;
+  text-align: center;
+  box-shadow: 0 4px 0 #153b80;
+}
+.ocean-loading-boat {
+  font-size: 34px;
+  line-height: 1;
+  animation: ocean-bob 1.8s ease-in-out infinite;
+}
+.is-failed .ocean-loading-boat {
+  animation: none;
+}
+@keyframes ocean-bob {
+  50% {
+    transform: translateY(-6px) rotate(4deg);
+  }
+}
+.ocean-loading-card h2 {
+  margin: 6px 0 8px;
+  font:
+    800 22px "Baloo 2",
+    sans-serif;
+}
+.ocean-loading-steps {
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  width: fit-content;
+  text-align: left;
+  font-size: 14px;
+}
+.ocean-loading-steps li {
+  opacity: 0.45;
+}
+.ocean-loading-steps li::before {
+  content: "○ ";
+}
+.ocean-loading-steps .is-active {
+  opacity: 1;
+  font-weight: 700;
+}
+.ocean-loading-steps .is-active::before {
+  content: "● ";
+  color: #2a8fd0;
+  animation: ocean-pulse 1s ease-in-out infinite;
+}
+@keyframes ocean-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+.ocean-loading-steps .is-failed {
+  opacity: 1;
+  font-weight: 700;
+}
+.ocean-loading-steps .is-failed::before {
+  content: "✕ ";
+  color: #c0392b;
+}
+/* The card already says it; a second status pill above it would only repeat. */
+.ocean-loading:not([hidden], .is-done) ~ .ocean-hud .ocean-status {
+  visibility: hidden;
+}
+.ocean-loading-steps .is-done {
+  opacity: 1;
+}
+.ocean-loading-steps .is-done::before {
+  content: "✓ ";
+  color: #1f8a4c;
+  font-weight: 700;
+}
+.ocean-loading-note {
+  min-height: 1.2em;
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.ocean-loading-actions {
+  margin-top: 10px;
+}
+.ocean-loading-actions .button {
+  min-height: 44px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ocean-loading-steps .is-active::before {
+    animation: none;
+  }
+  .ocean-loading-boat {
+    animation: none;
+  }
+  .ocean-loading {
+    transition: none;
+  }
+}
+@media (max-height: 430px) {
+  .ocean-loading {
+    padding-top: 60px;
+  }
+  .ocean-loading-card {
+    padding: 10px 16px;
+  }
+  .ocean-loading-boat {
+    display: none;
+  }
+}

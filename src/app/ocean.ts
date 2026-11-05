@@ -3,6 +3,7 @@ import { HubError } from "../hub/model";
 import type { connectOcean } from "../platform/ocean";
 import { OceanScene } from "../ocean/babylon-scene";
 import { bindStick, type StickInput } from "../ocean/stick";
+import { connectWithRetry, type RetryOptions } from "../ocean/connect";
 
 type Connection = Awaited<ReturnType<typeof connectOcean>>;
 export interface OceanOptions {
@@ -10,6 +11,13 @@ export interface OceanOptions {
   connect?: typeof connectOcean;
   /** Receives the scene once it exists; lets tests read its state and frame cost. */
   onScene?: (scene: OceanScene) => void;
+  /** Overrides the connection patience; tests use short values. */
+  timing?: Partial<
+    Pick<
+      RetryOptions<never>,
+      "deadlineMs" | "attemptMs" | "delaysMs" | "slowAfterMs"
+    >
+  > & { graphicsMs?: number };
 }
 export function startOcean(
   root: HTMLElement,
@@ -19,8 +27,44 @@ export function startOcean(
   const abort = new AbortController();
   const network = new AbortController();
   root.classList.add("ocean-root");
-  root.innerHTML = `<main class="ocean-screen" aria-label="Map biển chung"><div class="ocean-stage"></div><div class="ocean-hud game-safe"><header class="ocean-top"><button class="ocean-chip" data-ocean="back" aria-label="Về hub">← <span>Về hub</span></button><div class="ocean-channel"><strong>Biển chung</strong><span>Mỗi người một thuyền</span></div><button class="ocean-chip" data-ocean="crew" aria-label="Thuyền trong kênh"><span data-count>Đang kết nối…</span></button></header><p class="ocean-status" role="status" aria-live="polite">Đang kết nối map chung…</p><section class="ocean-bottom" aria-label="Điều khiển thuyền"><div class="ocean-stick" role="group" aria-label="Cần lái: kéo lên để tiến, xuống để lùi, sang hai bên để rẽ"><span class="ocean-stick-mark" data-dir="up" aria-hidden="true">▲</span><span class="ocean-stick-mark" data-dir="down" aria-hidden="true">▼</span><span class="ocean-stick-mark" data-dir="left" aria-hidden="true">◀︎</span><span class="ocean-stick-mark" data-dir="right" aria-hidden="true">▶︎</span><span class="ocean-stick-knob" aria-hidden="true">⚓</span></div><p class="ocean-hint">Cần lái: kéo lên/xuống để chạy, sang hai bên để rẽ<br/>Bàn phím: WASD hoặc mũi tên · Space để thả câu</p><div class="ocean-actions"><button class="ocean-chip" data-ocean="catch">Kho cá <strong data-catch>0</strong></button><button class="ocean-fish" data-ocean="fish" disabled>Thả câu</button></div></section></div></main>`;
+  root.innerHTML = `<main class="ocean-screen" aria-label="Map biển chung"><div class="ocean-stage"></div><div class="ocean-loading" role="status" aria-live="polite"><div class="ocean-loading-card"><div class="ocean-loading-boat" aria-hidden="true">⛵</div><h2 data-loading-title>Đang ra khơi…</h2><ol class="ocean-loading-steps"><li data-step="graphics">Tải đồ họa biển</li><li data-step="connect">Kết nối map chung</li><li data-step="enter">Vào biển</li></ol><p class="ocean-loading-note" data-loading-note></p><div class="ocean-loading-actions" hidden><button class="button primary" type="button" data-ocean="retry">Thử lại</button></div></div></div><div class="ocean-hud game-safe"><header class="ocean-top"><button class="ocean-chip" data-ocean="back" aria-label="Về hub">← <span>Về hub</span></button><div class="ocean-channel"><strong>Biển chung</strong><span>Mỗi người một thuyền</span></div><button class="ocean-chip" data-ocean="crew" aria-label="Thuyền trong kênh"><span data-count>Đang kết nối…</span></button></header><p class="ocean-status" role="status" aria-live="polite">Đang kết nối map chung…</p><section class="ocean-bottom" aria-label="Điều khiển thuyền"><div class="ocean-stick" role="group" aria-label="Cần lái: kéo lên để tiến, xuống để lùi, sang hai bên để rẽ"><span class="ocean-stick-mark" data-dir="up" aria-hidden="true">▲</span><span class="ocean-stick-mark" data-dir="down" aria-hidden="true">▼</span><span class="ocean-stick-mark" data-dir="left" aria-hidden="true">◀︎</span><span class="ocean-stick-mark" data-dir="right" aria-hidden="true">▶︎</span><span class="ocean-stick-knob" aria-hidden="true">⚓</span></div><p class="ocean-hint">Cần lái: kéo lên/xuống để chạy, sang hai bên để rẽ<br/>Bàn phím: WASD hoặc mũi tên · Space để thả câu</p><div class="ocean-actions"><button class="ocean-chip" data-ocean="catch">Kho cá <strong data-catch>0</strong></button><button class="ocean-fish" data-ocean="fish" disabled>Thả câu</button></div></section></div></main>`;
   const status = root.querySelector<HTMLElement>(".ocean-status")!;
+  const loading = root.querySelector<HTMLElement>(".ocean-loading")!;
+  const loadingTitle = loading.querySelector<HTMLElement>(
+    "[data-loading-title]",
+  )!;
+  const loadingNote = loading.querySelector<HTMLElement>(
+    "[data-loading-note]",
+  )!;
+  const loadingActions = loading.querySelector<HTMLElement>(
+    ".ocean-loading-actions",
+  )!;
+  let wasActive = false;
+  function step(
+    name: "graphics" | "connect" | "enter",
+    state: "active" | "done",
+  ) {
+    loading.querySelector(`[data-step="${name}"]`)!.className = `is-${state}`;
+  }
+  function showFailure(message: string) {
+    loading.hidden = false;
+    loading.classList.remove("is-done");
+    loading.classList.add("is-failed");
+    loadingTitle.textContent = wasActive
+      ? "Mất kết nối biển chung"
+      : "Chưa vào được biển chung";
+    loadingNote.textContent = message;
+    loadingActions.hidden = false;
+    // Whatever was in progress is what failed.
+    for (const item of loading.querySelectorAll(".is-active"))
+      item.className = "is-failed";
+  }
+  function hideLoading() {
+    loading.classList.add("is-done");
+    setTimeout(() => {
+      if (!loading.classList.contains("is-failed")) loading.hidden = true;
+    }, 500);
+  }
   const count = root.querySelector<HTMLElement>("[data-count]")!;
   const fishButton = root.querySelector<HTMLButtonElement>(
     '[data-ocean="fish"]',
@@ -70,16 +114,18 @@ export function startOcean(
   }
   function fail(error: unknown) {
     if (disposed) return;
+    wasActive ||= active;
     active = false;
     keys.clear();
     releaseStick();
     stopFishing();
     fishButton.disabled = true;
-    notify(
+    const message =
       error instanceof HubError
         ? error.message
-        : "Mất kết nối biển chung. Hãy về hub rồi vào lại. Nếu chưa từng vào được, kết nối game có thể chưa sẵn sàng.",
-    );
+        : "Mất kết nối biển chung. Thử lại để vào biển lần nữa.";
+    notify(message);
+    showFailure(message);
     network.abort();
     connection?.dispose();
   }
@@ -225,6 +271,8 @@ export function startOcean(
         "[data-ocean]",
       )?.dataset.ocean;
       if (action === "back") back();
+      // A reload re-enters the sea directly (?view=ocean) and also clears any stale state.
+      if (action === "retry") location.reload();
       // The press already acted (see below); only keyboard activation lands here.
       if (action === "fish" && performance.now() - fishPressAt > 700) fish();
       if (action === "crew" || action === "catch") showDialog(action);
@@ -298,66 +346,120 @@ export function startOcean(
     { signal: abort.signal },
   );
   frame = requestAnimationFrame(animate);
-  const timeout = setTimeout(() => {
-    if (!active) {
-      fail(new HubError("Kết nối biển chung quá lâu. Hãy về hub rồi thử lại."));
-      network.abort();
-    }
-  }, 15000);
-  // The sea starts drawing as soon as Havok and WebGL are ready, before the network
-  // answers, so a waking server shows a living sea instead of a blank screen.
-  OceanScene.create(root.querySelector<HTMLElement>(".ocean-stage")!, () =>
-    fail(new HubError("Đồ họa đã tạm dừng. Hãy về hub rồi mở lại game.")),
+  const patience = {
+    deadlineMs: 100_000,
+    attemptMs: 25_000,
+    delaysMs: [1500, 2500, 4000],
+    slowAfterMs: 5000,
+    graphicsMs: 60_000,
+    ...options.timing,
+  };
+  let waking = false;
+  let attempts = 1;
+  const connectNote = () =>
+    (loadingNote.textContent =
+      (waking
+        ? "Máy chủ đang thức dậy, có thể mất tới 1 phút. Bạn không cần làm gì."
+        : "Đang kết nối…") + (attempts > 1 ? ` (lần thử ${attempts})` : ""));
+  step("graphics", "active");
+  step("connect", "active");
+  const graphicsTimer = setTimeout(() => {
+    if (!scene)
+      fail(new HubError("Tải đồ họa quá lâu. Kiểm tra mạng rồi thử lại."));
+  }, patience.graphicsMs);
+  // Graphics and network start together: the server wakes while the engine downloads.
+  const graphics = OceanScene.create(
+    root.querySelector<HTMLElement>(".ocean-stage")!,
+    () => fail(new HubError("Đồ họa đã tạm dừng. Hãy thử lại để mở lại game.")),
   )
     .then((created) => {
       if (disposed) {
         created.dispose();
-        return undefined;
+        throw new HubError("Đã rời biển.");
       }
       scene = created;
       options.onScene?.(created);
-      return options.connect
-        ? options.connect
-        : import("../platform/ocean").then(({ connectOcean }) => connectOcean);
+      clearTimeout(graphicsTimer);
+      step("graphics", "done");
+      // From here the live sea shows behind the card instead of a plain backdrop.
+      loading.classList.add("has-scene");
+      return created;
     })
     .catch((error: unknown) => {
+      if (error instanceof HubError) throw error;
       console.error(error);
-      notify(
+      throw new HubError(
         "Thiết bị chưa mở được đồ họa 3D. Hãy bật WebGL hoặc dùng trình duyệt khác.",
       );
-      return undefined;
-    })
-    .then((connect) =>
-      connect?.(
-        (value, serverTime) => {
-          boats = value;
-          clockOffset = serverTime - Date.now();
+    });
+  const connecting = (async () => {
+    const connect =
+      options.connect ?? (await import("../platform/ocean")).connectOcean;
+    const value = await connectWithRetry(
+      (attemptSignal) =>
+        connect(
+          (list, serverTime) => {
+            boats = list;
+            clockOffset = serverTime - Date.now();
+          },
+          // Errors before the boat is in the sea belong to the retry loop, not fail().
+          (error) => {
+            if (active) fail(error);
+          },
+          attemptSignal,
+        ),
+      network.signal,
+      {
+        deadlineMs: patience.deadlineMs,
+        attemptMs: patience.attemptMs,
+        delaysMs: patience.delaysMs,
+        slowAfterMs: patience.slowAfterMs,
+        onSlow: () => {
+          waking = true;
+          connectNote();
         },
-        fail,
-        network.signal,
-      ),
-    )
-    .then((value) => {
-      if (!value) return;
+        onAttempt: (n) => {
+          attempts = n;
+          if (n > 1 || waking) connectNote();
+        },
+        isFatal: (error) =>
+          error instanceof HubError &&
+          /đăng nhập|cửa sổ khác|đủ 100|chưa cấu hình/i.test(error.message),
+        discard: (late) => late.dispose(),
+      },
+    );
+    step("connect", "done");
+    return value;
+  })();
+  Promise.all([graphics, connecting])
+    .then(([created, value]) => {
       if (disposed || network.signal.aborted) {
         value.dispose();
         return;
       }
       connection = value;
       pose = value.pose;
-      scene?.spawnSelf(value.uid, "Bạn", value.pose);
+      created.spawnSelf(value.uid, "Bạn", value.pose);
+      step("enter", "done");
       active = true;
       lastPublish = performance.now();
       lastPose = JSON.stringify(pose);
       fishButton.disabled = false;
-      clearTimeout(timeout);
+      hideLoading();
       notify("Đã vào biển chung. Lái thuyền và thả câu khi bạn muốn.");
     })
-    .catch(fail);
+    .catch((error: unknown) => {
+      // If only the graphics failed, the network connection that did succeed is closed.
+      connecting.then(
+        (value) => value.dispose(),
+        () => {},
+      );
+      fail(error);
+    });
   function dispose() {
     if (disposed) return;
     disposed = true;
-    clearTimeout(timeout);
+    clearTimeout(graphicsTimer);
     clearTimeout(catchTimer);
     clearTimeout(biteTimer);
     cancelAnimationFrame(frame);

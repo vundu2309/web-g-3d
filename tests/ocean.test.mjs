@@ -132,3 +132,111 @@ test("the render-scale governor keeps the sea sharp at the capped frame rate and
   const hidden = new ScaleGovernor({ sharpest: 0.5 });
   for (const dt of [5, NaN, -1, 0]) assert.equal(hidden.sample(dt), undefined);
 });
+
+test("connecting retries through a sleeping server, stops on fatal errors, and never leaks a late connection", async () => {
+  const { connectWithRetry } = await import("../src/ocean/connect.ts");
+  const timing = {
+    deadlineMs: 600,
+    attemptMs: 60,
+    delaysMs: [5, 10],
+    slowAfterMs: 40,
+  };
+  const live = new AbortController();
+  // Fails twice (server waking), then connects; reports the slow state once.
+  let calls = 0;
+  const events = [];
+  const value = await connectWithRetry(
+    async () => {
+      calls++;
+      if (calls < 3) throw new Error("not yet");
+      return "connected";
+    },
+    live.signal,
+    {
+      ...timing,
+      onSlow: () => events.push("slow"),
+      onAttempt: (n) => events.push(n),
+    },
+  );
+  assert.equal(value, "connected");
+  assert.deepEqual(
+    events.filter((e) => e !== "slow"),
+    [1, 2, 3],
+  );
+  // A fatal error is not retried.
+  calls = 0;
+  await assert.rejects(
+    connectWithRetry(
+      async () => {
+        calls++;
+        throw new Error("signed out");
+      },
+      live.signal,
+      { ...timing, isFatal: () => true },
+    ),
+    /signed out/,
+  );
+  assert.equal(calls, 1);
+  // Gives up after the deadline with the last real error, in bounded time.
+  calls = 0;
+  const begin = Date.now();
+  await assert.rejects(
+    connectWithRetry(
+      async () => {
+        calls++;
+        throw new Error("still down");
+      },
+      live.signal,
+      { ...timing, deadlineMs: 150 },
+    ),
+    /still down/,
+  );
+  assert.ok(
+    calls >= 3 && Date.now() - begin < 400,
+    `${calls} tries in ${Date.now() - begin} ms`,
+  );
+  // A hung attempt is abandoned and retried; a late success is handed to discard().
+  calls = 0;
+  const discarded = [];
+  const result = await connectWithRetry(
+    (signal) =>
+      new Promise((resolve) => {
+        calls++;
+        if (calls === 1) setTimeout(() => resolve("late"), 120);
+        else resolve("fresh");
+        signal.addEventListener("abort", () => {});
+      }),
+    live.signal,
+    { ...timing, discard: (v) => discarded.push(v) },
+  );
+  assert.equal(result, "fresh");
+  await new Promise((r) => setTimeout(r, 160));
+  assert.deepEqual(
+    discarded,
+    ["late"],
+    "the connection that arrived too late is closed",
+  );
+  // Slow is reported even while a single attempt is still hanging.
+  let slow = false;
+  const slowRun = connectWithRetry(
+    () => new Promise((resolve) => setTimeout(() => resolve("ok"), 55)),
+    live.signal,
+    { ...timing, attemptMs: 200, slowAfterMs: 20, onSlow: () => (slow = true) },
+  );
+  assert.equal(await slowRun, "ok");
+  assert.equal(slow, true);
+  // Leaving the sea cancels it promptly and runs no further attempts.
+  const leaving = new AbortController();
+  calls = 0;
+  const cancelled = connectWithRetry(
+    async () => {
+      calls++;
+      throw new Error("down");
+    },
+    leaving.signal,
+    { ...timing, delaysMs: [200] },
+  );
+  setTimeout(() => leaving.abort(), 30);
+  await assert.rejects(cancelled);
+  assert.equal(calls, 1);
+});
