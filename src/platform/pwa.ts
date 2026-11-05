@@ -1,6 +1,10 @@
-/** Scoped SW lifecycle. Reload only after the local player confirms an update. */
+/**
+ * Scoped SW lifecycle. A new worker activates itself; the page reloads only when
+ * `canReload()` says no game, form or dialog would be interrupted.
+ */
 export function registerShell(
   onWaiting: (waiting: boolean, apply: () => Promise<void>) => void,
+  canReload: () => boolean = () => false,
 ): () => void {
   if (!import.meta.env.PROD || !("serviceWorker" in navigator)) return () => {};
   const abort = new AbortController();
@@ -11,11 +15,18 @@ export function registerShell(
     if (!disposed) onWaiting(!!registration?.waiting, applyUpdate);
   };
   let requested = false;
+  // The first claim of an uncontrolled page is not an upgrade, so never reload for it.
+  let hadController = !!navigator.serviceWorker.controller;
+  let pendingReload = false;
   navigator.serviceWorker.addEventListener(
     "controllerchange",
     () => {
       checkWaiting();
-      if (requested && !disposed) location.reload();
+      if (disposed) return;
+      const upgrade = hadController;
+      hadController = true;
+      if (requested || (upgrade && canReload())) location.reload();
+      else if (upgrade) pendingReload = true;
     },
     { signal: abort.signal },
   );
@@ -84,6 +95,9 @@ export function registerShell(
   document.addEventListener(
     "visibilitychange",
     () => {
+      // A deferred upgrade is applied while the page is hidden and nobody is playing.
+      if (pendingReload && document.visibilityState === "hidden" && canReload())
+        location.reload();
       if (
         document.visibilityState === "visible" &&
         registration &&

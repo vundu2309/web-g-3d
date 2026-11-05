@@ -113,10 +113,16 @@ export function startPwa(root: HTMLElement): () => void {
     },
     { signal: abort.signal },
   );
+  // Upgrade silently from the idle home screen only: never during a game view,
+  // an open dialog or while typing in a form.
+  const idle = () =>
+    !new URLSearchParams(location.search).has("view") &&
+    !document.querySelector("dialog[open]") &&
+    !(document.activeElement instanceof HTMLInputElement);
   const stopShell = registerShell((waiting, apply) => {
     applyUpdate = apply;
     if (!disposed) update.hidden = !waiting;
-  });
+  }, idle);
   refreshButtons();
   return () => {
     disposed = true;

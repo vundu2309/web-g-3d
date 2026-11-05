@@ -150,69 +150,42 @@ try {
   await page.goto(base);
   await page.locator("[data-pwa-install]").waitFor();
   await context.setOffline(false);
-  // A new SW must wait while the current client is open, without forcing a reload.
+  // A new worker takes over by itself. From the idle home screen the page reloads
+  // without a prompt; the old shell cache is removed once the new one is active.
   await page.evaluate(() => {
-    window.pwaSentinel = "still-open";
+    window.pwaSentinel = "idle-home";
   });
   revision = 2;
   await page.evaluate(async () => {
     const r = await navigator.serviceWorker.getRegistration();
     await r.update();
   });
-  await page.waitForFunction(
-    async () => !!(await navigator.serviceWorker.getRegistration()).waiting,
-  );
-  await page.locator(".pwa-update").waitFor({ state: "visible" });
-  assert.equal(await page.evaluate(() => window.pwaSentinel), "still-open");
-  await page.close();
-  // Closing the controlled client permits the normal SW activation lifecycle.
-  await new Promise((resolve) => setTimeout(resolve, 400));
-  page = await context.newPage();
-  await page.goto(base);
-  await page.waitForFunction(async () => {
-    const names = await caches.keys();
-    return (
-      names.some((n) => n.endsWith(":pwa-update-test-2")) &&
-      names.filter((n) => n.startsWith("photyphu-shell:")).length === 1
-    );
-  });
-  // Explicit apply can be cancelled; other scoped windows prevent activation.
-  revision = 3;
-  await page.evaluate(async () =>
-    (await navigator.serviceWorker.getRegistration()).update(),
-  );
-  await page.locator(".pwa-update").waitFor({ state: "visible" });
-  const other = await context.newPage();
-  await other.goto(base);
-  await page.evaluate(() => {
-    window.pwaSentinel = "manual-update";
-  });
-  page.once("dialog", (dialog) => dialog.dismiss());
-  await page
-    .getByRole("button", { name: "Cập nhật ngay", exact: true })
-    .click();
-  assert.equal(await page.evaluate(() => window.pwaSentinel), "manual-update");
-  page.once("dialog", (dialog) => dialog.accept());
-  await page
-    .getByRole("button", { name: "Cập nhật ngay", exact: true })
-    .click();
-  await page
-    .getByText("Hãy đóng các tab hoặc cửa sổ game khác rồi bấm cập nhật lại.", {
-      exact: true,
-    })
-    .waitFor();
-  assert.equal(
-    await other.evaluate(() => !!navigator.serviceWorker.controller),
-    true,
-  );
-  await other.close();
-  page.once("dialog", (dialog) => dialog.accept());
-  await Promise.all([
-    page.waitForEvent("load"),
-    page.getByRole("button", { name: "Cập nhật ngay", exact: true }).click(),
-  ]);
   await page.waitForFunction(() => !window.pwaSentinel);
-  await page.locator(".pwa-update").waitFor({ state: "hidden" });
+  await page.waitForFunction(async () => {
+    const names = (await caches.keys()).filter((n) =>
+      n.startsWith("photyphu-shell:"),
+    );
+    return names.length === 1 && names[0].endsWith(":pwa-update-test-2");
+  });
+  assert.equal(await page.locator(".pwa-update").isVisible(), false);
+  // An active game view is never reloaded underneath the player.
+  await page.goto(`${base}?view=game&state=5`);
+  await page.getByRole("button", { name: "+10 → M130", exact: true }).waitFor();
+  await page.evaluate(() => {
+    window.pwaSentinel = "in-game";
+  });
+  revision = 3;
+  await page.evaluate(async () => {
+    const r = await navigator.serviceWorker.getRegistration();
+    await r.update();
+  });
+  await page.waitForFunction(async () =>
+    (await caches.keys()).some((n) => n.endsWith(":pwa-update-test-3")),
+  );
+  assert.equal(await page.evaluate(() => window.pwaSentinel), "in-game");
+  // The next navigation already runs the newest shell; stale caches are cleaned.
+  await page.goto(base);
+  await page.locator("[data-pwa-install]").waitFor();
   await page.waitForFunction(async () =>
     (await caches.keys())
       .filter((n) => n.startsWith("photyphu-shell:"))
@@ -222,7 +195,7 @@ try {
   assert.equal(await page.locator("[data-pwa-install]").isVisible(), false);
   assert.deepEqual(errors, []);
   console.log(
-    "PWA passed: GitHub Pages subpath scope/icons, install guide/prompt handling, static-only offline home/lazy HUD reloads, waiting update without forced reload, cleanup after closing clients.",
+    "PWA passed: GitHub Pages subpath scope/icons, install guide/prompt handling, static-only offline home/lazy HUD reloads, self-activating updates that reload only from the idle home screen, never during a game view, with stale cache cleanup.",
   );
 } catch (error) {
   if (!page.isClosed())
