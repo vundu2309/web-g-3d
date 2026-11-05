@@ -60,7 +60,15 @@ try {
   ]);
   assert.equal(start.code, 0, start.output);
   for (let i = 0; i < 50; i++) {
-    const ready = await docker(["exec", name, "pg_isready", "-U", "postgres"]);
+    const ready = await docker([
+      "exec",
+      name,
+      "pg_isready",
+      "-h",
+      "127.0.0.1",
+      "-U",
+      "postgres",
+    ]);
     if (ready.code === 0) break;
     if (i === 49) throw new Error("Postgres not ready");
     await new Promise((resolve) => setTimeout(resolve, 100));

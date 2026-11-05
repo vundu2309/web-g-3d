@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:1db952f0bbf4dc178fd841b36b6378873c5bd960a7159c2fad58150c28bed2f1",
+  "pageVersion": "sha256:f6e81145916f5e4b5603b2d89a7f461c8e06fae314f6537c255cb73755a2bdc4",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -336,7 +336,7 @@
         },
         {
           "resource": "repo://scripts/test-supabase.mjs",
-          "version": "repo-file-v1:sha256:bc36ce3432567bb5e8f2fc20459e8e9e0963c348c8a03f308f84814fb3333750"
+          "version": "repo-file-v1:sha256:e839a88b43df5c3638c4fe391cd39856848cc55bf840641bfcd3af410725d4f8"
         },
         {
           "resource": "repo://src/app/password-recovery.ts",
@@ -355,6 +355,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T09:38:50.588Z"
+    "at": "2026-11-05T02:03:14.947Z"
   }
 }
