@@ -1,4 +1,10 @@
-import { PRESENCE_MS, SEA_BOUND, type Boat, type Pose } from "../ocean/model";
+import {
+  PRESENCE_MS,
+  SEA_BOUND,
+  spawn,
+  type Boat,
+  type Pose,
+} from "../ocean/model";
 import { HubError } from "../hub/model";
 import type { connectOcean } from "../platform/ocean";
 import { OceanScene } from "../ocean/babylon-scene";
@@ -55,6 +61,12 @@ export function startOcean(
       : "Chưa vào được biển chung";
     loadingNote.textContent = message;
     loadingActions.hidden = false;
+    // An expired or revoked session cannot be fixed by retrying: offer signing in again.
+    const signedOut = /đăng nhập/i.test(message);
+    loadingActions.dataset.auth = String(signedOut);
+    loadingActions.querySelector("[data-ocean=retry]")!.textContent = signedOut
+      ? "Đăng nhập lại"
+      : "Thử lại";
     // Whatever was in progress is what failed.
     for (const item of loading.querySelectorAll(".is-active"))
       item.className = "is-failed";
@@ -230,7 +242,12 @@ export function startOcean(
       ) {
         lastPublish = now;
         lastPose = serialized;
-        void connection?.publish(pose).catch(fail);
+        void connection?.publish(pose).catch((error: unknown) => {
+          // The server's "too fast" reply is harmless; anything else ends the session.
+          if (error instanceof HubError && /quá nhanh/.test(error.message))
+            return;
+          fail(error);
+        });
       }
     }
     const visible = active ? visibleBoats() : [];
@@ -272,7 +289,14 @@ export function startOcean(
       )?.dataset.ocean;
       if (action === "back") back();
       // A reload re-enters the sea directly (?view=ocean) and also clears any stale state.
-      if (action === "retry") location.reload();
+      if (action === "retry") {
+        if (loadingActions.dataset.auth !== "true") location.reload();
+        else
+          void import("../platform/account")
+            .then(({ logoutPlayer }) => logoutPlayer())
+            .catch(() => {})
+            .finally(() => location.assign("./"));
+      }
       // The press already acted (see below); only keyboard activation lands here.
       if (action === "fish" && performance.now() - fishPressAt > 700) fish();
       if (action === "crew" || action === "catch") showDialog(action);
@@ -438,12 +462,15 @@ export function startOcean(
         return;
       }
       connection = value;
-      pose = value.pose;
-      created.spawnSelf(value.uid, "Bạn", value.pose);
+      // Start in the shared harbor even if the server still assigns an older start pose.
+      pose = spawn(value.uid);
+      created.spawnSelf(value.uid, "Bạn", pose);
       step("enter", "done");
       active = true;
-      lastPublish = performance.now();
-      lastPose = JSON.stringify(pose);
+      // The first pose goes out about half a second after entering (not a full second),
+      // late enough for the server's rate limit, early enough that others see the real spot.
+      lastPublish = performance.now() - 500;
+      lastPose = "";
       fishButton.disabled = false;
       hideLoading();
       notify("Đã vào biển chung. Lái thuyền và thả câu khi bạn muốn.");

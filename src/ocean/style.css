@@ -467,3 +467,25 @@
     display: none;
   }
 }
+
+/* A player who is off-screen: arrow, name and distance on a ring inside the view. */
+.ocean-boat-label[data-edge] {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: 2px solid #153b80;
+  box-shadow: 0 2px 0 #153b80;
+  background: #fffffff2;
+  z-index: 1;
+}
+.ocean-boat-label[data-edge]::before {
+  content: "▲";
+  display: inline-block;
+  color: #e0654f;
+  transform: rotate(var(--turn, 0rad));
+}
+.ocean-boat-label[data-edge]::after {
+  content: attr(data-distance);
+  font-weight: 500;
+  opacity: 0.75;
+}

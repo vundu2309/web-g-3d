@@ -3,6 +3,7 @@ import {
   currentPlayer,
   loginPlayer,
   registerPlayer,
+  resendConfirmation,
   resetPassword,
 } from "../platform/account";
 import type { PlayerAccount as User } from "../platform/account";
@@ -14,7 +15,9 @@ async function openAccount(signal?: AbortSignal): Promise<User | null> {
     dialog.className = "account-dialog";
     dialog.setAttribute("aria-labelledby", "account-title");
     dialog.setAttribute("aria-describedby", "account-intro");
-    let mode: "login" | "register" | "reset" = "login";
+    let mode: "login" | "register" | "reset" | "confirm" = "login";
+    // Kept only in memory while the player confirms their email; never stored.
+    let waiting: { email: string; password: string } | undefined;
     let pending = false;
     const controller = new AbortController();
     function close(user: User | null) {
@@ -23,7 +26,39 @@ async function openAccount(signal?: AbortSignal): Promise<User | null> {
       dialog.remove();
       resolve(user);
     }
+    function renderConfirm() {
+      dialog.innerHTML = `<div class="account-heading"><h1 id="account-title">Kiểm tra email của bạn</h1><button type="button" class="text-button account-close" data-auth="close" aria-label="Đóng">Đóng</button></div><p id="account-intro" class="account-intro" data-confirm-text></p><ol class="confirm-steps"><li>Mở email vừa gửi (xem cả mục Spam).</li><li>Bấm liên kết xác nhận trong email.</li><li>Quay lại đây và bấm nút bên dưới.</li></ol><p class="form-error" role="alert" hidden></p><p class="auth-status" role="status"></p><button class="button primary" type="button" data-auth="confirmed">Tôi đã xác nhận, đăng nhập</button><div class="account-links"><button class="text-button" type="button" data-auth="resend">Gửi lại email</button><button class="text-button" type="button" data-auth="back">Đổi email</button></div>`;
+      // The address is user input: set it as text, never as markup.
+      dialog.querySelector("[data-confirm-text]")!.textContent =
+        `Đã tạo tài khoản. Chúng tôi vừa gửi liên kết xác nhận tới ${waiting?.email ?? "email của bạn"}.`;
+      dialog.querySelector<HTMLElement>('[data-auth="confirmed"]')?.focus();
+    }
+    /** Runs one button action with the same busy/error handling as the form. */
+    function perform(task: () => Promise<void>) {
+      if (pending) return;
+      const error = dialog.querySelector<HTMLElement>("[role=alert]")!;
+      const status = dialog.querySelector<HTMLElement>(".auth-status")!;
+      error.hidden = true;
+      status.textContent = "Đang xử lý…";
+      pending = true;
+      const controls = dialog.querySelectorAll<
+        HTMLInputElement | HTMLButtonElement
+      >("input,button");
+      controls.forEach((el) => (el.disabled = true));
+      void task()
+        .catch((e: unknown) => {
+          error.textContent = accountError(e);
+          error.hidden = false;
+          status.textContent = "";
+        })
+        .finally(() => {
+          pending = false;
+          if (dialog.isConnected)
+            controls.forEach((el) => (el.disabled = false));
+        });
+    }
     function render() {
+      if (mode === "confirm") return renderConfirm();
       const title =
         mode === "login"
           ? "Đăng nhập"
@@ -56,6 +91,25 @@ async function openAccount(signal?: AbortSignal): Promise<User | null> {
         if (action === "reset") {
           mode = "reset";
           render();
+        }
+        if (action === "back") {
+          mode = "register";
+          render();
+        }
+        if (action === "confirmed" && waiting) {
+          const { email, password } = waiting;
+          perform(async () => {
+            // Signing in is the proof of confirmation: it only works once the link was used.
+            close(await loginPlayer(email, password));
+          });
+        }
+        if (action === "resend" && waiting) {
+          const { email } = waiting;
+          perform(async () => {
+            await resendConfirmation(email);
+            dialog.querySelector(".auth-status")!.textContent =
+              "Đã gửi lại email. Hãy kiểm tra hộp thư và mục Spam.";
+          });
         }
         if (action === "show") {
           const input =
@@ -112,9 +166,10 @@ async function openAccount(signal?: AbortSignal): Promise<User | null> {
                     );
               if (signedIn) close(signedIn);
               else {
-                form.reset();
-                status.textContent =
-                  "Hãy kiểm tra email để xác nhận tài khoản, rồi quay lại đăng nhập. Tài khoản cũ cần đăng ký lại trên hệ thống mới.";
+                // Email confirmation is on: say so clearly instead of clearing the form.
+                waiting = { email, password };
+                mode = "confirm";
+                render();
               }
             }
           } catch (e) {

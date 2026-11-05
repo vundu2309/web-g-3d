@@ -24,19 +24,20 @@ Vercel Git auto-deployment is disabled in `vercel.json` to keep the project's pu
 
 The provisioned schema's advisors report only informational findings: private tables deliberately have RLS with no policies, because all table grants are revoked and the authenticated RPC enforces authorization; indexes have not yet served real traffic. Do not add permissive policies to silence these. See [RLS without policies](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) and [unused indexes](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index).
 
-
 The notification connection explicitly trusts the public Supabase Root 2021 CA in `server/supabase-root-ca.crt` (downloaded over verified HTTPS from Supabase's certificate distribution bucket). Certificate and hostname validation stay enabled. The root expires in April2031; update it from the provider before expiry or a provider CA rotation. A missing trust root causes a closed/not-ready connection rather than bypassing TLS verification.
-
 
 ## Frontend release
 
-Vercel receives VITE_ONLINE_BACKEND=supabase, VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, VITE_API_URL and VITE_AUTH_REDIRECT_URL. All are public; never put DATABASE_URL in Vercel or a VITE_ variable. User confirmed Auth Site URL and redirect allowlist for https://web-g-3d.vercel.app. New accounts are required; old Firebase accounts/rooms remain intact. Room restore uses a provider-specific sessionStorage key so old Firebase room identifiers are not sent to the new backend. Demo mode remains explicit and local.
+Vercel receives VITE*ONLINE_BACKEND=supabase, VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, VITE_API_URL and VITE_AUTH_REDIRECT_URL. All are public; never put DATABASE_URL in Vercel or a VITE* variable. User confirmed Auth Site URL and redirect allowlist for https://web-g-3d.vercel.app. New accounts are required; old Firebase accounts/rooms remain intact. Room restore uses a provider-specific sessionStorage key so old Firebase room identifiers are not sent to the new backend. Demo mode remains explicit and local.
 
 `npm run test:supabase` requires the local Docker daemon and is also run in CI. Its images and ephemeral test users/databases/mail are owned by the runner and removed on exit. The default `npm run check` continues to cover the legacy Firebase build and UI. Preview origins must be added exactly to Render ALLOWED_ORIGINS; CORS is not authorization.
-
 
 Socket handshake errors distinguish expired/invalid Auth from temporary service readiness. The browser retries transient middleware rejection with bounded backoff, refreshes credentials after token refresh and forces a fresh snapshot on reconnect so a stale connection error cannot remain after recovery. These are connection retries, not polling room state.
 
 ## Shared fishing sea
 
 The active entry now starts the shared sea after the provider-selected Auth flow, with no rooms or readiness. New `ocean:command`/`ocean:state` handlers use the existing authenticated Socket.IO connection and keep one ephemeral boat per account in **one API instance**. There is no new SQL migration, private table grant or client polling. Existing room RPC/LISTEN/NOTIFY and legacy hub remain unchanged at `?view=monopoly-hub`. Do not scale this sea across API instances until shared simulation/broadcast exists. A restart clears sea state; players return to hub and re-enter. See [contract and verification](ocean.md).
+
+## Sign-up and email confirmation
+
+Whether a new account must confirm its email is a Supabase Auth project setting (Authentication > Providers > Email > "Confirm email"), not application code. The client handles both: with confirmation off, `signUp` returns a session and the dialog closes straight into the game; with it on, the dialog shows a "Kiểm tra email của bạn" step (address shown as text, **Gửi lại email**, and a sign-in button that only succeeds once the link was used) instead of clearing the form. `tests/account-signup-browser.mjs` covers both settings with a faked Auth API. The built-in Supabase mailer is rate limited to a few emails per hour, which also blocks sign-ups while confirmation is on. Turning confirmation off removes proof that an email address belongs to the person registering with it, and password recovery then sends to an unverified address.

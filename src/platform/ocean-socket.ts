@@ -87,10 +87,20 @@ export async function connectOcean(
         signal.removeEventListener("abort", aborted);
         resolve();
       });
-      socket.once("connect_error", () => {
-        signal.removeEventListener("abort", aborted);
-        reject(new HubError("Chưa kết nối được biển chung. Hãy thử lại."));
-      });
+      socket.once(
+        "connect_error",
+        (error: Error & { data?: { code?: string } }) => {
+          signal.removeEventListener("abort", aborted);
+          // The server says why; a revoked or expired session must not be retried.
+          reject(
+            new HubError(
+              error.data?.code === "AUTH_REQUIRED"
+                ? "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại."
+                : "Chưa kết nối được biển chung. Hãy thử lại.",
+            ),
+          );
+        },
+      );
       socket.connect();
     });
     const data = await command("join");

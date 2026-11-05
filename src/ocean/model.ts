@@ -21,14 +21,32 @@ export const islands = [
 /** Shoreline radius the hull collides at: just past the visible beach edge. */
 export const islandCollisionRadius = (island: { radius: number }) =>
   island.radius * 1.08;
+/**
+ * Everyone starts in one small harbor, all facing the open sea, so players see each
+ * other from the first second. (They used to start up to 40 m apart facing random
+ * directions, which put the other boat behind or beside the camera.)
+ */
+export const HARBOR = { x: 0, z: 22 };
+const SLOTS: ReadonlyArray<readonly [number, number]> = [
+  [-10.5, 0],
+  [-3.5, 0],
+  [3.5, 0],
+  [10.5, 0],
+  [-10.5, 7],
+  [-3.5, 7],
+  [3.5, 7],
+  [10.5, 7],
+];
 export function spawn(uid: string): Pose {
   let hash = 0;
   for (const char of uid) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-  const angle = ((hash % 360) * Math.PI) / 180;
+  const [dx, dz] = SLOTS[hash % SLOTS.length]!;
+  // A little jitter so two accounts that share a slot do not stack exactly.
+  const jitter = (shift: number) => (((hash >>> shift) % 100) / 100 - 0.5) * 3;
   return {
-    x: Math.sin(angle) * (12 + (hash % 30)),
-    z: Math.cos(angle) * (12 + (hash % 30)),
-    heading: Math.atan2(Math.sin(angle), Math.cos(angle)),
+    x: HARBOR.x + dx + jitter(8),
+    z: HARBOR.z + dz + jitter(16),
+    heading: 0,
     fishing: false,
   };
 }

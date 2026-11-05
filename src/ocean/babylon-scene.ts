@@ -31,6 +31,7 @@ import {
   type Pose,
 } from "./model.ts";
 import { FOG_DENSITY, HORIZON, SUN_DIRECTION } from "./sea-style.ts";
+import { edgeIndicator } from "./indicator.ts";
 import { ScaleGovernor } from "./render-scale.ts";
 import { createSky, type Sky } from "./sky.ts";
 import { createWater, type Water } from "./water.ts";
@@ -354,29 +355,51 @@ export class OceanScene {
   private placeLabels() {
     const transform = this.scene.getTransformMatrix();
     const camera = this.camera.position;
-    const place = (craft: Craft, x: number, y: number, z: number) => {
+    const place = (
+      craft: Craft,
+      x: number,
+      y: number,
+      z: number,
+      remote: boolean,
+    ) => {
       const p = Vector3.Project(
         new Vector3(x, y, z),
         Matrix.IdentityReadOnly,
         transform,
         NORMALIZED,
       );
-      // Far names would only clutter the horizon; the crew list names everyone.
-      const far = Math.hypot(x - camera.x, z - camera.z) > 75;
-      craft.label.hidden =
-        far ||
-        p.z > 1 ||
-        p.z < 0 ||
-        p.x < -0.05 ||
-        p.x > 1.05 ||
-        p.y < -0.05 ||
-        p.y > 1.05;
-      craft.label.style.left = `${p.x * 100}%`;
-      craft.label.style.top = `${p.y * 100}%`;
+      const visible =
+        p.z >= 0 &&
+        p.z <= 1 &&
+        p.x > 0.04 &&
+        p.x < 0.96 &&
+        p.y > 0.08 &&
+        p.y < 0.9;
+      const label = craft.label;
+      if (visible) {
+        delete label.dataset.edge;
+        // Far names would only clutter the horizon; the arrows and crew list cover them.
+        label.hidden = Math.hypot(x - camera.x, z - camera.z) > 75;
+        label.style.left = `${p.x * 100}%`;
+        label.style.top = `${p.y * 100}%`;
+        return;
+      }
+      if (!remote) {
+        label.hidden = true;
+        return;
+      }
+      // Off-screen player: an arrow with their name and distance, so nobody gets lost.
+      const mark = edgeIndicator(x - camera.x, z - camera.z, this.viewHeading);
+      label.hidden = false;
+      label.dataset.edge = "true";
+      label.dataset.distance = `${Math.round(mark.distance)} m`;
+      label.style.setProperty("--turn", `${mark.turn}rad`);
+      label.style.left = `${mark.x * 100}%`;
+      label.style.top = `${mark.y * 100}%`;
     };
     if (this.self) {
       const s = this.self.physics.state();
-      place(this.self.craft, s.x, s.y + 6.2, s.z);
+      place(this.self.craft, s.x, s.y + 6.2, s.z, false);
     }
     for (const craft of this.fleet.values())
       place(
@@ -384,6 +407,7 @@ export class OceanScene {
         craft.mesh.position.x,
         craft.mesh.position.y + 6.2,
         craft.mesh.position.z,
+        true,
       );
   }
 

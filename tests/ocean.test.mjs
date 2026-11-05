@@ -12,7 +12,12 @@ test("boats have stable per-account spawns, steer, stop while fishing, and stay 
   assert.deepEqual(spawn("minh"), spawn("minh"));
   for (let i = 0; i < 1000; i++)
     assert.ok(Math.abs(spawn(`account-${i}`).heading) <= Math.PI);
-  assert.notDeepEqual(spawn("minh"), spawn("lan"));
+  assert.ok(
+    new Set(
+      ["minh", "lan", "an", "binh", "chi", "dung"].map((id) => spawn(id).x),
+    ).size > 3,
+    "accounts spread over the harbor",
+  );
   const pose = { x: 0, z: 0, heading: 0, fishing: false };
   assert.ok(move(pose, 0, 1, 0.05).z < 0);
   assert.ok(move(pose, 1, 0, 0.05).heading > 0);
@@ -239,4 +244,103 @@ test("connecting retries through a sleeping server, stops on fatal errors, and n
   setTimeout(() => leaving.abort(), 30);
   await assert.rejects(cancelled);
   assert.equal(calls, 1);
+});
+
+test("every account starts in the shared harbor, close together and facing the same way", async () => {
+  const { HARBOR } = await import("../src/ocean/model.ts");
+  const starts = [];
+  for (let i = 0; i < 3000; i++)
+    starts.push(spawn(`account-${i}-${(i * 7919) % 1000003}`));
+  assert.ok(
+    starts.every((s) => s.heading === 0 && s.fishing === false),
+    "all face the open sea",
+  );
+  assert.ok(
+    starts.every(
+      (s) =>
+        Math.abs(s.x - HARBOR.x) <= 12.5 &&
+        s.z - HARBOR.z >= -1.6 &&
+        s.z - HARBOR.z <= 8.6,
+    ),
+    "all inside the small harbor box",
+  );
+  let widest = 0;
+  for (let i = 0; i < starts.length; i += 7)
+    for (let j = i + 1; j < starts.length; j += 11)
+      widest = Math.max(
+        widest,
+        Math.hypot(starts[i].x - starts[j].x, starts[i].z - starts[j].z),
+      );
+  assert.ok(
+    widest < 27,
+    `any two players start within ${widest.toFixed(1)} m of each other`,
+  );
+  // The two real accounts that could not find each other used to start 27.6 m apart,
+  // with one 86 degrees to the side of the other's bow.
+  const a = spawn("b81514cf-a7f7-490f-a59c-194e8810f027");
+  const b = spawn("2f45aed2-2a6d-4057-a0ab-619028508ea2");
+  assert.ok(
+    Math.hypot(a.x - b.x, a.z - b.z) < 27,
+    "and they now share the harbor",
+  );
+  for (const s of starts) {
+    assert.ok(
+      islands.every(
+        (i) => Math.hypot(s.x - i.x, s.z - i.z) > i.radius * 1.08 + 5,
+      ),
+      "never inside an island",
+    );
+    assert.ok(Math.abs(s.x) < 180 && Math.abs(s.z) < 180, "inside the sea");
+  }
+});
+
+test("an off-screen player gets an arrow pointing toward them, on a ring inside the view", async () => {
+  const { edgeIndicator } = await import("../src/ocean/indicator.ts");
+  const near = (a, b, label) =>
+    assert.ok(Math.abs(a - b) < 1e-6, `${label}: ${a} vs ${b}`);
+  // Camera heading 0 looks toward -Z. Right is +X.
+  const ahead = edgeIndicator(0, -40, 0);
+  near(ahead.x, 0.5, "ahead x");
+  assert.ok(
+    ahead.y < 0.3 && ahead.turn === 0 && ahead.distance === 40,
+    "ahead: up",
+  );
+  const right = edgeIndicator(40, 0, 0);
+  assert.ok(
+    right.x > 0.8 && Math.abs(right.y - 0.5) < 1e-6,
+    "right: right edge",
+  );
+  near(right.turn, Math.PI / 2, "right turn");
+  const left = edgeIndicator(-40, 0, 0);
+  assert.ok(left.x < 0.2, "left: left edge");
+  near(left.turn, -Math.PI / 2, "left turn");
+  const behind = edgeIndicator(0, 40, 0);
+  assert.ok(
+    behind.y > 0.7 && Math.abs(Math.abs(behind.turn) - Math.PI) < 1e-6,
+    "behind: down",
+  );
+  // The camera's own heading matters: facing +X (heading pi/2), a boat at +X is ahead.
+  const turned = edgeIndicator(40, 0, Math.PI / 2);
+  near(turned.turn, 0, "turned camera");
+  // Always on the ring and inside the screen, for any direction and distance.
+  for (let k = 0; k < 720; k++) {
+    const angle = (k / 720) * Math.PI * 2;
+    for (const distance of [3, 40, 900]) {
+      const m = edgeIndicator(
+        Math.sin(angle) * distance,
+        -Math.cos(angle) * distance,
+        0.7 * Math.sin(k),
+      );
+      assert.ok(
+        m.x >= 0.1 && m.x <= 0.9 && m.y >= 0.2 && m.y <= 0.8,
+        `inside the view at ${angle.toFixed(2)} rad`,
+      );
+      assert.ok(
+        Number.isFinite(m.turn) && Math.abs(m.distance - distance) < 1e-6,
+      );
+    }
+  }
+  // Right on top of the camera: no NaN, still a valid place.
+  const here = edgeIndicator(0, 0, 0);
+  assert.ok(Number.isFinite(here.x) && Number.isFinite(here.y));
 });
