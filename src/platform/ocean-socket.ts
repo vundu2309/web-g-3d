@@ -58,7 +58,57 @@ export async function connectOcean(
         });
         return boat ? [boat] : [];
       });
+      fleet.clear();
+      for (const boat of boats) fleet.set(boat.uid, boat);
       onBoats(boats, value.serverTime);
+    },
+  );
+  // Protocol 2: a full snapshot on entering, then only what changed each tick.
+  const fleet = new Map<string, Boat>();
+  const publishBoats = (serverTime: number) =>
+    onBoats([...fleet.values()].slice(0, 100), serverTime);
+  socket.on(
+    "ocean:delta",
+    (value: {
+      t: number;
+      add?: Record<string, unknown>[];
+      up?: unknown[][];
+      gone?: string[];
+    }) => {
+      if (disposed || !Number.isFinite(value?.t)) return;
+      const at = value.t;
+      for (const item of Array.isArray(value.add) ? value.add : []) {
+        if (typeof item?.uid !== "string") continue;
+        const boat = readBoat(item.uid, {
+          ...item,
+          session: "",
+          updatedAt: { toMillis: () => at },
+        });
+        if (boat) fleet.set(boat.uid, boat);
+      }
+      for (const row of Array.isArray(value.up) ? value.up : []) {
+        const [uid, x, z, heading, fishing] = row ?? [];
+        const known = typeof uid === "string" ? fleet.get(uid) : undefined;
+        if (
+          !known ||
+          ![x, z, heading].every(
+            (n) => typeof n === "number" && Number.isFinite(n),
+          )
+        )
+          continue;
+        const next = readBoat(known.uid, {
+          ...known,
+          x,
+          z,
+          heading,
+          fishing: fishing === 1,
+          updatedAt: { toMillis: () => at },
+        });
+        if (next) fleet.set(next.uid, next);
+      }
+      for (const uid of Array.isArray(value.gone) ? value.gone : [])
+        fleet.delete(uid);
+      publishBoats(at);
     },
   );
   socket.on("ocean:error", (value: { error: string }) =>
@@ -68,12 +118,20 @@ export async function connectOcean(
     if (!disposed)
       onError(new HubError("Mất kết nối biển chung. Hãy về hub rồi vào lại."));
   });
+  interface Joined {
+    pose: Pose;
+    proto?: number;
+    sendMs?: number;
+    delayMs?: number;
+  }
   async function command(action: string, pose?: Pose) {
     if (disposed || !socket.connected) throw new HubError("Đã rời biển.");
-    const result = (await socket
-      .timeout(12000)
-      .emitWithAck("ocean:command", { action, ...(pose ? { pose } : {}) })) as {
-      data?: { pose: Pose };
+    const result = (await socket.timeout(12000).emitWithAck("ocean:command", {
+      action,
+      ...(action === "join" ? { proto: 2 } : {}),
+      ...(pose ? { pose } : {}),
+    })) as {
+      data?: Joined;
       error?: string;
     };
     if (result.error) throw new HubError(result.error);
@@ -103,14 +161,44 @@ export async function connectOcean(
       );
       socket.connect();
     });
-    const data = await command("join");
+    const data = (await command("join")) as Joined | undefined;
     if (!data?.pose || signal.aborted) throw new HubError("Đã rời biển.");
+    const modern = data.proto === 2;
+    // A server that only speaks the older protocol keeps its one-per-second pace.
+    const sendMs = modern ? Math.max(100, data.sendMs ?? 200) : 1000;
+    const delayMs = modern ? Math.max(150, data.delayMs ?? 300) : 1300;
+    // Keep the open connection signed in: the access token is renewed about hourly,
+    // and the server checks the session on a timer.
+    const { data: listener } = supabase().auth.onAuthStateChange(
+      (_event, session) => {
+        if (disposed || !modern || session?.user.id !== user.uid) return;
+        socket.emit("ocean:token", { token: session.access_token });
+      },
+    );
+    signal.addEventListener(
+      "abort",
+      () => listener.subscription.unsubscribe(),
+      {
+        once: true,
+      },
+    );
     return {
       uid: user.uid,
       pose: data.pose,
-      dispose,
+      sendMs,
+      delayMs,
+      dispose: () => {
+        listener.subscription.unsubscribe();
+        dispose();
+      },
       publish: async (pose: Pose) => {
-        if (inFlight || disposed) return;
+        if (disposed) return;
+        if (modern) {
+          // No acknowledgement: nothing waits on the network round trip.
+          if (socket.connected) socket.volatile.emit("ocean:move", pose);
+          return;
+        }
+        if (inFlight) return;
         inFlight = true;
         try {
           await command("move", pose);

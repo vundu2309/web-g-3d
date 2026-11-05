@@ -405,3 +405,59 @@ test("saved sea state restores a safe position and the catch count, and rejects 
   assert.equal(decodeSave(raw({ caught: 1e12 }), now).caught, 1_000_000);
   assert.equal(JSON.parse(encodeSave(make({ caught: -3 }), now)).caught, 0);
 });
+
+test("remote boats are played back between samples: continuous at a low publish rate, shortest turn, no extrapolation", async () => {
+  const { RemoteTracks, ServerClock } = await import("../src/ocean/remote.ts");
+  const tracks = new RemoteTracks();
+  const at = (x, heading = 0) => ({ x, z: 0, heading, fishing: false });
+  tracks.push("lan", 1000, at(0));
+  tracks.push("lan", 1200, at(10));
+  tracks.push("lan", 1100, at(99)); // out of order: ignored
+  tracks.push("lan", 1200, at(99)); // duplicate time: ignored
+  assert.equal(tracks.sample("lan", 1100).x, 5, "midway between two samples");
+  assert.equal(tracks.sample("lan", 900).x, 0, "holds the first sample");
+  assert.equal(
+    tracks.sample("lan", 5000).x,
+    10,
+    "never extrapolates past the newest",
+  );
+  assert.equal(tracks.sample("nobody", 1000), undefined);
+  // 5 samples per second at 8 m/s, drawn at 60 fps one tick behind: every frame moves
+  // by about the same amount. The old blend-towards-newest stalled between packets.
+  const track = new RemoteTracks();
+  for (let i = 0; i <= 10; i++) track.push("minh", i * 200, at(i * 1.6));
+  const steps = [];
+  let previous = track.sample("minh", 400).x;
+  for (let t = 400 + 1000 / 60; t <= 1600; t += 1000 / 60) {
+    const x = track.sample("minh", t).x;
+    steps.push(x - previous);
+    previous = x;
+  }
+  const mean = steps.reduce((a, b) => a + b) / steps.length;
+  assert.ok(
+    steps.every((s) => Math.abs(s - mean) < mean * 0.05),
+    "even steps",
+  );
+  // Turning across the +-pi seam goes the short way.
+  const turn = new RemoteTracks();
+  turn.push("an", 0, at(0, 3.0));
+  turn.push("an", 100, at(0, -3.0));
+  const heading = Math.abs(turn.sample("an", 50).heading);
+  assert.ok(heading > 3.1, `short arc through pi, not through 0 (${heading})`);
+  tracks.keepOnly(new Set());
+  assert.equal(tracks.sample("lan", 1100), undefined);
+  assert.equal(tracks.latest("lan"), -Infinity);
+
+  // Network jitter: a late packet must not pull playback back, a quick one moves it on.
+  const clock = new ServerClock();
+  assert.equal(clock.now(0), undefined);
+  clock.observe(10_000, 0);
+  assert.equal(clock.now(500), 10_500);
+  clock.observe(10_900, 1000); // this one was delayed 100 ms: offset barely moves
+  assert.ok(
+    Math.abs(clock.now(1000) - 11_000) < 5,
+    "a delayed packet is mostly ignored",
+  );
+  clock.observe(11_300, 1000); // a quicker path: playback follows at once
+  assert.equal(clock.now(1000), 11_300);
+});

@@ -8,6 +8,9 @@
 export const fatalConnectionMessage =
   /đăng nhập|cửa sổ khác|đủ 100|chưa cấu hình/i;
 
+/** The server's text when the connection's access token ran out; reconnecting renews it. */
+export const renewableSessionMessage = /^Hãy đăng nhập lại\.?$/;
+
 export interface RetryOptions<T> {
   /** Give up after this long in total. */
   deadlineMs: number;

@@ -28,7 +28,10 @@ export function createApi({
   }
   async function authenticate(token) {
     const response = await upstream("/auth/v1/user", token);
-    if (!response.ok) return null;
+    // A rejected token is "not signed in"; the provider failing is not, and must not
+    // end a running game (callers treat a throw as "try again later").
+    if (response.status === 401 || response.status === 403) return null;
+    if (!response.ok) throw new Error("Auth provider unavailable");
     const user = await response.json();
     return user.id && !user.is_anonymous ? user : null;
   }

@@ -9,9 +9,11 @@ import { HubError } from "../hub/model";
 import type { connectOcean } from "../platform/ocean";
 import { OceanScene } from "../ocean/babylon-scene";
 import { bindStick, type StickInput } from "../ocean/stick";
+import { RemoteTracks, ServerClock } from "../ocean/remote";
 import {
   connectWithRetry,
   fatalConnectionMessage,
+  renewableSessionMessage,
   type RetryOptions,
 } from "../ocean/connect";
 import { decodeSave, encodeSave, saveKey } from "../ocean/save";
@@ -157,16 +159,43 @@ export function startOcean(
     biteAt = 0;
     fishButton.textContent = "Thả câu";
   }
+  // Other boats are drawn slightly in the past, interpolated between received samples,
+  // so they glide at any publish rate instead of jumping when a packet arrives.
+  const tracks = new RemoteTracks();
+  const serverClock = new ServerClock();
   function takeBoats(list: Boat[], serverTime: number) {
     boats = list;
     clockOffset = serverTime - Date.now();
+    serverClock.observe(serverTime, performance.now());
+    for (const boat of list)
+      if (boat.uid !== selfUid && boat.updatedAt > tracks.latest(boat.uid))
+        tracks.push(boat.uid, boat.updatedAt, boat);
+    tracks.keepOnly(new Set(list.map((boat) => boat.uid)));
   }
+  /** Boats as they are drawn now: the player's own is physics, the rest are played back. */
+  function drawnBoats(list: Boat[], localNow: number) {
+    const serverNow = serverClock.now(localNow);
+    if (serverNow === undefined) return list;
+    const at = serverNow - (connection?.delayMs ?? 1300);
+    return list.map((boat) => {
+      if (boat.uid === connection?.uid) return boat;
+      const played = tracks.sample(boat.uid, at);
+      return played ? { ...boat, ...played } : boat;
+    });
+  }
+  const poseKey = (value: Pose) =>
+    `${Math.round(value.x * 20)},${Math.round(value.z * 20)},${Math.round(value.heading * 100)},${value.fishing}`;
   /** A drop after entering: try to reconnect by itself; only give up for real reasons. */
   function connectionLost(error: unknown) {
     // Before the boat is in the sea, the start-up retry loop owns errors.
     if (disposed || reconnecting || !active) return;
     const message = error instanceof HubError ? error.message : "";
-    if (fatalConnectionMessage.test(message)) {
+    // An expired access token ends the connection but not the session: reconnecting
+    // sends a fresh one, and only a refused handshake means signing in again.
+    if (
+      fatalConnectionMessage.test(message) &&
+      !renewableSessionMessage.test(message)
+    ) {
       fail(error);
       return;
     }
@@ -343,9 +372,10 @@ export function startOcean(
         lastSave = now;
         persist();
       }
-      const serialized = JSON.stringify(pose);
+      // The bobbing of the hull on the waves is not movement worth sending.
+      const serialized = poseKey(pose);
       if (
-        now - lastPublish >= 1000 &&
+        now - lastPublish >= (connection?.sendMs ?? 1000) &&
         (serialized !== lastPose || now - lastPublish >= 10000)
       ) {
         lastPublish = now;
@@ -368,7 +398,7 @@ export function startOcean(
     // Draw the sea even while connecting or offline; boats appear once connected.
     if (scene && now - lastDraw >= 33) {
       scene.update(
-        visible,
+        drawnBoats(visible, now),
         connection?.uid ?? "",
         now / 1000,
         (now - lastDraw) / 1000,

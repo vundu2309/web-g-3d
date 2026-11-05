@@ -115,7 +115,7 @@ export async function connectOcean(
       },
       onError,
     );
-    return { uid, pose, publish, dispose };
+    return { uid, pose, publish, dispose, sendMs: 1000, delayMs: 1300 };
   } catch (error) {
     dispose();
     throw error;

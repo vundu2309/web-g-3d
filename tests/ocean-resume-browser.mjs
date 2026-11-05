@@ -142,11 +142,32 @@ try {
   assert.ok(before.z < 10, "and it really had left the harbor");
   assert.equal(await page.locator("[data-count]").innerText(), "1 thuyền");
 
-  // 2. A revoked session mid-game is not retried: sign in again instead.
-  const callsBefore = await page.evaluate(() => window.calls);
+  // 2a. The access token running out mid-game ("Hãy đăng nhập lại.") is not the end
+  //     of the session: reconnecting sends a fresh token, so the game carries on.
+  const expiredBefore = await page.evaluate(() => window.calls);
   await page.evaluate(async () => {
     const { HubError } = await import("/src/hub/model.ts");
     window.lose(new HubError("Hãy đăng nhập lại."));
+  });
+  await page.waitForFunction((n) => window.calls > n, expiredBefore, {
+    timeout: 30000,
+  });
+  await page
+    .getByText("Đã kết nối lại biển chung", { exact: false })
+    .waitFor({ timeout: 60000 });
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Đăng nhập lại", exact: true })
+      .count(),
+    0,
+    "no sign-in card for an expired token",
+  );
+
+  // 2b. A refused sign-in (revoked session) is not retried: sign in again instead.
+  const callsBefore = await page.evaluate(() => window.calls);
+  await page.evaluate(async () => {
+    const { HubError } = await import("/src/hub/model.ts");
+    window.lose(new HubError("Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại."));
   });
   await page
     .getByText("Mất kết nối biển chung", { exact: true })
