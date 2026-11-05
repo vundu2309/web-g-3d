@@ -11,7 +11,7 @@ const errors = [];
 context.on("page", (page) =>
   page.on("pageerror", (error) => errors.push(error.message)),
 );
-const base = process.env.TEST_BASE_URL;
+const base = process.env.TEST_BASE_URL + "/?view=monopoly-hub";
 const output = process.env.TEST_ARTIFACT_DIR || "test-results";
 await mkdir(output, { recursive: true });
 async function noOverflow(page) {

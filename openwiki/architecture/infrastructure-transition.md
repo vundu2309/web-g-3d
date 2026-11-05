@@ -9,18 +9,24 @@ tags:
 sources:
   - id: openwiki-source-b26fdac5f2b9ba8a19fdd0f6
     resource: repo://docs/infrastructure.md
+  - id: openwiki-source-18fc7b64e66932d83fa70cfc
+    resource: repo://docs/ocean.md
   - id: openwiki-source-9d81102c99fa0be75f0562d6
     resource: repo://scripts/test-supabase.mjs
+  - id: openwiki-source-944d53aebcc6e3bbdfcd09de
+    resource: repo://server/ocean.mjs
   - id: openwiki-source-32d34de3adc601eacf7364ad
     resource: repo://src/app/password-recovery.ts
   - id: openwiki-source-a516dc77b4f57ace3d032e8c
     resource: repo://src/platform/account.ts
   - id: openwiki-source-2a80fab523f1197e079cba62
     resource: repo://src/platform/api.ts
-generated: { by: "codex", at: "2026-11-04T09:34:07.893Z" }
+  - id: openwiki-source-33c878cb026122d0ff89d417
+    resource: repo://src/platform/ocean.ts
+generated: { by: "codex", at: "2026-11-05T03:32:21.077Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-05T02:03:14.947Z
+    at: 2026-11-05T03:59:28.286Z
 ---
 
 # Target infrastructure transition
@@ -42,3 +48,9 @@ Client nhận sự kiện qua WebSocket Socket.IO, không polling. Mỗi snapsho
 Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.
 
 Cấu hình email redirect được giới hạn về origin Vercel đã duyệt qua VITE_AUTH_REDIRECT_URL; CA công khai của Supabase được pin cho listener trong khi giữ xác minh TLS/hostname. `npm run test:supabase` chạy stack dùng một lần và CI cũng gọi bài kiểm thử này. Kiểm thử local không tự chứng minh email thật đã đến hộp thư bên ngoài.
+
+## Biển chung được tách khỏi phòng
+
+Game hiện hành là [biển đánh cá](ocean.md), vào thẳng map chung sau xác thực. Adapter chọn cùng provider với tài khoản. Cấu hình Supabase dùng `ocean:command` và `ocean:state` trên Socket.IO, chỉ broadcast cho socket đã vào biển; server kiểm tra lại Auth và một phiên thuyền cho mỗi UID. Trạng thái biển nằm trong RAM của **một API instance**, reset khi deploy/restart; chưa đồng bộ nhiều instance hoặc lưu cá/kinh tế. PostgreSQL LISTEN/NOTIFY tiếp tục thuộc hub phòng cũ, không được mô tả là đồng bộ biển này. Cấu hình Firebase có lease thuyền riêng và cần rules riêng. Kiểm thử local hai browser cho cả hai adapter không chứng minh backend production đã triển khai.
+
+Xem [hợp đồng biển](../../docs/ocean.md), [server](../../server/ocean.mjs) và [quyết định](../../docs/decisions/0007-shared-fishing-sea.md).

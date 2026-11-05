@@ -1,0 +1,287 @@
+.harbor-home .home-actions h2 {
+  font:
+    800 clamp(25px, 4vw, 38px) / 1.1 "Baloo 2",
+    sans-serif;
+  margin: 12px 0 4px;
+}
+.harbor-channel {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink, #153b80);
+}
+.harbor-emblem {
+  font-size: clamp(80px, 17vw, 170px);
+  line-height: 1.15;
+  filter: drop-shadow(0 7px 0 #153b8020);
+}
+.harbor-home .tagline {
+  max-width: 440px;
+  font-size: 16px;
+}
+.ocean-root {
+  padding: 0 !important;
+  max-width: none !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  overflow: hidden;
+}
+.ocean-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #dceeff;
+  color: #153b80;
+}
+.ocean-stage,
+.ocean-hud {
+  position: absolute;
+  inset: 0;
+}
+.ocean-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.ocean-hud {
+  pointer-events: none;
+  inset: var(--safe-top, env(safe-area-inset-top, 0px))
+    var(--safe-right, env(safe-area-inset-right, 0px))
+    var(--safe-bottom, env(safe-area-inset-bottom, 0px))
+    var(--safe-left, env(safe-area-inset-left, 0px));
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ocean-hud button {
+  pointer-events: auto;
+  font:
+    700 15px "Be Vietnam Pro",
+    sans-serif;
+  cursor: pointer;
+  min-height: 44px;
+  border: 2px solid #153b80;
+  box-shadow: 0 3px 0 #153b80;
+  color: #153b80;
+}
+.ocean-hud button:focus-visible,
+.ocean-dialog button:focus-visible {
+  outline: 3px solid #e97760;
+  outline-offset: 4px;
+}
+.ocean-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+.ocean-chip {
+  background: #fffffff0;
+  border-radius: 18px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.ocean-channel {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  text-shadow: 0 1px 4px #fff;
+}
+.ocean-channel strong {
+  font:
+    800 25px "Baloo 2",
+    sans-serif;
+}
+.ocean-channel span {
+  font-size: 12px;
+  font-weight: 700;
+}
+.ocean-status {
+  align-self: center;
+  text-align: center;
+  background: #ffffffed;
+  border-radius: 14px;
+  padding: 7px 14px;
+  font-size: 12px;
+  max-width: min(560px, 80%);
+  margin: 0;
+  box-shadow: 0 2px 12px #153b8010;
+  pointer-events: none;
+}
+.ocean-bottom {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 15px;
+}
+.ocean-steering {
+  pointer-events: auto;
+  display: grid;
+  grid-template-columns: repeat(3, 44px);
+  grid-template-rows: repeat(3, 44px);
+  gap: 2px;
+  padding: 5px;
+  border-radius: 50%;
+  background: #dceeffa8;
+  border: 2px solid #ffffffac;
+  touch-action: none;
+  user-select: none;
+}
+.ocean-steering button {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: #ffffffdf;
+  border-radius: 15px;
+  font-size: 21px;
+}
+.ocean-steering [data-steer="up"] {
+  grid-column: 2;
+}
+.ocean-steering [data-steer="left"] {
+  grid-column: 1;
+  grid-row: 2;
+}
+.ocean-steering span {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+}
+.ocean-steering [data-steer="right"] {
+  grid-column: 3;
+  grid-row: 2;
+}
+.ocean-steering [data-steer="down"] {
+  grid-column: 2;
+  grid-row: 3;
+}
+.ocean-steering button:active {
+  background: #ffd35a;
+}
+.ocean-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+.ocean-fish {
+  background: #ffd35a;
+  border-radius: 24px;
+  padding: 18px 28px;
+  min-width: 146px;
+  min-height: 65px !important;
+  font-size: 20px !important;
+}
+.ocean-fish:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.ocean-hint {
+  color: #fff;
+  text-shadow: 0 1px 4px #153b80;
+  font-size: 12px;
+  text-align: center;
+  margin-bottom: 7px;
+}
+.ocean-boat-label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  border-radius: 12px;
+  background: #fffffff0;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  max-width: 150px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  pointer-events: none;
+  color: #153b80;
+  border: 1px solid #153b8020;
+}
+.ocean-boat-label.is-self {
+  background: #ffd35a;
+}
+.ocean-dialog {
+  color: #153b80;
+  background: #f6fbff;
+  border: 3px solid #153b80;
+  border-radius: 22px;
+  max-width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 22px;
+}
+.ocean-dialog::backdrop {
+  background: #153b8066;
+}
+.ocean-dialog h2 {
+  font:
+    800 27px "Baloo 2",
+    sans-serif;
+  margin: 0 0 12px;
+}
+.ocean-dialog p,
+.ocean-dialog li {
+  font-size: 15px;
+  line-height: 1.6;
+}
+@media (max-width: 750px) {
+  .ocean-hint {
+    display: none;
+  }
+  .ocean-chip {
+    padding: 8px 12px;
+  }
+  .ocean-actions {
+    gap: 8px;
+  }
+  .ocean-fish {
+    min-width: 120px;
+    padding: 16px 18px;
+  }
+}
+@media (orientation: portrait) {
+  .ocean-channel strong {
+    font-size: 21px;
+  }
+  .ocean-channel span {
+    display: none;
+  }
+  .ocean-top {
+    gap: 5px;
+  }
+  .ocean-chip {
+    padding: 8px;
+    font-size: 12px !important;
+  }
+  .ocean-steering {
+    grid-template-columns: repeat(3, 44px);
+    grid-template-rows: repeat(3, 44px);
+  }
+  .ocean-actions {
+    flex-direction: column;
+  }
+  .ocean-status {
+    max-width: 95%;
+  }
+  .ocean-fish {
+    min-width: 125px;
+  }
+  .harbor-home .identity {
+    min-height: 0;
+  }
+  .harbor-emblem {
+    font-size: 80px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ocean-screen * {
+    transition: none !important;
+  }
+}

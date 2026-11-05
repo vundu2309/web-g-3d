@@ -51,3 +51,9 @@ The browser runner also exercises `tests/game-ui-browser.mjs` and `tests/board-b
 `tests/safe-area-browser.mjs` runs on dev and production in the browser runner: all24 HUD scenarios with asymmetric left/right and bottom inset profiles, touch-target reachability and portrait dialog bounds. It overrides shared CSS inset tokens to simulate cutouts; real Android/iOS browser and installed-app verification remains necessary.
 
 PWA update regression also covers cancelling confirmation, rejecting apply with another scoped window, and a single confirmed reload after that window closes. Waiting updates never reload automatically.
+
+## Shared-sea verification
+
+The default route is now the fishing hub. Preserved room browser regressions explicitly visit `?view=monopoly-hub`; `?view=game` still exercises the original Monopoly code/resources. `npm run check` adds pure movement/remote-payload tests, ownership/range/query rule tests, two Firebase-emulator sea clients and real Socket.IO sea tests. `npm run test:supabase` adds two-browser direct sea entry and shared motion after its preserved account/room/recovery checks. Inspect `test-results/ocean-*.png` and `test-results/supabase-ocean.png` as actual rendering evidence.
+
+Release the tested backend sea handlers to the existing Render API with one instance before promoting the Supabase frontend. Firebase rules are a separate administrator rollout; Pages publication cannot apply them. OpenWiki lifecycle tools must be available to refresh generated pages; do not fabricate a successful refresh or hand-edit managed metadata when unavailable.

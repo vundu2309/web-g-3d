@@ -12,6 +12,8 @@ tags:
 sources:
   - id: openwiki-source-b26fdac5f2b9ba8a19fdd0f6
     resource: repo://docs/infrastructure.md
+  - id: openwiki-source-18fc7b64e66932d83fa70cfc
+    resource: repo://docs/ocean.md
   - id: openwiki-source-701123ef063b2b49fc5126ba
     resource: repo://docs/pwa.md
   - id: openwiki-source-f8d10828394c4129061d5b0e
@@ -26,6 +28,8 @@ sources:
     resource: repo://scripts/test-browser.mjs
   - id: openwiki-source-9d81102c99fa0be75f0562d6
     resource: repo://scripts/test-supabase.mjs
+  - id: openwiki-source-dab8aa5276e2d1b695c803a7
+    resource: repo://src/app/ocean.ts
   - id: openwiki-source-32d34de3adc601eacf7364ad
     resource: repo://src/app/password-recovery.ts
   - id: openwiki-source-fdc97d585e693e9f422ad7ae
@@ -42,6 +46,8 @@ sources:
     resource: repo://src/game-ui/render.ts
   - id: openwiki-source-a09d1fc6a11ce8c081c67432
     resource: repo://src/game-ui/style.css
+  - id: openwiki-source-d4189bbeecb62806cb297b5a
+    resource: repo://src/main.ts
   - id: openwiki-source-a516dc77b4f57ace3d032e8c
     resource: repo://src/platform/account.ts
   - id: openwiki-source-2a80fab523f1197e079cba62
@@ -58,10 +64,10 @@ sources:
     resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-04T09:34:07.893Z" }
+generated: { by: "codex", at: "2026-11-05T03:32:21.077Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-05T02:03:14.947Z
+    at: 2026-11-05T03:59:28.286Z
 ---
 
 # PWA của Phố Tỷ Phú
@@ -108,3 +114,7 @@ The local ?view=game preview uses one Three.js renderer across HUD redraws, a sh
 Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.
 
 Cấu hình email redirect được giới hạn về origin Vercel đã duyệt qua VITE_AUTH_REDIRECT_URL; CA công khai của Supabase được pin cho listener trong khi giữ xác minh TLS/hostname. `npm run test:supabase` chạy stack dùng một lần và CI cũng gọi bài kiểm thử này. Kiểm thử local không tự chứng minh email thật đã đến hộp thư bên ngoài.
+
+## Biển online và shell offline
+
+Home hiện mở [biển chung](../architecture/ocean.md) sau Auth theo provider; PWA vẫn dùng cùng installer và shell tĩnh. Khi mất mạng, biển báo lỗi và cho về hub, không biến thuyền mẫu thành người online. Không lưu cá/phiên multiplayer vào cache. Màn Monopoly local vẫn giữ tại `?view=game`; trạng thái API/triển khai được kiểm chứng riêng với cache frontend.

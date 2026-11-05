@@ -11,8 +11,6 @@ tags:
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
-  - id: openwiki-source-de23c649f29de7b7defa1fe3
-    resource: repo://docs/decisions/0002-mobile-board-game-hub.md
   - id: openwiki-source-523a2ee371c511874cedf68c
     resource: repo://docs/design/theme.md
   - id: openwiki-source-1207dc6dc9df1cc76b6da2de
@@ -35,6 +33,8 @@ sources:
     resource: repo://docs/game/ui-implementation.md
   - id: openwiki-source-b26fdac5f2b9ba8a19fdd0f6
     resource: repo://docs/infrastructure.md
+  - id: openwiki-source-18fc7b64e66932d83fa70cfc
+    resource: repo://docs/ocean.md
   - id: openwiki-source-701123ef063b2b49fc5126ba
     resource: repo://docs/pwa.md
   - id: openwiki-source-8acf8e92f9f7b465d02fa04b
@@ -47,8 +47,12 @@ sources:
     resource: repo://scripts/test-browser.mjs
   - id: openwiki-source-9d81102c99fa0be75f0562d6
     resource: repo://scripts/test-supabase.mjs
+  - id: openwiki-source-944d53aebcc6e3bbdfcd09de
+    resource: repo://server/ocean.mjs
   - id: openwiki-source-2d276ab0949853064e1a4208
     resource: repo://src/app/diagnostics.ts
+  - id: openwiki-source-10f3f3e9db8fffece78a1ca6
+    resource: repo://src/app/harbor.ts
   - id: openwiki-source-32d34de3adc601eacf7364ad
     resource: repo://src/app/password-recovery.ts
   - id: openwiki-source-de5ab1ed905c7bd08fbdce6f
@@ -95,15 +99,17 @@ sources:
     resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-04T09:34:07.893Z" }
+generated: { by: "codex", at: "2026-11-05T03:32:21.077Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-05T02:03:14.947Z
+    at: 2026-11-05T03:59:28.286Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
 
-Phố Tỷ Phú là hub cho board game giao dịch bất động sản, ưu tiên điện thoại xoay ngang. Có đăng ký/đăng nhập/reset, hồ sơ player, danh sách phòng theo tên và chủ phòng, màn chính, form tạo/tham gia và phòng chờ với mã, readiness, reload và rời/đóng phòng. Bàn chơi, xúc xắc, tiền và 3D gameplay chưa được triển khai; trải nghiệm biển/thuyền cũ đã được thay thế.
+Game hiện hành là **biển đánh cá online dùng chung**, ưu tiên điện thoại xoay ngang. Mỗi tài khoản điều khiển một thuyền riêng. Hub → Vào game → đăng nhập nếu cần → vào thẳng map chung; không tạo/join phòng hoặc sẵn sàng. Authenticator theo provider và toàn bộ code/resource Monopoly được bảo toàn: hub phòng cũ tại `?view=monopoly-hub`, HUD/board preview tại `?view=game`.
+
+Đọc [kiến trúc biển](architecture/ocean.md), [hợp đồng authored](../docs/ocean.md) và [quyết định](../docs/decisions/0007-shared-fishing-sea.md) cho tác vụ hiện hành. Các phần luật/phòng Monopoly bên dưới là ngữ cảnh được bảo toàn, không áp luật lượt Monopoly lên việc lái thuyền.
 
 ## Đọc theo tác vụ
 
@@ -115,13 +121,13 @@ Phố Tỷ Phú là hub cho board game giao dịch bất động sản, ưu tiê
 | Sửa Firebase hoặc bản thử | [Kiến trúc hub](architecture/hub.md), [Firebase setup](../docs/firebase.md), adapter, `firestore.rules`, `firestore.indexes.json` và tests |
 | Chạy test, setup và deploy | [Phát triển](operations/development.md), [workflow authored](../docs/workflow.md) |
 
-`src/main.ts` nạp font/CSS, chọn hub hoặc lazy HUD preview theo query và đăng ký cleanup HMR. App sở hữu DOM, navigation và subscription phòng. Model thuần không nhập Firebase; store contract tách các adapter. Màu cobalt/sky/yellow và các màn riêng là hướng đã duyệt, không phải chỗ tự đổi style tùy ý.
+`src/main.ts` nạp font/CSS, mặc định mở hub biển, chọn lazy HUD hoặc hub Monopoly legacy theo query và đăng ký cleanup HMR. App sở hữu DOM, navigation và subscription phòng. Model thuần không nhập Firebase; store contract tách các adapter. Màu cobalt/sky/yellow và các màn riêng là hướng đã duyệt, không phải chỗ tự đổi style tùy ý.
 
 ## Chạy và xác nhận đúng phạm vi
 
 Dùng Node 24/npm 11; `npm ci`, `npm run dev`. Java 21 phục vụ rules emulator. `npm run check` kiểm tra transitions, browser dev/production và Firestore rules. Ưu tiên 844×390, 932×430 và 667×375; portrait/desktop là kiểm tra bổ sung. Đối chiếu ảnh render thật, không chỉ concept.
 
-Online dùng Firebase Email/Password Auth + Cloud Firestore `(default)`; bản thử chỉ là nhiều tab cùng browser origin, luôn có nhãn riêng. Backend Firebase cần kích hoạt/cấu hình riêng; Pages chỉ deploy frontend. Không xem emulator xanh hoặc bản thử là online hai thiết bị đã thành công.
+Online theo cấu hình Supabase Auth/Socket.IO hoặc Firebase Email/Password/Firestore; trong hub Monopoly legacy, bản thử chỉ là nhiều tab cùng browser origin, luôn có nhãn riêng. Backend Firebase cần kích hoạt/cấu hình riêng; Pages chỉ deploy frontend. Không xem emulator xanh hoặc bản thử là online hai thiết bị đã thành công.
 
 ## Vai trò wiki
 
@@ -149,7 +155,7 @@ Quy ước đã được người dùng đồng ý: dùng rulebook Hasbro cho lu
 
 ## HUD được duyệt và tác vụ hiện hành
 
-[Plan02]( ../docs/game/plans/02-mobile-ui.md ) lưu ảnh HUD được duyệt: roster dưới căn giữa không nền, không tên game, action nổi giữa cạnh phải, highlight đổi theo người đến lượt. Bộ 24 trạng thái đã duyệt và UI preview đã implement; v1 bị bác bỏ không là chuẩn. Board3D/backend gameplay còn để bước sau.
+[Plan02]( ../docs/game/plans/02-mobile-ui.md ) lưu ảnh HUD được duyệt: roster dưới căn giữa không nền, không tên game, action nổi giữa cạnh phải, highlight đổi theo người đến lượt. Bộ 24 trạng thái đã duyệt và UI preview đã implement; v1 bị bác bỏ không là chuẩn. Board 3D local đã có; backend gameplay Monopoly vẫn để bước sau.
 
 ## Tiêu chí thiết kế phiên chơi đã chốt
 
@@ -157,7 +163,7 @@ Quy ước đã được người dùng đồng ý: dùng rulebook Hasbro cho lu
 
 ## Mở HUD ván chơi
 
-Chọn Xem trước HUD ván chơi ở home hoặc ?view=game; bánh răng chọn 24 trạng thái, query state giữ scenario khi reload. [Kiến trúc HUD](architecture/gameplay-ui.md) và [implementation contract](../docs/game/ui-implementation.md) ghi scope UI/local fixture, không Firebase hoặc engine, không movement text ở02. Các concept đã duyệt trong docs/design/game-states-*.png không thay test browser/điện thoại thật.
+Chọn Xem trước HUD ván chơi ở home hoặc ?view=game; bánh răng chọn 24 trạng thái, query state giữ scenario khi reload. [Kiến trúc HUD](architecture/gameplay-ui.md) và [implementation contract](../docs/game/ui-implementation.md) ghi scope UI/local fixture, không gọi Firebase hoặc xử lý kinh tế có thẩm quyền, có board Three.js local và không movement text ở02. Các concept đã duyệt trong docs/design/game-states-*.png không thay test browser/điện thoại thật.
 
 ## Cài game như app
 
@@ -192,3 +198,7 @@ Client nhận sự kiện qua WebSocket Socket.IO, không polling. Mỗi snapsho
 Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.
 
 Cấu hình email redirect được giới hạn về origin Vercel đã duyệt qua VITE_AUTH_REDIRECT_URL; CA công khai của Supabase được pin cho listener trong khi giữ xác minh TLS/hostname. `npm run test:supabase` chạy stack dùng một lần và CI cũng gọi bài kiểm thử này. Kiểm thử local không tự chứng minh email thật đã đến hộp thư bên ngoài.
+
+## Giới hạn biển và kiểm chứng
+
+Supabase/Socket.IO giữ thế giới biển tạm thời trên **một API instance**, một phiên mỗi UID, tối đa 100 thuyền và push chỉ tới người đã vào biển. Restart/deploy xóa trạng thái thuyền; chưa scale nhiều instance. Firebase dùng collection lease riêng với rules own UID và ẩn thuyền mất cập nhật sau 30 giây. Cá chỉ tính trong chuyến, chưa lưu thành tài sản/tiền. Kiểm thử hai browser local xác minh direct entry, chuyển động, câu cá, duplicate/leave/offline; API/rules production và điện thoại thật phải kiểm chứng riêng.

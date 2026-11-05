@@ -117,21 +117,25 @@ try {
     },
   });
   await vite.listen();
-  await new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, ["tests/auth-browser.mjs"], {
-      stdio: "inherit",
-      env: {
-        ...process.env,
-        TEST_BASE_URL: `http://127.0.0.1:${vite.httpServer.address().port}`,
-      },
+  for (const browserTest of [
+    "tests/auth-browser.mjs",
+    "tests/ocean-browser.mjs",
+  ])
+    await new Promise((resolve, reject) => {
+      const child = spawn(process.execPath, [browserTest], {
+        stdio: "inherit",
+        env: {
+          ...process.env,
+          TEST_BASE_URL: `http://127.0.0.1:${vite.httpServer.address().port}`,
+        },
+      });
+      child.once("error", reject);
+      child.once("exit", (code) =>
+        code === 0
+          ? resolve()
+          : reject(new Error(`Auth browser tests failed: ${code}`)),
+      );
     });
-    child.once("error", reject);
-    child.once("exit", (code) =>
-      code === 0
-        ? resolve()
-        : reject(new Error(`Auth browser tests failed: ${code}`)),
-    );
-  });
 } catch (error) {
   console.error(error);
   process.exitCode = 1;

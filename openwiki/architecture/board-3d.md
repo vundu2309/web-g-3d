@@ -5,7 +5,7 @@ type: architecture
 tags: [3d, board, camera, mobile]
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T07:19:37.851Z
+    at: 2026-11-05T03:57:21.194Z
 sources:
   - id: openwiki-source-49557827443d53e9eeae17f4
     resource: repo://src/board/layout.ts

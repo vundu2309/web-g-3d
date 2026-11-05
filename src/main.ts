@@ -1,5 +1,5 @@
 import { startPwa } from "./app/pwa";
-import { start } from "./app/start";
+import { startHarbor } from "./app/harbor";
 import "@fontsource/baloo-2/latin-800.css";
 import "@fontsource/baloo-2/vietnamese-800.css";
 import "@fontsource/be-vietnam-pro/latin-400.css";
@@ -16,7 +16,9 @@ const disposePwa = startPwa(root);
 const dispose =
   new URLSearchParams(location.search).get("view") === "game"
     ? (await import("./app/play")).startPlay(root)
-    : start(root);
+    : new URLSearchParams(location.search).get("view") === "monopoly-hub"
+      ? (await import("./app/start")).start(root)
+      : startHarbor(root);
 if (import.meta.hot)
   import.meta.hot.dispose(() => {
     dispose();

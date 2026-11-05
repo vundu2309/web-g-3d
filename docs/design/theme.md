@@ -49,3 +49,9 @@ Design skills used: `ui-ux-pro-max` and `frontend-design`; optional `board-game-
 The user requested real email/password accounts and a room directory. Online create/join now requires Firebase Authentication; the dialog offers login, registration (player name/email/password), password visibility and password reset. Keep the same theme, native labels and landscape-phone layout. The account dialog may scroll with the keyboard, but its close/header remains accessible. A demo player is never represented as an online account.
 
 Online player names come from the authenticated profile and are readonly in room forms. Create adds a room title (1–24 characters, with a default title when blank). Home's join action opens a separate directory: title, host display name, occupancy and join button. Keep direct code entry as a secondary route. Never put email addresses or password data in the directory.
+
+## Approved shared-sea direction (2026-11-05)
+
+The user approved a fishing-boat concept with one separate boat per player, then selected one common channel/map and direct entry after login. Reuse the sky/cobalt/yellow palette, fonts and mobile-first touch controls. The active hub offers “Vào game”; no create/join/ready flow is shown. The main view is an elevated follow camera over the player's boat, other actual players' boat labels, minimal channel/status HUD, steering pad, “Thả câu” and “Kho cá”. See [shared sea contract](../ocean.md). The original Monopoly references above remain for the preserved legacy hub.
+
+The implementation uses procedural low-poly boats, shader waves and simple islands, rather than claiming the generated concept's detailed wooden textures/lighting are implemented. Actual browser captures are required for visual acceptance.

@@ -40,6 +40,72 @@ const host = database("host"),
   unauth = env.unauthenticatedContext().firestore();
 const path = "monopolyHub/v1/rooms/AB7K2M";
 try {
+  await test("shared ocean: authenticated reads, own validated boat only, bounded directory", async () => {
+    const ref = (db, uid = "host") =>
+      doc(db, `monopolyHub/v1/oceanBoats/${uid}`);
+    const boat = () => ({
+      name: "Minh",
+      session: "one",
+      x: 0,
+      z: 0,
+      heading: 0,
+      fishing: false,
+      updatedAt: serverTimestamp(),
+    });
+    await assertSucceeds(setDoc(ref(host), boat()));
+    await assertSucceeds(getDoc(ref(guest)));
+    await assertFails(getDoc(ref(unauth)));
+    await assertFails(getDoc(ref(anonymous)));
+    await assertFails(setDoc(ref(guest), boat()));
+    await assertFails(
+      updateDoc(ref(guest), { x: 1, updatedAt: serverTimestamp() }),
+    );
+    await assertFails(deleteDoc(ref(guest)));
+    const directory = (db) =>
+      query(
+        collection(db, "monopolyHub/v1/oceanBoats"),
+        orderBy("updatedAt", "desc"),
+        limit(100),
+      );
+    await assertSucceeds(getDocs(directory(guest)));
+    await assertFails(getDocs(directory(unauth)));
+    await assertFails(getDocs(collection(host, "monopolyHub/v1/oceanBoats")));
+    await assertFails(
+      getDocs(query(collection(host, "monopolyHub/v1/oceanBoats"), limit(101))),
+    );
+    for (const bad of [
+      { name: "x".repeat(25) },
+      { x: 181 },
+      { z: "0" },
+      { heading: 4 },
+      { session: "" },
+      { fishing: 1 },
+      { updatedAt: Timestamp.fromMillis(1) },
+      { extra: "injected" },
+      { role: "admin" },
+    ]) {
+      await assertFails(setDoc(ref(host), { ...boat(), ...bad }));
+      await assertFails(
+        updateDoc(ref(host), {
+          ...bad,
+          ...(Object.hasOwn(bad, "updatedAt")
+            ? {}
+            : { updatedAt: serverTimestamp() }),
+        }),
+      );
+    }
+    const missing = boat();
+    delete missing.fishing;
+    await assertFails(setDoc(ref(host), missing));
+    await assertSucceeds(
+      updateDoc(ref(host), {
+        x: 1,
+        fishing: true,
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    await assertSucceeds(deleteDoc(ref(host)));
+  });
   await test("Firestore rules: profile isolation/schema, bounded query, immutable ownership and readiness", async () => {
     for (const [uid, name, db] of [
       ["host", "Minh", host],

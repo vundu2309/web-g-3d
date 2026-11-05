@@ -1,6 +1,8 @@
 # Architecture and context map
 
-Phố Tỷ Phú is a TypeScript/Vite browser hub for a future property-trading board game. The ocean, Babylon and Havok code/dependencies are removed. A local Three.js board preview is implemented in `src/board`, isolated from hub/Firebase. Monetary economy and authoritative gameplay are not implemented.
+The active experience is a shared online fishing sea: `src/main.ts` starts `src/app/harbor.ts`, which reuses the provider-selected account dialog/password recovery and starts `src/app/ocean.ts` after authentication. There are no rooms in this flow. `src/ocean` owns pure movement/validation and one Three.js scene. `src/platform/ocean.ts` selects Firebase leases or the Supabase-authenticated Socket.IO sea adapter. `server/ocean.mjs` owns an ephemeral single-instance sea with one boat per account and joined-only push snapshots. See [ocean contract](ocean.md).
+
+The preserved Monopoly hub is explicitly routed at `?view=monopoly-hub`; its local board preview stays at `?view=game`. The tables and room details below describe those preserved modules. No Monopoly source/resource has been replaced.
 
 | Layer | Ownership | Dependencies |
 | --- | --- | --- |

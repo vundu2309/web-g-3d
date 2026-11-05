@@ -3,6 +3,9 @@
 // monopolyHub/v1/rooms/{code}: title string 1..24, hostId string 1..128,
 // capacity int 2..4, createdAt timestamp (title/host/capacity/createdAt immutable),
 // status waiting|started, players map UID -> {name string 1..24, ready bool, seat int 0..3},
+// monopolyHub/v1/oceanBoats/{uid}: name string 1..24, session string 1..64,
+// x/z number -180..180, heading number -PI..PI, fishing bool, updatedAt server timestamp.
+// One document per authenticated player; no private identity, rewards or currency.
 // seats map "0".."3" -> UID. At most four players. No passwords/emails here.
 rules_version = '2';
 service cloud.firestore {
@@ -38,6 +41,22 @@ service cloud.firestore {
     // This legacy allowance expires exactly when the original project rules expired.
     match /{collection}/{document=**} {
       allow read, write: if collection != 'monopolyHub' && request.time < timestamp.date(2026, 12, 3);
+    }
+    function validBoat(data) {
+      return data.keys().hasAll(['name','session','x','z','heading','fishing','updatedAt'])
+        && data.keys().hasOnly(['name','session','x','z','heading','fishing','updatedAt'])
+        && text(data.name,24) && text(data.session,64)
+        && data.x is number && data.x >= -180 && data.x <= 180
+        && data.z is number && data.z >= -180 && data.z <= 180
+        && data.heading is number && data.heading >= -3.141593 && data.heading <= 3.141593
+        && data.fishing is bool && data.updatedAt is timestamp && data.updatedAt == request.time;
+    }
+    match /monopolyHub/v1/oceanBoats/{uid} {
+      allow get: if signedIn();
+      allow list: if signedIn() && request.query.limit != null && request.query.limit <= 100;
+      allow create: if owns(uid) && validBoat(request.resource.data);
+      allow update: if owns(uid) && validBoat(request.resource.data);
+      allow delete: if owns(uid);
     }
     match /monopolyHub/v1/profiles/{uid} {
       allow get: if owns(uid);

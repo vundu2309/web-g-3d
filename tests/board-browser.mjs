@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { launchBrowser } from "./browser.mjs";
 
@@ -38,7 +39,21 @@ const trackErrors = (page) => {
 const status = (page) =>
   page.getAttribute("[data-board-host]", "data-board-status");
 const shot = async (page) =>
-  await page.locator("[data-board-host]").screenshot();
+  createHash("sha256")
+    .update(await page.locator("[data-board-host]").screenshot())
+    .digest("hex");
+// Wait for the actual framing, rather than assuming software WebGL finishes
+// the eased camera within a fixed wall-clock delay. Keep the exact image check.
+const restoredShot = async (page, expected) => {
+  const deadline = Date.now() + 15000;
+  let actual;
+  do {
+    actual = await shot(page);
+    if (actual === expected) return actual;
+    await page.waitForTimeout(150);
+  } while (Date.now() < deadline);
+  return actual;
+};
 const scenario = async (page, id) => {
   await page
     .getByRole("button", { name: "Tùy chọn bản xem trước", exact: true })
@@ -160,7 +175,7 @@ try {
       .click();
     await settle(page, 1600);
     assert.deepEqual(
-      await shot(page),
+      await restoredShot(page, overview),
       overview,
       "returning to overview restores the same framing",
     );
@@ -226,7 +241,11 @@ try {
       .locator(".board-canvas")
       .evaluate((c) => [c.width, c.height]);
     await page.setViewportSize({ width: 932, height: 430 });
-    await settle(page, 400);
+    await page.waitForFunction(([width, height]) => {
+      const canvas = document.querySelector(".board-canvas");
+      return canvas.width !== width || canvas.height !== height;
+    }, before);
+
     const after = await page
       .locator(".board-canvas")
       .evaluate((c) => [c.width, c.height]);

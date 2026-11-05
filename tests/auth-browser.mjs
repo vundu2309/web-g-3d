@@ -20,7 +20,9 @@ async function player(diagnostics = false) {
     },
   );
   await page.goto(
-    process.env.TEST_BASE_URL + (diagnostics ? "?diagnostics=1" : ""),
+    process.env.TEST_BASE_URL +
+      "/?view=monopoly-hub" +
+      (diagnostics ? "&diagnostics=1" : ""),
   );
   return page;
 }
