@@ -78,6 +78,9 @@ const RUDDER = 2600;
  * exactly for the same inputs, which the tests rely on.
  */
 export function enableSeaPhysics(scene: Scene, plugin: HavokPlugin) {
+  // The world uses the same right-handed axes as the movement model and the server
+  // poses (heading 0 is -Z, heading pi/2 is +X), so the screen is not mirrored.
+  scene.useRightHandedSystem = true;
   plugin.setTimeStep(1 / 60);
   scene.enablePhysics(new Vector3(0, -9.81, 0), plugin);
   scene.getPhysicsEngine()!.setSubTimeStep(1000 / 60);

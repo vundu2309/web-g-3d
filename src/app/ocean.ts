@@ -1,11 +1,21 @@
-import { move, PRESENCE_MS, type Boat, type Pose } from "../ocean/model";
+import { PRESENCE_MS, SEA_BOUND, type Boat, type Pose } from "../ocean/model";
 import { HubError } from "../hub/model";
 import type { connectOcean } from "../platform/ocean";
-import { OceanScene } from "../ocean/scene";
+import { OceanScene } from "../ocean/babylon-scene";
 import { bindStick, type StickInput } from "../ocean/stick";
 
 type Connection = Awaited<ReturnType<typeof connectOcean>>;
-export function startOcean(root: HTMLElement, back: () => void) {
+export interface OceanOptions {
+  /** Replaces the network connection; used by tests to run the real scene offline. */
+  connect?: typeof connectOcean;
+  /** Receives the scene once it exists; lets tests read its state and frame cost. */
+  onScene?: (scene: OceanScene) => void;
+}
+export function startOcean(
+  root: HTMLElement,
+  back: () => void,
+  options: OceanOptions = {},
+) {
   const abort = new AbortController();
   const network = new AbortController();
   root.classList.add("ocean-root");
@@ -28,7 +38,6 @@ export function startOcean(root: HTMLElement, back: () => void) {
   let disposed = false;
   let active = false;
   let frame = 0;
-  let previous = performance.now();
   let lastDraw = 0;
   let lastPublish = 0;
   let lastPose = "";
@@ -151,15 +160,23 @@ export function startOcean(root: HTMLElement, back: () => void) {
   }
   function animate(now: number) {
     if (disposed) return;
-    const dt = Math.min((now - previous) / 1000, 0.05);
-    previous = now;
+    if (!active || document.hidden || dialog.open) scene?.setInput(0, 0);
     if (active && !document.hidden && !dialog.open) {
       // The stick is analog; keys are full deflection. The stick wins while held.
       const steer =
         stick.steer || Number(keys.has("right")) - Number(keys.has("left"));
       const throttle =
         stick.throttle || Number(keys.has("up")) - Number(keys.has("down"));
-      pose = move(pose, steer, throttle, dt);
+      // While casting, the boat gets no thrust and drag brings it to rest.
+      scene?.setInput(pose.fishing ? 0 : steer, pose.fishing ? 0 : throttle);
+      const state = scene?.selfState();
+      if (state)
+        pose = {
+          x: Math.max(-SEA_BOUND, Math.min(SEA_BOUND, state.x)),
+          z: Math.max(-SEA_BOUND, Math.min(SEA_BOUND, state.z)),
+          heading: state.heading,
+          fishing: pose.fishing,
+        };
       const serialized = JSON.stringify(pose);
       if (
         now - lastPublish >= 1000 &&
@@ -178,7 +195,6 @@ export function startOcean(root: HTMLElement, back: () => void) {
       scene.update(
         visible,
         connection?.uid ?? "",
-        pose,
         now / 1000,
         (now - lastDraw) / 1000,
         reduced,
@@ -281,15 +297,6 @@ export function startOcean(root: HTMLElement, back: () => void) {
     },
     { signal: abort.signal },
   );
-  try {
-    scene = new OceanScene(root.querySelector(".ocean-stage")!, () =>
-      fail(new HubError("Đồ họa đã tạm dừng. Hãy về hub rồi mở lại game.")),
-    );
-  } catch {
-    notify(
-      "Thiết bị chưa mở được đồ họa 3D. Hãy bật WebGL hoặc dùng trình duyệt khác.",
-    );
-  }
   frame = requestAnimationFrame(animate);
   const timeout = setTimeout(() => {
     if (!active) {
@@ -297,33 +304,56 @@ export function startOcean(root: HTMLElement, back: () => void) {
       network.abort();
     }
   }, 15000);
-  if (scene)
-    void import("../platform/ocean")
-      .then(({ connectOcean }) =>
-        connectOcean(
-          (value, serverTime) => {
-            boats = value;
-            clockOffset = serverTime - Date.now();
-          },
-          fail,
-          network.signal,
-        ),
-      )
-      .then((value) => {
-        if (disposed || network.signal.aborted) {
-          value.dispose();
-          return;
-        }
-        connection = value;
-        pose = value.pose;
-        active = true;
-        lastPublish = performance.now();
-        lastPose = JSON.stringify(pose);
-        fishButton.disabled = false;
-        clearTimeout(timeout);
-        notify("Đã vào biển chung. Lái thuyền và thả câu khi bạn muốn.");
-      })
-      .catch(fail);
+  // The sea starts drawing as soon as Havok and WebGL are ready, before the network
+  // answers, so a waking server shows a living sea instead of a blank screen.
+  OceanScene.create(root.querySelector<HTMLElement>(".ocean-stage")!, () =>
+    fail(new HubError("Đồ họa đã tạm dừng. Hãy về hub rồi mở lại game.")),
+  )
+    .then((created) => {
+      if (disposed) {
+        created.dispose();
+        return undefined;
+      }
+      scene = created;
+      options.onScene?.(created);
+      return options.connect
+        ? options.connect
+        : import("../platform/ocean").then(({ connectOcean }) => connectOcean);
+    })
+    .catch((error: unknown) => {
+      console.error(error);
+      notify(
+        "Thiết bị chưa mở được đồ họa 3D. Hãy bật WebGL hoặc dùng trình duyệt khác.",
+      );
+      return undefined;
+    })
+    .then((connect) =>
+      connect?.(
+        (value, serverTime) => {
+          boats = value;
+          clockOffset = serverTime - Date.now();
+        },
+        fail,
+        network.signal,
+      ),
+    )
+    .then((value) => {
+      if (!value) return;
+      if (disposed || network.signal.aborted) {
+        value.dispose();
+        return;
+      }
+      connection = value;
+      pose = value.pose;
+      scene?.spawnSelf(value.uid, "Bạn", value.pose);
+      active = true;
+      lastPublish = performance.now();
+      lastPose = JSON.stringify(pose);
+      fishButton.disabled = false;
+      clearTimeout(timeout);
+      notify("Đã vào biển chung. Lái thuyền và thả câu khi bạn muốn.");
+    })
+    .catch(fail);
   function dispose() {
     if (disposed) return;
     disposed = true;

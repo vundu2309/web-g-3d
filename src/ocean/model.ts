@@ -18,6 +18,9 @@ export const islands = [
   { x: 95, z: -110, radius: 23 },
   { x: 110, z: 70, radius: 15 },
 ];
+/** Shoreline radius the hull collides at: just past the visible beach edge. */
+export const islandCollisionRadius = (island: { radius: number }) =>
+  island.radius * 1.08;
 export function spawn(uid: string): Pose {
   let hash = 0;
   for (const char of uid) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;

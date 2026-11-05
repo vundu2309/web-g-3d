@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { resolve, extname } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { launchBrowser } from "./browser.mjs";
@@ -8,6 +8,40 @@ const directory = resolve("dist"),
   prefix = "/web-g-3d/";
 let revision = 1;
 const worker = await readFile(resolve(directory, "sw.js"), "utf8");
+// Build invariants for the sea engine. Babylon + Havok are large and online-only:
+// only the lazy ocean chunk may import the engine (a stray static import once dragged
+// 1.7 MB into the home page), and neither the engine chunk nor the WASM may be part
+// of the offline shell the service worker precaches.
+{
+  const assets = await readdir(resolve(directory, "assets"));
+  const engine = assets.filter((name) => /^babylon-.*\.js$/.test(name));
+  assert.equal(
+    engine.length,
+    1,
+    `one engine chunk, found ${engine.join(", ")}`,
+  );
+  const precached = JSON.parse(worker.match(/const FILES = (\[.*?\]);/)[1]);
+  assert.ok(
+    !precached.some(
+      (file) => file.includes("babylon-") || file.endsWith(".wasm"),
+    ),
+    "the engine and the Havok WASM stay out of the offline cache",
+  );
+  assert.ok(precached.length > 20, "the rest of the shell is still precached");
+  for (const name of assets.filter(
+    (n) => n.endsWith(".js") && !engine.includes(n),
+  )) {
+    const code = await readFile(resolve(directory, "assets", name), "utf8");
+    const staticImport = new RegExp(
+      `(?:from|^import)\\s*"\\./${engine[0]}"`,
+      "m",
+    ).test(code);
+    assert.ok(
+      !staticImport || name.startsWith("ocean-"),
+      `${name} must not statically import the sea engine`,
+    );
+  }
+}
 const types = {
   ".html": "text/html",
   ".js": "application/javascript",

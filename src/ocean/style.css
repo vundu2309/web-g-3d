@@ -311,3 +311,17 @@
     transition: none !important;
   }
 }
+
+/* The keyboard hint only helps on devices with a keyboard; on touch it covers the boat. */
+@media (hover: none) {
+  .ocean-hint {
+    display: none;
+  }
+}
+.ocean-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  touch-action: none;
+}

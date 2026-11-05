@@ -31,6 +31,7 @@ try {
   await run("tests/board-browser.mjs", port);
   await run("tests/ocean-stick-browser.mjs", port);
   await run("tests/boot-fallback-browser.mjs", port);
+  await run("tests/ocean-babylon-browser.mjs", port);
   await dev.close();
   dev = undefined;
   production = await preview({

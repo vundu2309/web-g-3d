@@ -244,3 +244,37 @@ test("the soft wall keeps the boat inside the sea the server accepts", () => {
   w.dispose();
   assert.ok(farthest < 186, `reached ${farthest.toFixed(1)} m of a 180 m sea`);
 });
+
+test("the start heading points the bow where the movement model says it does", () => {
+  for (const heading of [0, Math.PI / 2, -Math.PI / 2, Math.PI * 0.75]) {
+    const w = world({ start: { x: 0, z: 0, heading } });
+    const first = w.boat.state();
+    let last = first;
+    w.run(
+      4,
+      () => ({ throttle: 1 }),
+      (s) => (last = s),
+    );
+    w.dispose();
+    assert.ok(
+      Math.abs(
+        Math.atan2(
+          Math.sin(first.heading - heading),
+          Math.cos(first.heading - heading),
+        ),
+      ) < 1e-3,
+      `reports heading ${heading}, got ${first.heading}`,
+    );
+    // Heading 0 moves toward -Z; a positive heading swings the bow toward +X.
+    const dx = last.x - first.x;
+    const dz = last.z - first.z;
+    assert.ok(
+      Math.abs(dx - Math.sin(heading) * Math.hypot(dx, dz)) < 0.6,
+      `moves along sin(h) in x for heading ${heading}`,
+    );
+    assert.ok(
+      Math.abs(dz + Math.cos(heading) * Math.hypot(dx, dz)) < 0.6,
+      `moves along -cos(h) in z for heading ${heading}`,
+    );
+  }
+});

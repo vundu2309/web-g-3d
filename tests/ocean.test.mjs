@@ -88,3 +88,47 @@ test("stick maps one drag to analog steering and throttle together", async () =>
   const moved = move(pose, diagonal.steer, diagonal.throttle, 0.05);
   assert.ok(moved.z < 0 && moved.heading > 0, "forward while turning right");
 });
+
+test("the render-scale governor keeps the sea sharp at the capped frame rate and only reacts to sustained slowness", async () => {
+  const { ScaleGovernor } = await import("../src/ocean/render-scale.ts");
+  const run = (governor, seconds, interval) => {
+    const changes = [];
+    for (let t = 0; t < seconds; t += interval) {
+      const next = governor.sample(interval);
+      if (next !== undefined) changes.push([+t.toFixed(1), next]);
+    }
+    return changes;
+  };
+  // The scene draws at most every 33 ms. That is normal, not slow: it must never blur.
+  const steady = new ScaleGovernor({ sharpest: 0.5 });
+  assert.deepEqual(run(steady, 120, 0.034), []);
+  assert.equal(steady.scaling, 0.5);
+  // 60 ms frames are genuinely slow: coarsen, in steps, never past the limit.
+  const slow = new ScaleGovernor({ sharpest: 0.5 });
+  const slowChanges = run(slow, 60, 0.06);
+  assert.ok(
+    slowChanges.length >= 2 && slowChanges.length <= 6,
+    JSON.stringify(slowChanges),
+  );
+  assert.ok(slowChanges.every(([, level]) => level <= 2));
+  assert.equal(slow.scaling, 2);
+  // A start-up stall (shader compile, WASM) must not cost any sharpness.
+  const stall = new ScaleGovernor({ sharpest: 0.5 });
+  for (let i = 0; i < 3; i++) stall.sample(0.4);
+  assert.deepEqual(run(stall, 30, 0.034), []);
+  assert.equal(stall.scaling, 0.5);
+  // A single slow window is a hiccup, not a trend.
+  const hiccup = new ScaleGovernor({ sharpest: 0.5 });
+  run(hiccup, 6, 0.034);
+  run(hiccup, 2, 0.08);
+  assert.deepEqual(run(hiccup, 30, 0.034), []);
+  // And it recovers once the phone is comfortably fast again.
+  const recover = new ScaleGovernor({ sharpest: 0.5 });
+  run(recover, 30, 0.06);
+  assert.ok(recover.scaling > 0.5);
+  run(recover, 120, 0.02);
+  assert.equal(recover.scaling, 0.5);
+  // A hidden tab (huge gap) or garbage is ignored.
+  const hidden = new ScaleGovernor({ sharpest: 0.5 });
+  for (const dt of [5, NaN, -1, 0]) assert.equal(hidden.sample(dt), undefined);
+});
