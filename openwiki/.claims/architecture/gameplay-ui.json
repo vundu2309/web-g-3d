@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:331063f84e2b0aa2625778eb6233482365d9eb352d5faa8812ea661f10f88d13",
+  "pageVersion": "sha256:2ea2a0450bf115ad637e2f11197f56865fb1bc9af876f5769949d5f2b78ad391",
   "claims": [
     {
       "id": "claim_7772453354ab4af78711c059117a2935",
@@ -66,7 +66,7 @@
         },
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:c9e53aa64c0661ec6ebc3a827d9feb72f42c01661af01a6ba102d6c8f44ab348"
+          "version": "repo-file-v1:sha256:7416cf7f513ea67b3b6e23a48702eca364b6e9af961942b2c09a0a3cd4d2f040"
         },
         {
           "resource": "repo://tests/pwa-browser.mjs",
@@ -92,7 +92,7 @@
         },
         {
           "resource": "repo://src/style.css",
-          "version": "repo-file-v1:sha256:22535ebde876805dd07a10282d58d838c3721f5206402052a4da5c342af1ea2f"
+          "version": "repo-file-v1:sha256:29adbe8187225cdda496f42146faad0716f43d3b174a04656cf982a8fd4bef51"
         },
         {
           "resource": "repo://tests/safe-area-browser.mjs",
@@ -159,6 +159,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T07:19:37.851Z"
+    "at": "2026-11-04T09:38:50.588Z"
   }
 }

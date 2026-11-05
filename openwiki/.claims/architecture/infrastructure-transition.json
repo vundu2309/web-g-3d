@@ -1,32 +1,36 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:2ecf18fd76ca3c06f0df2ed0ca4f9f91991ff8dd34c6fea8fc99dd81288ad1f2",
+  "pageVersion": "sha256:ef3da1b90d29aae67309476465f10feea8045e47d2b787271cee124d6906127b",
   "claims": [
     {
       "id": "claim_cb9f461bae9f49ba941f3364da33567f",
-      "statement": "The selected migration target is Vercel frontend/PWA, Render API, Supabase Auth/PostgreSQL. It is not implemented or deployed; Pages/Firebase remain current production. Decision0006 records adapter, data-preservation, authorization, concurrency and cross-origin PWA cutover requirements. Provider access/project identity is still required.",
+      "statement": "Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:72791afe71ede7e8a7f3bad67636768490d05f73a905c598e0dec43679cf6670"
+          "resource": "repo://docs/infrastructure.md",
+          "version": "repo-file-v1:sha256:f4fe27ee5cf1ceef8f8e1d2b38a047a8db13e59898fa978d6fb9642f391a3b4e"
         },
         {
-          "resource": "repo://docs/architecture.md",
-          "version": "repo-file-v1:sha256:1acaf22a47e72394599d81d12c723ed2e12cf09527c11f643a29511ef73b095c"
+          "resource": "repo://scripts/test-supabase.mjs",
+          "version": "repo-file-v1:sha256:bc36ce3432567bb5e8f2fc20459e8e9e0963c348c8a03f308f84814fb3333750"
         },
         {
-          "resource": "repo://docs/decisions/0006-infrastructure-transition.md",
-          "version": "repo-file-v1:sha256:914aaa389b3a06bc0900cc23a2127dd727c66c1952528c62cdfd0c909df829a7"
+          "resource": "repo://src/app/password-recovery.ts",
+          "version": "repo-file-v1:sha256:15c9444965ddf4b70c816ed92ea9ec83327acca78350f9fae5ce50773bdf66fc"
         },
         {
-          "resource": "repo://src/hub/store.ts",
-          "version": "repo-file-v1:sha256:3c4e2542d4686277dd6f95b82ddcdb4cb43f70e1fc4718dac79e87b69426255e"
+          "resource": "repo://src/platform/account.ts",
+          "version": "repo-file-v1:sha256:2bd4606ed01adc0e26ac114920c4fb26b2d8e33f6f136fb243ffda18a0e69326"
+        },
+        {
+          "resource": "repo://src/platform/api.ts",
+          "version": "repo-file-v1:sha256:f69dd765e5c662d27e4ac7ae48cfe9021ae09b42fd72c1ea9492cad2d5fa71ca"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T07:39:13.991Z"
+    "at": "2026-11-04T09:38:50.588Z"
   }
 }

@@ -5,7 +5,7 @@ import {
   registerPlayer,
   resetPassword,
 } from "../platform/account";
-import type { User } from "firebase/auth";
+import type { PlayerAccount as User } from "../platform/account";
 async function openAccount(signal?: AbortSignal): Promise<User | null> {
   const user = await currentPlayer();
   if (user) return user;
@@ -110,7 +110,12 @@ async function openAccount(signal?: AbortSignal): Promise<User | null> {
                       password,
                       String(data.get("displayName") || ""),
                     );
-              close(signedIn);
+              if (signedIn) close(signedIn);
+              else {
+                form.reset();
+                status.textContent =
+                  "Hãy kiểm tra email để xác nhận tài khoản, rồi quay lại đăng nhập. Tài khoản cũ cần đăng ký lại trên hệ thống mới.";
+              }
             }
           } catch (e) {
             error.textContent = accountError(e);

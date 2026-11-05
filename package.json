@@ -12,13 +12,17 @@
     "wiki:serve": "openwiki visualize openwiki --no-open",
     "wiki:export": "openwiki visualize openwiki --export .openwiki-export",
     "lint": "eslint src",
-    "format": "prettier --write src tests scripts eslint.config.js vite.config.ts",
-    "format:check": "prettier --check src tests scripts eslint.config.js vite.config.ts",
+    "format": "prettier --write src tests scripts server eslint.config.js vite.config.ts",
+    "format:check": "prettier --check src tests scripts server eslint.config.js vite.config.ts",
     "test:unit": "node --test tests/rooms.test.mjs tests/diagnostics.test.mjs tests/game-ui.test.mjs tests/board-layout.test.mjs",
     "test:browser": "node scripts/test-browser.mjs && node tests/pwa-browser.mjs",
     "test": "npm run test:unit && npm run build && npm run test:browser",
-    "check": "npm run lint && npm run format:check && npm test && npm run test:rules",
-    "test:rules": "node scripts/test-rules.mjs"
+    "check": "npm run lint && npm run format:check && npm test && npm run test:rules && npm run test:api",
+    "test:rules": "node scripts/test-rules.mjs",
+    "test:api": "node --test tests/api.test.mjs tests/socket.test.mjs",
+    "start:api": "node server/index.mjs",
+    "test:postgres": "node scripts/test-postgres.mjs",
+    "test:supabase": "node scripts/test-supabase.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -40,7 +44,11 @@
   "dependencies": {
     "@fontsource/baloo-2": "^5.3.0",
     "@fontsource/be-vietnam-pro": "^5.3.0",
+    "@supabase/supabase-js": "2.118.0",
     "firebase": "13.2.0",
+    "pg": "8.16.3",
+    "socket.io": "4.8.3",
+    "socket.io-client": "4.8.3",
     "three": "^0.187.0"
   }
 }

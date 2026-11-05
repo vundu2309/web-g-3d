@@ -1,17 +1,18 @@
 ---
 type: quickstart
 title: Bắt đầu với hub Phố Tỷ Phú
-description: Bản đồ tác vụ cho hub board game mobile, theme đã duyệt, kiểm tra và phát hành Pages với Firebase riêng.
-tags: [quickstart, hub, mobile, context]
+description: Bản đồ tác vụ cho hub board game mobile, theme đã duyệt, kiểm tra
+  và phát hành Pages với Firebase riêng.
+tags:
+  - quickstart
+  - hub
+  - mobile
+  - context
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
-  - id: openwiki-source-115b2dad781e2a2c5b5a980d
-    resource: repo://docs/architecture.md
   - id: openwiki-source-de23c649f29de7b7defa1fe3
     resource: repo://docs/decisions/0002-mobile-board-game-hub.md
-  - id: openwiki-source-96aca2295370362abfc54588
-    resource: repo://docs/decisions/0006-infrastructure-transition.md
   - id: openwiki-source-523a2ee371c511874cedf68c
     resource: repo://docs/design/theme.md
   - id: openwiki-source-1207dc6dc9df1cc76b6da2de
@@ -32,6 +33,8 @@ sources:
     resource: repo://docs/game/shared-session-design.md
   - id: openwiki-source-63e8f904736888c1397b0a2b
     resource: repo://docs/game/ui-implementation.md
+  - id: openwiki-source-b26fdac5f2b9ba8a19fdd0f6
+    resource: repo://docs/infrastructure.md
   - id: openwiki-source-701123ef063b2b49fc5126ba
     resource: repo://docs/pwa.md
   - id: openwiki-source-8acf8e92f9f7b465d02fa04b
@@ -42,8 +45,12 @@ sources:
     resource: repo://scripts/service-worker.js
   - id: openwiki-source-3515d68bed1b916f693296ec
     resource: repo://scripts/test-browser.mjs
+  - id: openwiki-source-9d81102c99fa0be75f0562d6
+    resource: repo://scripts/test-supabase.mjs
   - id: openwiki-source-2d276ab0949853064e1a4208
     resource: repo://src/app/diagnostics.ts
+  - id: openwiki-source-32d34de3adc601eacf7364ad
+    resource: repo://src/app/password-recovery.ts
   - id: openwiki-source-de5ab1ed905c7bd08fbdce6f
     resource: repo://src/app/play.ts
   - id: openwiki-source-fdc97d585e693e9f422ad7ae
@@ -66,12 +73,12 @@ sources:
     resource: repo://src/game-ui/style.css
   - id: openwiki-source-435a4eb0dedae12246227bd4
     resource: repo://src/hub/diagnostics.ts
-  - id: openwiki-source-22c382245dd906dd1c064e27
-    resource: repo://src/hub/store.ts
   - id: openwiki-source-d4189bbeecb62806cb297b5a
     resource: repo://src/main.ts
   - id: openwiki-source-a516dc77b4f57ace3d032e8c
     resource: repo://src/platform/account.ts
+  - id: openwiki-source-2a80fab523f1197e079cba62
+    resource: repo://src/platform/api.ts
   - id: openwiki-source-0eacf94e25ae0c7320c6f741
     resource: repo://src/platform/firebase.ts
   - id: openwiki-source-a2b90583a7b340fe72510d57
@@ -88,10 +95,10 @@ sources:
     resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-04T07:39:13.991Z" }
+generated: { by: "codex", at: "2026-11-04T09:34:07.893Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-04T07:39:13.991Z
+    at: 2026-11-04T09:38:50.588Z
 ---
 
 # Bắt đầu với hub Phố Tỷ Phú
@@ -170,4 +177,18 @@ The local ?view=game preview uses one Three.js renderer across HUD redraws, a sh
 
 ## Selected target, current production unchanged
 
-The selected migration target is Vercel frontend/PWA, Render API, Supabase Auth/PostgreSQL. It is not implemented or deployed; Pages/Firebase remain current production. Decision0006 records adapter, data-preservation, authorization, concurrency and cross-origin PWA cutover requirements. Provider access/project identity is still required.
+Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.
+
+
+## Socket.IO và Supabase ở staging
+
+Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.
+
+Client nhận sự kiện qua WebSocket Socket.IO, không polling. Mỗi snapshot và mutation kiểm tra phiên đăng nhập/quyền PostgreSQL. Schema khóa hàng phòng cho join/start/leave; private tables không cấp quyền ghi trực tiếp. Database notification không chứa dữ liệu phòng. `npm run test:api` kiểm tra Auth, hai socket client và reconnect; `npm run test:postgres` kiểm tra quyền, cạnh tranh chỗ và thông báo sau commit trong database dùng một lần. Tham khảo [hướng dẫn hạ tầng](../docs/infrastructure.md).
+
+
+## Frontend Auth và kiểm thử full stack
+
+Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.
+
+Cấu hình email redirect được giới hạn về origin Vercel đã duyệt qua VITE_AUTH_REDIRECT_URL; CA công khai của Supabase được pin cho listener trong khi giữ xác minh TLS/hostname. `npm run test:supabase` chạy stack dùng một lần và CI cũng gọi bài kiểm thử này. Kiểm thử local không tự chứng minh email thật đã đến hộp thư bên ngoài.

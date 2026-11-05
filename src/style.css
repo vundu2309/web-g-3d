@@ -997,14 +997,14 @@ input::placeholder {
   right: 12px;
   top: 12px;
 }
-#account-form {
+:is(#account-form, #recovery-form) {
   display: grid;
   gap: 10px;
 }
-#account-form > label {
+:is(#account-form, #recovery-form) > label {
   font-weight: 600;
 }
-#account-form .button {
+:is(#account-form, #recovery-form) .button {
   margin-top: 10px;
 }
 .password-field {
@@ -1091,13 +1091,13 @@ input::placeholder {
     width: min(680px, calc(100vw - 48px));
     padding: 20px;
   }
-  #account-form {
+  :is(#account-form, #recovery-form) {
     grid-template-columns: 150px 1fr;
     align-items: center;
     gap: 12px;
   }
-  #account-form > p,
-  #account-form > .button {
+  :is(#account-form, #recovery-form) > p,
+  :is(#account-form, #recovery-form) > .button {
     grid-column: 1/-1;
   }
   .account-intro {
@@ -1143,15 +1143,15 @@ input::placeholder {
   .account-intro {
     display: none;
   }
-  #account-form {
+  :is(#account-form, #recovery-form) {
     gap: 8px;
   }
-  #account-form .field-hint {
+  :is(#account-form, #recovery-form) .field-hint {
     margin: 0;
     font-size: 0.75rem;
     line-height: 1.4;
   }
-  #account-form .button {
+  :is(#account-form, #recovery-form) .button {
     min-height: 48px;
     padding: 8px 16px;
     font-size: 1.1rem;

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:eaa3bfd257e706ff01494537361fc2a8fcc1a1bf7e8a79647d3556f538db6e74",
+  "pageVersion": "sha256:c0b6148b22074e026bd86d735643f26e3b5258da4e405e4e5f5d9a5f1f99de66",
   "claims": [
     {
       "id": "claim_6c5d06b3a4734ae5bbf206ca2564d1c1",
@@ -8,7 +8,7 @@
       "evidence": [
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:c8dfcf47c72760127dc6db043f748d79f082fbf364a18dd7b829d24bc011a401"
+          "version": "repo-file-v1:sha256:f9a4e81915ee32dd395a1c188ffc5e4d26c6c53a1795ed445c8024114a0d7ed6"
         },
         {
           "resource": "repo://src/main.ts",
@@ -22,7 +22,7 @@
       "evidence": [
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:c9e53aa64c0661ec6ebc3a827d9feb72f42c01661af01a6ba102d6c8f44ab348"
+          "version": "repo-file-v1:sha256:7416cf7f513ea67b3b6e23a48702eca364b6e9af961942b2c09a0a3cd4d2f040"
         }
       ]
     },
@@ -46,11 +46,11 @@
       "evidence": [
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:c8dfcf47c72760127dc6db043f748d79f082fbf364a18dd7b829d24bc011a401"
+          "version": "repo-file-v1:sha256:f9a4e81915ee32dd395a1c188ffc5e4d26c6c53a1795ed445c8024114a0d7ed6"
         },
         {
           "resource": "repo://src/platform/account.ts",
-          "version": "repo-file-v1:sha256:4c40ff3e6183ff30dbcb47de56ffee17fb38712aa7299009fdf0819f20c157d1"
+          "version": "repo-file-v1:sha256:2bd4606ed01adc0e26ac114920c4fb26b2d8e33f6f136fb243ffda18a0e69326"
         }
       ]
     },
@@ -64,7 +64,7 @@
         },
         {
           "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:4923a2ea8278eb12f2f00dda6a7dad3d4bc30c0be13acfcafc36644a9a9da0fd"
+          "version": "repo-file-v1:sha256:d32270d2c3599a3d843e114dfe5b033a338a78aafaf49a8524ee5346e92d903d"
         },
         {
           "resource": "repo://src/platform/firestore-client.ts",
@@ -142,7 +142,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:72791afe71ede7e8a7f3bad67636768490d05f73a905c598e0dec43679cf6670"
+          "version": "repo-file-v1:sha256:33c29ec94edcd0627308ab171b26f301a8fef17550e3b5abdb412dd5469ff52e"
         },
         {
           "resource": "repo://docs/game/README.md",
@@ -164,7 +164,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:72791afe71ede7e8a7f3bad67636768490d05f73a905c598e0dec43679cf6670"
+          "version": "repo-file-v1:sha256:33c29ec94edcd0627308ab171b26f301a8fef17550e3b5abdb412dd5469ff52e"
         },
         {
           "resource": "repo://docs/game/shared-session-design.md",
@@ -186,7 +186,7 @@
         },
         {
           "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:c8dfcf47c72760127dc6db043f748d79f082fbf364a18dd7b829d24bc011a401"
+          "version": "repo-file-v1:sha256:f9a4e81915ee32dd395a1c188ffc5e4d26c6c53a1795ed445c8024114a0d7ed6"
         },
         {
           "resource": "repo://src/main.ts",
@@ -204,7 +204,7 @@
         },
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:c9e53aa64c0661ec6ebc3a827d9feb72f42c01661af01a6ba102d6c8f44ab348"
+          "version": "repo-file-v1:sha256:7416cf7f513ea67b3b6e23a48702eca364b6e9af961942b2c09a0a3cd4d2f040"
         },
         {
           "resource": "repo://tests/pwa-browser.mjs",
@@ -230,7 +230,7 @@
         },
         {
           "resource": "repo://src/style.css",
-          "version": "repo-file-v1:sha256:22535ebde876805dd07a10282d58d838c3721f5206402052a4da5c342af1ea2f"
+          "version": "repo-file-v1:sha256:29adbe8187225cdda496f42146faad0716f43d3b174a04656cf982a8fd4bef51"
         },
         {
           "resource": "repo://tests/safe-area-browser.mjs",
@@ -296,29 +296,33 @@
     },
     {
       "id": "claim_69fd370ae67f4958b05715194efc950d",
-      "statement": "The selected migration target is Vercel frontend/PWA, Render API, Supabase Auth/PostgreSQL. It is not implemented or deployed; Pages/Firebase remain current production. Decision0006 records adapter, data-preservation, authorization, concurrency and cross-origin PWA cutover requirements. Provider access/project identity is still required.",
+      "statement": "Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:72791afe71ede7e8a7f3bad67636768490d05f73a905c598e0dec43679cf6670"
+          "resource": "repo://docs/infrastructure.md",
+          "version": "repo-file-v1:sha256:f4fe27ee5cf1ceef8f8e1d2b38a047a8db13e59898fa978d6fb9642f391a3b4e"
         },
         {
-          "resource": "repo://docs/architecture.md",
-          "version": "repo-file-v1:sha256:1acaf22a47e72394599d81d12c723ed2e12cf09527c11f643a29511ef73b095c"
+          "resource": "repo://scripts/test-supabase.mjs",
+          "version": "repo-file-v1:sha256:bc36ce3432567bb5e8f2fc20459e8e9e0963c348c8a03f308f84814fb3333750"
         },
         {
-          "resource": "repo://docs/decisions/0006-infrastructure-transition.md",
-          "version": "repo-file-v1:sha256:914aaa389b3a06bc0900cc23a2127dd727c66c1952528c62cdfd0c909df829a7"
+          "resource": "repo://src/app/password-recovery.ts",
+          "version": "repo-file-v1:sha256:15c9444965ddf4b70c816ed92ea9ec83327acca78350f9fae5ce50773bdf66fc"
         },
         {
-          "resource": "repo://src/hub/store.ts",
-          "version": "repo-file-v1:sha256:3c4e2542d4686277dd6f95b82ddcdb4cb43f70e1fc4718dac79e87b69426255e"
+          "resource": "repo://src/platform/account.ts",
+          "version": "repo-file-v1:sha256:2bd4606ed01adc0e26ac114920c4fb26b2d8e33f6f136fb243ffda18a0e69326"
+        },
+        {
+          "resource": "repo://src/platform/api.ts",
+          "version": "repo-file-v1:sha256:f69dd765e5c662d27e4ac7ae48cfe9021ae09b42fd72c1ea9492cad2d5fa71ca"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T07:39:13.991Z"
+    "at": "2026-11-04T09:38:50.588Z"
   }
 }
