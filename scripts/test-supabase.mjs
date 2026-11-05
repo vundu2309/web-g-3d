@@ -166,10 +166,21 @@ try {
     "POSTGRES_HOST_AUTH_METHOD=trust",
     "postgres:17-alpine@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b",
   ]);
+  // The image bootstrap server accepts Unix sockets before its final restart.
+  // Wait for TCP to avoid seeding schema into that temporary server.
   await waitFor(
     async () =>
-      (await docker(["exec", `${prefix}-db`, "pg_isready", "-U", "postgres"]))
-        .code === 0,
+      (
+        await docker([
+          "exec",
+          `${prefix}-db`,
+          "pg_isready",
+          "-h",
+          "127.0.0.1",
+          "-U",
+          "postgres",
+        ])
+      ).code === 0,
     "PostgreSQL",
   );
   await sql(
