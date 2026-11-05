@@ -9,7 +9,12 @@ import { HubError } from "../hub/model";
 import type { connectOcean } from "../platform/ocean";
 import { OceanScene } from "../ocean/babylon-scene";
 import { bindStick, type StickInput } from "../ocean/stick";
-import { connectWithRetry, type RetryOptions } from "../ocean/connect";
+import {
+  connectWithRetry,
+  fatalConnectionMessage,
+  type RetryOptions,
+} from "../ocean/connect";
+import { decodeSave, encodeSave, saveKey } from "../ocean/save";
 
 type Connection = Awaited<ReturnType<typeof connectOcean>>;
 export interface OceanOptions {
@@ -99,6 +104,34 @@ export function startOcean(
   let lastPose = "";
   let clockOffset = 0;
   let caught = 0;
+  let reconnecting = false;
+  let connectFn: typeof connectOcean | undefined;
+  let selfUid = "";
+  let lastSave = 0;
+  const stored = {
+    read(key: string) {
+      try {
+        return localStorage.getItem(key);
+      } catch {
+        return null;
+      }
+    },
+    write(key: string, value: string) {
+      try {
+        localStorage.setItem(key, value);
+      } catch {
+        /* Private mode or a full disk: the game still works, it just cannot resume. */
+      }
+    },
+  };
+  /** Keeps the boat's last position and the catch count on this device. */
+  function persist() {
+    if (!selfUid) return;
+    stored.write(
+      saveKey(selfUid),
+      encodeSave({ x: pose.x, z: pose.z, heading: pose.heading, caught }),
+    );
+  }
   let castAt = 0;
   let biteAt = 0;
   let catchTimer: ReturnType<typeof setTimeout> | undefined;
@@ -124,8 +157,78 @@ export function startOcean(
     biteAt = 0;
     fishButton.textContent = "Thả câu";
   }
+  function takeBoats(list: Boat[], serverTime: number) {
+    boats = list;
+    clockOffset = serverTime - Date.now();
+  }
+  /** A drop after entering: try to reconnect by itself; only give up for real reasons. */
+  function connectionLost(error: unknown) {
+    // Before the boat is in the sea, the start-up retry loop owns errors.
+    if (disposed || reconnecting || !active) return;
+    const message = error instanceof HubError ? error.message : "";
+    if (fatalConnectionMessage.test(message)) {
+      fail(error);
+      return;
+    }
+    void reconnect();
+  }
+  async function reconnect() {
+    reconnecting = true;
+    active = false;
+    keys.clear();
+    releaseStick();
+    stopFishing();
+    scene?.setInput(0, 0);
+    fishButton.disabled = true;
+    connection?.dispose();
+    connection = undefined;
+    persist();
+    let tries = 1;
+    const say = (waking = false) =>
+      notify(
+        `Mất kết nối. Đang kết nối lại… (lần ${tries})${waking ? " Máy chủ có thể đang thức dậy." : ""}`,
+      );
+    say();
+    try {
+      const value = await connectWithRetry(
+        (signal) => connectFn!(takeBoats, connectionLost, signal),
+        network.signal,
+        {
+          deadlineMs: Math.min(patience.deadlineMs, 90_000),
+          attemptMs: patience.attemptMs,
+          delaysMs: patience.delaysMs,
+          slowAfterMs: patience.slowAfterMs,
+          onAttempt: (n) => {
+            tries = n;
+            say();
+          },
+          onSlow: () => say(true),
+          isFatal: (e) =>
+            e instanceof HubError && fatalConnectionMessage.test(e.message),
+          discard: (late) => late.dispose(),
+        },
+      );
+      if (disposed || network.signal.aborted) {
+        value.dispose();
+        return;
+      }
+      // Same boat, same place: only the network connection is new.
+      connection = value;
+      reconnecting = false;
+      active = true;
+      lastPublish = performance.now() - 500;
+      lastPose = "";
+      fishButton.disabled = false;
+      notify("Đã kết nối lại biển chung.");
+    } catch (error) {
+      reconnecting = false;
+      fail(error);
+    }
+  }
   function fail(error: unknown) {
     if (disposed) return;
+    persist();
+    reconnecting = false;
     wasActive ||= active;
     active = false;
     keys.clear();
@@ -147,6 +250,7 @@ export function startOcean(
       if (biteAt && performance.now() - biteAt <= 2500) {
         caught++;
         root.querySelector("[data-catch]")!.textContent = String(caught);
+        persist();
         stopFishing();
         notify("Đã kéo được cá! Cá chỉ tính trong chuyến này.");
       } else {
@@ -199,7 +303,7 @@ export function startOcean(
       dialog.append(note);
     } else {
       const text = document.createElement("p");
-      text.textContent = `Bạn đã bắt ${caught} con cá trong chuyến này. Đây là trải nghiệm câu cá; chưa lưu cá, mua bán hoặc tiền thưởng.`;
+      text.textContent = `Bạn đã bắt tổng cộng ${caught} con cá. Số cá và vị trí thuyền được lưu trên thiết bị này để lần sau bạn tiếp tục.`;
       dialog.append(text);
     }
     const close = document.createElement("button");
@@ -235,6 +339,10 @@ export function startOcean(
           heading: state.heading,
           fishing: pose.fishing,
         };
+      if (now - lastSave > 5000) {
+        lastSave = now;
+        persist();
+      }
       const serialized = JSON.stringify(pose);
       if (
         now - lastPublish >= 1000 &&
@@ -246,12 +354,16 @@ export function startOcean(
           // The server's "too fast" reply is harmless; anything else ends the session.
           if (error instanceof HubError && /quá nhanh/.test(error.message))
             return;
-          fail(error);
+          connectionLost(error);
         });
       }
     }
-    const visible = active ? visibleBoats() : [];
-    const text = active ? `${visible.length} thuyền` : "Chưa kết nối";
+    const visible = active || reconnecting ? visibleBoats() : [];
+    const text = active
+      ? `${visible.length} thuyền`
+      : reconnecting
+        ? "Đang kết nối lại…"
+        : "Chưa kết nối";
     if (count.textContent !== text) count.textContent = text;
     // Draw the sea even while connecting or offline; boats appear once connected.
     if (scene && now - lastDraw >= 33) {
@@ -365,7 +477,11 @@ export function startOcean(
     () => {
       keys.clear();
       releaseStick();
-      if (document.hidden) stopFishing();
+      if (document.hidden) {
+        stopFishing();
+        // A hidden tab can be killed without a pagehide: keep the progress now.
+        persist();
+      }
     },
     { signal: abort.signal },
   );
@@ -419,19 +535,9 @@ export function startOcean(
   const connecting = (async () => {
     const connect =
       options.connect ?? (await import("../platform/ocean")).connectOcean;
+    connectFn = connect;
     const value = await connectWithRetry(
-      (attemptSignal) =>
-        connect(
-          (list, serverTime) => {
-            boats = list;
-            clockOffset = serverTime - Date.now();
-          },
-          // Errors before the boat is in the sea belong to the retry loop, not fail().
-          (error) => {
-            if (active) fail(error);
-          },
-          attemptSignal,
-        ),
+      (attemptSignal) => connect(takeBoats, connectionLost, attemptSignal),
       network.signal,
       {
         deadlineMs: patience.deadlineMs,
@@ -448,7 +554,7 @@ export function startOcean(
         },
         isFatal: (error) =>
           error instanceof HubError &&
-          /đăng nhập|cửa sổ khác|đủ 100|chưa cấu hình/i.test(error.message),
+          fatalConnectionMessage.test(error.message),
         discard: (late) => late.dispose(),
       },
     );
@@ -462,8 +568,13 @@ export function startOcean(
         return;
       }
       connection = value;
-      // Start in the shared harbor even if the server still assigns an older start pose.
-      pose = spawn(value.uid);
+      // Resume where the boat last was on this device, else start in the shared harbor
+      // (whatever start pose the server assigns, the client's own wins once published).
+      selfUid = value.uid;
+      const restored = decodeSave(stored.read(saveKey(value.uid)));
+      pose = restored.pose ?? spawn(value.uid);
+      caught = restored.caught;
+      root.querySelector("[data-catch]")!.textContent = String(caught);
       created.spawnSelf(value.uid, "Bạn", pose);
       step("enter", "done");
       active = true;
@@ -489,6 +600,7 @@ export function startOcean(
     clearTimeout(graphicsTimer);
     clearTimeout(catchTimer);
     clearTimeout(biteTimer);
+    persist();
     cancelAnimationFrame(frame);
     abort.abort();
     network.abort();

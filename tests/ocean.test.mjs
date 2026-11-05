@@ -344,3 +344,64 @@ test("an off-screen player gets an arrow pointing toward them, on a ring inside 
   const here = edgeIndicator(0, 0, 0);
   assert.ok(Number.isFinite(here.x) && Number.isFinite(here.y));
 });
+
+test("saved sea state restores a safe position and the catch count, and rejects anything doubtful", async () => {
+  const { encodeSave, decodeSave, saveKey } = await import(
+    "../src/ocean/save.ts"
+  );
+  const now = 1_800_000_000_000;
+  const make = (extra = {}) => ({
+    x: 30,
+    z: 40,
+    heading: 1.2,
+    caught: 7,
+    ...extra,
+  });
+  const raw = (extra = {}, stamp = now - 60_000) =>
+    JSON.stringify({ v: 1, savedAt: stamp, ...make(extra) });
+  // Round trip.
+  const back = decodeSave(encodeSave(make(), now), now + 1000);
+  assert.deepEqual(back.pose, { x: 30, z: 40, heading: 1.2, fishing: false });
+  assert.equal(back.caught, 7);
+  // Per-account key.
+  assert.notEqual(saveKey("a"), saveKey("b"));
+  // The catch count survives even when the position cannot be trusted.
+  for (const bad of [
+    raw({ x: NaN }),
+    raw({ x: 500 }),
+    raw({ z: -179 }),
+    raw({ heading: 9 }),
+    raw({ x: -68, z: -65 }), // inside the first island
+    raw({}, now - 8 * 24 * 3600 * 1000), // stale
+    raw({}, now + 3600_000), // from the future
+    JSON.stringify({
+      v: 1,
+      savedAt: now,
+      x: "30",
+      z: 40,
+      heading: 1,
+      caught: 3,
+    }),
+  ]) {
+    const r = decodeSave(bad, now);
+    assert.equal(r.pose, undefined, bad);
+  }
+  assert.equal(decodeSave(raw({ x: 500 }), now).caught, 7);
+  // Garbage is harmless.
+  for (const junk of [
+    null,
+    "",
+    "not json",
+    "[]",
+    "null",
+    "42",
+    JSON.stringify({ v: 2, x: 1 }),
+    JSON.stringify({ x: 1, z: 2 }),
+  ])
+    assert.deepEqual(decodeSave(junk, now), { caught: 0 });
+  // The count is a sane whole number.
+  assert.equal(decodeSave(raw({ caught: -5 }), now).caught, 0);
+  assert.equal(decodeSave(raw({ caught: 3.9 }), now).caught, 3);
+  assert.equal(decodeSave(raw({ caught: 1e12 }), now).caught, 1_000_000);
+  assert.equal(JSON.parse(encodeSave(make({ caught: -3 }), now)).caught, 0);
+});

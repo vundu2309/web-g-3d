@@ -4,6 +4,10 @@
  * normal first experience. This retries with short pauses until a total deadline,
  * tells the caller when it is taking long, and never leaks a late connection.
  */
+/** Messages for failures that retrying cannot fix: signed out, sea full, taken over elsewhere. */
+export const fatalConnectionMessage =
+  /đăng nhập|cửa sổ khác|đủ 100|chưa cấu hình/i;
+
 export interface RetryOptions<T> {
   /** Give up after this long in total. */
   deadlineMs: number;

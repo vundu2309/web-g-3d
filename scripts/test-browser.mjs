@@ -33,6 +33,7 @@ try {
   await run("tests/boot-fallback-browser.mjs", port);
   await run("tests/ocean-babylon-browser.mjs", port);
   await run("tests/ocean-loading-browser.mjs", port);
+  await run("tests/ocean-resume-browser.mjs", port);
   await run("tests/ocean-multiplayer-browser.mjs", port);
   await run("tests/account-signup-browser.mjs", port);
   await dev.close();
