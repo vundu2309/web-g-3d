@@ -18,6 +18,74 @@
     <div class="paper-card card-right" aria-hidden="true"></div>
     <div id="app"></div>
     <p id="announcement" class="announcement" role="status" aria-live="polite" aria-atomic="true"></p>
+    <script>
+      /* Self-diagnosing start: if the game never draws, say why instead of staying blank. */
+      (function () {
+        var problems = [];
+        function note(text) {
+          text = String(text || "").slice(0, 140);
+          if (text && problems.indexOf(text) < 0 && problems.length < 4) problems.push(text);
+        }
+        window.addEventListener(
+          "error",
+          function (event) {
+            var target = event.target;
+            note(event.message || (target && (target.src || target.href) ? "Không tải được: " + String(target.src || target.href).split("/").pop() : "Lỗi"));
+          },
+          true,
+        );
+        window.addEventListener("unhandledrejection", function (event) {
+          note(event.reason && event.reason.message ? event.reason.message : event.reason);
+        });
+        function clearShell() {
+          var work = Promise.resolve();
+          if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations)
+            work = navigator.serviceWorker.getRegistrations().then(function (list) {
+              return Promise.all(list.map(function (item) { return item.unregister(); }));
+            });
+          if (window.caches)
+            work = work.then(function () {
+              return caches.keys().then(function (keys) {
+                return Promise.all(keys.filter(function (key) { return key.indexOf("photyphu-shell:") === 0; }).map(function (key) { return caches.delete(key); }));
+              });
+            });
+          return work.catch(function () {}).then(function () { location.reload(); });
+        }
+        setTimeout(function () {
+          var app = document.getElementById("app");
+          if (!app || app.childElementCount) return;
+          var box = document.createElement("section");
+          box.id = "boot-fallback";
+          box.setAttribute("role", "alert");
+          box.style.cssText = "position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:#e1f0ff;color:#153b80;font:16px/1.5 system-ui,sans-serif;text-align:center;z-index:9";
+          var inner = document.createElement("div");
+          inner.style.maxWidth = "440px";
+          var title = document.createElement("h1");
+          title.textContent = "Game chưa mở được";
+          title.style.cssText = "font-size:24px;margin:0 0 8px";
+          var text = document.createElement("p");
+          text.textContent = "Trình duyệt chưa dựng được game. Hãy thử tải lại. Nếu vẫn trống, xóa bộ nhớ đệm của game rồi mở lại.";
+          var detail = document.createElement("p");
+          var agent = (navigator.userAgent.match(/(Chrome|Firefox|Version)\/[\d.]+/) || [""])[0];
+          detail.textContent = (problems.length ? problems.join(" · ") : "Không có thông báo lỗi") + " — " + location.host + " " + agent;
+          detail.style.cssText = "font:12px/1.4 monospace;opacity:.75;word-break:break-word";
+          function button(label, primary, action) {
+            var item = document.createElement("button");
+            item.type = "button";
+            item.textContent = label;
+            item.style.cssText = "min-height:48px;margin:6px;padding:0 20px;border:2px solid #153b80;border-radius:16px;font:700 16px system-ui,sans-serif;color:#153b80;background:" + (primary ? "#ffd35a" : "#fff");
+            item.addEventListener("click", action);
+            return item;
+          }
+          inner.append(title, text, button("Tải lại", true, function () { location.reload(); }), button("Xóa bộ nhớ đệm và tải lại", false, clearShell), detail);
+          box.append(inner);
+          document.body.append(box);
+          new MutationObserver(function (_, observer) {
+            if (app.childElementCount) { box.remove(); observer.disconnect(); }
+          }).observe(app, { childList: true });
+        }, 8000);
+      })();
+    </script>
     <noscript>Bật JavaScript để mở Phố Tỷ Phú.</noscript>
     <script type="module" src="/src/main.ts"></script>
   </body>

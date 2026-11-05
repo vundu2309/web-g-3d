@@ -14,7 +14,9 @@ The original Monopoly board/HUD/artwork and room/auth services remain. `?view=ga
 
 ## Controls and fishing
 
-WASD/arrows or the touch pad steer, move forward and reverse; release stops thrust. Space or “Thả câu” casts and stops the boat. Wait for “Kéo cá!” and respond within 2.5 seconds. Early retrieval or missing the bite catches nothing. “Kho cá” reports catches for this trip only. Return/reload resets catches; they are not persistent inventory, rewards, currency or an anti-cheat-protected economy. Other players see whether a boat is fishing.
+On touch, one thumb drags the on-screen stick (`src/ocean/stick.ts`): up/down is throttle (forward/reverse) and left/right is steering, so a diagonal drag runs and turns at once; farther means stronger, a small dead zone ignores a resting thumb, and releasing or cancelling the touch stops the boat. The other thumb is free: “Thả câu” acts on press because browsers do not synthesize a click for a second finger while the first holds the stick. WASD/arrows still work as full deflection, and the stick wins while held. Space or “Thả câu” casts and stops the boat. Wait for “Kéo cá!” and respond within 2.5 seconds. Early retrieval or missing the bite catches nothing. “Kho cá” reports catches for this trip only. Return/reload resets catches; they are not persistent inventory, rewards, currency or an anti-cheat-protected economy. Other players see whether a boat is fishing.
+
+The sea is drawn even while connecting or offline; boats appear once connected. `index.html` carries a small classic script: if the game has not drawn after 8 seconds it shows the failure reason with “Tải lại” and “Xóa bộ nhớ đệm và tải lại” (unregisters this app’s service worker and shell caches) instead of a blank page.
 
 Foreground controls fit 844×390, 932×430 and 667×375; portrait falls back to stacked actions. Controls have at least 44px targets, dialog focus, keyboard operation and reduced-motion waves. Native phone performance and OS input behavior still require device verification.
 

@@ -141,7 +141,7 @@ try {
     for (const selector of [
       '[data-ocean="back"]',
       '[data-ocean="fish"]',
-      '[data-steer="up"]',
+      ".ocean-stick",
     ]) {
       const box = await host.locator(selector).boundingBox();
       assert.ok(

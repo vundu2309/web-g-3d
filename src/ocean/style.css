@@ -120,50 +120,80 @@
   align-items: flex-end;
   gap: 15px;
 }
-.ocean-steering {
+.ocean-stick {
   pointer-events: auto;
-  display: grid;
-  grid-template-columns: repeat(3, 44px);
-  grid-template-rows: repeat(3, 44px);
-  gap: 2px;
-  padding: 5px;
+  position: relative;
+  flex: none;
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
-  background: #dceeffa8;
-  border: 2px solid #ffffffac;
+  background: #ffffffa8;
+  border: 2px solid #ffffffd0;
   touch-action: none;
   user-select: none;
+  -webkit-user-select: none;
 }
-.ocean-steering button {
-  border: 0 !important;
-  box-shadow: none !important;
-  background: #ffffffdf;
-  border-radius: 15px;
-  font-size: 21px;
+.ocean-stick.is-active {
+  background: #ffffffd0;
 }
-.ocean-steering [data-steer="up"] {
-  grid-column: 2;
+.ocean-stick-mark {
+  position: absolute;
+  font-size: 13px;
+  font-weight: 700;
+  color: #153b80;
+  opacity: 0.6;
+  pointer-events: none;
 }
-.ocean-steering [data-steer="left"] {
-  grid-column: 1;
-  grid-row: 2;
+.ocean-stick-mark[data-dir="up"] {
+  left: 50%;
+  top: 6px;
+  transform: translateX(-50%);
 }
-.ocean-steering span {
-  grid-column: 2;
-  grid-row: 2;
+.ocean-stick-mark[data-dir="down"] {
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+}
+.ocean-stick-mark[data-dir="left"] {
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.ocean-stick-mark[data-dir="right"] {
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.ocean-stick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
   display: grid;
   place-items: center;
-  font-size: 22px;
-}
-.ocean-steering [data-steer="right"] {
-  grid-column: 3;
-  grid-row: 2;
-}
-.ocean-steering [data-steer="down"] {
-  grid-column: 2;
-  grid-row: 3;
-}
-.ocean-steering button:active {
+  border-radius: 50%;
   background: #ffd35a;
+  border: 3px solid #153b80;
+  box-shadow: 0 3px 0 #153b80;
+  font-size: 24px;
+  pointer-events: none;
+  transition: transform 90ms ease-out;
+}
+.ocean-stick.is-active .ocean-stick-knob {
+  transition: none;
+}
+@media (max-height: 430px) {
+  .ocean-stick {
+    width: 136px;
+    height: 136px;
+  }
+  .ocean-stick-knob {
+    width: 58px;
+    height: 58px;
+    margin: -29px 0 0 -29px;
+  }
 }
 .ocean-actions {
   display: flex;
@@ -259,10 +289,6 @@
   .ocean-chip {
     padding: 8px;
     font-size: 12px !important;
-  }
-  .ocean-steering {
-    grid-template-columns: repeat(3, 44px);
-    grid-template-rows: repeat(3, 44px);
   }
   .ocean-actions {
     flex-direction: column;

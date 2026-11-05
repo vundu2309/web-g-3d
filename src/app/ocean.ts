@@ -2,19 +2,22 @@ import { move, PRESENCE_MS, type Boat, type Pose } from "../ocean/model";
 import { HubError } from "../hub/model";
 import type { connectOcean } from "../platform/ocean";
 import { OceanScene } from "../ocean/scene";
+import { bindStick, type StickInput } from "../ocean/stick";
 
 type Connection = Awaited<ReturnType<typeof connectOcean>>;
 export function startOcean(root: HTMLElement, back: () => void) {
   const abort = new AbortController();
   const network = new AbortController();
   root.classList.add("ocean-root");
-  root.innerHTML = `<main class="ocean-screen" aria-label="Map biển chung"><div class="ocean-stage"></div><div class="ocean-hud game-safe"><header class="ocean-top"><button class="ocean-chip" data-ocean="back" aria-label="Về hub">← <span>Về hub</span></button><div class="ocean-channel"><strong>Biển chung</strong><span>Mỗi người một thuyền</span></div><button class="ocean-chip" data-ocean="crew" aria-label="Thuyền trong kênh"><span data-count>Đang kết nối…</span></button></header><p class="ocean-status" role="status" aria-live="polite">Đang kết nối map chung…</p><section class="ocean-bottom" aria-label="Điều khiển thuyền"><div class="ocean-steering" aria-label="Lái thuyền"><button data-steer="up" aria-label="Tiến">▲</button><button data-steer="left" aria-label="Rẽ trái">◀︎</button><span aria-hidden="true">⚓</span><button data-steer="right" aria-label="Rẽ phải">▶︎</button><button data-steer="down" aria-label="Lùi">▼</button></div><p class="ocean-hint">WASD / phím mũi tên để lái<br/>Space để thả câu</p><div class="ocean-actions"><button class="ocean-chip" data-ocean="catch">Kho cá <strong data-catch>0</strong></button><button class="ocean-fish" data-ocean="fish" disabled>Thả câu</button></div></section></div></main>`;
+  root.innerHTML = `<main class="ocean-screen" aria-label="Map biển chung"><div class="ocean-stage"></div><div class="ocean-hud game-safe"><header class="ocean-top"><button class="ocean-chip" data-ocean="back" aria-label="Về hub">← <span>Về hub</span></button><div class="ocean-channel"><strong>Biển chung</strong><span>Mỗi người một thuyền</span></div><button class="ocean-chip" data-ocean="crew" aria-label="Thuyền trong kênh"><span data-count>Đang kết nối…</span></button></header><p class="ocean-status" role="status" aria-live="polite">Đang kết nối map chung…</p><section class="ocean-bottom" aria-label="Điều khiển thuyền"><div class="ocean-stick" role="group" aria-label="Cần lái: kéo lên để tiến, xuống để lùi, sang hai bên để rẽ"><span class="ocean-stick-mark" data-dir="up" aria-hidden="true">▲</span><span class="ocean-stick-mark" data-dir="down" aria-hidden="true">▼</span><span class="ocean-stick-mark" data-dir="left" aria-hidden="true">◀︎</span><span class="ocean-stick-mark" data-dir="right" aria-hidden="true">▶︎</span><span class="ocean-stick-knob" aria-hidden="true">⚓</span></div><p class="ocean-hint">Cần lái: kéo lên/xuống để chạy, sang hai bên để rẽ<br/>Bàn phím: WASD hoặc mũi tên · Space để thả câu</p><div class="ocean-actions"><button class="ocean-chip" data-ocean="catch">Kho cá <strong data-catch>0</strong></button><button class="ocean-fish" data-ocean="fish" disabled>Thả câu</button></div></section></div></main>`;
   const status = root.querySelector<HTMLElement>(".ocean-status")!;
   const count = root.querySelector<HTMLElement>("[data-count]")!;
   const fishButton = root.querySelector<HTMLButtonElement>(
     '[data-ocean="fish"]',
   )!;
-  const steering = root.querySelector<HTMLElement>(".ocean-steering")!;
+  const stickElement = root.querySelector<HTMLElement>(".ocean-stick")!;
+  const stickKnob =
+    stickElement.querySelector<HTMLElement>(".ocean-stick-knob")!;
   const dialog = document.createElement("dialog");
   dialog.className = "ocean-dialog";
   document.body.append(dialog);
@@ -36,7 +39,14 @@ export function startOcean(root: HTMLElement, back: () => void) {
   let catchTimer: ReturnType<typeof setTimeout> | undefined;
   let biteTimer: ReturnType<typeof setTimeout> | undefined;
   const keys = new Set<string>();
-  const touches = new Map<number, string>();
+  let stick: StickInput = { steer: 0, throttle: 0 };
+  const releaseStick = bindStick(stickElement, stickKnob, {
+    enabled: () => active && !dialog.open,
+    onChange: (input) => {
+      stick = input;
+    },
+    signal: abort.signal,
+  });
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   function notify(text: string) {
     if (status.textContent !== text) status.textContent = text;
@@ -53,7 +63,7 @@ export function startOcean(root: HTMLElement, back: () => void) {
     if (disposed) return;
     active = false;
     keys.clear();
-    touches.clear();
+    releaseStick();
     stopFishing();
     fishButton.disabled = true;
     notify(
@@ -79,7 +89,7 @@ export function startOcean(root: HTMLElement, back: () => void) {
       return;
     }
     keys.clear();
-    touches.clear();
+    releaseStick();
     pose = { ...pose, fishing: true };
     castAt = performance.now();
     fishButton.textContent = "Thu cần";
@@ -100,7 +110,7 @@ export function startOcean(root: HTMLElement, back: () => void) {
   }
   function showDialog(kind: "crew" | "catch") {
     keys.clear();
-    touches.clear();
+    releaseStick();
     dialog.replaceChildren();
     const title = document.createElement("h2");
     title.id = "ocean-dialog-title";
@@ -144,11 +154,11 @@ export function startOcean(root: HTMLElement, back: () => void) {
     const dt = Math.min((now - previous) / 1000, 0.05);
     previous = now;
     if (active && !document.hidden && !dialog.open) {
-      const controls = new Set([...keys, ...touches.values()]);
+      // The stick is analog; keys are full deflection. The stick wins while held.
       const steer =
-        Number(controls.has("right")) - Number(controls.has("left"));
+        stick.steer || Number(keys.has("right")) - Number(keys.has("left"));
       const throttle =
-        Number(controls.has("up")) - Number(controls.has("down"));
+        stick.throttle || Number(keys.has("up")) - Number(keys.has("down"));
       pose = move(pose, steer, throttle, dt);
       const serialized = JSON.stringify(pose);
       if (
@@ -163,10 +173,11 @@ export function startOcean(root: HTMLElement, back: () => void) {
     const visible = active ? visibleBoats() : [];
     const text = active ? `${visible.length} thuyền` : "Chưa kết nối";
     if (count.textContent !== text) count.textContent = text;
-    if (connection && scene && now - lastDraw >= 33) {
+    // Draw the sea even while connecting or offline; boats appear once connected.
+    if (scene && now - lastDraw >= 33) {
       scene.update(
         visible,
-        connection.uid,
+        connection?.uid ?? "",
         pose,
         now / 1000,
         (now - lastDraw) / 1000,
@@ -176,6 +187,21 @@ export function startOcean(root: HTMLElement, back: () => void) {
     }
     frame = requestAnimationFrame(animate);
   }
+  // Browsers do not synthesize a click for a second finger while the first holds
+  // the stick, so fishing acts on the press itself. Keyboard still uses click.
+  let fishPressAt = -1e9;
+  root.addEventListener(
+    "pointerdown",
+    (event) => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
+        '[data-ocean="fish"]',
+      );
+      if (!button || button.disabled) return;
+      fishPressAt = performance.now();
+      fish();
+    },
+    { signal: abort.signal },
+  );
   root.addEventListener(
     "click",
     (event) => {
@@ -183,30 +209,12 @@ export function startOcean(root: HTMLElement, back: () => void) {
         "[data-ocean]",
       )?.dataset.ocean;
       if (action === "back") back();
-      if (action === "fish") fish();
+      // The press already acted (see below); only keyboard activation lands here.
+      if (action === "fish" && performance.now() - fishPressAt > 700) fish();
       if (action === "crew" || action === "catch") showDialog(action);
     },
     { signal: abort.signal },
   );
-  steering.addEventListener(
-    "pointerdown",
-    (event) => {
-      const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
-        "[data-steer]",
-      );
-      if (!button || !active) return;
-      event.preventDefault();
-      button.setPointerCapture(event.pointerId);
-      touches.set(event.pointerId, button.dataset.steer!);
-    },
-    { signal: abort.signal },
-  );
-  for (const event of ["pointerup", "pointercancel", "lostpointercapture"])
-    steering.addEventListener(
-      event,
-      (event) => touches.delete((event as PointerEvent).pointerId),
-      { signal: abort.signal },
-    );
   const mapping: Record<string, string> = {
     ArrowUp: "up",
     w: "up",
@@ -251,7 +259,7 @@ export function startOcean(root: HTMLElement, back: () => void) {
     "blur",
     () => {
       keys.clear();
-      touches.clear();
+      releaseStick();
     },
     { signal: abort.signal },
   );
@@ -268,7 +276,7 @@ export function startOcean(root: HTMLElement, back: () => void) {
     "visibilitychange",
     () => {
       keys.clear();
-      touches.clear();
+      releaseStick();
       if (document.hidden) stopFishing();
     },
     { signal: abort.signal },

@@ -29,6 +29,8 @@ try {
   await run("tests/game-ui-browser.mjs", port);
   await run("tests/safe-area-browser.mjs", port);
   await run("tests/board-browser.mjs", port);
+  await run("tests/ocean-stick-browser.mjs", port);
+  await run("tests/boot-fallback-browser.mjs", port);
   await dev.close();
   dev = undefined;
   production = await preview({
@@ -42,6 +44,10 @@ try {
     production.httpServer.address().port,
   );
   await run("tests/board-browser.mjs", production.httpServer.address().port);
+  await run(
+    "tests/boot-fallback-browser.mjs",
+    production.httpServer.address().port,
+  );
 } catch (error) {
   console.error(error);
   process.exitCode = 1;
