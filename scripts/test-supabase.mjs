@@ -129,7 +129,7 @@ async function player() {
   });
   const page = await context.newPage();
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto(base);
+  await page.goto(base + "/?view=monopoly-hub");
   return page;
 }
 let base;
@@ -152,6 +152,8 @@ async function register(page, name, email) {
     .filter({ hasText: "Hãy kiểm tra email" })
     .waitFor();
   await page.goto(await incomingLink(email, "signup"));
+  await page.getByText(`Player: ${name}`, { exact: true }).waitFor();
+  await page.goto(base + "/?view=monopoly-hub");
   await page.getByText(`Player: ${name}`, { exact: true }).waitFor();
 }
 try {
@@ -522,6 +524,47 @@ try {
   await host.screenshot({ path: "test-results/supabase-home.png" });
   console.log(
     "New password login, old password rejection and session persistence passed",
+  );
+  await host.goto(base);
+  await guest.goto(base);
+  await host.getByRole("button", { name: "Vào game", exact: true }).click();
+  await guest.getByRole("button", { name: "Vào game", exact: true }).click();
+  await host.getByText("2 thuyền", { exact: true }).waitFor();
+  await guest.getByText("2 thuyền", { exact: true }).waitFor();
+  const hostBoat = host.locator(".ocean-boat-label.is-self");
+  await hostBoat.waitFor();
+  const uid = await hostBoat.getAttribute("data-uid");
+  const before = await hostBoat.evaluate((label) => ({
+    x: Number(label.dataset.x),
+    z: Number(label.dataset.z),
+  }));
+  await host.bringToFront();
+  await host.keyboard.down("w");
+  await host.waitForFunction(({ x, z }) => {
+    const label = document.querySelector(".ocean-boat-label.is-self");
+    return (
+      label &&
+      Math.hypot(Number(label.dataset.x) - x, Number(label.dataset.z) - z) > 4
+    );
+  }, before);
+
+  await host.keyboard.up("w");
+  await guest.bringToFront();
+  await guest.waitForFunction(
+    ({ uid, x, z }) => {
+      const label = document.querySelector(`[data-uid="${uid}"]`);
+      return (
+        label &&
+        Math.hypot(Number(label.dataset.x) - x, Number(label.dataset.z) - z) > 3
+      );
+    },
+    { uid, ...before },
+  );
+  await host.screenshot({ path: "test-results/supabase-ocean.png" });
+  await guest.getByRole("button", { name: "Về hub" }).click();
+  await host.getByText("1 thuyền", { exact: true }).waitFor();
+  console.log(
+    "Supabase Auth + Socket.IO: direct common-map entry, two boats, push movement and leave passed",
   );
   assert.deepEqual(errors, []);
 } finally {

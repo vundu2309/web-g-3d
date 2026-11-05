@@ -1,8 +1,10 @@
 # Phố Tỷ Phú
 
-Hub cho board game giao dịch bất động sản, ưu tiên **điện thoại xoay ngang**. Theme giấy xanh nhạt, chữ cobalt và nút vàng theo mẫu đã duyệt. Đã bỏ cảnh biển, thuyền và engine 3D cũ.
+Game online nhập vai thuyền đánh cá, ưu tiên **điện thoại xoay ngang**. Mỗi tài khoản điều khiển một thuyền riêng trên **một map biển chung**.
 
-Luồng hiện tại: trang chính → tạo/tham gia phòng → phòng chờ → trạng thái hoàn tất hub. Có đăng ký/đăng nhập email-mật khẩu qua Firebase Auth, hồ sơ player, danh sách phòng theo tên/chủ phòng, mã mời, tối đa 2–4 người, sẵn sàng, khôi phục phòng sau reload và rời/đóng phòng. Có bản xem trước bàn 3D tại `?view=game`: 40 ô, quân/công trình/xúc xắc minh họa và camera Theo dõi/Toàn cảnh. Chưa có luật mua đất, economy hoặc multiplayer gameplay authoritative.
+Luồng chính: hub → **Vào game** → đăng nhập nếu cần → vào thẳng biển, không tạo/join phòng hay sẵn sàng. Có lái thuyền bằng WASD/phím mũi tên hoặc nút cảm ứng, thả câu/đợi cá cắn/kéo cá và danh sách thuyền trong kênh. Cá chỉ tính trong chuyến hiện tại, chưa lưu hoặc quy đổi tiền.
+
+Code/resource Monopoly giữ nguyên: bản xem trước tại `?view=game`, hub phòng cũ tại `?view=monopoly-hub`. Authenticator Email/Password hiện có được tái sử dụng theo cấu hình Supabase hoặc Firebase. Xem [hợp đồng biển chung](docs/ocean.md).
 
 ## Chạy và kiểm tra
 
@@ -18,9 +20,9 @@ npm run check
 
 ## Online và bản thử
 
-Online dùng Firebase Email/Password Auth + Cloud Firestore `(default)` của project `movieapp-fa2d4`. Firestore `(default)` đã được tạo và rules/index của hub được triển khai riêng qua CLI; deploy Pages không tự làm bước đó. Xem [hướng dẫn Firebase](docs/firebase.md).
+Online dùng Firebase Email/Password Auth + Cloud Firestore `(default)` của project `movieapp-fa2d4`. Firestore `(default)` đã được tạo và rules/index của hub được triển khai riêng qua CLI; deploy Pages không tự làm bước đó. Biển chung dùng Socket.IO trên cấu hình Supabase (một API instance, trạng thái thuyền tạm thời), hoặc Firestore trên cấu hình Firebase. Cần triển khai API mới / rules tương ứng trước khi chơi thật; chưa có quyền quản trị Firebase trong môi trường này. Xem [hướng dẫn Firebase](docs/firebase.md).
 
-Chọn **Thử trên thiết bị này** để kiểm tra hub mà không ghi Firebase. Mở thêm tab cùng trình duyệt, chuyển tab đó sang bản thử rồi tham gia bằng mã. Chế độ này chỉ đồng bộ trên cùng thiết bị/trình duyệt, không phải multiplayer qua Internet. Giao diện luôn ghi “Bản thử”.
+Trong hub Monopoly cũ (`?view=monopoly-hub`), chọn **Thử trên thiết bị này** để kiểm tra hub mà không ghi Firebase. Mở thêm tab cùng trình duyệt, chuyển tab đó sang bản thử rồi tham gia bằng mã. Chế độ này chỉ đồng bộ trên cùng thiết bị/trình duyệt, không phải multiplayer qua Internet. Giao diện luôn ghi “Bản thử”.
 
 ## Tài liệu
 
@@ -34,7 +36,7 @@ Chọn **Thử trên thiết bị này** để kiểm tra hub mà không ghi Fir
 
 https://vundu2309.github.io/web-g-3d/
 
-Settings → Pages → Source: GitHub Actions. Workflow chạy kiểm tra trước khi publish `dist`; main tự deploy. Firebase backend/rules là bước riêng, không có secret quản trị trong client.
+Settings → Pages → Source: GitHub Actions. Workflow chạy kiểm tra trước khi publish `dist`; push có trailer `Pages-Deploy: true` mới deploy. Firebase backend/rules là bước riêng, không có secret quản trị trong client.
 
 ## OpenWiki
 

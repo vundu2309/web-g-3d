@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:2e7ce07148803be8d5400a03d3391f6298a74d810c9e3078b2a7d42a0b9c4b05",
+  "pageVersion": "sha256:dd34d3614dc79f7b58cde97d488d3f6d30a2dbab002f466fbdaf76fc1e8e06f3",
   "claims": [
     {
       "id": "claim_cb9f461bae9f49ba941f3364da33567f",
@@ -8,11 +8,11 @@
       "evidence": [
         {
           "resource": "repo://docs/infrastructure.md",
-          "version": "repo-file-v1:sha256:f4fe27ee5cf1ceef8f8e1d2b38a047a8db13e59898fa978d6fb9642f391a3b4e"
+          "version": "repo-file-v1:sha256:2930e8c98fbe4d8b486d0330429f00a5e2c0d345d19fdc327ac9dde0dde3248b"
         },
         {
           "resource": "repo://scripts/test-supabase.mjs",
-          "version": "repo-file-v1:sha256:e839a88b43df5c3638c4fe391cd39856848cc55bf840641bfcd3af410725d4f8"
+          "version": "repo-file-v1:sha256:4bac1add7aba87dfdae34ea0049fc7d6f88e69f4561a4c5fef27156ca884d0dd"
         },
         {
           "resource": "repo://src/app/password-recovery.ts",
@@ -27,10 +27,28 @@
           "version": "repo-file-v1:sha256:f69dd765e5c662d27e4ac7ae48cfe9021ae09b42fd72c1ea9492cad2d5fa71ca"
         }
       ]
+    },
+    {
+      "id": "claim_2ef670031a4348e0ab74c56fd6b7f2af",
+      "statement": "Biển chung chọn cùng provider với tài khoản; Socket.IO giữ thế giới tạm thời trên một API instance và chỉ push tới socket đã vào biển, tách biệt PostgreSQL đồng bộ phòng; Firebase dùng lease riêng và rules riêng.",
+      "evidence": [
+        {
+          "resource": "repo://docs/ocean.md",
+          "version": "repo-file-v1:sha256:c5f2fdc2d379bdf583cc2af60ad005ddf905bf9511a9f447a5abf7bdd40db326"
+        },
+        {
+          "resource": "repo://server/ocean.mjs",
+          "version": "repo-file-v1:sha256:f38e894877c94979ff0429083fcb0bad3f30e918979d5f671c33566fe738ce7b"
+        },
+        {
+          "resource": "repo://src/platform/ocean.ts",
+          "version": "repo-file-v1:sha256:92b1d25b4a88f2981fdee20b7038b36febec61457005619f3b8137e0d5e3f3e7"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-05T02:03:14.947Z"
+    "at": "2026-11-05T03:59:28.286Z"
   }
 }

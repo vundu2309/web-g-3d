@@ -36,3 +36,7 @@ Vercel receives VITE_ONLINE_BACKEND=supabase, VITE_SUPABASE_URL, VITE_SUPABASE_P
 
 
 Socket handshake errors distinguish expired/invalid Auth from temporary service readiness. The browser retries transient middleware rejection with bounded backoff, refreshes credentials after token refresh and forces a fresh snapshot on reconnect so a stale connection error cannot remain after recovery. These are connection retries, not polling room state.
+
+## Shared fishing sea
+
+The active entry now starts the shared sea after the provider-selected Auth flow, with no rooms or readiness. New `ocean:command`/`ocean:state` handlers use the existing authenticated Socket.IO connection and keep one ephemeral boat per account in **one API instance**. There is no new SQL migration, private table grant or client polling. Existing room RPC/LISTEN/NOTIFY and legacy hub remain unchanged at `?view=monopoly-hub`. Do not scale this sea across API instances until shared simulation/broadcast exists. A restart clears sea state; players return to hub and re-enter. See [contract and verification](ocean.md).

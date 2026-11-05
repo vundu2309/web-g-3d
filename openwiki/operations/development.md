@@ -83,16 +83,18 @@ sources:
     resource: repo://tests/game-ui-browser.mjs
   - id: openwiki-source-692b548971d3dc99c2c806f0
     resource: repo://tests/hub-browser.mjs
+  - id: openwiki-source-9fce44ed27844f7179f12e69
+    resource: repo://tests/ocean-browser.mjs
   - id: openwiki-source-a875da0e301868b8784bbae3
     resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-04T09:34:07.893Z" }
+generated: { by: "codex", at: "2026-11-05T03:32:21.077Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-05T02:03:14.947Z
+    at: 2026-11-05T03:59:28.286Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -105,13 +107,13 @@ Browser helper ưu tiên `CHROMIUM_PATH`, Chromium hệ thống, rồi Playwrigh
 
 ## Kiểm chứng hub
 
-`npm run check` gồm lint, format, unit transitions, typecheck/build, browser và Firestore rules tests. Runner browser mở dev/preview ở cổng trống rồi đóng đúng server do mình tạo. Test chủ yếu bắt đầu từ điện thoại ngang: tạo/tham gia, mã sai/phòng không tồn tại, hai tab, escape tên, reload, ready/unready, bắt đầu/đóng phòng và Auth lỗi có kiểm soát. Nó kiểm tra thêm 667×375, 844×390, 932×430, portrait 390×844 và desktop 1440×900; ảnh nằm dưới `test-results/` được ignore.
+`npm run check` gồm lint, format, unit, typecheck/build, browser, Firestore rules và API/Socket.IO tests. Các bài phòng cũ mở rõ `?view=monopoly-hub`; game mặc định là biển chung. Runner browser mở dev/preview ở cổng trống rồi đóng đúng server do mình tạo. Test chủ yếu bắt đầu từ điện thoại ngang: tạo/tham gia, mã sai/phòng không tồn tại, hai tab, escape tên, reload, ready/unready, bắt đầu/đóng phòng và Auth lỗi có kiểm soát. Nó kiểm tra thêm 667×375, 844×390, 932×430, portrait 390×844 và desktop 1440×900; ảnh nằm dưới `test-results/` được ignore.
 
 `npm run test:rules` dùng bộ tải chính thức Firebase để lấy JAR và kiểm tra size/checksum rồi mở Java emulator ở loopback/cổng trống. Rules tests dùng SDK với danh tính giả chỉ hợp lệ cho emulator; không ghi database thật. Các trường hợp gồm đổi host/capacity, thêm quá chỗ, xóa người khác, ghi status trực tiếp để vượt readiness, quyền host-only và hai transaction tranh chỗ cuối. Runner tránh lỗi proxy localhost của CLI/Node WebSocket SDK, vẫn giữ proxy/CA cho tải remote.
 
 `tests/auth-browser.mjs` được runner rules chạy với Auth/Firestore emulators và Vite DEV-only. Hai browser contexts dùng Firebase SDK thật để đăng ký, lưu own profiles, tạo/tìm/tham gia phòng có tên, đăng xuất/đăng nhập sai/đúng và khôi phục phiên. Test chặn production requests.
 
-Test xanh không chứng minh keyboard Safari, FPS hay trải nghiệm điện thoại thật. [Theme](../../docs/design/theme.md) yêu cầu kiểm tra ảnh render thực, vùng chạm 44px và safe areas. Các test biển/Havok không còn thuộc sản phẩm này.
+Test xanh không chứng minh keyboard Safari, FPS hay trải nghiệm điện thoại thật. [Theme](../../docs/design/theme.md) yêu cầu kiểm tra ảnh render thực, vùng chạm 44px và safe areas. Test biển mới tách riêng; Babylon/Havok cũ không được khôi phục.
 
 ## Publish Pages và Firebase
 
@@ -200,3 +202,7 @@ Client nhận sự kiện qua WebSocket Socket.IO, không polling. Mỗi snapsho
 Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.
 
 Cấu hình email redirect được giới hạn về origin Vercel đã duyệt qua VITE_AUTH_REDIRECT_URL; CA công khai của Supabase được pin cho listener trong khi giữ xác minh TLS/hostname. `npm run test:supabase` chạy stack dùng một lần và CI cũng gọi bài kiểm thử này. Kiểm thử local không tự chứng minh email thật đã đến hộp thư bên ngoài.
+
+## Hồi quy biển chung
+
+[Biển chung](../architecture/ocean.md) có unit cho di chuyển/spawn/payload, Socket.IO client thật cho push/ownership/duplicate và hai tài khoản Firebase emulator cho direct entry, chuyển động, câu cá, viewport mobile, reload, rời và offline. `npm run test:supabase` thêm hai browser vào map qua Supabase Auth/Socket.IO sau khi giữ nguyên kiểm tra account/phòng/recovery. Ảnh render dưới `test-results/ocean-*.png` và `supabase-ocean.png`; không dùng ảnh concept làm bằng chứng. Backend Render cần có handler biển và một instance; Firebase cần rules mới riêng. Check local không chứng minh cross-device production.

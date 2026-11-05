@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:bb459117a19d652f41ddba8b2556abd5e5b9348264678163b5ed27f466985f14",
+  "pageVersion": "sha256:43099ee135b7e221af5180ccc6ae9aae5149deeb0c1c090f105965f5957203ee",
   "claims": [
     {
       "id": "claim_36eb6868133740c2b9b12b0cfa109cc8",
@@ -120,7 +120,7 @@
         },
         {
           "resource": "repo://tests/board-browser.mjs",
-          "version": "repo-file-v1:sha256:c78c56eeaf103d65f5be1cb5e78e9ed0c0f8f850285884f49c96abf994b472b5"
+          "version": "repo-file-v1:sha256:e5835f8eccc6c04ce686fe546849551867419fe6f21b1ae66309192be9f6765d"
         },
         {
           "resource": "repo://tests/board-layout.test.mjs",
@@ -134,11 +134,11 @@
       "evidence": [
         {
           "resource": "repo://docs/infrastructure.md",
-          "version": "repo-file-v1:sha256:f4fe27ee5cf1ceef8f8e1d2b38a047a8db13e59898fa978d6fb9642f391a3b4e"
+          "version": "repo-file-v1:sha256:2930e8c98fbe4d8b486d0330429f00a5e2c0d345d19fdc327ac9dde0dde3248b"
         },
         {
           "resource": "repo://scripts/test-supabase.mjs",
-          "version": "repo-file-v1:sha256:e839a88b43df5c3638c4fe391cd39856848cc55bf840641bfcd3af410725d4f8"
+          "version": "repo-file-v1:sha256:4bac1add7aba87dfdae34ea0049fc7d6f88e69f4561a4c5fef27156ca884d0dd"
         },
         {
           "resource": "repo://src/app/password-recovery.ts",
@@ -153,10 +153,32 @@
           "version": "repo-file-v1:sha256:f69dd765e5c662d27e4ac7ae48cfe9021ae09b42fd72c1ea9492cad2d5fa71ca"
         }
       ]
+    },
+    {
+      "id": "claim_620874bc137c4260ab820f152141a880",
+      "statement": "Home tái sử dụng installer/PWA nhưng vào biển online theo provider; mất mạng biển báo lỗi và cho về hub, không fallback thành thuyền mẫu hoặc lưu cá/phiên vào static cache.",
+      "evidence": [
+        {
+          "resource": "repo://docs/ocean.md",
+          "version": "repo-file-v1:sha256:c5f2fdc2d379bdf583cc2af60ad005ddf905bf9511a9f447a5abf7bdd40db326"
+        },
+        {
+          "resource": "repo://scripts/service-worker.js",
+          "version": "repo-file-v1:sha256:d47b180a9d42cb7ef5d6f7ed467a853dfc9b50ac40b13574b71be2f147c37c08"
+        },
+        {
+          "resource": "repo://src/app/ocean.ts",
+          "version": "repo-file-v1:sha256:d63591a8cbca80af732c44a1777535eca77f5020c5daab114f0e5c51a0d9a751"
+        },
+        {
+          "resource": "repo://src/main.ts",
+          "version": "repo-file-v1:sha256:b27c774d57891b76b3f7de63050b96d2bcda09a6efc119e9c57e504645d6232f"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-05T02:03:14.947Z"
+    "at": "2026-11-05T03:59:28.286Z"
   }
 }

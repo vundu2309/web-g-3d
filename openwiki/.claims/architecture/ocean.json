@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:1344ff891ca63b54c3293e039fd3f490eced768b394893564272d65e0e858678",
+  "claims": [
+    {
+      "id": "claim_ec30a91cf1004a989cedfde496347504",
+      "statement": "Route mặc định là hub biển; đăng nhập rồi vào map chung, mỗi tài khoản một thuyền, không có phòng/readiness; Monopoly giữ hai route riêng.",
+      "evidence": [
+        {
+          "resource": "repo://docs/ocean.md",
+          "version": "repo-file-v1:sha256:c5f2fdc2d379bdf583cc2af60ad005ddf905bf9511a9f447a5abf7bdd40db326"
+        },
+        {
+          "resource": "repo://src/app/harbor.ts",
+          "version": "repo-file-v1:sha256:f9d7106eb9fb6dda543e91cbc8b269a3a5ea8053937bbcab9e6c969507ea0d7b"
+        },
+        {
+          "resource": "repo://src/main.ts",
+          "version": "repo-file-v1:sha256:b27c774d57891b76b3f7de63050b96d2bcda09a6efc119e9c57e504645d6232f"
+        }
+      ]
+    },
+    {
+      "id": "claim_e1aa9cb9d9814eb6a091f2401c01fe96",
+      "statement": "Di chuyển/spawn/payload thuần nằm ở ocean/model; scene dùng một renderer Three.js với mô hình thủ tục và label textContent; controller sở hữu input, HUD và cleanup.",
+      "evidence": [
+        {
+          "resource": "repo://src/app/ocean.ts",
+          "version": "repo-file-v1:sha256:d63591a8cbca80af732c44a1777535eca77f5020c5daab114f0e5c51a0d9a751"
+        },
+        {
+          "resource": "repo://src/ocean/model.ts",
+          "version": "repo-file-v1:sha256:4ebddab3cee9710cad6ae9629cdc3d10af697c5444bf77084ec74c155522cc0e"
+        },
+        {
+          "resource": "repo://src/ocean/scene.ts",
+          "version": "repo-file-v1:sha256:5681e3e926ec7576d141f36bd85ee1eded263e5a26fc0e580f990af2674ec8da"
+        }
+      ]
+    },
+    {
+      "id": "claim_903ac3444c9d44ee99df905ec600a7a1",
+      "statement": "Câu cá là tác vụ chờ tín hiệu rồi kéo trong 2,5 giây, chỉ đếm cá chuyến hiện tại và chưa có inventory/kinh tế có thẩm quyền.",
+      "evidence": [
+        {
+          "resource": "repo://docs/ocean.md",
+          "version": "repo-file-v1:sha256:c5f2fdc2d379bdf583cc2af60ad005ddf905bf9511a9f447a5abf7bdd40db326"
+        },
+        {
+          "resource": "repo://src/app/ocean.ts",
+          "version": "repo-file-v1:sha256:d63591a8cbca80af732c44a1777535eca77f5020c5daab114f0e5c51a0d9a751"
+        }
+      ]
+    },
+    {
+      "id": "claim_a8e8348ba41440829898526eeed6950f",
+      "statement": "Adapter Supabase dùng server Socket.IO xác thực theo UID, một phiên mỗi UID, push chỉ tới người đã vào biển và thế giới RAM trên một instance; không có schema hoặc polling mới.",
+      "evidence": [
+        {
+          "resource": "repo://docs/ocean.md",
+          "version": "repo-file-v1:sha256:c5f2fdc2d379bdf583cc2af60ad005ddf905bf9511a9f447a5abf7bdd40db326"
+        },
+        {
+          "resource": "repo://server/ocean.mjs",
+          "version": "repo-file-v1:sha256:f38e894877c94979ff0429083fcb0bad3f30e918979d5f671c33566fe738ce7b"
+        },
+        {
+          "resource": "repo://src/platform/ocean-socket.ts",
+          "version": "repo-file-v1:sha256:9c0bead07707f19d09bc9ead30d5755f335cd9184f71c0247873a461d440cf0a"
+        }
+      ]
+    },
+    {
+      "id": "claim_4285f5a57419497b8b99cfacdd94f8ad",
+      "statement": "Adapter Firebase dùng transaction/session lease own UID, query limit100, ghi tối đa 1Hz và heartbeat10giây, ẩn lease từ xa quá30giây, không xếp hàng motion offline.",
+      "evidence": [
+        {
+          "resource": "repo://firestore.rules",
+          "version": "repo-file-v1:sha256:41dfb9cf357448a1b89fcaecc1128761d2817f407eefebad6d473fa5c22afaab"
+        },
+        {
+          "resource": "repo://src/app/ocean.ts",
+          "version": "repo-file-v1:sha256:d63591a8cbca80af732c44a1777535eca77f5020c5daab114f0e5c51a0d9a751"
+        },
+        {
+          "resource": "repo://src/platform/ocean-firebase.ts",
+          "version": "repo-file-v1:sha256:c684f76489929e7af3452a72c05d3f8488d1cbee3b1bbfcdc6ffd35aeed49e8e"
+        }
+      ]
+    },
+    {
+      "id": "claim_a135cddee1ba44ada40b77f929048e15",
+      "statement": "Các suite unit, real Socket.IO, hai browser Firebase emulator và full-stack Supabase kiểm tra biển chung; kiểm chứng local không thay triển khai API/rules hoặc thiết bị thật.",
+      "evidence": [
+        {
+          "resource": "repo://docs/ocean.md",
+          "version": "repo-file-v1:sha256:c5f2fdc2d379bdf583cc2af60ad005ddf905bf9511a9f447a5abf7bdd40db326"
+        },
+        {
+          "resource": "repo://scripts/test-supabase.mjs",
+          "version": "repo-file-v1:sha256:4bac1add7aba87dfdae34ea0049fc7d6f88e69f4561a4c5fef27156ca884d0dd"
+        },
+        {
+          "resource": "repo://tests/ocean-browser.mjs",
+          "version": "repo-file-v1:sha256:72c61bca029fa3332546f2c58c255a9544f51e57567492235acaccc3834977ff"
+        },
+        {
+          "resource": "repo://tests/ocean-socket.test.mjs",
+          "version": "repo-file-v1:sha256:64116bad66b360ad32310af99c0fa858c0777194c5e185eff4e056ad7867549a"
+        },
+        {
+          "resource": "repo://tests/ocean.test.mjs",
+          "version": "repo-file-v1:sha256:4a2bc0cafded9bbc8eae4494c8615955668d55eae83cec8d4b1160272cf12130"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-05T03:59:28.286Z"
+  }
+}

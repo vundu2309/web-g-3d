@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:2ea2a0450bf115ad637e2f11197f56865fb1bc9af876f5769949d5f2b78ad391",
+  "pageVersion": "sha256:28f90820c7efd8ee1b73a9f9137d053209e24f5c91dacfa765626ff1dc5d67f8",
   "claims": [
     {
       "id": "claim_7772453354ab4af78711c059117a2935",
-      "statement": "Route ?view=game lazy-load HUD preview 24 scenario, không gọi Auth/Firestore, không có engine hoặc backend kinh tế.",
+      "statement": "Route ?view=game vẫn lazy-load HUD Monopoly 24 scenario và board Three.js cục bộ, không gọi Auth/Firestore hoặc xử lý kinh tế có thẩm quyền; route mặc định là hub biển chung và hub phòng cũ ở ?view=monopoly-hub.",
       "evidence": [
+        {
+          "resource": "repo://docs/ocean.md",
+          "version": "repo-file-v1:sha256:c5f2fdc2d379bdf583cc2af60ad005ddf905bf9511a9f447a5abf7bdd40db326"
+        },
         {
           "resource": "repo://src/app/play.ts",
           "version": "repo-file-v1:sha256:40569151d1f48a9b191cce2ea1a06628c2ea40d0578f317e128fac2647ba02da"
         },
         {
-          "resource": "repo://src/game-ui/model.ts",
-          "version": "repo-file-v1:sha256:bc3ae6d87c6ff8b221550cdb7b8c5fcee16517b6fbdafd7a9b587426da493705"
-        },
-        {
           "resource": "repo://src/main.ts",
-          "version": "repo-file-v1:sha256:4060353345cc6a10576cf4ce41a01c17b2e4d534e09298a9e3c4c21b2582bc4b"
+          "version": "repo-file-v1:sha256:b27c774d57891b76b3f7de63050b96d2bcda09a6efc119e9c57e504645d6232f"
         }
       ]
     },
@@ -66,7 +66,7 @@
         },
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:7416cf7f513ea67b3b6e23a48702eca364b6e9af961942b2c09a0a3cd4d2f040"
+          "version": "repo-file-v1:sha256:b9c2d6cf994f74faf891777761423a6c0317219bc207754c6e9c940a88c4802a"
         },
         {
           "resource": "repo://tests/pwa-browser.mjs",
@@ -148,7 +148,7 @@
         },
         {
           "resource": "repo://tests/board-browser.mjs",
-          "version": "repo-file-v1:sha256:c78c56eeaf103d65f5be1cb5e78e9ed0c0f8f850285884f49c96abf994b472b5"
+          "version": "repo-file-v1:sha256:e5835f8eccc6c04ce686fe546849551867419fe6f21b1ae66309192be9f6765d"
         },
         {
           "resource": "repo://tests/board-layout.test.mjs",
@@ -159,6 +159,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-04T09:38:50.588Z"
+    "at": "2026-11-05T03:57:21.194Z"
   }
 }

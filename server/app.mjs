@@ -1,5 +1,6 @@
 import { createServer } from "node:http";
 import { attachSockets } from "./socket.mjs";
+import { attachOcean } from "./ocean.mjs";
 
 export function createApi({
   url,
@@ -149,5 +150,6 @@ export function createApi({
       return response.json();
     },
   });
+  attachOcean(server.io, { authenticate, ready, now });
   return server;
 }

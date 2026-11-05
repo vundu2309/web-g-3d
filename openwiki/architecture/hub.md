@@ -14,6 +14,8 @@ sources:
     resource: repo://docs/diagnostics.md
   - id: openwiki-source-b26fdac5f2b9ba8a19fdd0f6
     resource: repo://docs/infrastructure.md
+  - id: openwiki-source-18fc7b64e66932d83fa70cfc
+    resource: repo://docs/ocean.md
   - id: openwiki-source-701123ef063b2b49fc5126ba
     resource: repo://docs/pwa.md
   - id: openwiki-source-8acf8e92f9f7b465d02fa04b
@@ -32,6 +34,8 @@ sources:
     resource: repo://src/app/account.ts
   - id: openwiki-source-2d276ab0949853064e1a4208
     resource: repo://src/app/diagnostics.ts
+  - id: openwiki-source-10f3f3e9db8fffece78a1ca6
+    resource: repo://src/app/harbor.ts
   - id: openwiki-source-32d34de3adc601eacf7364ad
     resource: repo://src/app/password-recovery.ts
   - id: openwiki-source-fdc97d585e693e9f422ad7ae
@@ -54,6 +58,8 @@ sources:
     resource: repo://src/hub/diagnostics.ts
   - id: openwiki-source-32927955437a252a5e197780
     resource: repo://src/hub/model.ts
+  - id: openwiki-source-d4189bbeecb62806cb297b5a
+    resource: repo://src/main.ts
   - id: openwiki-source-a516dc77b4f57ace3d032e8c
     resource: repo://src/platform/account.ts
   - id: openwiki-source-2a80fab523f1197e079cba62
@@ -82,23 +88,23 @@ sources:
     resource: repo://tests/rules.test.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-04T09:34:07.893Z" }
+generated: { by: "codex", at: "2026-11-05T03:32:21.077Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-05T02:03:14.947Z
+    at: 2026-11-05T03:59:28.286Z
 ---
 
 # Kiến trúc hub và đồng bộ phòng
 
 ## Phạm vi và chủ sở hữu
 
-Phố Tỷ Phú hiện là hub, chưa có bàn chơi hay kinh tế bất động sản. Entry `src/main.ts` nạp font/CSS và khởi động app. `src/app/start.ts` sở hữu DOM, form, chuyển màn, kết nối store và đăng ký theo dõi phòng. SVG nằm trong `src/ui/art.ts`; theme dùng CSS chung. Cảnh biển, Babylon và Havok đã được bỏ khỏi runtime.
+Luồng mặc định hiện là [biển chung](ocean.md): hub “Vào game”, xác thực theo provider đã cấu hình, rồi vào map chung với một thuyền riêng. Không tạo/join phòng hoặc sẵn sàng trong luồng này. Hub Monopoly được bảo toàn tại `?view=monopoly-hub`; các phần phòng bên dưới mô tả module cũ được giữ nguyên. Bản xem trước bàn Monopoly ở `?view=game`, chưa có kinh tế có thẩm quyền. Entry `src/main.ts` nạp font/CSS và chọn route. `src/app/start.ts` sở hữu DOM, form, chuyển màn, kết nối store và đăng ký theo dõi phòng. SVG nằm trong `src/ui/art.ts`; theme dùng CSS chung. Biển mới được tách riêng, dùng Three.js hiện có; Babylon/Havok cũ không được khôi phục.
 
 Model `src/hub/model.ts` không phụ thuộc Firebase hay DOM: định nghĩa Room/Player, chuẩn hóa tên/mã, tạo phòng và xử lý lệnh trên bản sao dữ liệu. `src/hub/store.ts` chỉ định contract tạo, tham gia, cập nhật, theo dõi và dispose. Adapter hạ tầng không nhập ngược app; lint kiểm tra ranh giới này.
 
 ## Luồng vào phòng và trạng thái
 
-Trang chính có danh tính player và hai lựa chọn tạo/tham gia. Online yêu cầu Firebase Email/Password: dialog riêng cung cấp đăng ký, đăng nhập, hiện/ẩn mật khẩu và reset. `src/app/account.ts` sở hữu dialog; `src/platform/account.ts` dùng SDK, còn `firebase-client.ts` khởi tạo app/config chung. Mật khẩu không lưu trong app database hoặc bảng local. Tên online lấy từ hồ sơ đã xác thực, không tin tên truyền từ form. Bản thử vẫn có tên cục bộ riêng. Sau khi store hoàn tất, app lưu mode/mã theo tab trong sessionStorage và theo dõi phòng. Reload khôi phục listener; phòng đóng hoặc mất tư cách thành viên đưa người dùng về trang chính kèm thông báo. Nội dung tên được escape trước khi ghép HTML.
+Trang chính của hub Monopoly cũ có danh tính player và hai lựa chọn tạo/tham gia. Online yêu cầu Firebase Email/Password: dialog riêng cung cấp đăng ký, đăng nhập, hiện/ẩn mật khẩu và reset. `src/app/account.ts` sở hữu dialog; `src/platform/account.ts` dùng SDK, còn `firebase-client.ts` khởi tạo app/config chung. Mật khẩu không lưu trong app database hoặc bảng local. Tên online lấy từ hồ sơ đã xác thực, không tin tên truyền từ form. Bản thử vẫn có tên cục bộ riêng. Sau khi store hoàn tất, app lưu mode/mã theo tab trong sessionStorage và theo dõi phòng. Reload khôi phục listener; phòng đóng hoặc mất tư cách thành viên đưa người dùng về trang chính kèm thông báo. Nội dung tên được escape trước khi ghép HTML.
 
 Phòng có tên (title) và host bất biến, thời điểm tạo, sức chứa tối đa 2–4, status và players theo UID. Chỉ mục seats 0–3 ánh xạ ngược về UID để rules kiểm tra giới hạn chỗ và tư cách thành viên. Ghế/màu của người còn lại không bị đổi khi có người rời đi.
 
@@ -106,7 +112,7 @@ Host luôn sẵn sàng. Khách chỉ bật/tắt trạng thái của chính mìn
 
 ## Đồng bộ và cạnh tranh
 
-Online là mặc định; app khôi phục danh tính qua Firebase Auth Email/Password, không dùng anonymous. Hồ sơ chỉ chứa displayName/createdAt ở `monopolyHub/v1/profiles/<UID>` và chỉ chủ tài khoản đọc/ghi. Cloud Firestore `(default)` lưu profile và room documents. `onSnapshot` nhận cập nhật phòng; `runTransaction` đọc trạng thái rồi áp dụng command nguyên tử, thử lại contention tối đa năm lần. Hai lượt lấy chỗ cuối không cùng commit. Storage dùng server Timestamp, adapter đổi sang milliseconds cho model và giữ Timestamp gốc khi update. Transaction không xếp hàng offline như một setDoc tùy ý. `src/platform/profile.ts` đồng bộ own profile; `firestore-client.ts` khởi tạo database. Auth restore không kéo Firestore SDK vào màn home.
+Trên cấu hình Firebase của hub phòng, app khôi phục danh tính qua Firebase Auth Email/Password, không dùng anonymous. Hồ sơ chỉ chứa displayName/createdAt ở `monopolyHub/v1/profiles/<UID>` và chỉ chủ tài khoản đọc/ghi. Cloud Firestore `(default)` lưu profile và room documents. `onSnapshot` nhận cập nhật phòng; `runTransaction` đọc trạng thái rồi áp dụng command nguyên tử, thử lại contention tối đa năm lần. Hai lượt lấy chỗ cuối không cùng commit. Storage dùng server Timestamp, adapter đổi sang milliseconds cho model và giữ Timestamp gốc khi update. Transaction không xếp hàng offline như một setDoc tùy ý. `src/platform/profile.ts` đồng bộ own profile; `firestore-client.ts` khởi tạo database. Auth restore không kéo Firestore SDK vào màn home.
 
 Bản thử là lựa chọn riêng có nhãn, chỉ dùng cùng browser origin. localStorage lưu phòng; Web Locks tuần tự hóa thay đổi, storage event thông báo các tab khác. Nó không kết nối điện thoại khác và không tự thay thế online khi lỗi. Phòng thử quá một ngày không cho tham gia mới.
 

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:f6e81145916f5e4b5603b2d89a7f461c8e06fae314f6537c255cb73755a2bdc4",
+  "pageVersion": "sha256:5a9d5f40afb5b8ea7e1643daf1174b1143dec46d700af23b71f4e34b4079b532",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -12,11 +12,11 @@
         },
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:33c29ec94edcd0627308ab171b26f301a8fef17550e3b5abdb412dd5469ff52e"
+          "version": "repo-file-v1:sha256:6b34fdd5ed6217e985e4b22fa8e26d93c58040b98ef93021b927abda2a1080ed"
         },
         {
           "resource": "repo://docs/workflow.md",
-          "version": "repo-file-v1:sha256:db55e5e91010d3c91ee3ab8eee7feb1e2c03578658e7cc369676b44ef67c096a"
+          "version": "repo-file-v1:sha256:0f9ffa9e47d4b684ec07a5274d7f2a49d21259f82b97009f6a96d88b1567cf50"
         }
       ]
     },
@@ -42,11 +42,11 @@
     },
     {
       "id": "claim_7f0efb779d404f5c9e4682419541c353",
-      "statement": "npm run check ghép lint, format, unit, build, browser và Firestore rules/auth integration tests; runner đóng đúng các server/emulator sở hữu.",
+      "statement": "npm run check ghép lint, format, unit, build, browser, Firestore rules/Auth/biển emulator và API/Socket.IO tests; runner dọn server/emulator mình sở hữu.",
       "evidence": [
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:7416cf7f513ea67b3b6e23a48702eca364b6e9af961942b2c09a0a3cd4d2f040"
+          "version": "repo-file-v1:sha256:b9c2d6cf994f74faf891777761423a6c0317219bc207754c6e9c940a88c4802a"
         },
         {
           "resource": "repo://scripts/test-browser.mjs",
@@ -54,7 +54,7 @@
         },
         {
           "resource": "repo://scripts/test-rules.mjs",
-          "version": "repo-file-v1:sha256:404c173a593ec5debedf4bb690a6bec63d0856a2468447d6be41962d0ed2524a"
+          "version": "repo-file-v1:sha256:e128675560357c590e4ae9a269587d92d8e8d6106859df2a22b765fdca0b9bb3"
         }
       ]
     },
@@ -64,7 +64,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:33c29ec94edcd0627308ab171b26f301a8fef17550e3b5abdb412dd5469ff52e"
+          "version": "repo-file-v1:sha256:6b34fdd5ed6217e985e4b22fa8e26d93c58040b98ef93021b927abda2a1080ed"
         }
       ]
     },
@@ -74,7 +74,7 @@
       "evidence": [
         {
           "resource": "repo://tests/hub-browser.mjs",
-          "version": "repo-file-v1:sha256:2f660af95074a3055aaa4e7dfcea2cef8e4690233cceccb3f498765a8021861f"
+          "version": "repo-file-v1:sha256:f959122a367f418af1470cc85a9ad9db98ac12bbe0cba3dce6f5fcb3efa45508"
         }
       ]
     },
@@ -84,11 +84,11 @@
       "evidence": [
         {
           "resource": "repo://scripts/test-rules.mjs",
-          "version": "repo-file-v1:sha256:404c173a593ec5debedf4bb690a6bec63d0856a2468447d6be41962d0ed2524a"
+          "version": "repo-file-v1:sha256:e128675560357c590e4ae9a269587d92d8e8d6106859df2a22b765fdca0b9bb3"
         },
         {
           "resource": "repo://tests/rules.test.mjs",
-          "version": "repo-file-v1:sha256:a39e5db27fa780f071841cf4d99e24076213999db9ad28302a4a49f42aef954f"
+          "version": "repo-file-v1:sha256:7a89519a22165ba0f70bcd5fa6920db5a76c780623f81349370cd04feb1d633c"
         }
       ]
     },
@@ -98,11 +98,11 @@
       "evidence": [
         {
           "resource": "repo://scripts/test-rules.mjs",
-          "version": "repo-file-v1:sha256:404c173a593ec5debedf4bb690a6bec63d0856a2468447d6be41962d0ed2524a"
+          "version": "repo-file-v1:sha256:e128675560357c590e4ae9a269587d92d8e8d6106859df2a22b765fdca0b9bb3"
         },
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:6512e2012543c591870a4432204073eeefb7f1bf621c15d767d2f4147d4958b1"
+          "version": "repo-file-v1:sha256:c5eea22b378230593f6decb8a06d54f6e6291ccd712c8a2e5e9e4e3a140472f5"
         }
       ]
     },
@@ -116,7 +116,7 @@
         },
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:6512e2012543c591870a4432204073eeefb7f1bf621c15d767d2f4147d4958b1"
+          "version": "repo-file-v1:sha256:c5eea22b378230593f6decb8a06d54f6e6291ccd712c8a2e5e9e4e3a140472f5"
         }
       ]
     },
@@ -126,7 +126,7 @@
       "evidence": [
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:6512e2012543c591870a4432204073eeefb7f1bf621c15d767d2f4147d4958b1"
+          "version": "repo-file-v1:sha256:c5eea22b378230593f6decb8a06d54f6e6291ccd712c8a2e5e9e4e3a140472f5"
         }
       ]
     },
@@ -136,7 +136,7 @@
       "evidence": [
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:6512e2012543c591870a4432204073eeefb7f1bf621c15d767d2f4147d4958b1"
+          "version": "repo-file-v1:sha256:c5eea22b378230593f6decb8a06d54f6e6291ccd712c8a2e5e9e4e3a140472f5"
         }
       ]
     },
@@ -146,7 +146,7 @@
       "evidence": [
         {
           "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:6512e2012543c591870a4432204073eeefb7f1bf621c15d767d2f4147d4958b1"
+          "version": "repo-file-v1:sha256:c5eea22b378230593f6decb8a06d54f6e6291ccd712c8a2e5e9e4e3a140472f5"
         },
         {
           "resource": "repo://tests/diagnostics.test.mjs",
@@ -178,7 +178,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:33c29ec94edcd0627308ab171b26f301a8fef17550e3b5abdb412dd5469ff52e"
+          "version": "repo-file-v1:sha256:6b34fdd5ed6217e985e4b22fa8e26d93c58040b98ef93021b927abda2a1080ed"
         },
         {
           "resource": "repo://docs/game/README.md",
@@ -200,7 +200,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:33c29ec94edcd0627308ab171b26f301a8fef17550e3b5abdb412dd5469ff52e"
+          "version": "repo-file-v1:sha256:6b34fdd5ed6217e985e4b22fa8e26d93c58040b98ef93021b927abda2a1080ed"
         },
         {
           "resource": "repo://docs/game/shared-session-design.md",
@@ -214,7 +214,7 @@
       "evidence": [
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:7416cf7f513ea67b3b6e23a48702eca364b6e9af961942b2c09a0a3cd4d2f040"
+          "version": "repo-file-v1:sha256:b9c2d6cf994f74faf891777761423a6c0317219bc207754c6e9c940a88c4802a"
         },
         {
           "resource": "repo://scripts/test-browser.mjs",
@@ -236,7 +236,7 @@
         },
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:7416cf7f513ea67b3b6e23a48702eca364b6e9af961942b2c09a0a3cd4d2f040"
+          "version": "repo-file-v1:sha256:b9c2d6cf994f74faf891777761423a6c0317219bc207754c6e9c940a88c4802a"
         },
         {
           "resource": "repo://tests/pwa-browser.mjs",
@@ -318,7 +318,7 @@
         },
         {
           "resource": "repo://tests/board-browser.mjs",
-          "version": "repo-file-v1:sha256:c78c56eeaf103d65f5be1cb5e78e9ed0c0f8f850285884f49c96abf994b472b5"
+          "version": "repo-file-v1:sha256:e5835f8eccc6c04ce686fe546849551867419fe6f21b1ae66309192be9f6765d"
         },
         {
           "resource": "repo://tests/board-layout.test.mjs",
@@ -332,11 +332,11 @@
       "evidence": [
         {
           "resource": "repo://docs/infrastructure.md",
-          "version": "repo-file-v1:sha256:f4fe27ee5cf1ceef8f8e1d2b38a047a8db13e59898fa978d6fb9642f391a3b4e"
+          "version": "repo-file-v1:sha256:2930e8c98fbe4d8b486d0330429f00a5e2c0d345d19fdc327ac9dde0dde3248b"
         },
         {
           "resource": "repo://scripts/test-supabase.mjs",
-          "version": "repo-file-v1:sha256:e839a88b43df5c3638c4fe391cd39856848cc55bf840641bfcd3af410725d4f8"
+          "version": "repo-file-v1:sha256:4bac1add7aba87dfdae34ea0049fc7d6f88e69f4561a4c5fef27156ca884d0dd"
         },
         {
           "resource": "repo://src/app/password-recovery.ts",
@@ -351,10 +351,28 @@
           "version": "repo-file-v1:sha256:f69dd765e5c662d27e4ac7ae48cfe9021ae09b42fd72c1ea9492cad2d5fa71ca"
         }
       ]
+    },
+    {
+      "id": "claim_78c6eb38c45146e69c61ddc69a04f7c0",
+      "statement": "Các hồi quy phòng mở route legacy rõ ràng; test biển kiểm tra motion/câu cá/duplicate/leave trên Firebase emulator và hai browser Supabase/Socket.IO local, không ghi fixture production.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/test-supabase.mjs",
+          "version": "repo-file-v1:sha256:4bac1add7aba87dfdae34ea0049fc7d6f88e69f4561a4c5fef27156ca884d0dd"
+        },
+        {
+          "resource": "repo://tests/hub-browser.mjs",
+          "version": "repo-file-v1:sha256:f959122a367f418af1470cc85a9ad9db98ac12bbe0cba3dce6f5fcb3efa45508"
+        },
+        {
+          "resource": "repo://tests/ocean-browser.mjs",
+          "version": "repo-file-v1:sha256:72c61bca029fa3332546f2c58c255a9544f51e57567492235acaccc3834977ff"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-05T02:03:14.947Z"
+    "at": "2026-11-05T03:59:28.286Z"
   }
 }

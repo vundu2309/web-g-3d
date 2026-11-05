@@ -9,12 +9,11 @@ tags:
   - mobile
   - preview
   - state
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-04T09:38:50.588Z
 sources:
   - id: openwiki-source-63e8f904736888c1397b0a2b
     resource: repo://docs/game/ui-implementation.md
+  - id: openwiki-source-18fc7b64e66932d83fa70cfc
+    resource: repo://docs/ocean.md
   - id: openwiki-source-701123ef063b2b49fc5126ba
     resource: repo://docs/pwa.md
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
@@ -59,12 +58,17 @@ sources:
     resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-04T07:11:51.775Z" }
+generated: { by: "codex", at: "2026-11-05T03:32:21.077Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-05T03:57:21.194Z
 ---
 
 # HUD ván chơi và adapter preview
 
 ## Route và phạm vi
+
+Game mặc định hiện là [biển chung](ocean.md), vào thẳng sau đăng nhập; Monopoly được bảo toàn tại `?view=game` và hub phòng cũ tại `?view=monopoly-hub`.
 
 Người dùng đã duyệt 24 trạng thái UI, yêu cầu trạng thái di chuyển không có text riêng. Trang chính và phòng đã bắt đầu có link mở `?view=game`; query `state=5` mở ví dụ đấu giá. Đây là preview với badge dữ liệu minh họa, không phải ván Firebase. Module chỉ lazy-load khi chọn route này, không gọi Auth/Firestore hoặc ghi tiền/tài sản vào cloud.
 
@@ -82,7 +86,7 @@ Catalog/guard phục vụ UI; chưa là state machine hoặc quyền bảo mật
 
 Roster căn giữa dưới không nền. Highlight vàng bám người đến lượt, nhãn Bạn độc lập với Cần phản hồi. Action nhỏ gọn giữa phải, icon16px/text14px một hàng, touch target44px. Thẻ tài sản giữ cấu trúc in gốc, khác typography HUD; đủ bảy rent rows, mặt sau riêng. Observer không có action/Tài sản; không có nút Lịch sử, vẫn thấy quyết định/thẻ/giá/offer chung. Respondent có đúng action tác vụ, không khởi tạo trade riêng ngoài lượt.
 
-Auction tăng10/20/50 từ giá cao nhất, không nhập số. Trade điều chỉnh số mẫu bằng nút, không bàn phím. Trạng thái02 không heading/detail/action; schematic board và CSS dice chỉ làm nền preview, chưa có board3D hay animation chuyển quân. Kết quả dùng người cuối chưa phá sản, không thắng theo số dư sau timer.
+Auction tăng10/20/50 từ giá cao nhất, không nhập số. Trade điều chỉnh số mẫu bằng nút, không bàn phím. Trạng thái02 không heading/detail/action; schematic board và CSS dice chỉ làm nền preview, có board 3D cục bộ nhưng chưa có animation di chuyển quân có thẩm quyền. Kết quả dùng người cuối chưa phá sản, không thắng theo số dư sau timer.
 
 ## Interactions và lifecycle
 
