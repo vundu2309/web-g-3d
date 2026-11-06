@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { launchBrowser } from "./browser.mjs";
+import { tap } from "./support/tap.mjs";
 const browser = await launchBrowser();
 const contexts = [];
 const errors = [];
@@ -75,7 +76,7 @@ try {
   const guest = await player("Lan <b>", "ocean-lan@example.test");
   await host.getByText("2 thuyền", { exact: true }).waitFor();
   await guest.getByText("2 thuyền", { exact: true }).waitFor();
-  await host.getByRole("button", { name: "Thuyền trong kênh" }).click();
+  await tap(host, host.getByRole("button", { name: "Thuyền trong kênh" }));
   await host.getByRole("listitem").filter({ hasText: "Lan <b>" }).waitFor();
   assert.equal(await host.locator("dialog li b").count(), 0);
   await host.getByRole("button", { name: "Đóng", exact: true }).click();
@@ -124,9 +125,19 @@ try {
     () => {
       const button = document.querySelector('[data-ocean="fish"]');
       if (!button?.textContent?.includes("Giật!")) return false;
-      const init = { bubbles: true, pointerId: 7, isPrimary: true, button: 0 };
-      button.dispatchEvent(new PointerEvent("pointerdown", init));
-      button.dispatchEvent(new PointerEvent("pointerup", init));
+      const box = button.getBoundingClientRect();
+      const init = {
+        bubbles: true,
+        pointerId: 7,
+        isPrimary: true,
+        button: 0,
+        clientX: box.x + box.width / 2,
+        clientY: box.y + box.height / 2,
+      };
+      // The controls are only drawn; the touch goes to the input layer.
+      const layer = document.querySelector(".ocean-input");
+      layer.dispatchEvent(new PointerEvent("pointerdown", init));
+      layer.dispatchEvent(new PointerEvent("pointerup", init));
       return true;
     },
     undefined,
@@ -134,7 +145,7 @@ try {
   );
   await host.getByText("Cá lên thuyền", { exact: false }).waitFor();
   await host.getByRole("button", { name: "Cất vào kho", exact: true }).click();
-  await host.getByRole("button", { name: "Kho cá 1" }).click();
+  await tap(host, host.getByRole("button", { name: "Kho cá 1" }));
   await host
     .getByRole("dialog")
     .getByText("Trong kho: 1 con", { exact: false })
@@ -188,16 +199,16 @@ try {
     .getByText("Tài khoản đã mở thuyền ở cửa sổ khác.", { exact: false })
     .waitFor();
   assert.equal(await host.locator('[data-ocean="fish"]').isDisabled(), true);
-  await host.getByRole("button", { name: "Về hub" }).click();
+  await tap(host, host.getByRole("button", { name: "Về hub" }));
   await host.locator('[data-harbor="play"]').waitFor();
-  await duplicate.getByRole("button", { name: "Về hub" }).click();
+  await tap(duplicate, duplicate.getByRole("button", { name: "Về hub" }));
   await guest.getByText("1 thuyền", { exact: true }).waitFor();
   await guest.context().setOffline(true);
   await guest
     .locator("[data-loading-note]")
     .getByText("Đã mất mạng.", { exact: false })
     .waitFor();
-  await guest.getByRole("button", { name: "Về hub" }).click();
+  await tap(guest, guest.getByRole("button", { name: "Về hub" }));
   await guest.locator('[data-harbor="play"]').waitFor();
   assert.deepEqual(errors, []);
   console.log(

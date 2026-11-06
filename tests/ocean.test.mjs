@@ -567,3 +567,33 @@ test("name labels that would overlap are stacked, distant ones are left alone", 
   for (let i = 1; i < tops.length; i++)
     assert.ok(tops[i] - tops[i - 1] >= 24, `gap ${tops[i] - tops[i - 1]}`);
 });
+
+test("touch targets are never hit smaller than 44 px, and big ones are left alone", async () => {
+  const { inflate, inside, MIN_HIT } = await import(
+    "../src/ocean/input-layer.ts"
+  );
+  assert.equal(MIN_HIT, 44);
+  // A 30 x 30 icon grows around its centre to 44 x 44.
+  assert.deepEqual(inflate({ left: 100, top: 100, right: 130, bottom: 130 }), {
+    left: 93,
+    top: 93,
+    right: 137,
+    bottom: 137,
+  });
+  // Already big enough: unchanged. One axis small: only that axis grows.
+  const big = { left: 0, top: 0, right: 100, bottom: 60 };
+  assert.deepEqual(inflate(big), big);
+  assert.deepEqual(inflate({ left: 0, top: 0, right: 100, bottom: 20 }), {
+    left: 0,
+    top: -12,
+    right: 100,
+    bottom: 32,
+  });
+  const box = inflate({ left: 100, top: 100, right: 130, bottom: 130 });
+  assert.equal(
+    inside(box, 95, 135),
+    true,
+    "a touch just outside the drawing still hits",
+  );
+  assert.equal(inside(box, 90, 115), false);
+});

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { launchBrowser } from "./browser.mjs";
+import { tap } from "./support/tap.mjs";
 
 // The fishing gameplay on screen, with the real scene and a fake connection: hold to
 // charge (power bar), let go to throw (line out, boat stops being driven), the bobber
@@ -89,9 +90,19 @@ const pullWhenBiting = () =>
         const timer = setInterval(() => {
           if (!button.classList.contains("is-biting")) return;
           clearInterval(timer);
-          const init = { bubbles: true, pointerId: 9, isPrimary: true };
-          button.dispatchEvent(new PointerEvent("pointerdown", init));
-          button.dispatchEvent(new PointerEvent("pointerup", init));
+          const box = button.getBoundingClientRect();
+          const init = {
+            bubbles: true,
+            pointerId: 9,
+            isPrimary: true,
+            button: 0,
+            clientX: box.x + box.width / 2,
+            clientY: box.y + box.height / 2,
+          };
+          // The controls are only drawn; the touch goes to the input layer.
+          const layer = document.querySelector(".ocean-input");
+          layer.dispatchEvent(new PointerEvent("pointerdown", init));
+          layer.dispatchEvent(new PointerEvent("pointerup", init));
           resolve(true);
         }, 5);
       }),
@@ -239,7 +250,7 @@ try {
     null,
     { timeout: 45000, polling: 20 },
   );
-  await fish.click();
+  await tap(page, fish);
   await page.waitForFunction(
     () => window.published.at(-1)?.fishing === false,
     null,
@@ -281,7 +292,7 @@ try {
   assert.equal(await page.locator("[data-catch]").innerText(), "1");
 
   // 7. The store shows only held fish, with a count and a way to put one back.
-  await page.getByRole("button", { name: /Kho cá/ }).click();
+  await tap(page, page.getByRole("button", { name: /Kho cá/ }));
   const cells = page.locator(".fish-cell");
   assert.equal(await cells.count(), 1, "only the species held, no empty slots");
   assert.equal(

@@ -22,6 +22,10 @@ The sea is drawn even while connecting or offline; boats appear once connected. 
 
 Foreground controls fit 844×390, 932×430 and 667×375; portrait falls back to stacked actions. Controls have at least 44px targets, dialog focus, keyboard operation and reduced-motion waves. Native phone performance and OS input behavior still require device verification.
 
+## Input layer (no long-press menus)
+
+The sea's controls (back, crew, fish store, the fishing button, the stick ring) are only **drawn**: they have `pointer-events: none`. One transparent layer (`.ocean-input`, `src/ocean/input-layer.ts`) takes every touch, finds the control under the finger by position (hit area at least 44 px even when the drawing is smaller), keeps one route per finger so the stick and the fishing button work together, and blocks `contextmenu`, `selectstart` and `dragstart`. Because a finger never lands on a button, text, icon or link, the browser has nothing to turn into a long-press menu or callout, and nothing that can cancel a held action. A touch the system cancels counts as a lift, so nothing is left held. The buttons stay real `<button>`s for the keyboard and assistive technology: their `click` still works. While the loading card is up the layer is off and the back button takes its own touches. Dialogs (crew list, fish store) are still HTML and are tap-only. This is verified in Chromium with real touch events and a synthetic `contextmenu`; it has not been tried on a real phone or in Safari.
+
 ## Fishing gameplay
 
 Rules are pure code in `src/ocean/fishing.ts` (species, zones, the cast, the fish's behaviour, the store); the screen is `src/app/fishing-ui.ts`; the bobber, line and ripples are `src/ocean/fishing-gear.ts` (drawn through `OceanScene.setGear`). Every fish state is a signal in motion, not text.

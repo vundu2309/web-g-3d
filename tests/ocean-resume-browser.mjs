@@ -201,9 +201,19 @@ try {
           const timer = setInterval(() => {
             if (!button.classList.contains("is-biting")) return;
             clearInterval(timer);
-            const init = { bubbles: true, pointerId: 9, isPrimary: true };
-            button.dispatchEvent(new PointerEvent("pointerdown", init));
-            button.dispatchEvent(new PointerEvent("pointerup", init));
+            const box = button.getBoundingClientRect();
+            const init = {
+              bubbles: true,
+              pointerId: 9,
+              isPrimary: true,
+              button: 0,
+              clientX: box.x + box.width / 2,
+              clientY: box.y + box.height / 2,
+            };
+            // The controls are only drawn; the touch goes to the input layer.
+            const layer = document.querySelector(".ocean-input");
+            layer.dispatchEvent(new PointerEvent("pointerdown", init));
+            layer.dispatchEvent(new PointerEvent("pointerup", init));
             resolve(true);
           }, 5);
         }),

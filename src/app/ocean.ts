@@ -8,7 +8,8 @@ import {
 import { HubError } from "../hub/model";
 import type { connectOcean } from "../platform/ocean";
 import { OceanScene } from "../ocean/babylon-scene";
-import { bindStick, type StickInput } from "../ocean/stick";
+import { createStick, type StickInput } from "../ocean/stick";
+import { bindInputLayer, type InputTarget } from "../ocean/input-layer";
 import { RemoteTracks, ServerClock } from "../ocean/remote";
 import { stockTotal, type Inventory } from "../ocean/fishing";
 import { createFishingUi } from "./fishing-ui";
@@ -43,7 +44,7 @@ export function startOcean(
   const abort = new AbortController();
   const network = new AbortController();
   root.classList.add("ocean-root");
-  root.innerHTML = `<main class="ocean-screen" aria-label="Map biển chung"><div class="ocean-stage"></div><div class="ocean-stick-zone" aria-hidden="true"></div><div class="ocean-loading" role="status" aria-live="polite"><div class="hub-art" aria-hidden="true">${hubArt()}</div><div class="ocean-loading-card"><svg class="ocean-loading-boat" viewBox="0 0 120 56" width="76" height="36" aria-hidden="true" focusable="false"><path d="M0 30h120l-18 22H20Z" fill="#e97760" stroke="#153b80" stroke-width="5" stroke-linejoin="round"/><rect x="48" y="4" width="38" height="26" rx="5" fill="#fff6e0" stroke="#153b80" stroke-width="5"/></svg><h2 data-loading-title>Đang ra khơi…</h2><ol class="ocean-loading-steps"><li data-step="graphics">Tải đồ họa biển</li><li data-step="connect">Kết nối map chung</li><li data-step="enter">Vào biển</li></ol><div class="ocean-loading-bar" aria-hidden="true"><i></i></div><p class="ocean-loading-note" data-loading-note></p><div class="ocean-loading-actions" hidden><button class="button primary" type="button" data-ocean="retry">Thử lại</button></div></div></div><div class="ocean-hud game-safe"><header class="ocean-top"><button class="ocean-chip" data-ocean="back" aria-label="Về hub">← <span>Về hub</span></button><div class="ocean-channel"><strong>Biển chung</strong><span>Mỗi người một thuyền</span></div><button class="ocean-chip" data-ocean="crew" aria-label="Thuyền trong kênh"><span data-count>Đang kết nối…</span></button></header><p class="ocean-status" role="status" aria-live="polite">Đang kết nối map chung…</p><section class="ocean-bottom" aria-label="Điều khiển thuyền"><div class="ocean-stick" role="group" aria-label="Cần lái: kéo lên để tiến, xuống để lùi, sang hai bên để rẽ"><span class="ocean-stick-mark" data-dir="up" aria-hidden="true">▲</span><span class="ocean-stick-mark" data-dir="down" aria-hidden="true">▼</span><span class="ocean-stick-mark" data-dir="left" aria-hidden="true">◀︎</span><span class="ocean-stick-mark" data-dir="right" aria-hidden="true">▶︎</span><span class="ocean-stick-knob" aria-hidden="true">⚓</span></div><p class="ocean-hint">Cần lái: kéo lên/xuống để chạy, sang hai bên để rẽ<br/>Bàn phím: WASD hoặc mũi tên · giữ Space để nạp lực, thả ra để ném</p><div class="ocean-actions"><button class="ocean-chip" data-ocean="catch">Kho cá <strong data-catch>0</strong></button><button class="ocean-fish" data-ocean="fish" disabled>Thả câu</button></div></section></div></main>`;
+  root.innerHTML = `<main class="ocean-screen" aria-label="Map biển chung"><div class="ocean-stage"></div><div class="ocean-stick-zone" aria-hidden="true"></div><div class="ocean-loading" role="status" aria-live="polite"><div class="hub-art" aria-hidden="true">${hubArt()}</div><div class="ocean-loading-card"><svg class="ocean-loading-boat" viewBox="0 0 120 56" width="76" height="36" aria-hidden="true" focusable="false"><path d="M0 30h120l-18 22H20Z" fill="#e97760" stroke="#153b80" stroke-width="5" stroke-linejoin="round"/><rect x="48" y="4" width="38" height="26" rx="5" fill="#fff6e0" stroke="#153b80" stroke-width="5"/></svg><h2 data-loading-title>Đang ra khơi…</h2><ol class="ocean-loading-steps"><li data-step="graphics">Tải đồ họa biển</li><li data-step="connect">Kết nối map chung</li><li data-step="enter">Vào biển</li></ol><div class="ocean-loading-bar" aria-hidden="true"><i></i></div><p class="ocean-loading-note" data-loading-note></p><div class="ocean-loading-actions" hidden><button class="button primary" type="button" data-ocean="retry">Thử lại</button></div></div></div><div class="ocean-hud game-safe"><header class="ocean-top"><button class="ocean-chip" data-ocean="back" aria-label="Về hub">← <span>Về hub</span></button><div class="ocean-channel"><strong>Biển chung</strong><span>Mỗi người một thuyền</span></div><button class="ocean-chip" data-ocean="crew" aria-label="Thuyền trong kênh"><span data-count>Đang kết nối…</span></button></header><p class="ocean-status" role="status" aria-live="polite">Đang kết nối map chung…</p><section class="ocean-bottom" aria-label="Điều khiển thuyền"><div class="ocean-stick" role="group" aria-label="Cần lái: kéo lên để tiến, xuống để lùi, sang hai bên để rẽ"><span class="ocean-stick-mark" data-dir="up" aria-hidden="true">▲</span><span class="ocean-stick-mark" data-dir="down" aria-hidden="true">▼</span><span class="ocean-stick-mark" data-dir="left" aria-hidden="true">◀︎</span><span class="ocean-stick-mark" data-dir="right" aria-hidden="true">▶︎</span><span class="ocean-stick-knob" aria-hidden="true">⚓</span></div><p class="ocean-hint">Cần lái: kéo lên/xuống để chạy, sang hai bên để rẽ<br/>Bàn phím: WASD hoặc mũi tên · giữ Space để nạp lực, thả ra để ném</p><div class="ocean-actions"><button class="ocean-chip" data-ocean="catch">Kho cá <strong data-catch>0</strong></button><button class="ocean-fish" data-ocean="fish" disabled>Thả câu</button></div></section></div><div class="ocean-input" aria-hidden="true"></div></main>`;
   const status = root.querySelector<HTMLElement>(".ocean-status")!;
   const loading = root.querySelector<HTMLElement>(".ocean-loading")!;
   const loadingTitle = loading.querySelector<HTMLElement>(
@@ -153,14 +154,13 @@ export function startOcean(
   let fishStock: Inventory = {};
   const keys = new Set<string>();
   let stick: StickInput = { steer: 0, throttle: 0 };
-  const releaseStick = bindStick(stickElement, stickKnob, {
-    zone: root.querySelector<HTMLElement>(".ocean-stick-zone")!,
+  const stickController = createStick(stickElement, stickKnob, {
     enabled: () => active && !dialog.open,
     onChange: (input) => {
       stick = input;
     },
-    signal: abort.signal,
   });
+  const releaseStick = stickController.release;
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let quietTimer: ReturnType<typeof setTimeout> | undefined;
   /** `brief` messages are good news: they fade after a few seconds (still read aloud). */
@@ -413,35 +413,56 @@ export function startOcean(
     }
     frame = requestAnimationFrame(animate);
   }
-  // Browsers do not synthesize a click for a second finger while the first holds
-  // the stick, so fishing acts on the press itself: press to start charging a throw (or
-  // to pull when a fish is on), let go to throw. Keyboard activation lands in click.
+  // Every touch goes through one transparent layer (see ocean/input-layer.ts): the
+  // controls are only drawn, so a long press has nothing to turn into a browser menu and
+  // nothing that can cancel a held action. Fishing acts on the press itself (press to
+  // charge a throw, or to pull when a fish is on; let go to throw). Keyboard and
+  // assistive activation still arrive as `click`.
   let fishTouchedAt = -1e9;
-  let fishPointer: number | undefined;
-  root.addEventListener(
-    "pointerdown",
-    (event) => {
-      const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
-        '[data-ocean="fish"]',
-      );
-      if (!button || button.disabled || fishPointer !== undefined) return;
-      fishPointer = event.pointerId;
-      fishTouchedAt = performance.now();
-      fishingUi.press();
-    },
-    { signal: abort.signal },
-  );
-  for (const type of ["pointerup", "pointercancel"])
-    root.addEventListener(
-      type,
-      (event) => {
-        if ((event as PointerEvent).pointerId !== fishPointer) return;
-        fishPointer = undefined;
+  const control = (name: string) =>
+    root.querySelector<HTMLElement>(`[data-ocean="${name}"]`)!;
+  const inputTargets: InputTarget[] = [
+    {
+      element: fishButton,
+      kind: "press",
+      down: () => {
+        fishTouchedAt = performance.now();
+        fishingUi.press();
+      },
+      up: () => {
         fishTouchedAt = performance.now();
         fishingUi.release();
       },
-      { signal: abort.signal },
-    );
+    },
+    { element: control("back"), kind: "tap", tap: () => back() },
+    {
+      element: control("crew"),
+      kind: "tap",
+      tap: () => showDialog("crew"),
+    },
+    {
+      element: control("catch"),
+      kind: "tap",
+      tap: () => showDialog("catch"),
+    },
+  ];
+  const releaseInput = bindInputLayer(
+    root.querySelector<HTMLElement>(".ocean-input")!,
+    {
+      targets: () => inputTargets,
+      stick: {
+        controller: stickController,
+        ring: stickElement,
+        zone: root.querySelector<HTMLElement>(".ocean-stick-zone")!,
+        enabled: () => active && !dialog.open,
+      },
+      signal: abort.signal,
+    },
+  );
+  for (const surface of [root, dialog])
+    surface.addEventListener("contextmenu", (event) => event.preventDefault(), {
+      signal: abort.signal,
+    });
   root.addEventListener(
     "click",
     (event) => {
@@ -512,7 +533,7 @@ export function startOcean(
     "blur",
     () => {
       keys.clear();
-      releaseStick();
+      releaseInput();
     },
     { signal: abort.signal },
   );
@@ -529,7 +550,7 @@ export function startOcean(
     "visibilitychange",
     () => {
       keys.clear();
-      releaseStick();
+      releaseInput();
       if (document.hidden) {
         stopFishing();
         // A hidden tab can be killed without a pagehide: keep the progress now.

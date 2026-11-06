@@ -17,7 +17,7 @@ try {
     const { bindStick } = await import("/src/ocean/stick.ts");
     document.body.innerHTML = `<style>
       body{margin:0}
-      .ocean-stick{position:fixed;left:20px;bottom:20px;width:136px;height:136px;border-radius:50%;background:#ccc;touch-action:none}
+      .ocean-stick{position:fixed;left:20px;bottom:20px;width:136px;height:136px;border-radius:50%;background:#ccc;touch-action:none;pointer-events:auto}
       .ocean-stick-knob{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:gold}
       #fish{position:fixed;right:20px;bottom:20px;width:140px;height:64px}
     </style>
