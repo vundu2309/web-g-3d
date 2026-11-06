@@ -348,22 +348,58 @@ export function curve(keys: V3[], n: number): V3[] {
   return out;
 }
 
-/** Linear interpolation of key values `[position, value]` at `x`. */
+/**
+ * A smooth curve through key values `[position, value]` (monotone cubic, so it never
+ * overshoots between keys): profiles read as one flowing outline, not a chain of bumps.
+ */
 export function sample(
   keys: readonly (readonly [number, number])[],
   x: number,
 ) {
+  const n = keys.length;
   if (x <= keys[0]![0]) return keys[0]![1];
-  for (let i = 1; i < keys.length; i++) {
-    const [x1, y1] = keys[i]!;
-    const [x0, y0] = keys[i - 1]!;
-    if (x <= x1) {
-      const t = (x - x0) / (x1 - x0 || 1);
-      const s = t * t * (3 - 2 * t);
-      return y0 + (y1 - y0) * s;
+  if (x >= keys[n - 1]![0]) return keys[n - 1]![1];
+  const xs = keys.map((k) => k[0]);
+  const ys = keys.map((k) => k[1]);
+  const d = xs
+    .slice(1)
+    .map((v, i) => (ys[i + 1]! - ys[i]!) / (v - xs[i]! || 1));
+  const m = ys.map((_, i) =>
+    i === 0
+      ? d[0]!
+      : i === n - 1
+        ? d[n - 2]!
+        : d[i - 1]! * d[i]! <= 0
+          ? 0
+          : (d[i - 1]! + d[i]!) / 2,
+  );
+  for (let i = 0; i < n - 1; i++) {
+    if (d[i] === 0) {
+      m[i] = 0;
+      m[i + 1] = 0;
+    } else {
+      const a = m[i]! / d[i]!;
+      const b = m[i + 1]! / d[i]!;
+      const sum = a * a + b * b;
+      if (sum > 9) {
+        const t = 3 / Math.sqrt(sum);
+        m[i] = t * a * d[i]!;
+        m[i + 1] = t * b * d[i]!;
+      }
     }
   }
-  return keys[keys.length - 1]![1];
+  let i = 0;
+  while (i < n - 2 && x > xs[i + 1]!) i++;
+  const h = xs[i + 1]! - xs[i]!;
+  const t = (x - xs[i]!) / h;
+  const t2 = t * t;
+  const t3 = t2 * t;
+  return (
+    (2 * t3 - 3 * t2 + 1) * ys[i]! +
+    (t3 - 2 * t2 + t) * h * m[i]! +
+    (-2 * t3 + 3 * t2) * ys[i + 1]! +
+    (t3 - t2) * h * m[i + 1]!
+  );
 }
 
 // ----- Validation helpers (also used by tests) -----
@@ -380,15 +416,15 @@ export function bounds(part: Part) {
 }
 export const triangleCount = (part: Part) => part.indices.length / 3;
 
-/** Rotates a creature a quarter turn about X: what lay flat (a ray, a starfish) faces +Z. */
+/** Rotates a creature a quarter turn about X: what lay flat (a ray, a starfish) shows its back to a viewer at -Z. */
 export function standUp(creature: Creature): Creature {
-  const turn = (v: V3): V3 => [v[0], -v[2], v[1]];
+  const turn = (v: V3): V3 => [v[0], v[2], -v[1]];
   const part = (p: Part): Part => {
     const positions = [...p.positions];
     for (let i = 0; i < positions.length; i += 3) {
       const y = positions[i + 1]!;
-      positions[i + 1] = -positions[i + 2]!;
-      positions[i + 2] = y;
+      positions[i + 1] = positions[i + 2]!;
+      positions[i + 2] = -y;
     }
     return { positions, indices: p.indices, colors: p.colors };
   };
