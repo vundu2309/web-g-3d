@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { launchBrowser } from "./browser.mjs";
 import { tap } from "./support/tap.mjs";
+import { fightBot } from "./support/fight-bot.mjs";
 
 // The fishing gameplay on screen, with the real scene and a fake connection: hold to
 // charge (power bar), let go to throw (line out, boat stops being driven), the bobber
@@ -271,6 +272,15 @@ try {
     await finish();
     await lineOut();
     await pullWhenBiting();
+    // The fish is on: a tug of war. The bot plays it; a snapped line means throw again.
+    await page.waitForFunction(
+      () =>
+        document.querySelector('[data-ocean="fish"]').dataset.phase ===
+        "fighting",
+      null,
+      { timeout: 5000 },
+    );
+    await fightBot(page);
     landed = await page
       .getByText("Cá lên thuyền", { exact: false })
       .waitFor({ timeout: 10000 })

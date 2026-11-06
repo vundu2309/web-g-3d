@@ -1,4 +1,10 @@
 import { SEA_BOUND, islandCollisionRadius, islands } from "./model.ts";
+import {
+  Fight,
+  type FightMood,
+  type FightStyle,
+  type FightView,
+} from "./fight.ts";
 
 /**
  * Fishing rules. Pure maths and a small state machine, no rendering and no DOM:
@@ -29,6 +35,8 @@ export interface Species {
   /** Length in cm of a 1 kg fish; other sizes scale with the cube root of the weight. */
   lengthCm: number;
   shape: Shape;
+  /** How it fights once hooked (see ocean/fight.ts). */
+  fight: FightStyle;
   body: string;
   fin: string;
 }
@@ -48,6 +56,7 @@ export const SPECIES: readonly Species[] = [
     kg: [0.05, 0.2],
     lengthCm: 24,
     shape: "slim",
+    fight: "steady",
     body: "#8fc4e8",
     fin: "#5b9cc9",
   },
@@ -59,6 +68,7 @@ export const SPECIES: readonly Species[] = [
     kg: [0.1, 0.5],
     lengthCm: 22,
     shape: "round",
+    fight: "steady",
     body: "#b99a6b",
     fin: "#8b6f44",
   },
@@ -70,6 +80,7 @@ export const SPECIES: readonly Species[] = [
     kg: [0.4, 2.5],
     lengthCm: 30,
     shape: "diamond",
+    fight: "steady",
     body: "#c9d6e3",
     fin: "#8ea4bd",
   },
@@ -81,6 +92,7 @@ export const SPECIES: readonly Species[] = [
     kg: [0.3, 1.8],
     lengthCm: 26,
     shape: "puffer",
+    fight: "crawler",
     body: "#e6c35a",
     fin: "#c99a1c",
   },
@@ -92,6 +104,7 @@ export const SPECIES: readonly Species[] = [
     kg: [1, 12],
     lengthCm: 36,
     shape: "chunky",
+    fight: "heavy",
     body: "#d98b5f",
     fin: "#a9582f",
   },
@@ -103,6 +116,7 @@ export const SPECIES: readonly Species[] = [
     kg: [1, 9],
     lengthCm: 44,
     shape: "torpedo",
+    fight: "runner",
     body: "#5aa7d6",
     fin: "#2f78a8",
   },
@@ -114,6 +128,7 @@ export const SPECIES: readonly Species[] = [
     kg: [0.8, 6],
     lengthCm: 34,
     shape: "round",
+    fight: "steady",
     body: "#e0584f",
     fin: "#b03a33",
   },
@@ -125,6 +140,7 @@ export const SPECIES: readonly Species[] = [
     kg: [5, 45],
     lengthCm: 41,
     shape: "torpedo",
+    fight: "runner",
     body: "#2f5fa8",
     fin: "#1d3f78",
   },
@@ -136,6 +152,7 @@ export const SPECIES: readonly Species[] = [
     kg: [3, 35],
     lengthCm: 30,
     shape: "flat",
+    fight: "glider",
     body: "#8f7fb8",
     fin: "#64558f",
   },
@@ -147,6 +164,7 @@ export const SPECIES: readonly Species[] = [
     kg: [20, 120],
     lengthCm: 52,
     shape: "sword",
+    fight: "runner",
     body: "#3b4f8c",
     fin: "#243063",
   },
@@ -292,7 +310,8 @@ export type Phase =
   | "flying"
   | "waiting"
   | "nibbling"
-  | "biting";
+  | "biting"
+  | "fighting";
 
 export type FishingEvent =
   | { type: "fizzle" }
@@ -301,6 +320,9 @@ export type FishingEvent =
   | { type: "bite" }
   | { type: "escaped" }
   | { type: "retrieved" }
+  | { type: "hooked"; fish: Catch }
+  | { type: "mood"; mood: FightMood }
+  | { type: "lost"; reason: "snap" | "run" | "shed" | "cancel" }
   | { type: "caught"; fish: Catch };
 
 export interface FishingView {
@@ -315,6 +337,8 @@ export interface FishingView {
   nibbleAges: number[];
   /** 0..1 of the hook window used up, while a fish is on. */
   hurry: number;
+  /** The tug of war, once the fish is hooked. */
+  fight: FightView | undefined;
 }
 
 interface Round {
@@ -354,6 +378,9 @@ export class Angler {
   private zone: Zone = "open";
   private round: Round | undefined;
   private fired = 0;
+  private fight: Fight | undefined;
+  private hooked: Catch | undefined;
+  private lastTick = 0;
   private readonly rng: () => number;
   private readonly emit: (event: FishingEvent) => void;
 
@@ -406,19 +433,34 @@ export class Angler {
    * The pull. Before a bite it just reels the line in; during the hook window it
    * lands the fish; after the window the fish is already gone.
    */
-  pull(now: number) {
+  pull(now: number, distance = 20) {
     if (this.phase === "charging") {
       this.phase = "idle";
       return;
     }
     if (this.phase === "idle") return;
+    // The button is held to reel once the fish is on.
+    if (this.phase === "fighting") {
+      this.fight?.reel(true);
+      return;
+    }
     if (this.phase === "biting" && this.round?.biteAt !== undefined) {
       if (now - this.round.biteAt <= HOOK_WINDOW_MS) {
-        this.reset();
-        this.emit({
-          type: "caught",
-          fish: rollFish(this.zone, this.rng, this.sweet),
+        const fish = rollFish(this.zone, this.rng, this.sweet);
+        const species = speciesById(fish.species);
+        const [low, high] = species?.kg ?? [0, 1];
+        this.hooked = fish;
+        this.fight = new Fight({
+          style: species?.fight ?? "steady",
+          weight: high > low ? (fish.kg - low) / (high - low) : 0,
+          distance,
+          maxLine: MAX_LINE,
+          rng: this.rng,
         });
+        this.lastTick = now;
+        this.round = undefined;
+        this.phase = "fighting";
+        this.emit({ type: "hooked", fish });
         return;
       }
     }
@@ -426,12 +468,19 @@ export class Angler {
     this.emit({ type: "retrieved" });
   }
 
+  /** The player lets go of the button: the fish takes line, the tension falls. */
+  letGo() {
+    if (this.phase === "fighting") this.fight?.reel(false);
+  }
+
   /** Line in at once, e.g. the boat drifted too far or the player left. */
   cancel() {
     if (this.phase === "idle") return;
     const wasFishing = this.fishing;
+    const hadFish = this.phase === "fighting";
     this.reset();
-    if (wasFishing) this.emit({ type: "retrieved" });
+    if (hadFish) this.emit({ type: "lost", reason: "cancel" });
+    else if (wasFishing) this.emit({ type: "retrieved" });
   }
 
   private reset() {
@@ -439,10 +488,44 @@ export class Angler {
     this.landing = undefined;
     this.round = undefined;
     this.fired = 0;
+    this.fight = undefined;
+    this.hooked = undefined;
   }
 
   /** Advances time: nibbles, the bite and the fish getting away. */
   update(now: number) {
+    if (this.phase === "fighting" && this.fight) {
+      // A hidden tab can skip a long time: never advance more than a moment at once.
+      const seconds = Math.min(0.1, Math.max(0, (now - this.lastTick) / 1000));
+      this.lastTick = now;
+      for (const event of this.fight.update(seconds)) {
+        if (event.type === "surge" || event.type === "tired")
+          this.emit({
+            type: "mood",
+            mood: event.type === "surge" ? "surge" : "tired",
+          });
+        else if (event.type === "calm" || event.type === "recovered")
+          this.emit({ type: "mood", mood: "strong" });
+        else if (event.type === "landed") {
+          const fish = this.hooked;
+          this.reset();
+          if (fish) this.emit({ type: "caught", fish });
+          return;
+        } else if (
+          event.type === "snap" ||
+          event.type === "escaped" ||
+          event.type === "shed"
+        ) {
+          this.reset();
+          this.emit({
+            type: "lost",
+            reason: event.type === "escaped" ? "run" : event.type,
+          });
+          return;
+        }
+      }
+      return;
+    }
     if (this.phase === "flying") {
       if (now - this.flightStart < FLIGHT_MS) return;
       this.phase = "waiting";
@@ -502,6 +585,7 @@ export class Angler {
         this.phase === "biting" && bite !== undefined
           ? Math.min(1, (now - bite) / HOOK_WINDOW_MS)
           : 0,
+      fight: this.fight?.view(),
     };
   }
 }

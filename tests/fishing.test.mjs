@@ -198,12 +198,95 @@ test("angler: nibbles, then a bite, then exactly one second to pull", () => {
     angler.view(biteAt + 500).hurry > 0.3 &&
       angler.view(biteAt + 500).hurry < 0.7,
   );
-  // Pulling inside the window lands a fish.
-  angler.pull(biteAt + HOOK_WINDOW_MS - 20);
-  const caught = events.find((e) => e.type === "caught");
-  assert.ok(caught, "caught");
-  assert.ok(speciesById(caught.fish.species));
-  assert.equal(angler.busy, false);
+  // Pulling inside the window hooks the fish: the tug of war begins, nothing is caught yet.
+  angler.pull(biteAt + HOOK_WINDOW_MS - 20, 22);
+  const hooked = events.find((e) => e.type === "hooked");
+  assert.ok(hooked, "hooked");
+  assert.ok(speciesById(hooked.fish.species));
+  assert.equal(angler.view(biteAt + 1000).phase, "fighting");
+  assert.ok(!types().includes("caught"), "not landed yet");
+  assert.equal(angler.busy, true);
+  assert.equal(angler.fishing, true, "the boat stays put while the fish is on");
+  assert.equal(angler.view(biteAt + 1000).fight.distance, 22);
+});
+
+/** Hooks a fish on the first bite of a sweet cast; returns the time of the hook. */
+function hook(h, distance = 22) {
+  const landed = cast(h.angler);
+  const start = landed + FLIGHT_MS;
+  const biteAt = start + 4550;
+  for (let t = start; t <= biteAt + 60; t += 16) h.angler.update(t);
+  h.angler.pull(biteAt + 100, distance);
+  return biteAt + 100;
+}
+/** Plays the tug of war frame by frame with a policy; returns the time it ended. */
+function fightOn(h, from, policy) {
+  let t = from;
+  while (h.angler.view(t).phase === "fighting" && t < from + 90000) {
+    t += 16;
+    h.angler.update(t);
+    const fight = h.angler.view(t).fight;
+    if (!fight) break;
+    if (policy(fight)) h.angler.pull(t);
+    else h.angler.letGo();
+  }
+  return t;
+}
+const careful = (v) =>
+  v.mood === "tired" || (v.mood === "strong" && v.tension < 0.5);
+
+test("angler: a hooked fish is landed by a careful player and the catch arrives only then", () => {
+  const h = harness(() => 0.5);
+  const start = hook(h);
+  const end = fightOn(h, start, careful);
+  assert.ok(h.types().includes("caught"), `caught (${h.types().join(",")})`);
+  assert.ok(h.types().includes("mood"), "the mood changes were reported");
+  assert.equal(h.angler.busy, false);
+  assert.ok(end - start > 3000, "a fight takes more than a few seconds");
+  const caught = h.events.find((e) => e.type === "caught");
+  assert.deepEqual(
+    caught.fish,
+    h.events.find((e) => e.type === "hooked").fish,
+    "the fish hooked is the fish landed",
+  );
+});
+
+test("angler: reeling against a surge loses the fish; so does never reeling", () => {
+  let h = harness(() => 0.5);
+  let start = hook(h);
+  fightOn(h, start, () => true);
+  assert.deepEqual(h.types().slice(-1), ["lost"]);
+  assert.equal(h.events.at(-1).reason, "snap");
+  assert.ok(!h.types().includes("caught"));
+  assert.equal(h.angler.busy, false);
+  h = harness(() => 0.5);
+  start = hook(h);
+  fightOn(h, start, () => false);
+  assert.deepEqual(h.types().slice(-1), ["lost"]);
+  assert.ok(
+    ["run", "shed"].includes(h.events.at(-1).reason),
+    h.events.at(-1).reason,
+  );
+});
+
+test("angler: leaving mid-fight (the boat drifted, a hidden tab) loses the fish once, and a long gap is capped", () => {
+  const h = harness(() => 0.5);
+  const start = hook(h);
+  h.angler.cancel();
+  assert.deepEqual(h.types().slice(-1), ["lost"]);
+  assert.equal(h.events.at(-1).reason, "cancel");
+  h.angler.cancel();
+  assert.equal(h.types().filter((t) => t === "lost").length, 1, "only once");
+  // A frame after a very long gap advances the fight by at most a moment.
+  const g = harness(() => 0.5);
+  const from = hook(g);
+  g.angler.update(from + 600000);
+  assert.equal(
+    g.angler.view(from + 600000).phase,
+    "fighting",
+    "one frame cannot end a fight",
+  );
+  assert.ok(start > 0);
 });
 
 test("angler: a late pull catches nothing, an early pull reels in, waiting too long loses the fish", () => {

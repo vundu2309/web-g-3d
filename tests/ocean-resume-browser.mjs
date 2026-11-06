@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { launchBrowser } from "./browser.mjs";
+import { fightBot } from "./support/fight-bot.mjs";
 
 // Dropping mid-game reconnects by itself without moving the boat, a revoked session
 // is not retried, and leaving then coming back resumes the last position and the
@@ -220,6 +221,7 @@ try {
     );
   for (let attempt = 0; attempt < 5; attempt++) {
     await pull();
+    await fightBot(visit);
     const landed = await visit
       .getByText("Cá lên thuyền", { exact: false })
       .waitFor({ timeout: 10000 })
