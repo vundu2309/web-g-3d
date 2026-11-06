@@ -61,7 +61,13 @@ export function startPwa(root: HTMLElement): () => void {
     )) {
       button.hidden = standalone();
       const text = prompt ? "Cài game" : "Cài lên điện thoại";
-      if (button.textContent !== text) button.textContent = text;
+      // An icon button keeps its picture and only changes what it is called.
+      if (button.hasAttribute("data-pwa-label")) {
+        if (button.getAttribute("aria-label") !== text) {
+          button.setAttribute("aria-label", text);
+          button.title = text;
+        }
+      } else if (button.textContent !== text) button.textContent = text;
     }
   }
   const observer = new MutationObserver(refreshButtons);
@@ -113,10 +119,16 @@ export function startPwa(root: HTMLElement): () => void {
     },
     { signal: abort.signal },
   );
+  // Upgrade silently from the idle home screen only: never during a game view,
+  // an open dialog or while typing in a form.
+  const idle = () =>
+    !new URLSearchParams(location.search).has("view") &&
+    !document.querySelector("dialog[open]") &&
+    !(document.activeElement instanceof HTMLInputElement);
   const stopShell = registerShell((waiting, apply) => {
     applyUpdate = apply;
     if (!disposed) update.hidden = !waiting;
-  });
+  }, idle);
   refreshButtons();
   return () => {
     disposed = true;

@@ -120,50 +120,80 @@
   align-items: flex-end;
   gap: 15px;
 }
-.ocean-steering {
+.ocean-stick {
   pointer-events: auto;
-  display: grid;
-  grid-template-columns: repeat(3, 44px);
-  grid-template-rows: repeat(3, 44px);
-  gap: 2px;
-  padding: 5px;
+  position: relative;
+  flex: none;
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
-  background: #dceeffa8;
-  border: 2px solid #ffffffac;
+  background: #ffffffa8;
+  border: 2px solid #ffffffd0;
   touch-action: none;
   user-select: none;
+  -webkit-user-select: none;
 }
-.ocean-steering button {
-  border: 0 !important;
-  box-shadow: none !important;
-  background: #ffffffdf;
-  border-radius: 15px;
-  font-size: 21px;
+.ocean-stick.is-active {
+  background: #ffffffd0;
 }
-.ocean-steering [data-steer="up"] {
-  grid-column: 2;
+.ocean-stick-mark {
+  position: absolute;
+  font-size: 13px;
+  font-weight: 700;
+  color: #153b80;
+  opacity: 0.6;
+  pointer-events: none;
 }
-.ocean-steering [data-steer="left"] {
-  grid-column: 1;
-  grid-row: 2;
+.ocean-stick-mark[data-dir="up"] {
+  left: 50%;
+  top: 6px;
+  transform: translateX(-50%);
 }
-.ocean-steering span {
-  grid-column: 2;
-  grid-row: 2;
+.ocean-stick-mark[data-dir="down"] {
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+}
+.ocean-stick-mark[data-dir="left"] {
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.ocean-stick-mark[data-dir="right"] {
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.ocean-stick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
   display: grid;
   place-items: center;
-  font-size: 22px;
-}
-.ocean-steering [data-steer="right"] {
-  grid-column: 3;
-  grid-row: 2;
-}
-.ocean-steering [data-steer="down"] {
-  grid-column: 2;
-  grid-row: 3;
-}
-.ocean-steering button:active {
+  border-radius: 50%;
   background: #ffd35a;
+  border: 3px solid #153b80;
+  box-shadow: 0 3px 0 #153b80;
+  font-size: 24px;
+  pointer-events: none;
+  transition: transform 90ms ease-out;
+}
+.ocean-stick.is-active .ocean-stick-knob {
+  transition: none;
+}
+@media (max-height: 430px) {
+  .ocean-stick {
+    width: 136px;
+    height: 136px;
+  }
+  .ocean-stick-knob {
+    width: 58px;
+    height: 58px;
+    margin: -29px 0 0 -29px;
+  }
 }
 .ocean-actions {
   display: flex;
@@ -260,10 +290,6 @@
     padding: 8px;
     font-size: 12px !important;
   }
-  .ocean-steering {
-    grid-template-columns: repeat(3, 44px);
-    grid-template-rows: repeat(3, 44px);
-  }
   .ocean-actions {
     flex-direction: column;
   }
@@ -284,4 +310,770 @@
   .ocean-screen * {
     transition: none !important;
   }
+}
+
+/* The keyboard hint only helps on devices with a keyboard; on touch it covers the boat. */
+@media (hover: none) {
+  .ocean-hint {
+    display: none;
+  }
+}
+.ocean-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  touch-action: none;
+}
+
+/* Loading card: steps while the engine downloads and the server wakes. */
+.ocean-hud {
+  z-index: 2;
+}
+.ocean-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: 72px 16px 16px;
+  /* A full screen of its own: nothing of the map shows until it is all loaded. */
+  background: var(--flat-sea);
+  transition: opacity 0.4s ease;
+}
+.ocean-loading[hidden] {
+  display: none;
+}
+.ocean-loading.is-done {
+  opacity: 0;
+  pointer-events: none;
+}
+.ocean-loading-card {
+  box-sizing: border-box;
+  width: min(360px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 16px 20px;
+  border: 3px solid #153b80;
+  border-radius: 22px;
+  background: #f6fbfff2;
+  color: #153b80;
+  text-align: center;
+  box-shadow: 0 4px 0 #153b80;
+}
+.ocean-loading-boat {
+  display: block;
+  margin: 0 auto;
+  animation: ocean-bob 1.8s ease-in-out infinite;
+}
+.ocean-loading-bar {
+  box-sizing: border-box;
+  height: 14px;
+  margin: 12px auto 0;
+  width: min(240px, 100%);
+  border: 3px solid #153b80;
+  border-radius: 999px;
+  background: #fff;
+  overflow: hidden;
+}
+.ocean-loading-bar i {
+  display: block;
+  height: 100%;
+  width: calc(var(--progress, 0) * 100%);
+  background: linear-gradient(90deg, #7cc4ee, #ffd35a);
+  transition: width 0.4s ease;
+}
+.is-failed .ocean-loading-bar {
+  display: none;
+}
+.is-failed .ocean-loading-boat {
+  animation: none;
+}
+@keyframes ocean-bob {
+  50% {
+    transform: translateY(-6px) rotate(4deg);
+  }
+}
+.ocean-loading-card h2 {
+  margin: 6px 0 8px;
+  font:
+    800 22px "Baloo 2",
+    sans-serif;
+}
+.ocean-loading-steps {
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  width: fit-content;
+  text-align: left;
+  font-size: 14px;
+}
+.ocean-loading-steps li {
+  opacity: 0.45;
+}
+.ocean-loading-steps li::before {
+  content: "○ ";
+}
+.ocean-loading-steps .is-active {
+  opacity: 1;
+  font-weight: 700;
+}
+.ocean-loading-steps .is-active::before {
+  content: "● ";
+  color: #2a8fd0;
+  animation: ocean-pulse 1s ease-in-out infinite;
+}
+@keyframes ocean-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+.ocean-loading-steps .is-failed {
+  opacity: 1;
+  font-weight: 700;
+}
+.ocean-loading-steps .is-failed::before {
+  content: "✕ ";
+  color: #c0392b;
+}
+/* While loading, only the way back is on screen: no stick, no buttons, no counters. */
+.ocean-loading:not([hidden], .is-done)
+  ~ .ocean-hud
+  :is(.ocean-status, .ocean-bottom, .ocean-channel, [data-ocean="crew"]) {
+  visibility: hidden;
+}
+.ocean-loading:not([hidden], .is-done) ~ .ocean-hud [data-ocean="back"] {
+  position: relative;
+  z-index: 4;
+}
+.ocean-loading-steps .is-done {
+  opacity: 1;
+}
+.ocean-loading-steps .is-done::before {
+  content: "✓ ";
+  color: #1f8a4c;
+  font-weight: 700;
+}
+.ocean-loading-note {
+  min-height: 1.2em;
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.ocean-loading-actions {
+  margin-top: 10px;
+}
+.ocean-loading-actions .button {
+  min-height: 44px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ocean-loading-steps .is-active::before {
+    animation: none;
+  }
+  .ocean-loading-boat {
+    animation: none;
+  }
+  .ocean-loading {
+    transition: none;
+  }
+}
+@media (max-height: 430px) {
+  .ocean-loading {
+    padding-top: 60px;
+  }
+  .ocean-loading-card {
+    padding: 10px 16px;
+  }
+  .ocean-loading-boat {
+    display: none;
+  }
+}
+
+/* A player who is off-screen: arrow, name and distance on a ring inside the view. */
+.ocean-boat-label[data-edge] {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: 2px solid #153b80;
+  box-shadow: 0 2px 0 #153b80;
+  background: #fffffff2;
+  z-index: 1;
+}
+.ocean-boat-label[data-edge]::before {
+  content: "▲";
+  display: inline-block;
+  color: #e0654f;
+  transform: rotate(var(--turn, 0rad));
+}
+.ocean-boat-label[data-edge]::after {
+  content: attr(data-distance);
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+/* Fishing: signals are motion, not text. */
+.fish-power {
+  position: absolute;
+  z-index: 6;
+  pointer-events: none;
+  box-sizing: border-box;
+  border: 3px solid #153b80;
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+}
+.fish-power-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, #7cc4ee, #ffd35a);
+}
+.fish-power.is-sweet .fish-power-fill {
+  background: #2fb86a;
+}
+.fish-power-sweet {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: #2fb86a55;
+  border-left: 2px solid #153b80;
+  border-right: 2px solid #153b80;
+  z-index: 1;
+}
+.fish-badge {
+  position: absolute;
+  z-index: 6;
+  pointer-events: none;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  border: 3.5px solid #153b80;
+  background: #ffd35a;
+  box-shadow: 0 3px 0 #153b80;
+  color: #153b80;
+  font:
+    900 30px/40px "Baloo 2",
+    system-ui,
+    sans-serif;
+  text-align: center;
+}
+.fish-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgb(255 75 58 / 0) 52%,
+    rgb(255 75 58 / 0.55) 100%
+  );
+}
+.fish-ring {
+  position: absolute;
+  z-index: 7;
+  pointer-events: none;
+  overflow: visible;
+}
+.fish-ring rect {
+  stroke-width: 6;
+}
+.ocean-fish {
+  transform: scale(var(--pulse, 1));
+}
+.ocean-fish.is-biting {
+  background: #e97760;
+  color: #fff;
+}
+.ocean-fish.is-shake {
+  animation: fish-shake 0.35s;
+}
+@keyframes fish-shake {
+  20% {
+    transform: translateX(-6px);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+  80% {
+    transform: translateX(-3px);
+  }
+}
+.ocean-dialog.is-catch,
+.ocean-dialog.is-stock {
+  max-width: min(640px, calc(100vw - 32px));
+}
+.fish-card {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  animation: fish-pop 0.35s ease-out;
+}
+@keyframes fish-pop {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+}
+.fish-card-art {
+  flex: none;
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  border: 3px solid #153b80;
+  border-radius: 18px;
+  background: linear-gradient(#bfe3ff, #7cc4ee);
+}
+.fish-card-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.fish-card-name {
+  font:
+    800 28px "Baloo 2",
+    sans-serif;
+  line-height: 1.1;
+}
+.fish-card-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.fish-tag {
+  display: inline-block;
+  padding: 3px 12px;
+  border: 2px solid #153b80;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
+  background: #fff;
+}
+.fish-tag.rarity-2 {
+  background: #ffd35a;
+}
+.fish-tag.rarity-3 {
+  background: #e97760;
+  color: #fff;
+}
+.fish-tag.is-record {
+  background: #2fb86a;
+  color: #fff;
+}
+.ocean-dialog.is-catch .button {
+  margin-top: 16px;
+}
+.fish-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 14px 12px;
+  margin: 8px 0 10px;
+  max-height: calc(100dvh - 230px);
+  overflow-y: auto;
+  padding: 10px 8px 4px 0;
+}
+.fish-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px 8px;
+  border: 3px solid #153b80;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 4px 0 #153b80;
+}
+.fish-cell-name {
+  font-size: 13px;
+  font-weight: 800;
+}
+.fish-count {
+  position: absolute;
+  right: -8px;
+  top: -10px;
+  min-width: 34px;
+  height: 28px;
+  padding: 0 8px;
+  border: 3px solid #153b80;
+  border-radius: 14px;
+  background: #ffd35a;
+  font:
+    900 15px/22px "Baloo 2",
+    sans-serif;
+  text-align: center;
+}
+.fish-release {
+  min-width: 64px;
+  min-height: 44px;
+  padding: 4px 14px;
+  border: 2px solid #153b80;
+  border-radius: 14px;
+  background: #fff;
+  color: #153b80;
+  font: inherit;
+  font-weight: 800;
+}
+.fish-release:active {
+  background: #dceeff;
+}
+.fish-empty {
+  margin: 20px 0;
+}
+.fish-total {
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fish-card,
+  .ocean-fish.is-shake {
+    animation: none;
+  }
+}
+
+/* The game's front door (src/app/harbor.ts): a still sea, a title, one big button. */
+.hub {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  color: #153b80;
+  background: var(--flat-sea);
+  padding: max(16px, var(--safe-top)) max(22px, var(--safe-right))
+    max(20px, var(--safe-bottom)) max(22px, var(--safe-left));
+}
+.hub-logo {
+  position: absolute;
+  left: max(24px, var(--safe-left));
+  top: max(14px, var(--safe-top));
+  margin: 0;
+  line-height: 0.92;
+}
+.hub-logo span {
+  display: block;
+  font:
+    800 54px/0.95 "Baloo 2",
+    system-ui,
+    sans-serif;
+  color: #fff;
+  -webkit-text-stroke: 9px #153b80;
+  paint-order: stroke fill;
+  letter-spacing: 0.5px;
+  text-shadow: 0 5px 0 #153b80;
+}
+.hub-logo small {
+  display: inline-block;
+  margin: 8px 0 0 6px;
+  padding: 2px 16px;
+  border: 3px solid #153b80;
+  border-radius: 999px;
+  background: #ffd35a;
+  box-shadow: 0 3px 0 #153b80;
+  font:
+    800 17px "Baloo 2",
+    system-ui,
+    sans-serif;
+  transform: rotate(-2deg);
+}
+.hub-tools {
+  position: absolute;
+  right: max(22px, var(--safe-right));
+  top: max(14px, var(--safe-top));
+  display: flex;
+  gap: 12px;
+}
+.hub-round {
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 3px solid #153b80;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 4px 0 #153b80;
+  cursor: pointer;
+}
+/* display on the round button would otherwise win over the hidden attribute. */
+.hub-round[hidden] {
+  display: none;
+}
+.hub-round svg {
+  width: 24px;
+  height: 24px;
+}
+.hub-round:active,
+.hub-cta:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #153b80;
+}
+.hub-card {
+  position: absolute;
+  left: max(22px, var(--safe-left));
+  bottom: max(20px, var(--safe-bottom));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100% - 300px);
+  padding: 10px 16px 10px 12px;
+  border: 3px solid #153b80;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 5px 0 #153b80;
+}
+.hub-avatar {
+  flex: none;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #153b80;
+  border-radius: 50%;
+  background: linear-gradient(#bfe3ff, #7cc4ee);
+}
+.hub-who {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.hub-who strong {
+  font:
+    800 18px/1.15 "Baloo 2",
+    system-ui,
+    sans-serif;
+}
+.hub-who span {
+  font-size: 13px;
+  font-weight: 700;
+  color: #385b8d;
+}
+.hub-out {
+  margin-left: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  color: #385b8d;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.hub-cta {
+  position: absolute;
+  right: max(22px, var(--safe-right));
+  bottom: max(20px, var(--safe-bottom));
+  min-width: 230px;
+  min-height: 78px;
+  padding: 10px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 3px solid #153b80;
+  border-radius: 26px;
+  background: #ffd35a;
+  color: #153b80;
+  box-shadow: 0 7px 0 #153b80;
+  cursor: pointer;
+  text-align: left;
+}
+.hub-cta:disabled {
+  opacity: 0.75;
+}
+.hub-anchor {
+  font-size: 34px;
+  line-height: 1;
+}
+.hub-cta-text {
+  display: grid;
+}
+.hub-cta-text strong {
+  font:
+    800 30px/1.05 "Baloo 2",
+    system-ui,
+    sans-serif;
+}
+.hub-cta-text small {
+  font-size: 12px;
+  font-weight: 700;
+  color: #385b8d;
+}
+.hub-error {
+  position: absolute;
+  left: 50%;
+  bottom: 118px;
+  transform: translateX(-50%);
+  max-width: min(480px, calc(100% - 40px));
+  margin: 0;
+  padding: 8px 14px;
+  border: 3px solid #153b80;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 4px 0 #153b80;
+  text-align: center;
+}
+@media (max-height: 430px) {
+  .hub-logo span {
+    font-size: 44px;
+  }
+  .hub-logo small {
+    font-size: 15px;
+  }
+  .hub-cta {
+    min-width: 190px;
+    min-height: 70px;
+  }
+  .hub-cta-text strong {
+    font-size: 26px;
+  }
+  .hub-card {
+    max-width: calc(100% - 250px);
+  }
+  .hub-who strong {
+    font-size: 16px;
+  }
+}
+@media (orientation: portrait) {
+  .hub {
+    background-position: 50% 82%;
+  }
+  .hub-logo span {
+    font-size: 56px;
+  }
+  .hub-card {
+    left: 20px;
+    right: 20px;
+    bottom: 124px;
+    max-width: none;
+  }
+  .hub-cta {
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    min-width: 0;
+  }
+  .hub-error {
+    bottom: 230px;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hub-cta:not(:disabled) .hub-anchor {
+    animation: ocean-bob 2.2s ease-in-out infinite;
+  }
+}
+
+/* The page's decorative paper cards belong to the old board-game hub. */
+body:has(.hub) .paper-card {
+  display: none;
+}
+
+/*
+ * The picture behind the hub, the sign-in and the loading screen: flat sky and sea in the
+ * app's own style. It is deliberately not the 3D map; the map shows only once it is loaded.
+ */
+:root {
+  --flat-sea: linear-gradient(#4b3a8f, #e0597a 45%, #ffb35a 78%, #ffe29a);
+}
+.hub-art {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hub-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.hub-art .wave,
+.hub-art .boat,
+.hub-art .sun-glow,
+.hub-art .birds {
+  transform-box: fill-box;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hub-art .wave {
+    animation: hub-drift 14s linear infinite;
+  }
+  .hub-art .w2 {
+    animation-duration: 10s;
+    animation-direction: reverse;
+  }
+  .hub-art .w3 {
+    animation-duration: 12s;
+  }
+  .hub-art .w4 {
+    animation-duration: 9s;
+    animation-direction: reverse;
+  }
+  .hub-art .boat {
+    transform-origin: 50% 80%;
+    animation: hub-bob 3.2s ease-in-out infinite;
+  }
+  .hub-art .sun-glow {
+    transform-origin: 50% 50%;
+    animation: hub-glow 4s ease-in-out infinite;
+  }
+  .hub-art .birds {
+    animation: hub-fly 9s ease-in-out infinite alternate;
+  }
+}
+@keyframes hub-drift {
+  to {
+    transform: translateX(calc(var(--period) * -1));
+  }
+}
+@keyframes hub-bob {
+  50% {
+    transform: translateY(-7px) rotate(2deg);
+  }
+}
+@keyframes hub-glow {
+  50% {
+    transform: scale(1.08);
+    opacity: 0.4;
+  }
+}
+@keyframes hub-fly {
+  to {
+    transform: translate(26px, -8px);
+  }
+}
+
+/* The picture sits behind the loading card, never over it. */
+.ocean-loading .hub-art {
+  z-index: 0;
+}
+.ocean-loading-card {
+  position: relative;
+  z-index: 1;
+}
+
+/* A game, not a page: nothing on the hub, the loading screen or the sea can be selected,
+   dragged or long-pressed into a text menu. Typing fields stay selectable. */
+.hub,
+.ocean-screen,
+.ocean-loading,
+dialog.account-screen,
+.ocean-dialog {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+dialog.account-screen :is(input, textarea) {
+  -webkit-user-select: text;
+  user-select: text;
 }

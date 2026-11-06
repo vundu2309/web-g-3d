@@ -47,6 +47,23 @@ export async function registerPlayer(
   if (!data.session) return null;
   return identity(data.user)!;
 }
+/** Sends the sign-up confirmation email again (only meaningful while confirmation is required). */
+export async function resendConfirmation(email: string) {
+  if (!useSupabase)
+    throw new HubError("Gửi lại email chỉ có trên hệ thống tài khoản mới.");
+  const { error } = await (
+    await client()
+  ).auth.resend({
+    type: "signup",
+    email: email.trim(),
+    options: {
+      emailRedirectTo:
+        import.meta.env.VITE_AUTH_REDIRECT_URL ||
+        location.origin + location.pathname,
+    },
+  });
+  if (error) throw error;
+}
 export async function loginPlayer(
   email: string,
   password: string,

@@ -19,7 +19,8 @@ self.addEventListener("install", (event) => {
         await caches.delete(CACHE);
         throw error;
       }
-      // No skipWaiting: active games keep their current version until all tabs close.
+      // A complete shell takes over immediately. Pages decide when it is safe to reload.
+      await self.skipWaiting();
     })(),
   );
 });
@@ -54,20 +55,9 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-// Apply only after an explicit user confirmation, with no other scoped windows.
+// Older pages may still ask to apply a waiting worker; accept for compatibility.
 self.addEventListener("message", (event) => {
   if (event.data?.type !== "APPLY_UPDATE" || !event.ports[0]) return;
-  event.waitUntil(
-    (async () => {
-      const clients = (
-        await self.clients.matchAll({
-          type: "window",
-          includeUncontrolled: true,
-        })
-      ).filter((client) => client.url.startsWith(ROOT));
-      const ok = clients.length === 1 && clients[0].id === event.source?.id;
-      event.ports[0].postMessage({ ok });
-      if (ok) await self.skipWaiting();
-    })(),
-  );
+  event.ports[0].postMessage({ ok: true });
+  event.waitUntil(self.skipWaiting());
 });

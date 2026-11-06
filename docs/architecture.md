@@ -1,21 +1,21 @@
 # Architecture and context map
 
-The active experience is a shared online fishing sea: `src/main.ts` starts `src/app/harbor.ts`, which reuses the provider-selected account dialog/password recovery and starts `src/app/ocean.ts` after authentication. There are no rooms in this flow. `src/ocean` owns pure movement/validation and one Three.js scene. `src/platform/ocean.ts` selects Firebase leases or the Supabase-authenticated Socket.IO sea adapter. `server/ocean.mjs` owns an ephemeral single-instance sea with one boat per account and joined-only push snapshots. See [ocean contract](ocean.md).
+The active experience is a shared online fishing sea: `src/main.ts` starts `src/app/harbor.ts`, which reuses the provider-selected account dialog/password recovery and starts `src/app/ocean.ts` after authentication. There are no rooms in this flow. `src/ocean` owns the Babylon.js + Havok sea (scene, water, sky, procedural boats and islands, boat physics) next to pure helpers (`model.ts`, `waves.ts`, `stick.ts`, `render-scale.ts`). `src/platform/ocean.ts` selects Firebase leases or the Supabase-authenticated Socket.IO sea adapter. `server/ocean.mjs` owns an ephemeral single-instance sea with one boat per account and joined-only push snapshots. See [ocean contract](ocean.md).
 
 The preserved Monopoly hub is explicitly routed at `?view=monopoly-hub`; its local board preview stays at `?view=game`. The tables and room details below describe those preserved modules. No Monopoly source/resource has been replaced.
 
-| Layer | Ownership | Dependencies |
-| --- | --- | --- |
-| `src/main.ts` | CSS/font imports, app root, HMR cleanup | app |
-| `src/app/start.ts` | Screen state, forms, accessible UI, navigation, store ownership and subscriptions | hub contracts, UI, lazy platform adapters |
-| `src/ui/art.ts`, `src/style.css` | SVG artwork/icons and shared responsive theme | no app orchestration |
-| `src/hub/model.ts` | Room schema, validation, pure command transitions and start invariants | no Firebase or DOM |
-| `src/hub/store.ts` | Minimal room-storage contract | model types |
-| `src/app/account.ts` | Accessible native account dialog and cancellation | account service |
-| `src/platform/account.ts`, `firebase-client.ts` | Firebase app and email/password Auth | Firebase SDK, hub validation |
-| `src/platform/profile.ts`, `firestore-client.ts` | Lazy Firestore initialization, own profile transactions | account, Firestore SDK |
-| `src/platform/demo.ts` | Explicit same-browser preview, storage and notification | hub |
-| `src/platform/firebase.ts` | Authenticated player, bounded room directory, Firestore snapshots and transactions | hub, Firebase SDK |
+| Layer                                            | Ownership                                                                          | Dependencies                              |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------- | ----------------------------------------- |
+| `src/main.ts`                                    | CSS/font imports, app root, HMR cleanup                                            | app                                       |
+| `src/app/start.ts`                               | Screen state, forms, accessible UI, navigation, store ownership and subscriptions  | hub contracts, UI, lazy platform adapters |
+| `src/ui/art.ts`, `src/style.css`                 | SVG artwork/icons and shared responsive theme                                      | no app orchestration                      |
+| `src/hub/model.ts`                               | Room schema, validation, pure command transitions and start invariants             | no Firebase or DOM                        |
+| `src/hub/store.ts`                               | Minimal room-storage contract                                                      | model types                               |
+| `src/app/account.ts`                             | Accessible native account dialog and cancellation                                  | account service                           |
+| `src/platform/account.ts`, `firebase-client.ts`  | Firebase app and email/password Auth                                               | Firebase SDK, hub validation              |
+| `src/platform/profile.ts`, `firestore-client.ts` | Lazy Firestore initialization, own profile transactions                            | account, Firestore SDK                    |
+| `src/platform/demo.ts`                           | Explicit same-browser preview, storage and notification                            | hub                                       |
+| `src/platform/firebase.ts`                       | Authenticated player, bounded room directory, Firestore snapshots and transactions | hub, Firebase SDK                         |
 
 Keep the current boundaries proportional. Do not introduce an ECS, generic event bus, dependency injection framework, speculative server or 3D engine just to prepare for future features. Lint prevents hub/platform imports into app/main; ownership still needs review.
 
@@ -49,7 +49,6 @@ Before actual gameplay, design server-authoritative turns/economy and correspond
 
 `AGENTS.md` routes agents to [theme](design/theme.md), [workflow](workflow.md), [Firebase setup](firebase.md) and decisions. Authored docs record durable contracts; OpenWiki is a generated evidence index, maintained through its lifecycle after source is stable. Source and executed checks take precedence over old wiki claims.
 
-
 ## Auth and backend verification
 
 The emulator-only mode requires both Vite DEV and `VITE_FIREBASE_EMULATORS=true`; production builds cannot enable it. The test runner starts Auth and Firestore emulators plus a dedicated Vite server on owned loopback ports. `tests/auth-browser.mjs` uses two distinct browser contexts and actual Firebase SDK registration/login/logout/session restore, persisted player profiles, named room discovery and joins. It aborts production Firebase requests. `tests/rules.test.mjs` separately validates unauthorized access, profile isolation, immutable room title and bounded directory queries. No passing emulator result proves production rules were deployed.
@@ -75,7 +74,6 @@ The [PWA layer](pwa.md) registers a production-only, scope-local worker for stat
 ## Target infrastructure transition
 
 The user selected Vercel frontend/PWA, Render API and Supabase Auth/PostgreSQL. [Decision0006](decisions/0006-infrastructure-transition.md) records adapter boundaries, transaction/permission requirements, data/PWA-origin migration and staged cutover. This is not deployed: Pages/Firebase remain current production until the replacement is provisioned and verified.
-
 
 ## Supabase / Socket.IO runtime
 

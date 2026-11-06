@@ -27,6 +27,8 @@ export function pwaBuild() {
         .filter(
           (p) =>
             !p.endsWith("/sw.js") &&
+            // The sea is online-only, so its engine is never part of the offline shell.
+            !/\/assets\/babylon-[^/]*\.js$/.test(p) &&
             /\.(html|js|css|woff2?|png|svg|webmanifest)$/.test(p),
         )
         .sort();

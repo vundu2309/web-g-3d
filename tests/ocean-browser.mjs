@@ -36,7 +36,7 @@ async function player(name, email) {
     await page.getByRole("button", { name: "Tạo phòng", exact: true }).count(),
     0,
   );
-  await page.getByRole("button", { name: "Vào game", exact: true }).click();
+  await page.locator('[data-harbor="play"]').click();
   await page
     .getByRole("button", { name: "Chưa có tài khoản? Đăng ký" })
     .click();
@@ -113,14 +113,31 @@ try {
     { uid, x: after.x, z: after.z },
   );
   console.log("Ocean cross-player motion received");
-  await host.getByRole("button", { name: "Thả câu", exact: true }).click();
-  await host.getByRole("button", { name: "Kéo cá!", exact: true }).waitFor();
-  await host.getByRole("button", { name: "Kéo cá!", exact: true }).click();
-  await host.getByText("Đã kéo được cá!", { exact: false }).waitFor();
+  const rod = await host.locator('[data-ocean="fish"]').boundingBox();
+  await host.mouse.move(rod.x + rod.width / 2, rod.y + rod.height / 2);
+  await host.mouse.down();
+  await host.waitForTimeout(800);
+  await host.mouse.up();
+  // The pull window is 1 s, shorter than a Playwright click can take on a software-rendered
+  // scene, so press inside the page on the first frame the button reads "Giật!".
+  await host.waitForFunction(
+    () => {
+      const button = document.querySelector('[data-ocean="fish"]');
+      if (!button?.textContent?.includes("Giật!")) return false;
+      const init = { bubbles: true, pointerId: 7, isPrimary: true, button: 0 };
+      button.dispatchEvent(new PointerEvent("pointerdown", init));
+      button.dispatchEvent(new PointerEvent("pointerup", init));
+      return true;
+    },
+    undefined,
+    { polling: "raf", timeout: 30000 },
+  );
+  await host.getByText("Cá lên thuyền", { exact: false }).waitFor();
+  await host.getByRole("button", { name: "Cất vào kho", exact: true }).click();
   await host.getByRole("button", { name: "Kho cá 1" }).click();
   await host
     .getByRole("dialog")
-    .getByText("Bạn đã bắt 1 con cá", { exact: false })
+    .getByText("Trong kho: 1 con", { exact: false })
     .waitFor();
   await host.getByRole("button", { name: "Đóng", exact: true }).click();
   for (const [width, height] of [
@@ -141,7 +158,7 @@ try {
     for (const selector of [
       '[data-ocean="back"]',
       '[data-ocean="fish"]',
-      '[data-steer="up"]',
+      ".ocean-stick",
     ]) {
       const box = await host.locator(selector).boundingBox();
       assert.ok(
@@ -167,22 +184,21 @@ try {
   await duplicate.goto(`${base}/?view=ocean`);
   await duplicate.getByText("Đã vào biển chung.", { exact: false }).waitFor();
   await host
+    .locator("[data-loading-note]")
     .getByText("Tài khoản đã mở thuyền ở cửa sổ khác.", { exact: false })
     .waitFor();
-  assert.equal(
-    await host
-      .getByRole("button", { name: "Thả câu", exact: true })
-      .isDisabled(),
-    true,
-  );
+  assert.equal(await host.locator('[data-ocean="fish"]').isDisabled(), true);
   await host.getByRole("button", { name: "Về hub" }).click();
-  await host.getByRole("button", { name: "Vào game", exact: true }).waitFor();
+  await host.locator('[data-harbor="play"]').waitFor();
   await duplicate.getByRole("button", { name: "Về hub" }).click();
   await guest.getByText("1 thuyền", { exact: true }).waitFor();
   await guest.context().setOffline(true);
-  await guest.getByText("Đã mất mạng.", { exact: false }).waitFor();
+  await guest
+    .locator("[data-loading-note]")
+    .getByText("Đã mất mạng.", { exact: false })
+    .waitFor();
   await guest.getByRole("button", { name: "Về hub" }).click();
-  await guest.getByRole("button", { name: "Vào game", exact: true }).waitFor();
+  await guest.locator('[data-harbor="play"]').waitFor();
   assert.deepEqual(errors, []);
   console.log(
     "Shared ocean: two authenticated players, synced movement, fishing, mobile layouts, reload, duplicate lease, leave and offline passed",
