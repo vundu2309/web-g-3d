@@ -1,4 +1,4 @@
-import { fishSvg } from "../ocean/fish-art";
+import { fishThumb } from "./fish-thumb";
 import {
   Angler,
   CHARGE_MS,
@@ -458,7 +458,11 @@ export function createFishingUi(options: FishingUiOptions) {
       cell.className = "fish-cell";
       const art = document.createElement("div");
       art.className = "fish-cell-art";
-      art.innerHTML = fishSvg(species, 110);
+      const picture = document.createElement("img");
+      picture.src = fishThumb(species, 130);
+      picture.alt = "";
+      picture.draggable = false;
+      art.append(picture);
       const name = document.createElement("span");
       name.className = "fish-cell-name";
       name.textContent = species.name;

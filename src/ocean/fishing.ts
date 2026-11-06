@@ -1,3 +1,4 @@
+import type { CreatureKind } from "./creatures.ts";
 import { SEA_BOUND, islandCollisionRadius, islands } from "./model.ts";
 import {
   Fight,
@@ -14,15 +15,8 @@ import {
 
 export type Zone = "shore" | "open" | "deep";
 export type Rarity = 1 | 2 | 3;
-export type Shape =
-  | "slim"
-  | "round"
-  | "diamond"
-  | "puffer"
-  | "chunky"
-  | "torpedo"
-  | "flat"
-  | "sword";
+/** Which 3D model draws the animal (see ocean/creatures.ts). */
+export type Shape = CreatureKind;
 
 export interface Species {
   id: string;
@@ -167,6 +161,126 @@ export const SPECIES: readonly Species[] = [
     fight: "runner",
     body: "#3b4f8c",
     fin: "#243063",
+  },
+  {
+    id: "ca-nuc",
+    name: "Cá nục",
+    rarity: 1,
+    zones: { shore: 3, open: 3, deep: 0 },
+    kg: [0.1, 0.6],
+    lengthCm: 25,
+    shape: "slim",
+    fight: "jet",
+    body: "#7fb6c9",
+    fin: "#4f8aa3",
+  },
+  {
+    id: "cua-bien",
+    name: "Cua biển",
+    rarity: 1,
+    zones: { shore: 4, open: 0, deep: 0 },
+    kg: [0.2, 2],
+    lengthCm: 18,
+    shape: "crab",
+    fight: "glider",
+    body: "#d9583f",
+    fin: "#a63a28",
+  },
+  {
+    id: "sao-bien",
+    name: "Sao biển",
+    rarity: 1,
+    zones: { shore: 3, open: 0, deep: 0 },
+    kg: [0.05, 0.5],
+    lengthCm: 14,
+    shape: "starfish",
+    fight: "crawler",
+    body: "#f08a4b",
+    fin: "#c9632a",
+  },
+  {
+    id: "ca-he",
+    name: "Cá hề",
+    rarity: 2,
+    zones: { shore: 3, open: 1, deep: 0 },
+    kg: [0.03, 0.25],
+    lengthCm: 12,
+    shape: "round",
+    fight: "steady",
+    body: "#f2862e",
+    fin: "#e0701c",
+  },
+  {
+    id: "ca-bon",
+    name: "Cá bơn",
+    rarity: 2,
+    zones: { shore: 3, open: 2, deep: 0 },
+    kg: [0.5, 6],
+    lengthCm: 32,
+    shape: "flounder",
+    fight: "crawler",
+    body: "#b59a74",
+    fin: "#8c7552",
+  },
+  {
+    id: "ca-ngua",
+    name: "Cá ngựa",
+    rarity: 2,
+    zones: { shore: 2, open: 0, deep: 0 },
+    kg: [0.02, 0.12],
+    lengthCm: 12,
+    shape: "seahorse",
+    fight: "steady",
+    body: "#e8b64a",
+    fin: "#c78d24",
+  },
+  {
+    id: "muc-ong",
+    name: "Mực ống",
+    rarity: 2,
+    zones: { shore: 0, open: 3, deep: 2 },
+    kg: [0.3, 4],
+    lengthCm: 30,
+    shape: "squid",
+    fight: "jet",
+    body: "#d9a3b8",
+    fin: "#b57a94",
+  },
+  {
+    id: "bach-tuoc",
+    name: "Bạch tuộc",
+    rarity: 2,
+    zones: { shore: 2, open: 2, deep: 1 },
+    kg: [1, 10],
+    lengthCm: 36,
+    shape: "octopus",
+    fight: "heavy",
+    body: "#a86a8f",
+    fin: "#7f466a",
+  },
+  {
+    id: "tom-hum",
+    name: "Tôm hùm",
+    rarity: 3,
+    zones: { shore: 1, open: 2, deep: 1 },
+    kg: [0.5, 5],
+    lengthCm: 26,
+    shape: "lobster",
+    fight: "jet",
+    body: "#c9442f",
+    fin: "#8f2c1c",
+  },
+  {
+    id: "ca-map",
+    name: "Cá mập",
+    rarity: 3,
+    zones: { shore: 0, open: 1, deep: 3 },
+    kg: [60, 400],
+    lengthCm: 60,
+    shape: "shark",
+    fight: "heavy",
+    body: "#7b8a99",
+    fin: "#55626f",
   },
 ];
 

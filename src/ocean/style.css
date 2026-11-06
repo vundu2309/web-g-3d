@@ -1203,3 +1203,10 @@ dialog.account-screen :is(input, textarea) {
     animation: none;
   }
 }
+.fish-cell-art img {
+  display: block;
+  width: 100%;
+  max-width: 130px;
+  height: auto;
+  -webkit-user-drag: none;
+}
