@@ -9,7 +9,13 @@ import {
   createBoatPhysics,
   enableSeaPhysics,
 } from "../src/ocean/boat-physics.ts";
-import { waveHeight, glslWaveHeight } from "../src/ocean/waves.ts";
+import {
+  WAVES,
+  MAX_WAVE_HEIGHT,
+  glslWaveHeight,
+  waveGradient,
+  waveHeight,
+} from "../src/ocean/waves.ts";
 
 // Real Havok, headless: no canvas. Each case builds a fresh world and steps it a
 // fixed 1/60 s at a time, so every run with the same inputs is identical.
@@ -55,11 +61,45 @@ const deg = (r) => (r * 180) / Math.PI;
 test("the shader wave function is generated from the same waves as the CPU one", () => {
   const glsl = glslWaveHeight();
   assert.match(glsl, /float waveHeight\(vec2 p, float t\)/);
-  assert.equal((glsl.match(/sin\(/g) ?? []).length, 5);
+  assert.match(glsl, /vec2 waveSlope\(vec2 p, float t, float dist\)/);
+  // One sin per wave in the height and one per wave in the slope.
+  assert.equal((glsl.match(/sin\(/g) ?? []).length, 2 * WAVES.length);
   // Bounded by the summed amplitudes, and it really moves in time.
   for (let i = 0; i < 200; i++)
     assert.ok(Math.abs(waveHeight(i * 3.1, i * 1.7, i * 0.37)) <= 1.2);
   assert.notEqual(waveHeight(5, 5, 0), waveHeight(5, 5, 1.3));
+});
+
+test("the sea has sharp crests and broad troughs, a zero mean, and an exact slope", () => {
+  let max = -Infinity;
+  let min = Infinity;
+  let sum = 0;
+  const n = 4000;
+  for (let i = 0; i < n; i++) {
+    const h = waveHeight((i * 7.31) % 900, (i * 3.77) % 900, 0);
+    max = Math.max(max, h);
+    min = Math.min(min, h);
+    sum += h;
+    assert.ok(Math.abs(h) <= MAX_WAVE_HEIGHT + 1e-9);
+  }
+  assert.ok(Math.abs(sum / n) < 0.05, `mean ${sum / n}`);
+  // Crests rise higher than the troughs fall (a plain sine sum is symmetric).
+  assert.ok(max > -min, `crest ${max} trough ${min}`);
+  // The analytic slope matches a central difference.
+  const e = 1e-4;
+  for (let i = 0; i < 50; i++) {
+    const x = i * 13.7;
+    const z = i * 5.3;
+    const t = i * 0.41;
+    const g = waveGradient(x, z, t);
+    const gx = (waveHeight(x + e, z, t) - waveHeight(x - e, z, t)) / (2 * e);
+    const gz = (waveHeight(x, z + e, t) - waveHeight(x, z - e, t)) / (2 * e);
+    assert.ok(
+      Math.abs(g.x - gx) < 1e-4 && Math.abs(g.z - gz) < 1e-4,
+      `slope at ${i}`,
+    );
+  }
+  assert.ok(WAVES.every((w) => w.sharp >= 1));
 });
 
 test("a boat floats on the surface it sees and bobs with the waves instead of sinking or flying", () => {
