@@ -283,12 +283,11 @@ export class OceanScene {
         craft.heading = boat.heading;
         this.fleet.set(boat.uid, craft);
       }
-      const k = blend(step, 6);
-      craft.x += (boat.x - craft.x) * k;
-      craft.z += (boat.z - craft.z) * k;
-      craft.heading = wrap(
-        craft.heading + wrap(boat.heading - craft.heading) * k,
-      );
+      // The pose is already played back between samples by the app (src/ocean/remote.ts);
+      // easing it again made boats lag and smear.
+      craft.x = boat.x;
+      craft.z = boat.z;
+      craft.heading = boat.heading;
       this.rest(craft.mesh, craft.x, craft.z, craft.heading, this.clock);
       this.setLine(craft, boat.fishing);
       craft.label.dataset.x = String(boat.x);

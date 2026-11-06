@@ -77,17 +77,22 @@ export async function connectOcean(
     }) => {
       if (disposed || !Number.isFinite(value?.t)) return;
       const at = value.t;
+      // When a boat moved, if the server says (older servers do not: the tick then).
+      const movedAt = (stamp: unknown) =>
+        typeof stamp === "number" && Number.isFinite(stamp) && stamp <= at
+          ? stamp
+          : at;
       for (const item of Array.isArray(value.add) ? value.add : []) {
         if (typeof item?.uid !== "string") continue;
         const boat = readBoat(item.uid, {
           ...item,
           session: "",
-          updatedAt: { toMillis: () => at },
+          updatedAt: { toMillis: () => movedAt(item.updatedAt) },
         });
         if (boat) fleet.set(boat.uid, boat);
       }
       for (const row of Array.isArray(value.up) ? value.up : []) {
-        const [uid, x, z, heading, fishing] = row ?? [];
+        const [uid, x, z, heading, fishing, moved] = row ?? [];
         const known = typeof uid === "string" ? fleet.get(uid) : undefined;
         if (
           !known ||
@@ -102,7 +107,7 @@ export async function connectOcean(
           z,
           heading,
           fishing: fishing === 1,
-          updatedAt: { toMillis: () => at },
+          updatedAt: { toMillis: () => movedAt(moved) },
         });
         if (next) fleet.set(next.uid, next);
       }

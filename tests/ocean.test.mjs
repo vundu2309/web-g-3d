@@ -461,3 +461,49 @@ test("remote boats are played back between samples: continuous at a low publish 
   clock.observe(11_300, 1000); // a quicker path: playback follows at once
   assert.equal(clock.now(1000), 11_300);
 });
+
+test("playback trail must cover the send period, the tick wait and jitter, or boats stall between packets", async () => {
+  const { RemoteTracks } = await import("../src/ocean/remote.ts");
+  // Pace of 207 ms drifting against a 200 ms server tick, 0-60 ms of jitter each way.
+  let seed = 7;
+  const random = (n) => {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return (seed / 4294967296) * n;
+  };
+  const arrivals = [];
+  for (let i = 0; i < 80; i++) {
+    const moved = i * 207 + random(60);
+    const sent = Math.ceil(moved / 200) * 200; // the next tick
+    arrivals.push({ moved, arrives: sent + random(60), x: moved * 0.008 });
+  }
+  const stalls = (trail) => {
+    const tracks = new RemoteTracks();
+    let next = 0;
+    let previous;
+    let stalled = 0;
+    let frames = 0;
+    for (let now = 3000; now < 15000; now += 1000 / 60) {
+      while (next < arrivals.length && arrivals[next].arrives <= now) {
+        const a = arrivals[next++];
+        tracks.push("lan", a.moved, {
+          x: a.x,
+          z: 0,
+          heading: 0,
+          fishing: false,
+        });
+      }
+      const pose = tracks.sample("lan", now - trail);
+      if (pose && previous !== undefined) {
+        frames++;
+        if (pose.x - previous < (8 / 60) * 0.3) stalled++;
+      }
+      if (pose) previous = pose.x;
+    }
+    return stalled / frames;
+  };
+  assert.ok(stalls(500) < 0.01, `a 500 ms trail glides (${stalls(500)})`);
+  assert.ok(
+    stalls(300) > 0.05,
+    `a 300 ms trail starves between packets (${stalls(300)})`,
+  );
+});

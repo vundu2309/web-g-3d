@@ -67,6 +67,7 @@ export function attachOcean(
             z: round(boat.z),
             heading: round(boat.heading),
             fishing: boat.fishing,
+            updatedAt: boat.updatedAt,
           });
         else
           up.push([
@@ -75,6 +76,9 @@ export function attachOcean(
             round(boat.z),
             round(boat.heading),
             boat.fishing ? 1 : 0,
+            // When the boat moved. A tick is not that moment: the sender's pace and the
+            // tick drift against each other, so tick-stamped samples are unevenly spaced.
+            boat.updatedAt,
           ]);
       }
       io.to(modernRoom).emit("ocean:delta", { t, add, up, gone: [...gone] });
@@ -217,7 +221,9 @@ export function attachOcean(
                 pose,
                 proto: OCEAN_PROTOCOL,
                 sendMs: tickMs,
-                delayMs: 1.5 * tickMs,
+                // Playback must trail the newest sample by the send period, the wait for
+                // the next tick and some network jitter: about 2.5 ticks (measured).
+                delayMs: 2.5 * tickMs,
               }
             : { pose },
         });

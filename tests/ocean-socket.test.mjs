@@ -227,7 +227,15 @@ test("shared sea protocol 2: synchronous moves, per-tick deltas, rate limit, tok
       1,
       "ten moves inside the rate limit are one accepted move",
     );
-    assert.deepEqual(rows[0], ["ann", 1, 1, 0.5, 0]);
+    assert.deepEqual(
+      rows[0],
+      ["ann", 1, 1, 0.5, 0, clock],
+      "a move is stamped with when it happened, not with the tick that carried it",
+    );
+    assert.ok(
+      bDeltas.every((d) => d.up.every((r) => r[5] <= d.t)),
+      "never later than the delta that carries it",
+    );
     assert.ok(bDeltas.length <= 2, "changes go out per tick, not per command");
     clock += 1000;
     a.emit("ocean:move", { ...pose(5), fishing: true });
@@ -237,7 +245,7 @@ test("shared sea protocol 2: synchronous moves, per-tick deltas, rate limit, tok
         .flatMap((d) => d.up)
         .filter((r) => r[0] === "ann")
         .at(-1),
-      ["ann", 5, 1, 0.5, 1],
+      ["ann", 5, 1, 0.5, 1, clock],
     );
     clock += 1000;
     a.emit("ocean:move", { ...pose(Infinity) });
