@@ -65,7 +65,8 @@ async function start() {
 }
 
 const fish = page.locator('[data-ocean="fish"]');
-const label = () => fish.innerText();
+// The button is an icon; its accessible name says what it does.
+const label = () => fish.getAttribute("aria-label");
 async function holdAndThrow(ms = 800) {
   const box = await fish.boundingBox();
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
@@ -219,7 +220,7 @@ try {
   // 4. Not pulling within the second: the fish gets away and the line is in.
   await page.waitForFunction(
     () =>
-      document.querySelector('[data-ocean="fish"]').textContent === "Thả câu",
+      document.querySelector('[data-ocean="fish"]').dataset.phase === "idle",
     null,
     { timeout: 5000 },
   );

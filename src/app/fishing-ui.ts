@@ -49,12 +49,34 @@ const kg = (value: number) =>
 export function createFishingUi(options: FishingUiOptions) {
   const { root, button, dialog } = options;
   const screen = root.querySelector<HTMLElement>(".ocean-screen") ?? root;
+  // The button says what it does with an icon; the words are only its accessible name.
   const labels = {
     idle: "Thả câu",
     charging: "Thả ra!",
     out: "Thu cần",
     biting: "Giật!",
   };
+  const svg = (inner: string) =>
+    `<svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+  const icons: Record<keyof typeof labels, string> = {
+    // A hook on its line: cast.
+    idle: svg(
+      '<circle cx="12" cy="4" r="1.6"/><path d="M12 5.6V15a4.5 4.5 0 0 1-9 0"/><path d="m1.5 13 1.5 2.5L5 13"/>',
+    ),
+    // An arrow thrown out: let go.
+    charging: svg('<path d="M6 18 18 6M9 6h9v9"/>'),
+    // A reel turning: haul in.
+    out: svg('<path d="M20 12a8 8 0 1 1-2.8-6.1"/><path d="M20 4v5h-5"/>'),
+    // A jolt: pull now.
+    biting: svg('<path d="m13 2-8 12h6l-1 8 8-12h-6Z" fill="currentColor"/>'),
+  };
+  let look: keyof typeof labels | undefined;
+  function setLook(next: keyof typeof labels) {
+    if (look === next) return;
+    look = next;
+    button.setAttribute("aria-label", labels[next]);
+    button.innerHTML = icons[next];
+  }
 
   // Overlays, created once.
   const power = document.createElement("div");
@@ -263,7 +285,7 @@ export function createFishingUi(options: FishingUiOptions) {
     vignette.style.opacity = "0";
     button.classList.remove("is-biting");
     button.style.removeProperty("--pulse");
-    button.textContent = labels.idle;
+    setLook("idle");
   }
 
   /** Called every frame while in the sea. */
@@ -293,16 +315,16 @@ export function createFishingUi(options: FishingUiOptions) {
         ? undefined
         : { view, preview: preview ?? undefined },
     );
-    // Button label by what the button does now.
-    const label =
+    // What the button looks like by what it does now.
+    setLook(
       view.phase === "idle"
-        ? labels.idle
+        ? "idle"
         : view.phase === "charging"
-          ? labels.charging
+          ? "charging"
           : view.phase === "biting"
-            ? labels.biting
-            : labels.out;
-    if (button.textContent !== label) button.textContent = label;
+            ? "biting"
+            : "out",
+    );
     // State for styling and for tests: never shown as text.
     button.dataset.phase = view.phase;
     if (view.fight) {
