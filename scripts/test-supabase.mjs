@@ -349,7 +349,7 @@ try {
   await sql(
     `create or replace function auth.uid() returns uuid language sql stable as $$select (nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub')::uuid$$;create or replace function auth.jwt() returns jsonb language sql stable as $$select nullif(current_setting('request.jwt.claims',true),'')::jsonb$$;grant usage on schema auth to authenticated;grant execute on function auth.uid(),auth.jwt() to authenticated;` +
       (await readFile(
-        "supabase/migrations/20261104084408_hub_infrastructure.sql",
+        "supabase/migrations/20261104084815_hub_infrastructure.sql",
         "utf8",
       )),
   );

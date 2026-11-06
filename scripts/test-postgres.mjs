@@ -75,7 +75,7 @@ try {
   }
   const files = [
     "tests/postgres-bootstrap.sql",
-    "supabase/migrations/20261104084408_hub_infrastructure.sql",
+    "supabase/migrations/20261104084815_hub_infrastructure.sql",
     "tests/hub-postgres.sql",
   ];
   const setup = await sql(
