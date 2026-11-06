@@ -387,7 +387,7 @@ export const SWEET_POWER: readonly [number, number] = [
 export interface CastTarget extends Point {
   distance: number;
   sweet: boolean;
-  /** False when the bobber would land on an island or outside the sea. */
+  /** False when the lure would land on an island or outside the sea. */
   water: boolean;
 }
 
@@ -443,11 +443,11 @@ export interface FishingView {
   phase: Phase;
   /** 0..1 while charging. */
   power: number;
-  /** Where the bobber is (or will land), once cast. */
+  /** Where the lure is (or will land), once cast. */
   landing: Point | undefined;
   /** 0..1 progress of the throw. */
   flight: number;
-  /** Seconds since each recent nibble, newest last (for the bobber to jerk). */
+  /** Seconds since each recent nibble, newest last (for the line to twitch). */
   nibbleAges: number[];
   /** 0..1 of the hook window used up, while a fish is on. */
   hurry: number;
@@ -535,7 +535,7 @@ export class Angler {
       : 0;
   }
 
-  /** Lets go of the button: throws if the bobber would land on water. */
+  /** Lets go of the button: throws if the lure would land on water. */
   release(now: number, from: Point, direction: Point) {
     if (this.phase !== "charging") return;
     const target = castTarget(from, direction, this.power(now));

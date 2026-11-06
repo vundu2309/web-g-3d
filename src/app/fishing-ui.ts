@@ -22,10 +22,10 @@ import type { OceanScene } from "../ocean/babylon-scene";
 
 /**
  * Fishing on screen. Everything the fish does is shown as motion, not text: the
- * bobber jerks and a blinking "!" appears above it when a fish is about to bite,
- * the line goes taut and the bobber disappears when it has, and a ring around the
+ * line twitches and a blinking "!" appears over where it enters the water when a fish
+ * is about to bite, the line goes taut when it has, and a ring around the
  * button drains in the one second there is to pull. The rules live in
- * ocean/fishing.ts and the 3D bobber in ocean/fishing-gear.ts; this connects them to
+ * ocean/fishing.ts and the 3D line in ocean/fishing-gear.ts; this connects them to
  * the button, the keyboard and the dialogs.
  */
 export interface FishingUiOptions {
@@ -214,7 +214,7 @@ export function createFishingUi(options: FishingUiOptions) {
     }
     const now = performance.now();
     if (angler.busy) {
-      // How far the fish is when it takes the hook: the boat to the bobber.
+      // How far the fish is when it takes the hook: the boat to where the lure landed.
       const landing = angler.view(now).landing;
       const boat = options.boat();
       angler.pull(
@@ -302,7 +302,7 @@ export function createFishingUi(options: FishingUiOptions) {
     // The fight in the hand: a steady buzz while the fish surges.
     haptics.tick(now, view.fight);
     const boat = options.boat();
-    // A boat that drifts too far from its bobber reels the line in.
+    // A boat that drifts too far from where its line enters the water reels the line in.
     if (
       view.landing &&
       Math.hypot(boat.x - view.landing.x, boat.z - view.landing.z) > MAX_LINE
@@ -351,7 +351,7 @@ export function createFishingUi(options: FishingUiOptions) {
         view.power >= SWEET_POWER[0] && view.power <= SWEET_POWER[1];
       power.classList.toggle("is-sweet", inSweet);
     }
-    // A blinking "!" above the bobber while a fish is nibbling: it is about to bite.
+    // A blinking "!" above where the line enters the water while a fish is nibbling: it is about to bite.
     const top = scene.entryTop();
     const nibbling = view.phase === "nibbling" && !!top;
     if (nibbling && top) {

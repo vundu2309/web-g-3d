@@ -554,7 +554,7 @@ export class FishingGear {
     }
     // The line: slack when the fish tires, tight as it pulls.
     const stretch = Math.hypot(fx - tip.x, mouthY - tip.y, fz - tip.z);
-    const slack = 0.1 * (1 - clamp(fight.tension / 0.45));
+    const slack = 0.05 * (1 - clamp(fight.tension / 0.45));
     this.stepRope(tip, stretch * (1 + slack), seconds);
     this.roped = true;
     this.drawRope(
@@ -566,9 +566,9 @@ export class FishingGear {
     this.line.alpha = 1;
     // How hard it pulls the rod: a run is hard, a tired fish hardly at all.
     const base =
-      fight.mood === "surge" ? 0.55 : fight.mood === "strong" ? 0.28 : 0.08;
+      fight.mood === "surge" ? 0.75 : fight.mood === "strong" ? 0.4 : 0.12;
     this.pull.strength = clamp(
-      (base + 0.45 * fight.tension) * (fight.reeling ? 1.1 : 1),
+      (base + 0.3 * fight.tension) * (fight.reeling ? 1.1 : 1),
     );
     this.pull.shake =
       fight.mood === "surge" ? 1 : fight.tension > 0.8 ? 0.4 : 0;

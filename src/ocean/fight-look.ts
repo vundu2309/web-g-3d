@@ -53,7 +53,7 @@ export interface FishPose {
   roll: number;
   /** Tail beats per second. */
   beat: number;
-  /** Rise out of the water (m), above the bobber's resting depth. */
+  /** Rise out of the water (m), above the water line. */
   lift: number;
   /** Splash strength 0..1. */
   splash: number;

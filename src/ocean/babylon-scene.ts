@@ -305,7 +305,7 @@ export class OceanScene {
     this.gear?.leave(kind, this.clock);
   }
 
-  /** A ring spreads from the bobber. */
+  /** A ring spreads from where the line enters the water. */
   gearRipple() {
     this.gear?.ripple();
   }
