@@ -7,6 +7,7 @@ import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import type { Scene } from "@babylonjs/core/scene";
 import { hex, meshFrom, mergeParts, paint } from "./mesh-parts.ts";
+import { RodSim } from "./rod.ts";
 
 /**
  * The fishing boat, built from code and merged into ONE mesh with vertex colours,
@@ -213,7 +214,7 @@ export function createBoatTemplate(
     [0, DECK_Y + 3.38, mastZ],
   );
 
-  // Crates, net heap, life ring and rod.
+  // Crates, net heap and life ring (the rod is its own mesh: ocean/rod-visual.ts).
   for (const [x, y] of [
     [-0.85, 0],
     [0.85, 0],
@@ -247,12 +248,6 @@ export function createBoatTemplate(
     [1.015, DECK_Y + 1.05, houseZ + 0.6],
     [0, 0, Math.PI / 2],
   );
-  place(
-    tube(0.06, 0.1, 3.1, 6),
-    0x3a3f46,
-    [1.9, DECK_Y + 1.45, BOAT_LENGTH * 0.34],
-    [0, 0, -0.95],
-  );
 
   const merged = mergeParts(name, parts);
   const material = new StandardMaterial(`${name}-material`, scene);
@@ -276,7 +271,8 @@ export function createFishingLine(scene: Scene, parent: TransformNode) {
   material.disableLighting = true;
   line.material = material;
   line.parent = parent;
-  line.position.set(3.15, 0.35, BOAT_LENGTH * 0.34);
+  const rest = new RodSim().tip();
+  line.position.set(rest.x, 0.35, rest.z);
   line.isPickable = false;
   return line;
 }

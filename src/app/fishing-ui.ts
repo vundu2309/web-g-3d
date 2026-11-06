@@ -1,3 +1,5 @@
+import { fishLength } from "../ocean/fight-look";
+import { createHaptics } from "./haptics";
 import { fishThumb } from "./fish-thumb";
 import {
   Angler,
@@ -20,10 +22,10 @@ import type { OceanScene } from "../ocean/babylon-scene";
 
 /**
  * Fishing on screen. Everything the fish does is shown as motion, not text: the
- * bobber jerks and a blinking "!" appears above it when a fish is about to bite,
- * the line goes taut and the bobber disappears when it has, and a ring around the
+ * line twitches and a blinking "!" appears over where it enters the water when a fish
+ * is about to bite, the line goes taut when it has, and a ring around the
  * button drains in the one second there is to pull. The rules live in
- * ocean/fishing.ts and the 3D bobber in ocean/fishing-gear.ts; this connects them to
+ * ocean/fishing.ts and the 3D line in ocean/fishing-gear.ts; this connects them to
  * the button, the keyboard and the dialogs.
  */
 export interface FishingUiOptions {
@@ -131,6 +133,7 @@ export function createFishingUi(options: FishingUiOptions) {
       /* Not every browser or device can vibrate. */
     }
   };
+  const haptics = createHaptics(vibrate);
   const place = (target: SVGElement | HTMLElement, rectOf: DOMRect) => {
     const base = screen.getBoundingClientRect();
     target.style.left = `${rectOf.left - base.left}px`;
@@ -174,19 +177,20 @@ export function createFishingUi(options: FishingUiOptions) {
         vibrate([40, 30, 40]);
         break;
       case "mood":
-        // A surge is felt in the hand; a tired fish is a relief.
-        if (event.mood === "surge") vibrate([60, 25, 60]);
+        // The surge itself is felt through haptics.tick (a steady buzz).
         break;
       case "lost":
         if (event.reason !== "cancel") options.scene()?.gearSnap();
         hideSignals();
         shake();
+        haptics.stop();
         vibrate([90, 40, 90]);
         break;
       case "retrieved":
         break;
       case "caught":
         hideSignals();
+        haptics.stop();
         vibrate(30);
         holdFish(event.fish);
         break;
@@ -210,7 +214,7 @@ export function createFishingUi(options: FishingUiOptions) {
     }
     const now = performance.now();
     if (angler.busy) {
-      // How far the fish is when it takes the hook: the boat to the bobber.
+      // How far the fish is when it takes the hook: the boat to where the lure landed.
       const landing = angler.view(now).landing;
       const boat = options.boat();
       angler.pull(
@@ -295,8 +299,10 @@ export function createFishingUi(options: FishingUiOptions) {
     angler.update(now);
     if (!options.enabled() && angler.busy) cancel();
     const view = angler.view(now);
+    // The fight in the hand: a steady buzz while the fish surges.
+    haptics.tick(now, view.fight);
     const boat = options.boat();
-    // A boat that drifts too far from its bobber reels the line in.
+    // A boat that drifts too far from where its line enters the water reels the line in.
     if (
       view.landing &&
       Math.hypot(boat.x - view.landing.x, boat.z - view.landing.z) > MAX_LINE
@@ -345,8 +351,8 @@ export function createFishingUi(options: FishingUiOptions) {
         view.power >= SWEET_POWER[0] && view.power <= SWEET_POWER[1];
       power.classList.toggle("is-sweet", inSweet);
     }
-    // A blinking "!" above the bobber while a fish is nibbling: it is about to bite.
-    const top = scene.bobberTop();
+    // A blinking "!" above where the line enters the water while a fish is nibbling: it is about to bite.
+    const top = scene.entryTop();
     const nibbling = view.phase === "nibbling" && !!top;
     if (nibbling && top) {
       const at = scene.project(top.x, top.y, top.z);
@@ -407,7 +413,7 @@ export function createFishingUi(options: FishingUiOptions) {
     hang.hidden = false;
     options.scene()?.holdFish({
       id: species.id,
-      scale: 3.4 + 2 * Math.min(1, Math.max(0, weight)),
+      scale: fishLength(weight),
     });
   }
 
@@ -534,6 +540,7 @@ export function createFishingUi(options: FishingUiOptions) {
     },
     dispose() {
       angler.cancel();
+      haptics.stop();
       power.remove();
       badge.remove();
       vignette.remove();

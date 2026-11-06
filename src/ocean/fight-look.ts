@@ -53,7 +53,7 @@ export interface FishPose {
   roll: number;
   /** Tail beats per second. */
   beat: number;
-  /** Rise out of the water (m), above the bobber's resting depth. */
+  /** Rise out of the water (m), above the water line. */
   lift: number;
   /** Splash strength 0..1. */
   splash: number;
@@ -92,3 +92,7 @@ export function fishPose(fight: FightView, time: number): FishPose {
     splash: fight.reeling ? 0.35 : 0,
   };
 }
+
+/** Fish length in the scene (m) from how heavy it is for its kind (0 lightest .. 1 heaviest). */
+export const fishLength = (weight: number) =>
+  1.7 + 1.5 * Math.min(1, Math.max(0, weight));
