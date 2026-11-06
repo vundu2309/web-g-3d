@@ -116,3 +116,71 @@ test("the rope stays above the sea and never blows up", () => {
   rope.step(5, a, b, 14, floor);
   assert.ok(Number.isFinite(rope.drawnLength()));
 });
+
+test("sag grows with the square root of the spare line: 3 % extra sags 2.5 m, a hair of slack half a metre", async () => {
+  const sagOf = (extraOf) => {
+    const a = { x: 0, y: 3.5, z: 0 };
+    const b = { x: 6, y: 0.3, z: -20 };
+    const span = dist(a, b);
+    const rope = new Rope(22);
+    rope.reset(a, b);
+    for (let t = 0; t < 3; t += 1 / 60)
+      rope.step(1 / 60, a, b, span + extraOf(span), () => 0);
+    let worst = 0;
+    for (let i = 1; i < rope.count - 1; i++) {
+      const t = i / (rope.count - 1);
+      const sx = a.x + (b.x - a.x) * t;
+      const sy = a.y + (b.y - a.y) * t;
+      const sz = a.z + (b.z - a.z) * t;
+      worst = Math.max(
+        worst,
+        Math.hypot(
+          rope.positions[i * 3] - sx,
+          rope.positions[i * 3 + 1] - sy,
+          rope.positions[i * 3 + 2] - sz,
+        ),
+      );
+    }
+    return worst;
+  };
+  // A fish that pulls: no spare line, a straight line.
+  assert.ok(sagOf(() => 0) < 0.05, "taut is straight");
+  // Waiting: a hair of slack, a gentle sag.
+  const waiting = sagOf(() => 0.04);
+  assert.ok(waiting > 0.2 && waiting < 1, `waiting sag ${waiting}`);
+  // The old mistake: a few per cent of spare line makes a big loop.
+  assert.ok(sagOf((span) => span * 0.03) > 2, "3 % spare line sags a lot");
+});
+
+test("the line strip faces the viewer and is wider when it is farther", async () => {
+  const { ribbonPositions } = await import("../src/ocean/rope.ts");
+  const points = [
+    { x: 0, y: 0, z: 0 },
+    { x: 0, y: 0, z: -10 },
+    { x: 0, y: 0, z: -20 },
+  ];
+  const near = ribbonPositions(
+    points,
+    { x: 0, y: 10, z: -10 },
+    new Float32Array(18),
+  );
+  const far = ribbonPositions(
+    points,
+    { x: 0, y: 200, z: -10 },
+    new Float32Array(18),
+  );
+  const width = (out, i) =>
+    Math.hypot(
+      out[i * 6 + 3] - out[i * 6],
+      out[i * 6 + 4] - out[i * 6 + 1],
+      out[i * 6 + 5] - out[i * 6 + 2],
+    );
+  assert.ok(width(far, 1) > width(near, 1) * 5, "wider from far away");
+  assert.ok(
+    width(near, 1) >= 0.035 - 1e-6 && width(far, 1) <= 0.4 + 1e-6,
+    "within its limits",
+  );
+  // The strip is across the line (sideways to a line along Z, seen from above: along X).
+  assert.ok(Math.abs(near[3] - near[0]) > 0.9 * width(near, 0));
+  assert.ok(Number.isFinite(near[17]));
+});

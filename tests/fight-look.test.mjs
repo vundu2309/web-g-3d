@@ -43,3 +43,14 @@ test("a surging fish thrashes and splashes; a tired one lies on its side quietly
   assert.ok(tired.roll > surge.roll || tired.roll > 0.5);
   assert.equal(surge.distance, 12);
 });
+
+test("a running fish swings the line much farther than a steady one, and a tired fish hardly moves", () => {
+  const amp = (mood) => {
+    let max = 0;
+    for (let t = 0; t < 8; t += 0.01)
+      max = Math.max(max, Math.abs(fishPose(view(mood), t).swing));
+    return max;
+  };
+  assert.ok(amp("surge") > amp("strong") * 1.5);
+  assert.ok(amp("strong") > amp("tired") * 2);
+});

@@ -75,9 +75,10 @@ export class Rope {
   ) {
     const p = this.positions;
     const q = this.previous;
-    // Tension swamps the weight of a taut line, so gravity only matters with slack.
+    // Tension swamps the weight of a taut line, so gravity only matters with slack:
+    // it counts in full once there is 0.6 m of spare line, and not at all with none.
     const span = Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z) || 1e-9;
-    const slack = Math.min(1, Math.max(0, (length / span - 1) * 10));
+    const slack = Math.min(1, Math.max(0, (length - span) / 0.6));
     const gravity = 9.8 * STEP * STEP * slack;
     for (let i = 1; i < this.count - 1; i++) {
       for (let k = 0; k < 3; k++) {
@@ -133,4 +134,50 @@ export class Rope {
       );
     return sum;
   }
+}
+
+/**
+ * Vertices of a flat strip along the rope that always faces the viewer, so the line has
+ * a width (a GL line is one pixel and vanishes at a distance). Two vertices per point:
+ * out[6i..6i+2] and out[6i+3..6i+5]. The strip is wider the farther it is, in proportion,
+ * between a thin cord up close and a still-visible line far away.
+ */
+export function ribbonPositions(
+  points: readonly Point3[],
+  eye: Point3,
+  out: Float32Array,
+  widthPerMetre = 0.005,
+  minWidth = 0.035,
+  maxWidth = 0.4,
+): Float32Array {
+  const n = points.length;
+  for (let i = 0; i < n; i++) {
+    const p = points[i]!;
+    const a = points[Math.max(0, i - 1)]!;
+    const b = points[Math.min(n - 1, i + 1)]!;
+    const tx = b.x - a.x;
+    const ty = b.y - a.y;
+    const tz = b.z - a.z;
+    const ex = eye.x - p.x;
+    const ey = eye.y - p.y;
+    const ez = eye.z - p.z;
+    // Sideways = tangent x toward-the-viewer.
+    let sx = ty * ez - tz * ey;
+    let sy = tz * ex - tx * ez;
+    let sz = tx * ey - ty * ex;
+    const size = Math.hypot(sx, sy, sz) || 1;
+    const dist = Math.hypot(ex, ey, ez);
+    const half =
+      Math.min(maxWidth, Math.max(minWidth, dist * widthPerMetre)) / 2;
+    sx = (sx / size) * half;
+    sy = (sy / size) * half;
+    sz = (sz / size) * half;
+    out[i * 6] = p.x - sx;
+    out[i * 6 + 1] = p.y - sy;
+    out[i * 6 + 2] = p.z - sz;
+    out[i * 6 + 3] = p.x + sx;
+    out[i * 6 + 4] = p.y + sy;
+    out[i * 6 + 5] = p.z + sz;
+  }
+  return out;
 }
