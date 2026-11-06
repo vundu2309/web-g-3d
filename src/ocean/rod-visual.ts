@@ -17,9 +17,9 @@ import { ROD_BASE, RodSim, type V3 } from "./rod.ts";
 const RINGS = 12;
 const SIDES = 6;
 const HANDLE = 0.15;
-const CORK = hex(0xb98a5a);
-const GRAPHITE = hex(0x2b2f36);
-const TIP = hex(0xff8a3d);
+const CORK = hex(0xe3c38d);
+const GRAPHITE = hex(0x6b4423);
+const TIP = hex(0xff7a2e);
 
 const materials = new WeakMap<Scene, StandardMaterial>();
 function material(scene: Scene) {
@@ -36,7 +36,7 @@ function material(scene: Scene) {
 
 /** Radius along the rod, s from 0 (hand) to 1 (tip). */
 const radius = (s: number) =>
-  s < HANDLE ? 0.06 : 0.04 - 0.028 * ((s - HANDLE) / (1 - HANDLE));
+  s < HANDLE ? 0.1 : 0.075 - 0.055 * ((s - HANDLE) / (1 - HANDLE));
 const colour = (s: number) => (s < HANDLE ? CORK : s > 0.9 ? TIP : GRAPHITE);
 
 export class RodVisual {

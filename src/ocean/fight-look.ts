@@ -95,4 +95,4 @@ export function fishPose(fight: FightView, time: number): FishPose {
 
 /** Fish length in the scene (m) from how heavy it is for its kind (0 lightest .. 1 heaviest). */
 export const fishLength = (weight: number) =>
-  1.3 + 1.5 * Math.min(1, Math.max(0, weight));
+  1.7 + 1.5 * Math.min(1, Math.max(0, weight));
