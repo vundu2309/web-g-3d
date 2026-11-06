@@ -339,6 +339,8 @@ export interface FishingView {
   hurry: number;
   /** The tug of war, once the fish is hooked. */
   fight: FightView | undefined;
+  /** Species id of the fish on the line, while fighting. */
+  species: string | undefined;
 }
 
 interface Round {
@@ -591,6 +593,7 @@ export class Angler {
           ? Math.min(1, (now - bite) / HOOK_WINDOW_MS)
           : 0,
       fight: this.fight?.view(),
+      species: this.fight ? this.hooked?.species : undefined,
     };
   }
 }

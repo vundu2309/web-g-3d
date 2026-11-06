@@ -278,6 +278,11 @@ export class OceanScene {
     this.gearInput = input;
   }
 
+  /** The line snapped or the hook came back empty: the loose end whips back. */
+  gearSnap() {
+    this.gear?.snap(this.clock);
+  }
+
   /** A ring spreads from the bobber. */
   gearRipple() {
     this.gear?.ripple();
@@ -353,11 +358,14 @@ export class OceanScene {
       this.self.wake.setStrength(speed / 9);
       this.followWith(state, step);
     }
-    const tip = this.gearInput ? this.rodTip() : undefined;
+    const tip =
+      this.gearInput || this.gear?.recoiling ? this.rodTip() : undefined;
     if (this.gearInput && tip) {
       this.gear ??= new FishingGear(this.scene);
       this.gear.update({ ...this.gearInput, tip, time: this.clock });
-    } else this.gear?.hide();
+    } else if (tip && this.gear?.recoiling)
+      this.gear.updateRecoil(tip, this.clock);
+    else this.gear?.hide();
     this.water.update(
       this.camera.position.x,
       this.camera.position.z,

@@ -7,7 +7,9 @@ import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import type { Scene } from "@babylonjs/core/scene";
-import type { FishingView } from "./fishing.ts";
+import { speciesById, type FishingView } from "./fishing.ts";
+import { createCreature, type CreatureModel } from "./creature-kit.ts";
+import { fishPose, lineColour, lineSag, lineTremble } from "./fight-look.ts";
 import { hex, mergeParts, paint } from "./mesh-parts.ts";
 import { waveHeight } from "./waves.ts";
 
@@ -23,6 +25,12 @@ const RING_LIFE = 0.9;
 const clamp = (value: number, low = 0, high = 1) =>
   Math.min(high, Math.max(low, value));
 const ease = (t: number) => t * t * (3 - 2 * t);
+const RECOIL_S = 0.55;
+const WHITE = new Color3(1, 1, 1);
+const lineColourFor = (tension: number) => {
+  const c = lineColour(tension);
+  return new Color3(c.r, c.g, c.b);
+};
 
 export interface GearInput {
   view: FishingView;
@@ -103,8 +111,16 @@ export class FishingGear {
   private readonly top = new Vector3();
   private shown = false;
   private clock = 0;
+  private readonly scene: Scene;
+  private fish: CreatureModel | undefined;
+  private fishId: string | undefined;
+  private recoil = 0;
+  private lastFight = false;
+  private lastSplash = 0;
+  private readonly recoilFrom = new Vector3();
 
   constructor(scene: Scene) {
+    this.scene = scene;
     this.bobber = bobberMesh(scene);
     for (let i = 0; i < POINTS; i++) this.linePoints.push(new Vector3());
     for (let i = 0; i < 16; i++) this.arcPoints.push(new Vector3());
@@ -170,6 +186,7 @@ export class FishingGear {
 
   /** Everything away (line in, nothing held). */
   hide() {
+    this.showFish(undefined);
     this.setVisible(false);
     this.arc.isVisible = false;
     this.marker.isVisible = false;
@@ -209,10 +226,140 @@ export class FishingGear {
     }
     let ringsOn = false;
     if (out && view.landing) {
-      this.drawBobber(view, tip, time);
+      if (view.phase === "fighting" && view.fight)
+        this.drawFight(view, tip, time);
+      else this.drawBobber(view, tip, time);
       ringsOn = true;
     }
+    this.showFish(view.phase === "fighting" ? view.species : undefined);
     this.drawRings(ringsOn ? view : undefined, time);
+  }
+
+  /** The hooked fish: built once per species, shown only while it is on the line. */
+  private showFish(id: string | undefined) {
+    if (id !== this.fishId) {
+      this.fish?.dispose();
+      this.fish = undefined;
+      this.fishId = id;
+      const species = id ? speciesById(id) : undefined;
+      if (species)
+        this.fish = createCreature(
+          this.scene,
+          "hooked-fish",
+          species.shape,
+          species.body,
+          species.fin,
+        );
+    }
+    this.fish?.root.setEnabled(id !== undefined);
+  }
+
+  /** The line is cut or the hook is empty: it whips back toward the rod for a moment. */
+  snap(time: number) {
+    if (!this.lastFight) return;
+    this.lastFight = false;
+    this.recoil = time;
+    this.recoilFrom.copyFrom(this.bobber.position);
+    this.showFish(undefined);
+  }
+
+  /** Whether the snapped line is still whipping back. */
+  get recoiling() {
+    return this.recoil > 0 && this.clock - this.recoil < RECOIL_S;
+  }
+
+  /** Draws the loose end flying back to the rod tip. */
+  updateRecoil(tip: { x: number; y: number; z: number }, time: number) {
+    this.clock = time;
+    const u = clamp((time - this.recoil) / RECOIL_S);
+    const e = ease(u);
+    this.line.isVisible = true;
+    this.bobber.isVisible = false;
+    const n = this.linePoints.length;
+    const endX = this.recoilFrom.x + (tip.x - this.recoilFrom.x) * e;
+    const endZ = this.recoilFrom.z + (tip.z - this.recoilFrom.z) * e;
+    const endY = this.recoilFrom.y + 1 + (tip.y - this.recoilFrom.y - 1) * e;
+    for (let i = 0; i < n; i++) {
+      const s = i / (n - 1);
+      const whip = Math.sin(s * 9 - time * 40) * 0.6 * (1 - u) * s;
+      this.linePoints[i]!.set(
+        tip.x + (endX - tip.x) * s + whip,
+        tip.y + (endY - tip.y) * s - 1.2 * 4 * s * (1 - s) * u,
+        tip.z + (endZ - tip.z) * s,
+      );
+    }
+    MeshBuilder.CreateLines("gear-line", {
+      points: this.linePoints,
+      instance: this.line,
+    });
+    this.line.color = lineColourFor(1);
+    this.line.alpha = 1 - u;
+    if (u >= 1) {
+      this.recoil = 0;
+      this.line.isVisible = false;
+    }
+  }
+
+  private drawFight(
+    view: FishingView,
+    tip: { x: number; y: number; z: number },
+    time: number,
+  ) {
+    const fight = view.fight!;
+    const landing = view.landing!;
+    this.lastFight = true;
+    const pose = fishPose(fight, time);
+    // The fish is on the line from the boat toward where it was hooked.
+    const span = Math.hypot(landing.x - tip.x, landing.z - tip.z) || 1;
+    const dx = (landing.x - tip.x) / span;
+    const dz = (landing.z - tip.z) / span;
+    const fx = tip.x + dx * pose.distance - dz * pose.swing;
+    const fz = tip.z + dz * pose.distance + dx * pose.swing;
+    const surface = waveHeight(fx, fz, time);
+    // The bobber rides at the fish, pulled under while it surges.
+    const sunk = fight.mood === "surge" ? 0.5 : 0.1;
+    this.bobber.position.set(fx, surface - sunk, fz);
+    this.bobber.rotation.set(0, 0, Math.sin(time * 9) * 0.25 * pose.splash);
+    this.top.set(fx, surface + 4.6, fz);
+    if (this.fish) {
+      const model = this.fish.root;
+      const heading = Math.atan2(-dz, -dx); // Nose toward the boat while reeled, away in a run.
+      const away = fight.mood === "surge" ? Math.PI : 0;
+      model.position.set(fx, surface + 0.45 + pose.lift, fz);
+      model.rotation.set(pose.roll, -heading + away + pose.yaw, 0);
+      model.scaling.setAll(4.2);
+      if (this.fish.tail)
+        this.fish.tail.rotation.y =
+          Math.sin(time * pose.beat * 2 * Math.PI) * 0.6;
+    }
+    // Splashes while it thrashes.
+    if (pose.splash > 0.5 && time - this.lastSplash > 0.32) {
+      this.lastSplash = time;
+      this.ripple();
+    }
+    // The line: slack when the fish tires, straight and humming as it pulls.
+    const n = this.linePoints.length;
+    const endY = Math.max(surface + 0.2, 0);
+    const sag = lineSag(fight.tension);
+    const tremble = lineTremble(fight.tension);
+    const px = -dz;
+    const pz = dx;
+    for (let i = 0; i < n; i++) {
+      const s = i / (n - 1);
+      const base = 4 * s * (1 - s);
+      const wob = Math.sin(time * 70 + s * 9) * tremble * base;
+      const x = tip.x + (fx - tip.x) * s + px * wob;
+      const z = tip.z + (fz - tip.z) * s + pz * wob;
+      let y = tip.y + (endY - tip.y) * s - sag * base;
+      if (i > 0 && i < n - 1) y = Math.max(y, waveHeight(x, z, time) + 0.04);
+      this.linePoints[i]!.set(x, y, z);
+    }
+    MeshBuilder.CreateLines("gear-line", {
+      points: this.linePoints,
+      instance: this.line,
+    });
+    this.line.color = lineColourFor(fight.tension);
+    this.line.alpha = 1;
   }
 
   private drawArc(
@@ -308,6 +455,7 @@ export class FishingGear {
       instance: this.line,
     });
     this.line.alpha = 0.9;
+    this.line.color = WHITE;
   }
 
   private drawRings(view: FishingView | undefined, time: number) {
@@ -330,6 +478,7 @@ export class FishingGear {
   }
 
   dispose() {
+    this.fish?.dispose();
     this.bobber.dispose();
     this.line.dispose();
     this.arc.dispose();

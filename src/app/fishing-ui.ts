@@ -140,6 +140,7 @@ export function createFishingUi(options: FishingUiOptions) {
         if (event.mood === "surge") vibrate([60, 25, 60]);
         break;
       case "lost":
+        if (event.reason !== "cancel") options.scene()?.gearSnap();
         hideSignals();
         shake();
         vibrate([90, 40, 90]);
