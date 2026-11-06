@@ -1,4 +1,5 @@
 import "../ocean/style.css";
+import { CHROME_COLORS, setChromeColor } from "./chrome-color";
 import { wakeApi } from "../platform/wake";
 import { hubArt } from "../ui/hub-art";
 import { stockTotal } from "../ocean/fishing";
@@ -56,6 +57,7 @@ export function startHarbor(root: HTMLElement) {
   let error = "";
   function render() {
     if (disposed || playing) return;
+    setChromeColor(CHROME_COLORS.harbor);
     const captain = name
       ? `<div class="hub-avatar">${BOAT}</div><div class="hub-who"><strong>Thuyền trưởng ${escape(name)}</strong><span>🐟 ${fishHeld(uid)} cá trong kho</span></div><button class="hub-out" data-harbor="logout" ${busy ? "disabled" : ""}>Đăng xuất</button>`
       : `<div class="hub-who"><strong>Mỗi người một thuyền, một biển chung</strong><span>Đăng nhập để ra khơi cùng bạn bè</span></div>`;

@@ -14,6 +14,7 @@ import { RemoteTracks, ServerClock } from "../ocean/remote";
 import { stockTotal, type Inventory } from "../ocean/fishing";
 import { createFishingUi } from "./fishing-ui";
 import { hubArt } from "../ui/hub-art";
+import { CHROME_COLORS, setChromeColor } from "./chrome-color";
 import {
   connectWithRetry,
   fatalConnectionMessage,
@@ -46,6 +47,8 @@ export function startOcean(
   const abort = new AbortController();
   const network = new AbortController();
   root.classList.add("ocean-root");
+  // The loading screen shares the harbor sky; the bar turns sea-sky once the sea is shown.
+  const barBefore = setChromeColor(CHROME_COLORS.harbor);
   root.innerHTML = `<main class="ocean-screen" aria-label="Map biển chung"><div class="ocean-stage"></div><div class="ocean-stick-zone" aria-hidden="true"></div><div class="ocean-loading" role="status" aria-live="polite"><div class="hub-art" aria-hidden="true">${hubArt()}</div><div class="ocean-loading-card"><svg class="ocean-loading-boat" viewBox="0 0 120 56" width="76" height="36" aria-hidden="true" focusable="false"><path d="M0 30h120l-18 22H20Z" fill="#e97760" stroke="#153b80" stroke-width="5" stroke-linejoin="round"/><rect x="48" y="4" width="38" height="26" rx="5" fill="#fff6e0" stroke="#153b80" stroke-width="5"/></svg><h2 data-loading-title>Đang ra khơi…</h2><ol class="ocean-loading-steps"><li data-step="graphics">Tải đồ họa biển</li><li data-step="connect">Kết nối map chung</li><li data-step="enter">Vào biển</li></ol><div class="ocean-loading-bar" aria-hidden="true"><i></i></div><p class="ocean-loading-note" data-loading-note></p><div class="ocean-loading-actions" hidden><button class="button primary" type="button" data-ocean="retry">Thử lại</button></div></div></div><div class="ocean-hud game-safe"><header class="ocean-top"><button class="ocean-chip ocean-glass ocean-round" data-ocean="back" aria-label="Về hub"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><div class="ocean-channel"><strong>Biển chung</strong><span>Mỗi người một thuyền</span></div><button class="ocean-chip ocean-glass" data-ocean="crew" aria-label="Thuyền trong kênh"><span data-count>Đang kết nối…</span></button></header><p class="ocean-status" role="status" aria-live="polite">Đang kết nối map chung…</p><section class="ocean-bottom" aria-label="Điều khiển thuyền"><div class="ocean-stick" role="group" aria-label="Cần lái: kéo lên để tiến, xuống để lùi, sang hai bên để rẽ"><span class="ocean-stick-mark" data-dir="up" aria-hidden="true">▲</span><span class="ocean-stick-mark" data-dir="down" aria-hidden="true">▼</span><span class="ocean-stick-mark" data-dir="left" aria-hidden="true">◀︎</span><span class="ocean-stick-mark" data-dir="right" aria-hidden="true">▶︎</span><span class="ocean-stick-knob" aria-hidden="true">⚓</span></div><div class="ocean-actions"><button class="ocean-chip ocean-glass" data-ocean="catch" aria-label="Kho cá 0"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c3-5 9-6 13-3l5-3v12l-5-3c-4 3-10 2-13-3Z"/><circle cx="8" cy="11" r=".6" fill="currentColor"/></svg><strong data-catch>0</strong></button><button class="ocean-fish" data-ocean="fish" aria-label="Thả câu" disabled></button></div></section></div><div class="ocean-input" aria-hidden="true"></div></main>`;
   const status = root.querySelector<HTMLElement>(".ocean-status")!;
   const loading = root.querySelector<HTMLElement>(".ocean-loading")!;
@@ -672,6 +675,7 @@ export function startOcean(
       showStockCount();
       created.spawnSelf(value.uid, "Bạn", pose);
       step("enter", "done");
+      setChromeColor(CHROME_COLORS.sea);
       active = true;
       // The first pose goes out about half a second after entering (not a full second),
       // late enough for the server's rate limit, early enough that others see the real spot.
@@ -703,6 +707,7 @@ export function startOcean(
     scene?.dispose();
     dialog.remove();
     root.classList.remove("ocean-root");
+    if (barBefore) setChromeColor(barBefore);
     root.replaceChildren();
   }
   return dispose;
