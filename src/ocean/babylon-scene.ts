@@ -24,6 +24,7 @@ import {
 } from "./boat-visual.ts";
 import { createHavok } from "./havok.ts";
 import { createIsland } from "./island-visual.ts";
+import { SeaProps } from "./sea-props.ts";
 import {
   islandCollisionRadius,
   islands,
@@ -91,6 +92,7 @@ export class OceanScene {
   private readonly governor: ScaleGovernor;
   private lost = false;
   private gear: FishingGear | undefined;
+  private readonly seaProps: SeaProps;
   private gearInput: Omit<GearInput, "tip" | "time"> | undefined;
   private readonly canvas: HTMLCanvasElement;
 
@@ -171,8 +173,9 @@ export class OceanScene {
       });
       visual.mesh.position.set(island.x, 0, island.z);
       visual.mesh.freezeWorldMatrix();
-      visual.foam.position.set(island.x, 0.08, island.z);
+      visual.foam?.position.set(island.x, 0.08, island.z);
     });
+    this.seaProps = new SeaProps(this.scene);
     this.observer = new ResizeObserver(() => this.engine.resize());
     this.observer.observe(host);
     this.engine.resize();
@@ -419,6 +422,7 @@ export class OceanScene {
       this.gear.updateRecoil(tip, this.clock);
     else if (tip && this.gear?.holding) this.gear.updateHeld(tip, this.clock);
     else this.gear?.hide();
+    this.seaProps.update(this.clock);
     this.water.update(
       this.camera.position.x,
       this.camera.position.z,
@@ -565,6 +569,7 @@ export class OceanScene {
     this.observer.disconnect();
     for (const craft of this.fleet.values()) craft.label.remove();
     this.gear?.dispose();
+    this.seaProps.dispose();
     this.self?.craft.label.remove();
     this.self?.physics.dispose();
     this.fleet.clear();
