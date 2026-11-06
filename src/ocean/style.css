@@ -1123,3 +1123,86 @@ dialog.account-screen :is(input, textarea) {
   -webkit-user-select: text;
   user-select: text;
 }
+
+/* A landed fish hangs from the rod: its weight and two icon buttons (keep, put back).
+   Drawn only: the input layer takes the touches. */
+.fish-hang {
+  position: absolute;
+  z-index: 6;
+  right: max(16px, var(--safe-right, env(safe-area-inset-right, 0px)));
+  bottom: calc(
+    max(12px, var(--safe-bottom, env(safe-area-inset-bottom, 0px))) + 84px
+  );
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: none;
+  animation: fish-hang-in 0.25s ease-out;
+}
+.fish-hang[hidden] {
+  display: none;
+}
+.fish-hang-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: #fffffff0;
+  border: 2px solid #153b80;
+  color: #153b80;
+  font:
+    800 16px "Baloo 2",
+    sans-serif;
+}
+.fish-hang-stars {
+  color: #e9a52f;
+  letter-spacing: 1px;
+}
+.fish-hang-stars.rarity-3 {
+  color: #e9573f;
+}
+.fish-hang-record {
+  color: #e9573f;
+}
+.fish-hang-actions {
+  display: flex;
+  gap: 12px;
+}
+.fish-hang button {
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2.5px solid #153b80;
+  box-shadow: 0 3px 0 #153b80;
+  color: #153b80;
+  background: #ffffffd9;
+  backdrop-filter: blur(6px);
+}
+.fish-hang .fish-hang-keep {
+  background: #ffd35a;
+}
+.fish-hang button.is-pressed {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #153b80;
+}
+.fish-hang button:focus-visible {
+  outline: 3px solid #e97760;
+  outline-offset: 4px;
+}
+@keyframes fish-hang-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fish-hang {
+    animation: none;
+  }
+}

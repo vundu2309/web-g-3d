@@ -234,10 +234,7 @@ try {
       timeout: 10000,
     },
   );
-  assert.equal(
-    await page.getByText("Cá lên thuyền", { exact: false }).count(),
-    0,
-  );
+  assert.equal(await page.locator(".fish-hang:not([hidden])").count(), 0);
   assert.equal(await page.locator("[data-catch]").innerText(), "0");
 
   // 5. Pulling while the fish only nibbles just reels in.
@@ -261,10 +258,7 @@ try {
     },
   );
   assert.equal(await label(), "Thả câu");
-  assert.equal(
-    await page.getByText("Cá lên thuyền", { exact: false }).count(),
-    0,
-  );
+  assert.equal(await page.locator(".fish-hang:not([hidden])").count(), 0);
 
   // 6. A pull inside the second lands a fish: a card, then the store.
   let landed = false;
@@ -283,7 +277,7 @@ try {
     );
     await fightBot(page);
     landed = await page
-      .getByText("Cá lên thuyền", { exact: false })
+      .locator(".fish-hang:not([hidden])")
       .waitFor({ timeout: 10000 })
       .then(
         () => true,
@@ -291,15 +285,22 @@ try {
       );
   }
   assert.ok(landed, "a fish was landed");
-  const card = page.locator(".fish-card");
-  assert.ok(
-    (await card.locator("svg").count()) === 1,
-    "the card shows the fish",
+  // The fish hangs from the rod with its weight and rarity, and two icon buttons.
+  const hang = page.locator(".fish-hang");
+  assert.match(await hang.locator(".fish-hang-kg").innerText(), /kg/);
+  assert.match(await hang.locator(".fish-hang-stars").innerText(), /^★+$/);
+  assert.equal(
+    await page.evaluate(() => window.oceanScene.gear.holding),
+    true,
+    "the 3D fish hangs on the rod",
   );
-  assert.match(await card.locator(".fish-card-name").innerText(), /^Cá /);
-  assert.match(await card.innerText(), /kg/);
-  assert.match(await card.innerText(), /cm/);
-  await page.getByRole("button", { name: "Cất vào kho", exact: true }).click();
+  for (const name of ["Lấy cá cất vào kho", "Thả cá về biển"]) {
+    const box = await page.getByRole("button", { name }).boundingBox();
+    assert.ok(box.width >= 44 && box.height >= 44, `${name} is a 44px target`);
+  }
+  // Keeping it is a tap on the drawn button, which the input layer takes.
+  await tap(page, page.getByRole("button", { name: "Lấy cá cất vào kho" }));
+  await page.locator(".fish-hang").waitFor({ state: "hidden" });
   assert.equal(await page.locator("[data-catch]").innerText(), "1");
 
   // 7. The store shows only held fish, with a count and a way to put one back.

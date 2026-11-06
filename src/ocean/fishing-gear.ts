@@ -26,6 +26,8 @@ const clamp = (value: number, low = 0, high = 1) =>
   Math.min(high, Math.max(low, value));
 const ease = (t: number) => t * t * (3 - 2 * t);
 const RECOIL_S = 0.55;
+const LEAVE_S = 0.5;
+const HANG = 2.6;
 const WHITE = new Color3(1, 1, 1);
 const lineColourFor = (tension: number) => {
   const c = lineColour(tension);
@@ -117,6 +119,8 @@ export class FishingGear {
   private recoil = 0;
   private lastFight = false;
   private lastSplash = 0;
+  private held: { id: string; scale: number } | undefined;
+  private leaving: { kind: "keep" | "drop"; since: number } | undefined;
   private readonly recoilFrom = new Vector3();
 
   constructor(scene: Scene) {
@@ -298,6 +302,68 @@ export class FishingGear {
       this.recoil = 0;
       this.line.isVisible = false;
     }
+  }
+
+  /** A landed fish hangs from the rod tip until the player keeps it or lets it go. */
+  hold(fish: { id: string; scale: number } | undefined) {
+    this.held = fish;
+    this.leaving = undefined;
+    if (!fish) {
+      this.showFish(undefined);
+      this.line.isVisible = false;
+    }
+  }
+
+  get holding() {
+    return this.held !== undefined;
+  }
+
+  /** The hanging fish goes into the store (it rises away) or back to the sea (it falls). */
+  leave(kind: "keep" | "drop", time: number) {
+    if (this.held && !this.leaving) this.leaving = { kind, since: time };
+  }
+
+  /** Draws the hanging fish and the line it hangs from. */
+  updateHeld(tip: { x: number; y: number; z: number }, time: number) {
+    const held = this.held;
+    if (!held) return;
+    this.clock = time;
+    let u = 0;
+    if (this.leaving) u = clamp((time - this.leaving.since) / LEAVE_S);
+    if (u >= 1) {
+      this.hold(undefined);
+      return;
+    }
+    this.showFish(held.id);
+    this.bobber.isVisible = false;
+    const sway = Math.sin(time * 1.7) * 0.28 * (1 - u);
+    const keep = this.leaving?.kind === "keep";
+    const e = ease(u);
+    const mouthY = tip.y - HANG + (keep ? e * 5 : -e * e * 7);
+    const scale = held.scale * (keep ? 1 - e : 1);
+    if (this.fish) {
+      this.fish.root.position.set(tip.x + sway, mouthY - scale * 0.5, tip.z);
+      this.fish.root.rotation.set(0, time * 0.9, Math.PI / 2 + sway * 0.3);
+      this.fish.root.scaling.setAll(Math.max(0.01, scale));
+      if (this.fish.tail)
+        this.fish.tail.rotation.y = Math.sin(time * 5) * 0.5 * (1 - u);
+    }
+    const n = this.linePoints.length;
+    for (let i = 0; i < n; i++) {
+      const s = i / (n - 1);
+      this.linePoints[i]!.set(
+        tip.x + sway * s * s,
+        tip.y + (mouthY - tip.y) * s,
+        tip.z,
+      );
+    }
+    MeshBuilder.CreateLines("gear-line", {
+      points: this.linePoints,
+      instance: this.line,
+    });
+    this.line.isVisible = true;
+    this.line.color = WHITE;
+    this.line.alpha = 0.9;
   }
 
   private drawFight(

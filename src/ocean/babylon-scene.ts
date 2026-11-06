@@ -283,6 +283,17 @@ export class OceanScene {
     this.gear?.snap(this.clock);
   }
 
+  /** A landed fish hangs from the rod (undefined puts it away at once). */
+  holdFish(fish: { id: string; scale: number } | undefined) {
+    this.gear ??= new FishingGear(this.scene);
+    this.gear.hold(fish);
+  }
+
+  /** The hanging fish is kept (rises away) or put back (falls). */
+  leaveFish(kind: "keep" | "drop") {
+    this.gear?.leave(kind, this.clock);
+  }
+
   /** A ring spreads from the bobber. */
   gearRipple() {
     this.gear?.ripple();
@@ -359,12 +370,15 @@ export class OceanScene {
       this.followWith(state, step);
     }
     const tip =
-      this.gearInput || this.gear?.recoiling ? this.rodTip() : undefined;
+      this.gearInput || this.gear?.recoiling || this.gear?.holding
+        ? this.rodTip()
+        : undefined;
     if (this.gearInput && tip) {
       this.gear ??= new FishingGear(this.scene);
       this.gear.update({ ...this.gearInput, tip, time: this.clock });
     } else if (tip && this.gear?.recoiling)
       this.gear.updateRecoil(tip, this.clock);
+    else if (tip && this.gear?.holding) this.gear.updateHeld(tip, this.clock);
     else this.gear?.hide();
     this.water.update(
       this.camera.position.x,
