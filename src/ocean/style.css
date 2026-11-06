@@ -1210,3 +1210,85 @@ dialog.account-screen :is(input, textarea) {
   height: auto;
   -webkit-user-drag: none;
 }
+
+/* Variant A: glass icon buttons. The fishing button is the one solid, yellow control. */
+.ocean-hud .ocean-glass {
+  min-height: 48px;
+  color: #153b80;
+  background: #ffffff4d;
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
+  border: 1.5px solid #ffffffb3;
+  box-shadow: 0 2px 10px #153b8040;
+  border-radius: 24px;
+  padding: 6px 14px;
+  gap: 6px;
+}
+.ocean-hud .ocean-glass strong {
+  font:
+    800 17px "Baloo 2",
+    sans-serif;
+}
+.ocean-hud .ocean-glass.ocean-round {
+  width: 48px;
+  padding: 0;
+  border-radius: 50%;
+}
+.ocean-hud .ocean-glass.is-pressed {
+  background: #ffffff80;
+  transform: scale(0.96);
+}
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .ocean-hud .ocean-glass {
+    background: #ffffffd9;
+  }
+}
+.ocean-hud .ocean-fish {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  min-width: 78px;
+  min-height: 78px !important;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 0 !important;
+}
+.ocean-hud .ocean-fish svg {
+  display: block;
+  width: 34px;
+  height: 34px;
+  flex: none;
+}
+.ocean-hud .ocean-fish.is-pressed {
+  transform: translateY(2px) scale(var(--pulse, 1));
+  box-shadow: 0 1px 0 #153b80;
+}
+.ocean-hint {
+  display: none;
+}
+
+/* Portrait phones: the landscape harbor art is shown wide enough for the whole boat and
+   sun (x 270..670 of 844) instead of being cropped to the middle sliver. The bands above
+   and below it are the art's own top and bottom colours, so no seam shows. */
+@media (orientation: portrait) {
+  .hub-art {
+    background: linear-gradient(
+      #4b3a8f 0,
+      #4b3a8f 25%,
+      #1d2a66 45%,
+      #1d2a66 100%
+    );
+  }
+  .hub-art .hub-svg {
+    inset: auto;
+    top: 18%;
+    left: 50%;
+    width: 211%;
+    height: auto;
+    aspect-ratio: 844 / 390;
+    transform: translateX(-55.7%);
+  }
+}
