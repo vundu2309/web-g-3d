@@ -32,7 +32,7 @@ import {
 } from "./model.ts";
 import { FishingGear, type GearInput } from "./fishing-gear.ts";
 import { FOG_DENSITY, HORIZON, SUN_DIRECTION } from "./sea-style.ts";
-import { edgeIndicator } from "./indicator.ts";
+import { edgeIndicator, separateLabels } from "./indicator.ts";
 import { ScaleGovernor } from "./render-scale.ts";
 import { createSky, type Sky } from "./sky.ts";
 import { createWater, type Water } from "./water.ts";
@@ -449,7 +449,7 @@ export class OceanScene {
     };
     if (this.self) {
       const s = this.self.physics.state();
-      place(this.self.craft, s.x, s.y + 6.2, s.z, false);
+      place(this.self.craft, s.x, s.y + 4.4, s.z, false);
     }
     for (const craft of this.fleet.values())
       place(
@@ -459,6 +459,30 @@ export class OceanScene {
         craft.mesh.position.z,
         true,
       );
+    this.separateNames();
+  }
+
+  /** Names that would overlap on screen are stacked instead (arrows are left alone). */
+  private separateNames() {
+    const labels = [
+      ...(this.self ? [this.self.craft.label] : []),
+      ...[...this.fleet.values()].map((craft) => craft.label),
+    ].filter((label) => !label.hidden && !label.dataset.edge);
+    if (labels.length < 2) return;
+    const width = this.host.clientWidth;
+    const height = this.host.clientHeight;
+    const boxes = labels.map((label) => ({
+      x: (parseFloat(label.style.left) / 100) * width,
+      y: (parseFloat(label.style.top) / 100) * height,
+      w: label.offsetWidth,
+      h: label.offsetHeight,
+    }));
+    const lifts = separateLabels(boxes);
+    labels.forEach((label, i) => {
+      const lift = lifts[i] ?? 0;
+      if (lift > 0)
+        label.style.top = `calc(${label.style.top} - ${Math.round(lift)}px)`;
+    });
   }
 
   /** Slow phones render fewer pixels instead of dropping frames, and recover when fast again. */

@@ -113,6 +113,28 @@
   box-shadow: 0 2px 12px #153b8010;
   pointer-events: none;
 }
+/* Touch anywhere on the lower left to steer: the ring jumps under the thumb. */
+.ocean-stick-zone {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 48%;
+  height: 66%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ocean-status {
+  transition: opacity 0.5s ease;
+}
+.ocean-status.is-quiet {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ocean-status {
+    transition: none;
+  }
+}
 .ocean-bottom {
   margin-top: auto;
   display: flex;
@@ -185,6 +207,12 @@
   transition: none;
 }
 @media (max-height: 430px) {
+  .ocean-channel span {
+    display: none;
+  }
+  .ocean-channel strong {
+    font-size: 21px;
+  }
   .ocean-stick {
     width: 136px;
     height: 136px;

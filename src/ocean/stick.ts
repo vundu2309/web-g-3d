@@ -37,9 +37,33 @@ export function stickInput(dx: number, dy: number, radius: number): StickInput {
   };
 }
 
+/**
+ * Where a floating stick centres for a touch at (x, y): under the thumb, but kept
+ * far enough inside the screen that the whole ring stays visible and reachable.
+ */
+export function floatingCenter(
+  x: number,
+  y: number,
+  radius: number,
+  width: number,
+  height: number,
+) {
+  const clamp = (value: number, size: number) =>
+    size > radius * 2
+      ? Math.min(size - radius, Math.max(radius, value))
+      : size / 2;
+  return { x: clamp(x, width), y: clamp(y, height) };
+}
+
 export interface StickOptions {
   /** False while a dialog is open or the boat is not connected. */
   enabled: () => boolean;
+  /**
+   * A larger touch area. A touch inside it that starts off the ring makes the ring
+   * jump under the thumb (a floating stick); it returns home on release. Without it
+   * only the ring itself takes touches.
+   */
+  zone?: HTMLElement;
   onChange: (input: StickInput) => void;
   signal: AbortSignal;
 }
@@ -53,6 +77,7 @@ export function bindStick(
   knob: HTMLElement,
   options: StickOptions,
 ): () => void {
+  const zone = options.zone ?? element;
   let pointer: number | undefined;
   let center = { x: 0, y: 0 };
   let radius = 1;
@@ -63,6 +88,7 @@ export function bindStick(
     const wasDown = pointer !== undefined;
     pointer = undefined;
     element.classList.remove("is-active");
+    element.style.transform = "";
     place(0, 0);
     if (wasDown) options.onChange({ steer: 0, throttle: 0 });
   };
@@ -73,38 +99,54 @@ export function bindStick(
     place(knobAt.x, knobAt.y);
     options.onChange(stickInput(dx, dy, radius));
   };
-  element.addEventListener(
-    "pointerdown",
-    (event) => {
-      if (pointer !== undefined || !options.enabled()) return;
-      event.preventDefault();
-      const box = element.getBoundingClientRect();
-      center = { x: box.left + box.width / 2, y: box.top + box.height / 2 };
-      // Travel keeps the knob edge inside the ring.
-      radius = Math.max(1, (box.width - knob.offsetWidth) / 2);
-      pointer = event.pointerId;
-      element.setPointerCapture(event.pointerId);
-      element.classList.add("is-active");
-      track(event);
-    },
-    { signal: options.signal },
-  );
-  element.addEventListener(
-    "pointermove",
-    (event) => {
-      if (event.pointerId !== pointer) return;
-      if (!options.enabled()) return release();
-      track(event);
-    },
-    { signal: options.signal },
-  );
-  for (const type of ["pointerup", "pointercancel", "lostpointercapture"])
-    element.addEventListener(
-      type,
+  // The ring sits in a layer above the zone, so touches on it never reach the zone.
+  const targets = zone === element ? [element] : [zone, element];
+  for (const target of targets) {
+    target.addEventListener(
+      "pointerdown",
       (event) => {
-        if ((event as PointerEvent).pointerId === pointer) release();
+        if (pointer !== undefined || !options.enabled()) return;
+        event.preventDefault();
+        // Measured before the ring moves: this is its home.
+        const box = element.getBoundingClientRect();
+        center = { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+        // Travel keeps the knob edge inside the ring.
+        radius = Math.max(1, (box.width - knob.offsetWidth) / 2);
+        if (target !== element) {
+          const at = floatingCenter(
+            event.clientX,
+            event.clientY,
+            box.width / 2,
+            innerWidth,
+            innerHeight,
+          );
+          element.style.transform = `translate(${at.x - center.x}px, ${at.y - center.y}px)`;
+          center = at;
+        }
+        pointer = event.pointerId;
+        target.setPointerCapture(event.pointerId);
+        element.classList.add("is-active");
+        track(event);
       },
       { signal: options.signal },
     );
+    target.addEventListener(
+      "pointermove",
+      (event) => {
+        if (event.pointerId !== pointer) return;
+        if (!options.enabled()) return release();
+        track(event);
+      },
+      { signal: options.signal },
+    );
+    for (const type of ["pointerup", "pointercancel", "lostpointercapture"])
+      target.addEventListener(
+        type,
+        (event) => {
+          if ((event as PointerEvent).pointerId === pointer) release();
+        },
+        { signal: options.signal },
+      );
+  }
   return release;
 }
