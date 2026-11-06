@@ -9,7 +9,8 @@ import type { Scene } from "@babylonjs/core/scene";
 import { speciesById, type FishingView } from "./fishing.ts";
 import { createCreature, type CreatureModel } from "./creature-kit.ts";
 import { fishLength, fishPose, lineColour, lineTremble } from "./fight-look.ts";
-import { Rope } from "./rope.ts";
+import { Ribbon } from "./ribbon.ts";
+import { Rope, smoothRope } from "./rope.ts";
 import { waveHeight } from "./waves.ts";
 
 /**
@@ -22,7 +23,7 @@ import { waveHeight } from "./waves.ts";
  * it lives in fishing.ts; this only draws a FishingView.
  */
 const POINTS = 22;
-const RINGS = 3;
+const RINGS = 8;
 const RING_LIFE = 0.9;
 const RECOIL_S = 0.55;
 const LEAVE_S = 0.5;
@@ -74,15 +75,16 @@ function ringTexture(scene: Scene) {
 }
 
 export class FishingGear {
-  private readonly line: LinesMesh;
+  private readonly line: Ribbon;
   private readonly arc: LinesMesh;
   private readonly rings: Mesh[] = [];
   private readonly marker: Mesh;
   private readonly markerMaterial: StandardMaterial;
   private readonly linePoints: Vector3[] = [];
   private readonly arcPoints: Vector3[] = [];
-  private readonly rippleStarts: number[] = [];
+  private readonly ripples: { t: number; x: number; z: number }[] = [];
   private readonly rope = new Rope(POINTS);
+  private readonly smooth = new Float64Array(POINTS * 3);
   /** Where the line meets the water (or the fish's mouth), world. */
   private readonly entry = new Vector3();
   private readonly top = new Vector3();
@@ -111,14 +113,7 @@ export class FishingGear {
     this.scene = scene;
     for (let i = 0; i < POINTS; i++) this.linePoints.push(new Vector3());
     for (let i = 0; i < 16; i++) this.arcPoints.push(new Vector3());
-    this.line = MeshBuilder.CreateLines(
-      "gear-line",
-      { points: this.linePoints, updatable: true },
-      scene,
-    );
-    this.line.color = new Color3(1, 1, 1);
-    this.line.isPickable = false;
-    this.line.alwaysSelectAsActiveMesh = true;
+    this.line = new Ribbon(scene, "gear-line", POINTS);
     this.arc = MeshBuilder.CreateDashedLines(
       "gear-arc",
       {
@@ -162,8 +157,8 @@ export class FishingGear {
 
   /** A ring spreads from where the line enters the water (splash, nibble, bite). */
   ripple() {
-    this.rippleStarts.push(this.clock);
-    if (this.rippleStarts.length > RINGS) this.rippleStarts.shift();
+    this.ripples.push({ t: this.clock, x: this.entry.x, z: this.entry.z });
+    if (this.ripples.length > RINGS) this.ripples.shift();
   }
 
   /** World position above where the line enters the water, for the "!" badge. */
@@ -186,6 +181,11 @@ export class FishingGear {
   private setVisible(on: boolean) {
     this.shown = on;
     this.line.isVisible = on;
+  }
+
+  /** Where the camera is, for the line strip to face it. */
+  private eye() {
+    return this.scene.activeCamera?.position ?? this.entry;
   }
 
   private dt(time: number) {
@@ -287,10 +287,7 @@ export class FishingGear {
         tip.z + (endZ - tip.z) * s,
       );
     }
-    MeshBuilder.CreateLines("gear-line", {
-      points: this.linePoints,
-      instance: this.line,
-    });
+    this.line.draw(this.linePoints, this.eye());
     this.line.color = lineColourFor(1);
     this.line.alpha = 1 - u;
     this.pull.strength = 0;
@@ -374,10 +371,7 @@ export class FishingGear {
         tip.z,
       );
     }
-    MeshBuilder.CreateLines("gear-line", {
-      points: this.linePoints,
-      instance: this.line,
-    });
+    this.line.draw(this.linePoints, this.eye());
     this.line.isVisible = true;
     this.line.color = WHITE;
     this.line.alpha = 0.9;
@@ -395,8 +389,10 @@ export class FishingGear {
     tremble: number,
     time: number,
     tip: Vector3Like,
+    taut = 0,
   ) {
-    const p = this.rope.positions;
+    // Drawn smoothed, so a rope with hardly any slack does not look saw-toothed.
+    const p = smoothRope(this.rope.positions, this.smooth);
     const n = this.rope.count;
     const dx = this.entry.x - tip.x;
     const dz = this.entry.z - tip.z;
@@ -408,16 +404,18 @@ export class FishingGear {
       const wob = tremble
         ? Math.sin(time * 70 + s * 9) * tremble * 4 * s * (1 - s)
         : 0;
+      // A taut line is straight: with tension the drawn line is pulled onto the chord
+      // from the rod tip to the end (the rope itself can lag a fast-moving fish).
+      const cx = tip.x + (this.entry.x - tip.x) * s;
+      const cy = tip.y + (this.entry.y - tip.y) * s;
+      const cz = tip.z + (this.entry.z - tip.z) * s;
       this.linePoints[i]!.set(
-        p[i * 3]! + px * wob,
-        p[i * 3 + 1]!,
-        p[i * 3 + 2]! + pz * wob,
+        p[i * 3]! + (cx - p[i * 3]!) * taut + px * wob,
+        p[i * 3 + 1]! + (cy - p[i * 3 + 1]!) * taut,
+        p[i * 3 + 2]! + (cz - p[i * 3 + 2]!) * taut + pz * wob,
       );
     }
-    MeshBuilder.CreateLines("gear-line", {
-      points: this.linePoints,
-      instance: this.line,
-    });
+    this.line.draw(this.linePoints, this.eye());
     this.line.color = color;
     this.line.alpha = 0.95;
   }
@@ -471,13 +469,10 @@ export class FishingGear {
     this.entry.set(ex, ey, ez);
     this.top.set(ex, waveHeight(ex, ez, time) + 2.4, ez);
     this.pull.shake = biting ? 0.35 : 0;
-    // How much line there is: slack while waiting, none once a fish is taking it.
+    // How much line there is: a hair of slack while waiting (a sag of half a metre or so;
+    // sag grows with the square root of the spare line), none once a fish is taking it.
     const stretch = Math.hypot(ex - tip.x, ey - tip.y, ez - tip.z);
-    const length = flying
-      ? stretch * 1.12
-      : biting
-        ? stretch * 1.002
-        : stretch * 1.09 + 0.8;
+    const length = flying ? stretch * 1.12 : biting ? stretch : stretch + 0.12;
     this.stepRope(tip, length, seconds);
     this.roped = !flying;
     const direction = new Vector3(
@@ -488,7 +483,8 @@ export class FishingGear {
     this.pull.x = direction.x;
     this.pull.y = direction.y;
     this.pull.z = direction.z;
-    this.drawRope(WHITE, biting ? 0.05 : 0, time, tip);
+    // Waiting, the line keeps a gentle sag; once a fish takes it, it is straight.
+    this.drawRope(WHITE, biting ? 0.05 : 0, time, tip, biting ? 1 : 0.4);
     this.line.alpha = 0.9;
   }
 
@@ -522,7 +518,9 @@ export class FishingGear {
     const fx = tip.x + dx * pose.distance - dz * pose.swing;
     const fz = tip.z + dz * pose.distance + dx * pose.swing;
     const surface = waveHeight(fx, fz, time);
-    const length = fishLength(view.size ?? 0.3);
+    // Far fish are drawn larger so they can be seen: 25 m away it is about 2.5 times.
+    const length =
+      fishLength(view.size ?? 0.3) * (1 + Math.min(30, pose.distance) * 0.06);
     // Its mouth is where the line ends, just above the water.
     const mouthY = surface + 0.25 + pose.lift * 0.6;
     this.entry.set(fx, mouthY, fz);
@@ -547,28 +545,34 @@ export class FishingGear {
         this.fish.tail.rotation.y =
           Math.sin(time * pose.beat * 2 * Math.PI) * 0.6;
     }
-    // Splashes while it thrashes.
-    if (pose.splash > 0.5 && time - this.lastSplash > 0.32) {
+    // Ripples where the fish is: a trail in a run, a slow ring when it pulls steadily.
+    const every =
+      fight.mood === "surge" ? 0.1 : fight.mood === "strong" ? 0.55 : 1.4;
+    if (time - this.lastSplash > every) {
       this.lastSplash = time;
       this.ripple();
     }
-    // The line: slack when the fish tires, tight as it pulls.
     const stretch = Math.hypot(fx - tip.x, mouthY - tip.y, fz - tip.z);
-    const slack = 0.05 * (1 - clamp(fight.tension / 0.45));
-    this.stepRope(tip, stretch * (1 + slack), seconds);
+    // A hooked fish that pulls keeps the line straight: no spare line at all. Only a tired
+    // fish lets a little go slack (3 % extra line would sag the middle by 2.5 m; 12 cm gives a clean arc of about a metre).
+    this.stepRope(tip, stretch + (fight.mood === "tired" ? 0.12 : 0), seconds);
     this.roped = true;
     this.drawRope(
       lineColourFor(fight.tension),
       lineTremble(fight.tension),
       time,
       tip,
+      // Straight while the fish pulls; a tired fish lets it curve a little.
+      fight.mood === "tired" ? 0.5 : 1,
     );
     this.line.alpha = 1;
     // How hard it pulls the rod: a run is hard, a tired fish hardly at all.
     const base =
       fight.mood === "surge" ? 0.75 : fight.mood === "strong" ? 0.4 : 0.12;
     this.pull.strength = clamp(
-      (base + 0.3 * fight.tension) * (fight.reeling ? 1.1 : 1),
+      base +
+        0.3 * fight.tension +
+        (fight.reeling && fight.mood !== "tired" ? 0.15 : 0),
     );
     this.pull.shake =
       fight.mood === "surge" ? 1 : fight.tension > 0.8 ? 0.4 : 0;
@@ -607,19 +611,20 @@ export class FishingGear {
   }
 
   private drawRings(view: FishingView | undefined, time: number) {
-    const spot = view?.landing;
-    const age = (start: number) => (time - start) / RING_LIFE;
+    const on = !!view?.landing && view.phase !== "flying";
     this.rings.forEach((mesh, i) => {
-      const start = this.rippleStarts[i];
-      const u = start === undefined ? 2 : age(start);
-      const on = !!spot && u >= 0 && u <= 1 && view?.phase !== "flying";
-      mesh.isVisible = on;
-      if (!on || !spot) return;
-      // The ring follows where the line meets the water.
-      const x = this.entry.x;
-      const z = this.entry.z;
+      const ripple = this.ripples[i];
+      const u = ripple ? (time - ripple.t) / RING_LIFE : 2;
+      const show = on && u >= 0 && u <= 1;
+      mesh.isVisible = show;
+      if (!show || !ripple) return;
+      // Each ring stays where it was made, so a running fish leaves a trail of them.
       const radius = 0.7 + ease(u) * 4.5;
-      mesh.position.set(x, waveHeight(x, z, time) + 0.18, z);
+      mesh.position.set(
+        ripple.x,
+        waveHeight(ripple.x, ripple.z, time) + 0.18,
+        ripple.z,
+      );
       mesh.scaling.set(radius, 1, radius);
       (mesh.material as StandardMaterial).alpha = (1 - u) * 0.9;
     });

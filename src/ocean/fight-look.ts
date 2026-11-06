@@ -65,7 +65,7 @@ export function fishPose(fight: FightView, time: number): FishPose {
   if (fight.mood === "surge")
     return {
       distance: fight.distance,
-      swing: Math.sin(t * 9) * 1.1,
+      swing: Math.sin(t * 5.5) * 1.8,
       yaw: Math.sin(t * 13) * 0.55,
       roll: Math.sin(t * 11) * 0.5,
       beat: 9,
@@ -84,7 +84,7 @@ export function fishPose(fight: FightView, time: number): FishPose {
     };
   return {
     distance: fight.distance,
-    swing: Math.sin(t * 3) * 0.55,
+    swing: Math.sin(t * 2.6) * 1.2,
     yaw: Math.sin(t * 4) * 0.3,
     roll: Math.sin(t * 2.4) * 0.2,
     beat: 4,

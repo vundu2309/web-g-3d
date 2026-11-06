@@ -276,7 +276,44 @@ try {
       null,
       { timeout: 5000 },
     );
-    await fightBot(page);
+    // While the fish pulls the line must be taut: sample how far the middle of the rope
+    // hangs below the straight line from the rod tip to the fish.
+    const sampler = page.evaluate(
+      () =>
+        new Promise((resolve) => {
+          const sags = [];
+          const timer = setInterval(() => {
+            const button = document.querySelector('[data-ocean="fish"]');
+            if (button.dataset.phase !== "fighting") {
+              clearInterval(timer);
+              resolve(sags);
+              return;
+            }
+            if (button.dataset.mood === "tired") return;
+            // The line as drawn (what the player sees), not the simulation under it.
+            const p = window.oceanScene.gear.linePoints;
+            const n = p.length;
+            let worst = 0;
+            for (let i = 1; i < n - 1; i++) {
+              const u = i / (n - 1);
+              const x = p[0].x + (p[n - 1].x - p[0].x) * u;
+              const y = p[0].y + (p[n - 1].y - p[0].y) * u;
+              const z = p[0].z + (p[n - 1].z - p[0].z) * u;
+              worst = Math.max(
+                worst,
+                Math.hypot(p[i].x - x, p[i].y - y, p[i].z - z),
+              );
+            }
+            sags.push(worst);
+          }, 40);
+        }),
+    );
+    const [, sags] = await Promise.all([fightBot(page), sampler]);
+    if (sags.length >= 3)
+      assert.ok(
+        Math.max(...sags) < 0.5,
+        `the line is taut while the fish pulls (worst sag ${Math.max(...sags).toFixed(2)} m over ${sags.length} samples)`,
+      );
     landed = await page
       .locator(".fish-hang:not([hidden])")
       .waitFor({ timeout: 10000 })

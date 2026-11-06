@@ -21,9 +21,9 @@ const AXIS: V3 = { x: Math.sin(ROD_LEAN), y: Math.cos(ROD_LEAN), z: 0 };
 const STIFFNESS = 160;
 const DAMPING = 3.2;
 /** How far a full pull (1) bends the tip when held steady (m). */
-const FULL_BEND = 2;
+const FULL_BEND = 2.6;
 /** The tip never moves farther than this from rest (m). */
-const MAX_BEND = 2.4;
+const MAX_BEND = 3;
 
 const dot = (a: V3, b: V3) => a.x * b.x + a.y * b.y + a.z * b.z;
 const length = (a: V3) => Math.hypot(a.x, a.y, a.z);
