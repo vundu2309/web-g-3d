@@ -14,6 +14,8 @@ Use Node 24 (`.node-version`), npm 11 and the existing checkout. `npm ci` instal
 | `npm run test:rules` | Firestore rules plus real Auth/Firestore emulator browser accounts, profiles and directory; needs Java 21 |
 | `npm run check` | Lint, format, unit, build, browser and rules tests |
 
+**CI scope:** the GitHub workflow runs only `npm run lint`, `npm run format:check` and `npm run typecheck` (plus `npm run build` when publishing Pages). Unit, browser, Firestore-rules, API/Socket.IO and Supabase tests are no longer run in CI by decision of the project owner; the scripts remain available to run locally.
+
 Browser tests use `CHROMIUM_PATH`, system `/usr/bin/chromium`, or the Playwright-managed browser. Install the managed browser with `npx --no-install playwright-core install --with-deps chromium` if needed. The runner starts servers on free ports and owns their cleanup. Failure output and screenshots belong under ignored `test-results/`; tests must not leave a user-owned server running or use live Firebase writes. The auth browser scenario starts on a dedicated DEV-only emulator configuration and aborts any production Firebase request.
 
 ## Mobile-first visual acceptance
