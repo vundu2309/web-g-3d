@@ -75,6 +75,13 @@ try {
       "the hub shows no picture of the map",
     );
     assert.equal(
+      await page.evaluate(
+        () => getComputedStyle(document.querySelector(".hub")).userSelect,
+      ),
+      "none",
+      "hub text cannot be selected: it is a game, not a page",
+    );
+    assert.equal(
       sizes.cards,
       "none",
       "the old board-game paper cards are gone",

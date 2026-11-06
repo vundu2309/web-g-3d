@@ -1061,3 +1061,19 @@ body:has(.hub) .paper-card {
   position: relative;
   z-index: 1;
 }
+
+/* A game, not a page: nothing on the hub, the loading screen or the sea can be selected,
+   dragged or long-pressed into a text menu. Typing fields stay selectable. */
+.hub,
+.ocean-screen,
+.ocean-loading,
+dialog.account-screen,
+.ocean-dialog {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+dialog.account-screen :is(input, textarea) {
+  -webkit-user-select: text;
+  user-select: text;
+}
