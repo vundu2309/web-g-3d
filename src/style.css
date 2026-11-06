@@ -1335,7 +1335,7 @@ dialog.account-screen {
   border: 0;
   border-radius: 0;
   overflow: hidden;
-  background: var(--flat-sea);
+  background: var(--flat-sea) 50% 100% / cover;
 }
 dialog.account-screen[open] {
   display: grid;

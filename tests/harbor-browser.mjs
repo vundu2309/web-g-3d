@@ -106,10 +106,17 @@ try {
     frame.width >= 843 && frame.height >= 389,
     "the sign-in is a full screen",
   );
+  // Its picture is the drawn sunset (an inline SVG), never an image file such as a
+  // screenshot of the map.
+  const art = await login.evaluate(
+    (el) => getComputedStyle(el).backgroundImage,
+  );
   assert.ok(
-    !/url\(/.test(
-      await login.evaluate((el) => getComputedStyle(el).backgroundImage),
-    ),
+    art.startsWith('url("data:image/svg+xml'),
+    "the sign-in has the drawn sunset",
+  );
+  assert.ok(
+    !/\.(webp|png|jpe?g)|https?:/.test(art),
     "the sign-in shows no picture of the map",
   );
   await page.waitForTimeout(800);

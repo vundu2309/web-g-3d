@@ -1,3 +1,4 @@
+import { hubArtUrl } from "../ui/hub-art";
 import {
   accountError,
   currentPlayer,
@@ -13,6 +14,7 @@ async function openAccount(signal?: AbortSignal): Promise<User | null> {
   return new Promise((resolve) => {
     const dialog = document.createElement("dialog");
     dialog.className = "account-dialog account-screen";
+    dialog.style.backgroundImage = hubArtUrl();
     dialog.setAttribute("aria-labelledby", "account-title");
     dialog.setAttribute("aria-describedby", "account-intro");
     let mode: "login" | "register" | "reset" | "confirm" = "login";
