@@ -1269,3 +1269,26 @@ dialog.account-screen :is(input, textarea) {
 .ocean-hint {
   display: none;
 }
+
+/* Portrait phones: the landscape harbor art is shown wide enough for the whole boat and
+   sun (x 270..670 of 844) instead of being cropped to the middle sliver. The bands above
+   and below it are the art's own top and bottom colours, so no seam shows. */
+@media (orientation: portrait) {
+  .hub-art {
+    background: linear-gradient(
+      #4b3a8f 0,
+      #4b3a8f 25%,
+      #1d2a66 45%,
+      #1d2a66 100%
+    );
+  }
+  .hub-art .hub-svg {
+    inset: auto;
+    top: 18%;
+    left: 50%;
+    width: 211%;
+    height: auto;
+    aspect-ratio: 844 / 390;
+    transform: translateX(-55.7%);
+  }
+}
