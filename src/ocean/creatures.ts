@@ -4,8 +4,10 @@ import {
   darker,
   lighter,
   mix,
+  noise,
   rgb,
   sample,
+  smooth,
   standUp,
   type Creature,
   type RGB,
@@ -236,30 +238,122 @@ const PLANS: Partial<Record<CreatureKind, FishPlan>> = {
   },
 };
 
-const fishColour = (body: RGB, belly: RGB) => (_s: number, angle: number) => {
-  const c = Math.cos(angle);
-  return mix(belly, body, Math.min(1, Math.max(0, 0.5 + c * 0.9)));
+/** How the skin is marked. The species table picks one; each kind has a default. */
+export type Pattern =
+  | "plain"
+  | "lateral"
+  | "bars"
+  | "spots"
+  | "mottled"
+  | "saddle";
+export interface Look {
+  pattern?: Pattern;
+  /** Colour of the markings (hex); default is a darker body colour. */
+  mark?: string;
+  /** Colour of the iris (hex). */
+  iris?: string;
+}
+const LOOKS: Partial<Record<CreatureKind, Look>> = {
+  slim: { pattern: "lateral", mark: "#f4fbff", iris: "#e8e8ee" },
+  round: { pattern: "mottled", iris: "#ffcf4a" },
+  diamond: { pattern: "plain", iris: "#e8e8ee" },
+  puffer: { pattern: "spots", iris: "#7ad0e8" },
+  chunky: { pattern: "spots", iris: "#ffcf4a" },
+  torpedo: { pattern: "bars", iris: "#d8e0e8" },
+  sword: { pattern: "plain", iris: "#9ad0f0" },
+  shark: { pattern: "plain", iris: "#2b3a4a" },
+  flounder: { pattern: "mottled", iris: "#ffcf4a" },
+  flat: { pattern: "spots", iris: "#2b3a4a" },
 };
+
+const fract = (v: number) => v - Math.floor(v);
+
+/** Paints the skin: dark back, pale belly and the species' markings. u: nose 0 to tail 1. */
+function skinOf(body: RGB, belly: RGB, mark: RGB, pattern: Pattern) {
+  return (u: number, a: number): RGB => {
+    const c = Math.cos(a);
+    let col = mix(belly, body, smooth(-0.55, 0.5, c));
+    col = mix(col, darker(body, 0.2), smooth(0.45, 1, c) * 0.65);
+    const flank = 1 - Math.abs(c);
+    const turn = (a / (Math.PI * 2)) % 1;
+    switch (pattern) {
+      case "lateral": {
+        const line =
+          smooth(0.8, 0.97, flank) *
+          smooth(0.14, 0.26, u) *
+          (1 - smooth(0.88, 0.98, u));
+        col = mix(col, mark, line * 0.95);
+        break;
+      }
+      case "bars": {
+        const bar = Math.pow(Math.max(0, Math.sin(u * Math.PI * 10 + 0.4)), 3);
+        const back = smooth(-0.05, 0.55, c);
+        col = mix(
+          col,
+          darker(body, 0.5),
+          bar * back * smooth(0.18, 0.3, u) * 0.85,
+        );
+        break;
+      }
+      case "spots":
+      case "mottled": {
+        const cu = pattern === "spots" ? 17 : 8;
+        const ca = pattern === "spots" ? 15 : 7;
+        const iu = Math.floor(u * cu);
+        const ia = Math.floor(turn * ca);
+        const chance = noise(iu, ia);
+        const d = Math.hypot(fract(u * cu) - 0.5, fract(turn * ca) - 0.5);
+        const strength = pattern === "spots" ? 0.9 : 0.6;
+        const size = pattern === "spots" ? 0.34 : 0.55;
+        const amount =
+          chance < (pattern === "spots" ? 0.45 : 0.55)
+            ? smooth(size, size * 0.45, d)
+            : 0;
+        col = mix(
+          col,
+          mark,
+          amount * strength * (1 - smooth(-0.2, -0.7, c) * 0.5),
+        );
+        break;
+      }
+      case "saddle": {
+        for (const centre of [0.3, 0.5, 0.7]) {
+          const k =
+            smooth(0.07, 0.02, Math.abs(u - centre)) * smooth(0.1, 0.6, c);
+          col = mix(col, mark, k * 0.8);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+    return col;
+  };
+}
 
 /** Fish read plumper in 3D than their drawings; this keeps them close to the cards. */
 const FAT = 1.32;
 const fatKeys = (keys: readonly Key[]): Key[] =>
   keys.map(([u, w, t, b]) => [u, w * FAT, t * FAT, b * FAT]);
 
-function stationsOf(plan: FishPlan, n = 13): Station[] {
+const fishColour = (body: RGB, belly: RGB) => (_s: number, angle: number) => {
+  const c = Math.cos(angle);
+  return mix(belly, body, Math.min(1, Math.max(0, 0.5 + c * 0.9)));
+};
+
+function stationsOf(plan: FishPlan, n: number): Station[] {
   const span = plan.noseX - plan.tailX;
-  const at = (i: number) => i / (n - 1);
   const keys = fatKeys(plan.keys);
   const channel = (index: 1 | 2 | 3) =>
     keys.map((k) => [k[0], k[index]] as const);
   return Array.from({ length: n }, (_, i) => {
-    const u = at(i);
+    const u = i / (n - 1);
     return {
       x: plan.noseX - u * span,
       width: sample(channel(1), u),
       top: sample(channel(2), u),
       bottom: sample(channel(3), u),
-      cap: i === 0 ? 0.03 : 0.012,
+      cap: i === 0 ? 0.035 : 0.012,
     };
   });
 }
@@ -268,202 +362,313 @@ const fishy = (
   kind: CreatureKind,
   bodyHex: string,
   finHex: string,
+  look?: Look,
 ): Creature => {
   const plan = PLANS[kind]!;
+  const spec = { ...LOOKS[kind], ...look };
   const body = rgb(bodyHex);
   const fin = rgb(finHex);
   const belly = lighter(body, 0.62);
+  const mark = spec.mark ? rgb(spec.mark) : darker(body, 0.5);
+  const iris = rgb(spec.iris ?? "#ffcf4a");
+  const membrane = lighter(fin, 0.12);
+  const ray = darker(fin, 0.3);
   const main = new Builder();
-  const stations = stationsOf(plan);
-  main.loft(stations, 11, fishColour(body, belly));
-  const span = plan.noseX - plan.tailX;
-  const xOf = (u: number) => plan.noseX - u * span;
-  const widthAt = (x: number) =>
-    sample(
-      fatKeys(plan.keys)
-        .map((k) => [plan.noseX - k[0] * span, k[1]] as const)
-        .reverse(),
-      x,
-    );
-  const topAt = (x: number) =>
-    sample(
-      fatKeys(plan.keys)
-        .map((k) => [plan.noseX - k[0] * span, k[2]] as const)
-        .reverse(),
-      x,
-    );
-  const bottomAt = (x: number) =>
-    sample(
-      fatKeys(plan.keys)
-        .map((k) => [plan.noseX - k[0] * span, k[3]] as const)
-        .reverse(),
-      x,
-    );
-  // Dorsal and anal fins.
-  const [d0, d1, dh] = plan.dorsal;
-  const dorsalX0 = xOf(d0);
-  const dorsalX1 = xOf(d1);
-  main.plate(
-    [
-      [dorsalX0, topAt(dorsalX0) * 0.8, 0],
-      [
-        (dorsalX0 + dorsalX1) / 2 + 0.03,
-        topAt((dorsalX0 + dorsalX1) / 2) + dh,
-        0,
-      ],
-      [dorsalX1, topAt(dorsalX1) * 0.8, 0],
-    ],
-    fin,
+  const STATIONS = 34;
+  main.loft(stationsOf(plan, STATIONS), 20, (i, a) =>
+    skinOf(body, belly, mark, spec.pattern ?? "plain")(i / (STATIONS - 1), a),
   );
+
+  const span = plan.noseX - plan.tailX;
+  const keys = fatKeys(plan.keys);
+  const ch = (index: 1 | 2 | 3) => keys.map((k) => [k[0], k[index]] as const);
+  const at = (u: number) => ({
+    x: plan.noseX - u * span,
+    w: sample(ch(1), u),
+    top: sample(ch(2), u),
+    bottom: sample(ch(3), u),
+  });
+  /** A point on the skin at u along the body and angle a around it (0 is the back). */
+  const surf = (u: number, a: number, out = 1): V3 => {
+    const s = at(u);
+    const c = Math.cos(a);
+    return [
+      s.x,
+      (c >= 0 ? s.top : s.bottom) * c * out,
+      s.w * Math.sin(a) * out,
+    ];
+  };
+
+  // Dorsal fin: a spiny leading edge then soft rays, swept back.
+  const [d0, d1, dh] = plan.dorsal;
+  const dBase: V3[] = [];
+  const dTip: V3[] = [];
+  const dn = 9;
+  for (let i = 0; i < dn; i++) {
+    const u = d0 + ((d1 - d0) * i) / (dn - 1);
+    const s = at(u);
+    const height =
+      dh * (i < 3 ? 0.85 + 0.15 * (i / 2) : 1 - 0.55 * ((i - 3) / (dn - 4)));
+    dBase.push([s.x, s.top * 0.92, 0]);
+    dTip.push([s.x - 0.045 * (1 - i / dn) - 0.01, s.top + height, 0]);
+  }
+  main.finStrip(dBase, dTip, membrane, ray);
   if (plan.anal) {
     const [a0, a1, ah] = plan.anal;
-    const ax0 = xOf(a0);
-    const ax1 = xOf(a1);
-    main.plate(
-      [
-        [ax0, -bottomAt(ax0) * 0.8, 0],
-        [(ax0 + ax1) / 2 - 0.02, -bottomAt((ax0 + ax1) / 2) - ah, 0],
-        [ax1, -bottomAt(ax1) * 0.8, 0],
-      ],
-      fin,
+    const aBase: V3[] = [];
+    const aTip: V3[] = [];
+    for (let i = 0; i < 6; i++) {
+      const u = a0 + ((a1 - a0) * i) / 5;
+      const s = at(u);
+      aBase.push([s.x, -s.bottom * 0.92, 0]);
+      aTip.push([s.x - 0.03, -s.bottom - ah * (1 - 0.35 * (i / 5)), 0]);
+    }
+    main.finStrip(aBase, aTip, membrane, ray);
+  }
+  // Pectoral fins (a fan of rays) and small pelvic fins.
+  for (const side of [1, -1]) {
+    const pu = 0.27;
+    const s = at(pu);
+    const root: V3 = [s.x, -s.bottom * 0.15, s.w * 0.96 * side];
+    const tips: V3[] = [];
+    for (let k = 0; k < 7; k++) {
+      const t = k / 6;
+      const len = plan.pectoral * (1.5 - 0.5 * Math.abs(t - 0.4));
+      tips.push([
+        root[0] - len * (0.65 + 0.35 * t),
+        root[1] - len * (0.55 - 0.9 * t) * 0.8 - 0.01,
+        root[2] + side * len * 0.45,
+      ]);
+    }
+    main.fan(root, tips, membrane, ray);
+    const ps = at(0.36);
+    const proot: V3 = [ps.x, -ps.bottom * 0.95, ps.w * 0.45 * side];
+    main.fan(
+      proot,
+      [0, 1, 2, 3].map(
+        (k): V3 => [
+          proot[0] - 0.02 - k * 0.012,
+          proot[1] - 0.05 + k * 0.006,
+          proot[2] + side * (0.03 + k * 0.012),
+        ],
+      ),
+      membrane,
+      ray,
     );
   }
-  // Pectoral fins, one on each side.
-  const px = xOf(0.3);
-  for (const side of [1, -1])
-    main.plate(
-      [
-        [px, -bottomAt(px) * 0.1, widthAt(px) * side],
-        [
-          px - plan.pectoral * 1.3,
-          -bottomAt(px) * 0.55,
-          (widthAt(px) + plan.pectoral * 0.7) * side,
-        ],
-        [px - plan.pectoral * 0.8, -bottomAt(px) * 0.9, widthAt(px) * side],
-      ],
-      fin,
-    );
-  // Eyes.
-  const ex = xOf(plan.eyeU);
+  // Finlets before the tail on the fast swimmers.
+  if (kind === "torpedo" || kind === "sword") {
+    for (const sign of [1, -1])
+      for (let k = 0; k < 5; k++) {
+        const u = 0.76 + k * 0.034;
+        const s = at(u);
+        const y = sign * (sign > 0 ? s.top : s.bottom);
+        main.plate(
+          [
+            [s.x, y * 0.95, 0],
+            [s.x - 0.03, y + sign * 0.035, 0],
+            [s.x - 0.04, y * 0.95, 0],
+          ],
+          lighter(fin, 0.35),
+        );
+      }
+  }
+  // Head detail: gill covers, mouth and eyes.
+  const gillU = plan.eyeU + 0.13;
   for (const side of [1, -1]) {
-    const ew = widthAt(ex);
+    const arc: V3[] = [];
+    for (let k = 0; k < 9; k++) {
+      const a = 0.45 + (k / 8) * 2.1;
+      arc.push(surf(gillU, side > 0 ? a : Math.PI * 2 - a, 1.02));
+    }
+    main.tube(arc, () => 0.0065, darker(body, 0.45), 4);
+    // The cover is a touch lighter than the flank.
+    const lit: V3[] = [];
+    for (let k = 0; k < 7; k++)
+      lit.push(
+        surf(
+          gillU - 0.035,
+          side > 0 ? 0.7 + k * 0.28 : Math.PI * 2 - (0.7 + k * 0.28),
+          1.01,
+        ),
+      );
+    main.tube(lit, () => 0.01, lighter(body, 0.22), 4);
+    // Mouth: a thin dark line from the tip to the corner.
+    const corner = surf(0.1, side > 0 ? 1.95 : Math.PI * 2 - 1.95, 1.0);
+    const front = surf(0.012, Math.PI, 1.0);
+    main.tube(
+      [
+        front,
+        [
+          (front[0] + corner[0]) / 2,
+          (front[1] + corner[1]) / 2 - 0.004,
+          ((front[2] + corner[2]) / 2) * 1.05,
+        ],
+        corner,
+      ],
+      () => 0.0042,
+      rgb(0x153b80),
+      4,
+    );
+    // The eye: socket, white, iris, pupil and a spark of light.
+    const es = at(plan.eyeU);
+    const e = plan.eyeSize * 1.25;
+    const ey = es.top * 0.32;
+    const ez = es.w * 0.9 * side;
     main.ellipsoid(
-      [ex, topAt(ex) * 0.35, ew * 0.88 * side],
-      [plan.eyeSize, plan.eyeSize, plan.eyeSize * 0.7],
-      EYE,
-      5,
-      7,
+      [es.x, ey, ez],
+      [e * 1.2, e * 1.2, e * 0.7],
+      darker(body, 0.35),
+      6,
+      9,
     );
     main.ellipsoid(
-      [
-        ex + 0.004,
-        topAt(ex) * 0.35,
-        ew * 0.88 * side + plan.eyeSize * 0.55 * side,
-      ],
-      [plan.eyeSize * 0.5, plan.eyeSize * 0.5, plan.eyeSize * 0.4],
-      INK,
+      [es.x + 0.002, ey, ez + side * e * 0.2],
+      [e, e, e * 0.6],
+      EYE,
+      6,
+      9,
+    );
+    main.ellipsoid(
+      [es.x + 0.006, ey, ez + side * e * 0.46],
+      [e * 0.72, e * 0.72, e * 0.45],
+      iris,
+      6,
+      9,
+    );
+    main.ellipsoid(
+      [es.x + 0.01, ey, ez + side * e * 0.62],
+      [e * 0.42, e * 0.42, e * 0.35],
+      rgb(0x0b1d3a),
+      5,
+      8,
+    );
+    main.ellipsoid(
+      [es.x + 0.016, ey + e * 0.22, ez + side * e * 0.78],
+      [e * 0.14, e * 0.14, e * 0.12],
+      EYE,
       4,
       6,
     );
+    // Nostril.
+    const nose = surf(0.045, side > 0 ? 0.4 : Math.PI * 2 - 0.4, 1.0);
+    main.ellipsoid(nose, [0.006, 0.006, 0.006], darker(body, 0.4), 4, 5);
   }
   if (kind === "puffer") {
-    // Short spines over the round body.
-    for (let k = 0; k < 14; k++) {
-      const a = k * 2.399;
-      const u = 0.2 + ((k * 0.37) % 0.55);
-      const x = xOf(u);
-      const y = Math.sin(a) * topAt(x) * 0.8;
-      const z = Math.cos(a) * widthAt(x) * 0.8;
-      if (Math.abs(z) < 0.02 && Math.abs(y) < 0.02) continue;
-      main.plate(
-        [
-          [x, y, z],
-          [
-            x - 0.02,
-            y + Math.sign(y || 1) * 0.045,
-            z + Math.sign(z || 1) * 0.04,
-          ],
-          [x - 0.035, y, z],
-        ],
-        darker(fin, 0.15),
+    // Short spines all over, and a small beak.
+    for (let k = 0; k < 44; k++) {
+      const u = 0.16 + noise(k, 3) * 0.6;
+      const a = noise(k, 9) * Math.PI * 2;
+      if (Math.abs(Math.sin(a)) > 0.9 && u < 0.3) continue;
+      const base = surf(u, a, 1.0);
+      const tipP = surf(u, a, 1.0 + 0.2 + noise(k, 5) * 0.08);
+      main.tube(
+        [base, tipP],
+        (t) => 0.011 * (1 - t) + 0.001,
+        lighter(body, 0.45),
+        4,
       );
     }
+    const beak = surf(0.02, Math.PI, 1.0);
+    main.plate(
+      [
+        [beak[0] + 0.02, beak[1] + 0.012, 0.012],
+        [beak[0] + 0.02, beak[1] + 0.012, -0.012],
+        [beak[0] - 0.01, beak[1] - 0.012, 0],
+      ],
+      lighter(body, 0.8),
+    );
   }
   if (kind === "sword") {
-    // The bill: a long thin cone in front of the face.
+    // The bill and the lower jaw.
     main.tube(
       [
-        [plan.noseX, 0, 0],
-        [plan.noseX + 0.12, 0, 0],
-        [0.5, 0, 0],
+        [plan.noseX, 0.004, 0],
+        [plan.noseX + 0.12, 0.004, 0],
+        [0.5, 0.004, 0],
       ],
-      (t) => 0.022 * (1 - t * 0.92),
-      darker(body, 0.2),
-      6,
+      (t) => 0.024 * (1 - t * 0.9),
+      darker(body, 0.25),
+      7,
+    );
+    main.tube(
+      [
+        [plan.noseX - 0.02, -0.02, 0],
+        [plan.noseX + 0.04, -0.018, 0],
+      ],
+      (t) => 0.014 * (1 - t * 0.5),
+      darker(body, 0.1),
+      5,
     );
   }
   if (kind === "shark") {
-    // A paler underside and gill slits.
-    for (let g = 0; g < 3; g++) {
-      const gx = xOf(0.17 + g * 0.04);
-      for (const side of [1, -1])
-        main.plate(
-          [
-            [gx, topAt(gx) * 0.5, widthAt(gx) * side],
-            [gx - 0.006, -bottomAt(gx) * 0.35, widthAt(gx) * side],
-          ],
-          darker(body, 0.5),
-        );
+    // Five gill slits and a long smile.
+    for (let g = 0; g < 5; g++) {
+      for (const side of [1, -1]) {
+        const slit: V3[] = [];
+        for (let k = 0; k < 5; k++) {
+          const a = 0.7 + k * 0.28;
+          slit.push(
+            surf(0.2 + g * 0.026, side > 0 ? a : Math.PI * 2 - a, 1.015),
+          );
+        }
+        main.tube(slit, () => 0.0042, darker(body, 0.55), 4);
+      }
     }
+    // A second small dorsal fin and bigger pelvics.
+    const s2 = at(0.7);
+    main.plate(
+      [
+        [s2.x, s2.top * 0.9, 0],
+        [s2.x - 0.035, s2.top + 0.045, 0],
+        [s2.x - 0.06, s2.top * 0.9, 0],
+      ],
+      membrane,
+    );
   }
-  // The tail swings on its own: a separate part pivoting where the body ends.
-  const tailBuilder = new Builder();
+
+  // The tail swings on its own: a fan of rays pivoting where the body ends.
+  const tail = new Builder();
   const tx = plan.tailX;
   const s = plan.tailSpan;
-  const tailPoints: V3[] =
-    plan.tail === "round"
-      ? [
-          [tx, 0.016, 0],
-          [tx - 0.1, s * 0.75, 0],
-          [tx - 0.2, s * 0.55, 0],
-          [tx - 0.21, 0, 0],
-          [tx - 0.2, -s * 0.55, 0],
-          [tx - 0.1, -s * 0.75, 0],
-          [tx, -0.016, 0],
-        ]
-      : plan.tail === "lunate"
-        ? [
-            [tx, 0.016, 0],
-            [tx - 0.08, s * 0.55, 0],
-            [tx - 0.21, s * 1.25, 0],
-            [tx - 0.14, 0, 0],
-            [tx - 0.21, -s * 1.25, 0],
-            [tx - 0.08, -s * 0.55, 0],
-            [tx, -0.016, 0],
-          ]
-        : [
-            [tx, 0.016, 0],
-            [tx - 0.17, s * 1.1, 0],
-            [tx - 0.12, 0, 0],
-            [tx - 0.17, -s * 1.1, 0],
-            [tx, -0.016, 0],
-          ];
-  if (kind === "shark")
-    tailPoints.splice(
-      0,
-      tailPoints.length,
-      [tx, 0.02, 0],
-      [tx - 0.06, s * 0.8, 0],
-      [tx - 0.24, s * 1.7, 0],
-      [tx - 0.15, s * 0.2, 0],
-      [tx - 0.2, -s * 0.9, 0],
-      [tx - 0.06, -s * 0.5, 0],
-      [tx, -0.02, 0],
-    );
-  tailBuilder.plate(tailPoints, fin);
+  const tips: [number, number, number][] = [];
+  const count = 11;
+  for (let k = 0; k < count; k++) {
+    const t = (k / (count - 1)) * 2 - 1;
+    const y =
+      t *
+      s *
+      (plan.tail === "lunate" ? 1.3 : plan.tail === "fork" ? 1.1 : 0.85);
+    const reach =
+      plan.tail === "round"
+        ? 0.21 - 0.05 * t * t
+        : plan.tail === "lunate"
+          ? 0.1 + 0.11 * Math.abs(t)
+          : 0.12 + 0.07 * Math.abs(t);
+    tips.push([tx - reach, y, 0]);
+  }
+  if (kind === "shark") {
+    tips.forEach((tip, k) => {
+      const t = (k / (count - 1)) * 2 - 1;
+      tip[1] = t > 0 ? t * s * 1.9 : t * s * 1.0;
+      tip[0] = tx - (t > 0 ? 0.1 + 0.14 * t : 0.1 + 0.06 * -t);
+    });
+  }
+  tail.fan([tx, 0, 0], tips, membrane, ray);
+  // A keel on each side of the narrow tail base.
+  if (kind === "torpedo" || kind === "sword" || kind === "shark")
+    for (const side of [1, -1])
+      tail.plate(
+        [
+          [tx + 0.04, 0, 0.0],
+          [tx, 0.0, 0.03 * side],
+          [tx - 0.04, 0.0, 0.0],
+        ],
+        darker(body, 0.2),
+      );
   return {
     main: main.part,
-    tail: { part: tailBuilder.part, pivot: [tx, 0, 0] },
+    tail: { part: tail.part, pivot: [tx, 0, 0] },
     size: 1,
     hook: [plan.noseX, -0.005, 0],
   };

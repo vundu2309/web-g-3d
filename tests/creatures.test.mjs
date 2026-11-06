@@ -41,7 +41,7 @@ test("every sea animal builds valid, finite geometry within a phone-sized triang
       total += triangleCount(part);
     }
     assert.ok(total > 100, `${kind} has some shape (${total})`);
-    assert.ok(total < 2500, `${kind} stays light (${total} triangles)`);
+    assert.ok(total < 6000, `${kind} stays light (${total} triangles)`);
   }
 });
 

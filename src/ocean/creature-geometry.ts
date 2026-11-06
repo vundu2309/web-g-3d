@@ -120,6 +120,60 @@ export class Builder {
     }
   }
 
+  /**
+   * A fin with rays: a strip from a base line to a tip line, membrane between thin darker
+   * rays. Visible from both sides (each side has its own vertices, see `plate`).
+   */
+  finStrip(base: V3[], tip: V3[], membrane: RGB, ray: RGB) {
+    const n = Math.min(base.length, tip.length);
+    const quad = (a: V3, b: V3, c: V3, d: V3, colour: RGB) => {
+      for (const back of [false, true]) {
+        const i = this.vertex(a, colour);
+        const j = this.vertex(b, colour);
+        const k = this.vertex(c, colour);
+        const l = this.vertex(d, colour);
+        this.part.indices.push(
+          ...(back ? [i, k, j, j, k, l] : [i, j, k, j, l, k]),
+        );
+      }
+    };
+    const lerp = (p: V3, q: V3, t: number): V3 => [
+      p[0] + (q[0] - p[0]) * t,
+      p[1] + (q[1] - p[1]) * t,
+      p[2] + (q[2] - p[2]) * t,
+    ];
+    for (let i = 0; i < n - 1; i++) {
+      // The membrane, and a thin ray along its leading edge.
+      quad(base[i]!, base[i + 1]!, tip[i]!, tip[i + 1]!, membrane);
+      quad(
+        base[i]!,
+        lerp(base[i]!, base[i + 1]!, 0.16),
+        tip[i]!,
+        lerp(tip[i]!, tip[i + 1]!, 0.16),
+        ray,
+      );
+    }
+    const last = n - 1;
+    const before = Math.max(0, n - 2);
+    quad(
+      base[last]!,
+      lerp(base[last]!, base[before]!, 0.12),
+      tip[last]!,
+      lerp(tip[last]!, tip[before]!, 0.12),
+      ray,
+    );
+  }
+
+  /** A fan of rays from one root (a tail, a pectoral fin). */
+  fan(root: V3, tips: V3[], membrane: RGB, ray: RGB) {
+    this.finStrip(
+      tips.map(() => root),
+      tips,
+      membrane,
+      ray,
+    );
+  }
+
   ellipsoid(
     centre: V3,
     radius: V3,
@@ -347,3 +401,14 @@ export function standUp(creature: Creature): Creature {
     hook: turn(creature.hook),
   };
 }
+
+/** Deterministic pseudo-random number in [0, 1) from two integers (for spots). */
+export function noise(x: number, y: number) {
+  let h = Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+export const smooth = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a || 1)));
+  return t * t * (3 - 2 * t);
+};
