@@ -41,24 +41,22 @@ export function projectCreature(
   const sy = Math.sin(yaw);
   const cp = Math.cos(pitch);
   const sp = Math.sin(pitch);
-  const parts: Array<{ part: Part; shift: readonly number[] }> = [
-    { part: creature.main, shift: [0, 0, 0] },
-  ];
-  if (creature.tail)
-    parts.push({ part: creature.tail.part, shift: creature.tail.pivot });
+  // The tail's vertices are already in model space (its pivot only matters when it swings).
+  const parts: Part[] = [creature.main];
+  if (creature.tail) parts.push(creature.tail.part);
   const triangles: ThumbTriangle[] = [];
   let minX = Infinity;
   let maxX = -Infinity;
   let minY = Infinity;
   let maxY = -Infinity;
-  for (const { part, shift } of parts) {
+  for (const part of parts) {
     const count = part.positions.length / 3;
     // Turn every vertex once: about Y by yaw, then about X by pitch.
     const turned = new Float64Array(count * 3);
     for (let i = 0; i < count; i++) {
-      const x = part.positions[i * 3]! + shift[0]!;
-      const y = part.positions[i * 3 + 1]! + shift[1]!;
-      const z = part.positions[i * 3 + 2]! + shift[2]!;
+      const x = part.positions[i * 3]!;
+      const y = part.positions[i * 3 + 1]!;
+      const z = part.positions[i * 3 + 2]!;
       const x1 = x * cy + z * sy;
       const z1 = -x * sy + z * cy;
       turned[i * 3] = x1;
