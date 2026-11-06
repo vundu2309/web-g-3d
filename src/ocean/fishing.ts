@@ -455,6 +455,8 @@ export interface FishingView {
   fight: FightView | undefined;
   /** Species id of the fish on the line, while fighting. */
   species: string | undefined;
+  /** How heavy the fish on the line is for its kind, 0..1 (to draw it the right size). */
+  size: number | undefined;
 }
 
 interface Round {
@@ -683,6 +685,17 @@ export class Angler {
     }
   }
 
+  /** How heavy the hooked fish is within its species' range, 0..1. */
+  private hookedSize(): number | undefined {
+    const fish = this.hooked;
+    const species = fish ? speciesById(fish.species) : undefined;
+    if (!fish || !species) return undefined;
+    const [low, high] = species.kg;
+    return high > low
+      ? Math.min(1, Math.max(0, (fish.kg - low) / (high - low)))
+      : 0;
+  }
+
   view(now: number): FishingView {
     const round = this.round;
     const bite = round?.biteAt;
@@ -708,6 +721,7 @@ export class Angler {
           : 0,
       fight: this.fight?.view(),
       species: this.fight ? this.hooked?.species : undefined,
+      size: this.fight ? this.hookedSize() : undefined,
     };
   }
 }

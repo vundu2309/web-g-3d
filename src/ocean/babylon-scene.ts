@@ -31,6 +31,7 @@ import {
   type Pose,
 } from "./model.ts";
 import { FishingGear, type GearInput } from "./fishing-gear.ts";
+import { RodVisual } from "./rod-visual.ts";
 import { FOG_DENSITY, HORIZON, SUN_DIRECTION } from "./sea-style.ts";
 import { edgeIndicator, separateLabels } from "./indicator.ts";
 import { ScaleGovernor } from "./render-scale.ts";
@@ -43,6 +44,7 @@ Scene.MaxDeltaTime = 100;
 
 interface Craft {
   mesh: InstancedMesh;
+  rod: RodVisual;
   label: HTMLElement;
   line?: Mesh;
   // Smoothed display pose of a remote boat.
@@ -185,7 +187,15 @@ export class OceanScene {
     label.dataset.uid = uid;
     if (isSelf) label.classList.add("is-self");
     this.host.append(label);
-    return { mesh, label, x: 0, z: 0, heading: 0, seen: true };
+    return {
+      mesh,
+      rod: new RodVisual(this.scene, mesh),
+      label,
+      x: 0,
+      z: 0,
+      heading: 0,
+      seen: true,
+    };
   }
 
   /** Creates the player's physics boat at the server-assigned start pose. */
@@ -261,14 +271,15 @@ export class OceanScene {
     return this.scene.whenReadyAsync();
   }
 
-  /** The tip of the player's rod in the world (fishing starts there). */
+  /** The tip of the player's rod in the world (the line starts there; the rod bends). */
   rodTip() {
-    const body = this.self?.physics.mesh;
-    if (!body) return undefined;
-    body.computeWorldMatrix(true);
+    const craft = this.self?.craft;
+    if (!craft) return undefined;
+    craft.mesh.computeWorldMatrix(true);
+    const local = craft.rod.tip();
     const tip = Vector3.TransformCoordinates(
-      new Vector3(3.16, 2.88, 2.52),
-      body.getWorldMatrix(),
+      new Vector3(local.x, local.y, local.z),
+      craft.mesh.getWorldMatrix(),
     );
     return { x: tip.x, y: tip.y, z: tip.z };
   }
@@ -310,9 +321,14 @@ export class OceanScene {
     return { x: p.x, y: p.y, visible: p.z >= 0 && p.z <= 1 };
   }
 
-  /** Where the bobber is (just above it), for the on-screen bite signal. */
-  bobberTop() {
-    return this.gear?.bobberTop();
+  /** Above where the line enters the water, for the on-screen bite signal. */
+  entryTop() {
+    return this.gear?.entryTop();
+  }
+
+  /** How far the rod is bent, 0..1 (for tests and the screen). */
+  rodBend() {
+    return this.self?.craft.rod.bend ?? 0;
   }
 
   /** Advances the world one frame and draws it. */
@@ -359,6 +375,7 @@ export class OceanScene {
       if (!present.has(id)) {
         craft.label.remove();
         craft.line?.dispose();
+        craft.rod.dispose();
         craft.mesh.dispose();
         this.fleet.delete(id);
       }
@@ -368,6 +385,28 @@ export class OceanScene {
       const speed = Math.hypot(state.forwardSpeed, state.sideSpeed);
       this.self.wake.setStrength(speed / 9);
       this.followWith(state, step);
+    }
+    // The line's pull bends the rod; the rod's tip is where the line starts.
+    if (this.self) {
+      const pull = this.gear?.pull;
+      const rod = this.self.craft.rod;
+      if (pull && pull.strength > 0) {
+        this.self.craft.mesh.computeWorldMatrix(true);
+        const inverse = this.self.craft.mesh.getWorldMatrix().clone().invert();
+        const local = Vector3.TransformNormal(
+          new Vector3(pull.x, pull.y, pull.z),
+          inverse,
+        ).normalize();
+        rod.step(
+          step,
+          {
+            x: local.x * pull.strength,
+            y: local.y * pull.strength,
+            z: local.z * pull.strength,
+          },
+          pull.shake,
+        );
+      } else rod.step(step, { x: 0, y: 0, z: 0 }, 0);
     }
     const tip =
       this.gearInput || this.gear?.recoiling || this.gear?.holding

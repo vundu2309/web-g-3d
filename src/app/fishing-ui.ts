@@ -1,3 +1,5 @@
+import { fishLength } from "../ocean/fight-look";
+import { createHaptics } from "./haptics";
 import { fishThumb } from "./fish-thumb";
 import {
   Angler,
@@ -131,6 +133,7 @@ export function createFishingUi(options: FishingUiOptions) {
       /* Not every browser or device can vibrate. */
     }
   };
+  const haptics = createHaptics(vibrate);
   const place = (target: SVGElement | HTMLElement, rectOf: DOMRect) => {
     const base = screen.getBoundingClientRect();
     target.style.left = `${rectOf.left - base.left}px`;
@@ -174,19 +177,20 @@ export function createFishingUi(options: FishingUiOptions) {
         vibrate([40, 30, 40]);
         break;
       case "mood":
-        // A surge is felt in the hand; a tired fish is a relief.
-        if (event.mood === "surge") vibrate([60, 25, 60]);
+        // The surge itself is felt through haptics.tick (a steady buzz).
         break;
       case "lost":
         if (event.reason !== "cancel") options.scene()?.gearSnap();
         hideSignals();
         shake();
+        haptics.stop();
         vibrate([90, 40, 90]);
         break;
       case "retrieved":
         break;
       case "caught":
         hideSignals();
+        haptics.stop();
         vibrate(30);
         holdFish(event.fish);
         break;
@@ -295,6 +299,8 @@ export function createFishingUi(options: FishingUiOptions) {
     angler.update(now);
     if (!options.enabled() && angler.busy) cancel();
     const view = angler.view(now);
+    // The fight in the hand: a steady buzz while the fish surges.
+    haptics.tick(now, view.fight);
     const boat = options.boat();
     // A boat that drifts too far from its bobber reels the line in.
     if (
@@ -346,7 +352,7 @@ export function createFishingUi(options: FishingUiOptions) {
       power.classList.toggle("is-sweet", inSweet);
     }
     // A blinking "!" above the bobber while a fish is nibbling: it is about to bite.
-    const top = scene.bobberTop();
+    const top = scene.entryTop();
     const nibbling = view.phase === "nibbling" && !!top;
     if (nibbling && top) {
       const at = scene.project(top.x, top.y, top.z);
@@ -407,7 +413,7 @@ export function createFishingUi(options: FishingUiOptions) {
     hang.hidden = false;
     options.scene()?.holdFish({
       id: species.id,
-      scale: 3.4 + 2 * Math.min(1, Math.max(0, weight)),
+      scale: fishLength(weight),
     });
   }
 
@@ -534,6 +540,7 @@ export function createFishingUi(options: FishingUiOptions) {
     },
     dispose() {
       angler.cancel();
+      haptics.stop();
       power.remove();
       badge.remove();
       vignette.remove();

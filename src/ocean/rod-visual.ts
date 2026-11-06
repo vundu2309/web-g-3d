@@ -1,0 +1,161 @@
+import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
+import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import type { Scene } from "@babylonjs/core/scene";
+import { hex, mergeParts, paint } from "./mesh-parts.ts";
+import { ROD_BASE, RodSim, type V3 } from "./rod.ts";
+
+/**
+ * The rod on the boat: a cork handle, a tapered graphite blank with a bright tip, a
+ * reel and a holder. The blank is one small mesh whose vertices follow RodSim every
+ * frame, so it bends and shakes. Every boat has one; only the player's is stepped.
+ */
+const RINGS = 12;
+const SIDES = 6;
+const HANDLE = 0.15;
+const CORK = hex(0xb98a5a);
+const GRAPHITE = hex(0x2b2f36);
+const TIP = hex(0xff8a3d);
+
+const materials = new WeakMap<Scene, StandardMaterial>();
+function material(scene: Scene) {
+  let found = materials.get(scene);
+  if (!found) {
+    found = new StandardMaterial("rod-material", scene);
+    found.diffuseColor = Color3.White();
+    found.specularColor = new Color3(0.3, 0.3, 0.3);
+    found.backFaceCulling = false;
+    materials.set(scene, found);
+  }
+  return found;
+}
+
+/** Radius along the rod, s from 0 (hand) to 1 (tip). */
+const radius = (s: number) =>
+  s < HANDLE ? 0.06 : 0.04 - 0.028 * ((s - HANDLE) / (1 - HANDLE));
+const colour = (s: number) => (s < HANDLE ? CORK : s > 0.9 ? TIP : GRAPHITE);
+
+export class RodVisual {
+  readonly sim: RodSim;
+  private readonly blank: Mesh;
+  private readonly fixed: Mesh;
+  private readonly positions = new Float32Array(RINGS * SIDES * 3);
+  private readonly normals = new Float32Array(RINGS * SIDES * 3);
+  private readonly points: V3[] = [];
+
+  constructor(scene: Scene, parent: TransformNode, rng?: () => number) {
+    this.sim = new RodSim(rng);
+    const indices: number[] = [];
+    const colors: number[] = [];
+    for (let r = 0; r < RINGS; r++) {
+      const c = colour(r / (RINGS - 1));
+      for (let k = 0; k < SIDES; k++) colors.push(c.r, c.g, c.b, 1);
+    }
+    for (let r = 0; r < RINGS - 1; r++)
+      for (let k = 0; k < SIDES; k++) {
+        const a = r * SIDES + k;
+        const b = r * SIDES + ((k + 1) % SIDES);
+        indices.push(a, b, a + SIDES, b, b + SIDES, a + SIDES);
+      }
+    this.blank = new Mesh("rod-blank", scene);
+    const data = new VertexData();
+    this.refresh();
+    data.positions = Array.from(this.positions);
+    data.normals = Array.from(this.normals);
+    data.colors = colors;
+    data.indices = indices;
+    data.applyToMesh(this.blank, true);
+    this.blank.material = material(scene);
+    this.blank.useVertexColors = true;
+    this.blank.parent = parent;
+    this.blank.isPickable = false;
+    // The mesh moves with the bend; do not cull it by its first bounds.
+    this.blank.alwaysSelectAsActiveMesh = true;
+
+    // The reel and the holder never move.
+    const reel = MeshBuilder.CreateCylinder(
+      "part",
+      { diameter: 0.26, height: 0.12, tessellation: 12 },
+      scene,
+    );
+    reel.rotation.x = Math.PI / 2;
+    reel.position.set(ROD_BASE.x + 0.28, ROD_BASE.y + 0.1, ROD_BASE.z + 0.02);
+    reel.bakeCurrentTransformIntoVertices();
+    paint(reel, hex(0xcfd6df));
+    const handle = MeshBuilder.CreateBox(
+      "part",
+      { width: 0.14, height: 0.5, depth: 0.14 },
+      scene,
+    );
+    handle.position.set(ROD_BASE.x - 0.03, ROD_BASE.y - 0.2, ROD_BASE.z);
+    handle.bakeCurrentTransformIntoVertices();
+    paint(handle, hex(0x4b4f56));
+    this.fixed = mergeParts("rod-fixed", [reel, handle]);
+    this.fixed.material = material(scene);
+    this.fixed.useVertexColors = true;
+    this.fixed.parent = parent;
+    this.fixed.isPickable = false;
+  }
+
+  /** Advances the spring and updates the mesh. `pull` is in the boat's axes. */
+  step(seconds: number, pull: V3, shake: number) {
+    this.sim.step(seconds, pull, shake);
+    this.refresh();
+    this.blank.updateVerticesData(VertexBuffer.PositionKind, this.positions);
+    this.blank.updateVerticesData(VertexBuffer.NormalKind, this.normals);
+  }
+
+  /** Where the line starts, in the boat's axes. */
+  tip(): V3 {
+    return this.points[RINGS - 1] ?? this.sim.tip();
+  }
+
+  /** How far the rod is bent, 0..1. */
+  get bend() {
+    return this.sim.bend;
+  }
+
+  private refresh() {
+    const points = this.sim.points(RINGS, this.points);
+    for (let r = 0; r < RINGS; r++) {
+      const a = points[Math.max(0, r - 1)]!;
+      const b = points[Math.min(RINGS - 1, r + 1)]!;
+      let tx = b.x - a.x;
+      let ty = b.y - a.y;
+      const size = Math.hypot(tx, ty, b.z - a.z) || 1;
+      tx /= size;
+      ty /= size;
+      // A frame around the rod: u across it in the boat's plane, v along the boat.
+      let ux = ty;
+      let uy = -tx;
+      const usize = Math.hypot(ux, uy) || 1;
+      ux /= usize;
+      uy /= usize;
+      const rad = radius(r / (RINGS - 1));
+      for (let k = 0; k < SIDES; k++) {
+        const angle = (k / SIDES) * Math.PI * 2;
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        const nx = ux * c;
+        const ny = uy * c;
+        const nz = s;
+        const at = (r * SIDES + k) * 3;
+        this.positions[at] = points[r]!.x + nx * rad;
+        this.positions[at + 1] = points[r]!.y + ny * rad;
+        this.positions[at + 2] = points[r]!.z + nz * rad;
+        this.normals[at] = nx;
+        this.normals[at + 1] = ny;
+        this.normals[at + 2] = nz;
+      }
+    }
+  }
+
+  dispose() {
+    this.blank.dispose();
+    this.fixed.dispose();
+  }
+}
