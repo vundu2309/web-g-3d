@@ -16,7 +16,7 @@ See `.env.example`. Frontend receives only publishable values. Render additional
 
 `/health` responds 503 until LISTEN is active, and again while that connection is down. SIGTERM stops sockets, HTTP and the database connection. Free Render instances can sleep; no latency guarantees are claimed.
 
-Vercel Git auto-deployment is disabled in `vercel.json` to keep the project's publication gate. Release a tested deployment explicitly. Keep Pages until replacement Auth, room flow, callbacks and PWA behavior have been verified. Moving origins does not move existing login state or installed PWAs.
+Vercel Git auto-deployment is enabled: a push to `main` deploys production and other branches/PRs get previews. Render `web-g-3d-api` also tracks `main` with auto-deploy after checks pass; add preview origins to Render `ALLOWED_ORIGINS` if previews must reach the API. Keep Pages until replacement Auth, room flow, callbacks and PWA behavior have been verified. Moving origins does not move existing login state or installed PWAs.
 
 ## Verification
 
