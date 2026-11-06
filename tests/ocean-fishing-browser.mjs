@@ -54,6 +54,7 @@ async function start() {
       };
     };
     window.stop = startOcean(document.querySelector("#app"), () => {}, {
+      fightSpeed: 2,
       connect,
       onScene: (s) => (window.oceanScene = s),
     });

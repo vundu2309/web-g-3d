@@ -28,6 +28,8 @@ export interface OceanOptions {
   connect?: typeof connectOcean;
   /** Receives the scene once it exists; lets tests read its state and frame cost. */
   onScene?: (scene: OceanScene) => void;
+  /** Runs the tug of war faster; tests on a software renderer would take minutes. */
+  fightSpeed?: number;
   /** Overrides the connection patience; tests use short values. */
   timing?: Partial<
     Pick<
@@ -179,6 +181,7 @@ export function startOcean(
     root,
     button: fishButton,
     dialog,
+    fightSpeed: options.fightSpeed,
     scene: () => scene,
     boat: () => pose,
     enabled: () => active && !dialog.open && !document.hidden,

@@ -383,13 +383,17 @@ export class Angler {
   private lastTick = 0;
   private readonly rng: () => number;
   private readonly emit: (event: FishingEvent) => void;
+  private readonly speed: number;
 
+  /** `speed` only exists so tests on a slow software renderer can run a fight faster. */
   constructor(
     emit: (event: FishingEvent) => void,
     rng: () => number = Math.random,
+    speed = 1,
   ) {
     this.emit = emit;
     this.rng = rng;
+    this.speed = speed;
   }
 
   get busy() {
@@ -496,7 +500,8 @@ export class Angler {
   update(now: number) {
     if (this.phase === "fighting" && this.fight) {
       // A hidden tab can skip a long time: never advance more than a moment at once.
-      const seconds = Math.min(0.1, Math.max(0, (now - this.lastTick) / 1000));
+      const seconds =
+        Math.min(0.1, Math.max(0, (now - this.lastTick) / 1000)) * this.speed;
       this.lastTick = now;
       for (const event of this.fight.update(seconds)) {
         if (event.type === "surge" || event.type === "tired")

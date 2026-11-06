@@ -39,6 +39,8 @@ export interface FishingUiOptions {
   /** The store changed (a catch, a release): save it and update the counters. */
   setStock: (next: Inventory, caughtOne: boolean) => void;
   reduced: boolean;
+  /** Test only: runs the tug of war faster (1 is real time). */
+  fightSpeed?: number;
 }
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -99,7 +101,11 @@ export function createFishingUi(options: FishingUiOptions) {
     target.style.height = `${rectOf.height}px`;
   };
 
-  const angler = new Angler((event) => handle(event));
+  const angler = new Angler(
+    (event) => handle(event),
+    Math.random,
+    options.fightSpeed ?? 1,
+  );
 
   function handle(event: FishingEvent) {
     const scene = options.scene();
