@@ -118,3 +118,32 @@ test("the two species colours really paint the animal, and a different species l
     "different body plans",
   );
 });
+
+test("every species names a real model and fight style, and draws a thumbnail", async () => {
+  const { SPECIES } = await import("../src/ocean/fishing.ts");
+  const { FIGHT_STYLES } = await import("../src/ocean/fight.ts");
+  const { projectCreature } = await import("../src/ocean/creature-thumb.ts");
+  assert.ok(SPECIES.length >= 20, "the table has grown by about ten species");
+  for (const s of SPECIES) {
+    assert.ok(CREATURE_KINDS.includes(s.shape), `${s.id} model ${s.shape}`);
+    assert.ok(s.fight in FIGHT_STYLES, `${s.id} fight ${s.fight}`);
+    assert.match(s.body, /^#[0-9a-f]{6}$/i);
+    assert.match(s.fin, /^#[0-9a-f]{6}$/i);
+    const thumb = projectCreature(buildCreature(s.shape, s.body, s.fin));
+    assert.ok(thumb.triangles.length > 100, `${s.id} has triangles`);
+    for (const v of [thumb.minX, thumb.maxX, thumb.minY, thumb.maxY])
+      assert.ok(Number.isFinite(v), `${s.id} finite extent`);
+    assert.ok(thumb.maxX > thumb.minX && thumb.maxY > thumb.minY);
+    // Painter's order: farthest first.
+    for (let i = 1; i < thumb.triangles.length; i++)
+      assert.ok(thumb.triangles[i - 1].depth >= thumb.triangles[i].depth);
+    for (const t of thumb.triangles)
+      assert.ok(t.light >= 0.5 && t.light <= 1.001);
+  }
+  // Each kind of model is used by at least one species.
+  for (const kind of CREATURE_KINDS)
+    assert.ok(
+      SPECIES.some((s) => s.shape === kind),
+      `${kind} has a species`,
+    );
+});

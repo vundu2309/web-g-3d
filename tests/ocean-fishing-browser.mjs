@@ -308,7 +308,7 @@ try {
   const cells = page.locator(".fish-cell");
   assert.equal(await cells.count(), 1, "only the species held, no empty slots");
   assert.equal(
-    await cells.first().locator(".fish-cell-art svg").count(),
+    await cells.first().locator(".fish-cell-art img").count(),
     1,
     "with its picture",
   );
