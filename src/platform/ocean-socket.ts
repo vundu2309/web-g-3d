@@ -36,29 +36,53 @@ export async function connectOcean(
     if (disposed) return;
     disposed = true;
     signal.removeEventListener("abort", dispose);
+    authListener.subscription.unsubscribe();
     socket.removeAllListeners();
     socket.disconnect();
   };
   signal.addEventListener("abort", dispose, { once: true });
+  // The server sends a full snapshot on entry and periodically, and deltas in between.
+  const known = new Map<string, Boat>();
   socket.on(
     "ocean:state",
-    (value: { boats: Record<string, unknown>[]; serverTime: number }) => {
+    (value: {
+      full?: boolean;
+      boats: Record<string, unknown>[];
+      removed?: unknown;
+      serverTime: number;
+    }) => {
       if (
         disposed ||
         !Array.isArray(value?.boats) ||
         !Number.isFinite(value.serverTime)
       )
         return;
-      const boats = value.boats.slice(0, 100).flatMap((item) => {
+      if (value.full === true) known.clear();
+      if (Array.isArray(value.removed))
+        for (const uid of value.removed) known.delete(String(uid));
+      for (const item of value.boats.slice(0, 100)) {
         if (typeof item.uid !== "string" || typeof item.updatedAt !== "number")
-          return [];
+          continue;
         const boat = readBoat(item.uid, {
           ...item,
           updatedAt: { toMillis: () => item.updatedAt as number },
         });
-        return boat ? [boat] : [];
-      });
-      onBoats(boats, value.serverTime);
+        if (boat) known.set(boat.uid, boat);
+      }
+      onBoats([...known.values()].slice(0, 100), value.serverTime);
+    },
+  );
+  // Keep the server's copy of the Auth token fresh so long trips are not cut off.
+  const { data: authListener } = supabase().auth.onAuthStateChange(
+    (event, session) => {
+      if (
+        disposed ||
+        event !== "TOKEN_REFRESHED" ||
+        session?.user.id !== user.uid ||
+        !socket.connected
+      )
+        return;
+      socket.emit("ocean:token", { token: session.access_token }, () => {});
     },
   );
   socket.on("ocean:error", (value: { error: string }) =>

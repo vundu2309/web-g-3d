@@ -1,28 +1,111 @@
 import { spawn } from "../src/ocean/model.ts";
 
 // The shared sea is ephemeral on ONE API instance. No room/persistent economy writes.
+const publicBoat = ({ socket, ...boat }) => boat;
+// Read `exp` from a token Supabase Auth already validated; this is not signature verification.
+const expiry = (token) => {
+  try {
+    const exp = JSON.parse(
+      Buffer.from(String(token).split(".")[1], "base64url").toString(),
+    ).exp;
+    return Number.isFinite(exp) ? exp * 1000 : Infinity;
+  } catch {
+    return Infinity;
+  }
+};
+
+// tickMs: fixed broadcast cadence. fullMs: periodic full snapshot that self-heals clients.
+// recheckMs: how long a validated token is trusted before Supabase Auth is asked again.
 export function attachOcean(
   io,
-  { authenticate, ready = () => true, now = Date.now },
+  {
+    authenticate,
+    ready = () => true,
+    now = Date.now,
+    tickMs = 200,
+    fullMs = 10000,
+    recheckMs = 300000,
+  },
 ) {
   const boats = new Map();
+  const changed = new Set();
+  const removed = new Set();
   const channel = "ocean:shared";
-  const snapshot = () => ({
-    boats: [...boats.values()].map(({ socket, ...boat }) => boat),
+  let lastFull = now();
+  const full = () => ({
+    full: true,
+    boats: [...boats.values()].map(publicBoat),
+    removed: [],
     serverTime: now(),
   });
-  const broadcast = () => io.to(channel).emit("ocean:state", snapshot());
+  const touch = (uid) => {
+    changed.add(uid);
+    removed.delete(uid);
+  };
+  const drop = (uid) => {
+    boats.delete(uid);
+    changed.delete(uid);
+    removed.add(uid);
+  };
+  const tick = () => {
+    if (now() - lastFull >= fullMs) {
+      lastFull = now();
+      changed.clear();
+      removed.clear();
+      if (boats.size) io.to(channel).emit("ocean:state", full());
+      return;
+    }
+    if (!changed.size && !removed.size) return;
+    const payload = {
+      full: false,
+      boats: [...changed].flatMap((uid) =>
+        boats.has(uid) ? [publicBoat(boats.get(uid))] : [],
+      ),
+      removed: [...removed],
+      serverTime: now(),
+    };
+    changed.clear();
+    removed.clear();
+    io.to(channel).emit("ocean:state", payload);
+  };
+  const timer = setInterval(tick, tickMs);
+  timer.unref();
+  io.httpServer?.on("close", () => clearInterval(timer));
   io.on("connection", (socket) => {
     let pending = false;
     let last = 0;
     let joined = false;
+    let lastToken = 0;
+    socket.data.exp = expiry(socket.data.token);
+    socket.data.authAt = now();
     const remove = () => {
-      if (boats.get(socket.data.uid)?.session === socket.id) {
-        boats.delete(socket.data.uid);
-        broadcast();
-      }
+      if (boats.get(socket.data.uid)?.session === socket.id)
+        drop(socket.data.uid);
     };
     socket.on("disconnect", remove);
+    // The client sends its refreshed Auth token so long trips outlive the first token.
+    socket.on("ocean:token", async (input, ack) => {
+      const reply = typeof ack === "function" ? ack : () => {};
+      if (typeof input?.token !== "string" || input.token.length > 8192)
+        return reply({ error: "Yêu cầu không hợp lệ." });
+      if (now() - lastToken < 5000)
+        return reply({ error: "Thao tác quá nhanh." });
+      lastToken = now();
+      try {
+        const user = await authenticate(input.token);
+        if (!user || user.id !== socket.data.uid) {
+          reply({ error: "Hãy đăng nhập lại." });
+          socket.disconnect(true);
+          return;
+        }
+        socket.data.token = input.token;
+        socket.data.exp = expiry(input.token);
+        socket.data.authAt = now();
+        reply({ data: true });
+      } catch {
+        reply({ error: "Chưa làm mới được phiên. Hãy thử lại." });
+      }
+    });
     socket.on("ocean:command", async (input, ack) => {
       if (typeof ack !== "function") return;
       if (!ready())
@@ -49,7 +132,15 @@ export function attachOcean(
       pending = true;
       last = now();
       try {
-        const user = await authenticate(socket.data.token);
+        // Joining always asks Auth; moves reuse a recent validation instead of one call per move.
+        const stale =
+          input.action === "join" ||
+          now() >= socket.data.exp ||
+          now() - socket.data.authAt >= recheckMs;
+        const user = stale
+          ? await authenticate(socket.data.token)
+          : { id: socket.data.uid };
+        if (stale && user) socket.data.authAt = now();
         if (!user || user.id !== socket.data.uid) {
           ack({ error: "Hãy đăng nhập lại." });
           socket.disconnect(true);
@@ -83,9 +174,10 @@ export function attachOcean(
             socket,
           });
           joined = true;
+          touch(user.id);
           await socket.join(channel);
           ack({ data: { pose } });
-          broadcast();
+          socket.emit("ocean:state", full());
         } else {
           const boat = boats.get(user.id);
           if (!joined || !boat || boat.session !== socket.id)
@@ -93,8 +185,8 @@ export function attachOcean(
               error: "Thuyền không còn trong phiên này. Hãy vào lại.",
             });
           Object.assign(boat, input.pose, { updatedAt: now() });
+          touch(user.id);
           ack({ data: true });
-          broadcast();
         }
       } catch {
         ack({ error: "Chưa kết nối được biển chung. Hãy vào lại." });
