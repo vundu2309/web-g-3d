@@ -649,78 +649,71 @@
     transform: translateX(-3px);
   }
 }
-.ocean-dialog.is-catch,
+/* The fish store: a full-screen hub with an X, a grid of the species held and nothing else. */
 .ocean-dialog.is-stock {
-  max-width: min(640px, calc(100vw - 32px));
+  max-width: none;
+  max-height: none;
 }
-.fish-card {
+.ocean-dialog.is-stock[open] {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  margin: 0;
+  box-sizing: border-box;
   display: flex;
-  gap: 20px;
+  flex-direction: column;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(#e6f4ff, #bfe3ff);
+  padding: max(14px, var(--safe-top, env(safe-area-inset-top, 0px)))
+    max(18px, var(--safe-right, env(safe-area-inset-right, 0px)))
+    max(14px, var(--safe-bottom, env(safe-area-inset-bottom, 0px)))
+    max(18px, var(--safe-left, env(safe-area-inset-left, 0px)));
+}
+.fish-store-head {
+  flex: none;
+  display: flex;
   align-items: center;
-  animation: fish-pop 0.35s ease-out;
+  gap: 12px;
 }
-@keyframes fish-pop {
-  from {
-    transform: scale(0.85);
-    opacity: 0;
-  }
+.fish-store-head h2 {
+  margin: 0;
 }
-.fish-card-art {
+.fish-store-head .fish-total {
+  flex: 1;
+  margin: 0;
+  font-weight: 700;
+}
+.fish-store-close {
   flex: none;
   display: grid;
   place-items: center;
-  padding: 10px;
-  border: 3px solid #153b80;
-  border-radius: 18px;
-  background: linear-gradient(#bfe3ff, #7cc4ee);
-}
-.fish-card-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-}
-.fish-card-name {
-  font:
-    800 28px "Baloo 2",
-    sans-serif;
-  line-height: 1.1;
-}
-.fish-card-stats {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.fish-tag {
-  display: inline-block;
-  padding: 3px 12px;
-  border: 2px solid #153b80;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 800;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 2.5px solid #153b80;
+  border-radius: 50%;
   background: #fff;
+  box-shadow: 0 3px 0 #153b80;
+  color: #153b80;
+  cursor: pointer;
 }
-.fish-tag.rarity-2 {
-  background: #ffd35a;
+.fish-store-close:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #153b80;
 }
-.fish-tag.rarity-3 {
-  background: #e97760;
-  color: #fff;
-}
-.fish-tag.is-record {
-  background: #2fb86a;
-  color: #fff;
-}
-.ocean-dialog.is-catch .button {
-  margin-top: 16px;
+.fish-store-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 4px 8px;
 }
 .fish-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
   gap: 14px 12px;
-  margin: 8px 0 10px;
-  max-height: calc(100dvh - 230px);
-  overflow-y: auto;
+  margin: 0;
   padding: 10px 8px 4px 0;
 }
 .fish-cell {
@@ -754,16 +747,25 @@
     sans-serif;
   text-align: center;
 }
+.fish-cell-record {
+  font-size: 12px;
+  font-weight: 800;
+  color: #6a5a1a;
+}
+.fish-cell-record.rarity-3 {
+  color: #c2402a;
+}
 .fish-release {
-  min-width: 64px;
+  display: grid;
+  place-items: center;
+  width: 48px;
   min-height: 44px;
-  padding: 4px 14px;
+  padding: 0;
   border: 2px solid #153b80;
   border-radius: 14px;
   background: #fff;
   color: #153b80;
-  font: inherit;
-  font-weight: 800;
+  cursor: pointer;
 }
 .fish-release:active {
   background: #dceeff;
@@ -771,12 +773,7 @@
 .fish-empty {
   margin: 20px 0;
 }
-.fish-total {
-  margin: 0 0 6px;
-  font-weight: 700;
-}
 @media (prefers-reduced-motion: reduce) {
-  .fish-card,
   .ocean-fish.is-shake {
     animation: none;
   }
