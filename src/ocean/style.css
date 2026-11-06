@@ -1258,6 +1258,9 @@ dialog.account-screen :is(input, textarea) {
 }
 .ocean-hud .ocean-fish svg {
   display: block;
+  width: 34px;
+  height: 34px;
+  flex: none;
 }
 .ocean-hud .ocean-fish.is-pressed {
   transform: translateY(2px) scale(var(--pulse, 1));
