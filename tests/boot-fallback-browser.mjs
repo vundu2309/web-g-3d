@@ -27,7 +27,7 @@ try {
   // A healthy start never shows it: with the script allowed the game draws first.
   await page.unroute(/\/(src\/main\.ts|assets\/index-[^/]*\.js)/);
   await page.goto(process.env.TEST_BASE_URL);
-  await page.getByRole("button", { name: "Vào game" }).waitFor();
+  await page.getByRole("button", { name: "Ra khơi" }).waitFor();
   await page.waitForTimeout(9000);
   assert.equal(await page.locator("#boot-fallback").count(), 0);
   console.log(

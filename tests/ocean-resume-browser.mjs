@@ -77,7 +77,7 @@ async function fresh() {
       problems.push(m.text());
   });
   await page.goto(process.env.TEST_BASE_URL);
-  await page.getByRole("button", { name: "Vào game" }).waitFor();
+  await page.getByRole("button", { name: "Ra khơi" }).waitFor();
   return page;
 }
 async function driveUntil(page, predicate) {

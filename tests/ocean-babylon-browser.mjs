@@ -19,7 +19,7 @@ page.on("console", (message) => {
 });
 try {
   await page.goto(process.env.TEST_BASE_URL);
-  await page.getByRole("button", { name: "Vào game" }).waitFor();
+  await page.getByRole("button", { name: "Ra khơi" }).waitFor();
   await page.evaluate(async () => {
     window.published = [];
     const { startOcean } = await import("/src/app/ocean.ts");

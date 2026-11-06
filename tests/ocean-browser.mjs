@@ -36,7 +36,7 @@ async function player(name, email) {
     await page.getByRole("button", { name: "Tạo phòng", exact: true }).count(),
     0,
   );
-  await page.getByRole("button", { name: "Vào game", exact: true }).click();
+  await page.getByRole("button", { name: "Ra khơi", exact: true }).click();
   await page
     .getByRole("button", { name: "Chưa có tài khoản? Đăng ký" })
     .click();
@@ -181,13 +181,13 @@ try {
     true,
   );
   await host.getByRole("button", { name: "Về hub" }).click();
-  await host.getByRole("button", { name: "Vào game", exact: true }).waitFor();
+  await host.getByRole("button", { name: "Ra khơi", exact: true }).waitFor();
   await duplicate.getByRole("button", { name: "Về hub" }).click();
   await guest.getByText("1 thuyền", { exact: true }).waitFor();
   await guest.context().setOffline(true);
   await guest.getByText("Đã mất mạng.", { exact: false }).waitFor();
   await guest.getByRole("button", { name: "Về hub" }).click();
-  await guest.getByRole("button", { name: "Vào game", exact: true }).waitFor();
+  await guest.getByRole("button", { name: "Ra khơi", exact: true }).waitFor();
   assert.deepEqual(errors, []);
   console.log(
     "Shared ocean: two authenticated players, synced movement, fishing, mobile layouts, reload, duplicate lease, leave and offline passed",

@@ -18,7 +18,7 @@ async function open(connectSource, timing) {
       problems.push(message.text());
   });
   await page.goto(process.env.TEST_BASE_URL);
-  await page.getByRole("button", { name: "Vào game" }).waitFor();
+  await page.getByRole("button", { name: "Ra khơi" }).waitFor();
   await page.evaluate(
     async ({ source, timing }) => {
       window.calls = 0;

@@ -256,6 +256,11 @@ export class OceanScene {
       .multiply(Quaternion.RotationAxis(Axis.Z, roll));
   }
 
+  /** Resolves once every mesh, material and shader has been compiled for the first frame. */
+  ready() {
+    return this.scene.whenReadyAsync();
+  }
+
   /** The tip of the player's rod in the world (fishing starts there). */
   rodTip() {
     const body = this.self?.physics.mesh;

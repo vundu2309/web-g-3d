@@ -99,7 +99,7 @@ async function open(setting) {
   });
   const page = await context.newPage();
   await page.goto(origin);
-  await page.getByRole("button", { name: "Vào game" }).click();
+  await page.getByRole("button", { name: "Ra khơi" }).click();
   await page
     .getByRole("button", { name: "Chưa có tài khoản? Đăng ký" })
     .click();
@@ -186,7 +186,7 @@ try {
   });
   const probe = await hostile.newPage();
   await probe.goto(origin);
-  await probe.getByRole("button", { name: "Vào game" }).click();
+  await probe.getByRole("button", { name: "Ra khơi" }).click();
   await probe
     .getByRole("button", { name: "Chưa có tài khoản? Đăng ký" })
     .click();

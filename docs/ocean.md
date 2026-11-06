@@ -1,6 +1,6 @@
 # Shared fishing sea
 
-Approved 2026-11-05: each player is a separate fishing boat in one common online map. Enter through the hub's “Vào game”; authenticate with the existing Firebase Email/Password dialog, then sail immediately. No room creation, invitations, lobby, readiness or host. `?view=ocean` restores this direct-entry route after reload. Returning to the hub leaves the sea.
+Approved 2026-11-05: each player is a separate fishing boat in one common online map. Enter through the hub's “Ra khơi” (see “Hub, sign-in and loading” below); authenticate with the existing Firebase Email/Password dialog, then sail immediately. No room creation, invitations, lobby, readiness or host. `?view=ocean` restores this direct-entry route after reload. Returning to the hub leaves the sea.
 
 ## Implementation and ownership
 
@@ -73,9 +73,19 @@ The world uses right-handed axes (`enableSeaPhysics`), so heading 0 is -Z and a 
 
 `tests/boat-physics.test.mjs` drives real Havok headlessly (Babylon `NullEngine`, fixed 1/60 s steps) and checks floating on the local surface, bobbing, bounded roll and pitch, gradual acceleration and coasting, turning both ways with limited sideslip, island blocking without tunnelling, the start heading, exact repeatability and the boundary wall. Removing buoyancy, drag or the island colliders makes the matching tests fail. It runs with `tests/support/register-resolve.mjs`, which only teaches Node to resolve Babylon's extensionless deep imports. `tests/ocean-babylon-browser.mjs` runs the real scene in a browser with a fake connection: 2x draw size on a 3x screen, frame cost, labels, floating, driving and turning with one touch, and a second thumb casting while the first holds the stick.
 
+## Hub, sign-in and loading
+
+Three separate screens, so the game is not a web page with a game inside it.
+
+1. **Hub** (`src/app/harbor.ts`). A flat sky, sea and fishing boat in the app's own style (`--flat-sea` and `.hub-art`, drawn in CSS and SVG, with no image file and deliberately not a picture of the 3D map: the map shows only once it is loaded), the title, one big “Ra khơi” button, a captain's card (name and the fish held on this device, or a line about the shared sea when signed out) and two round 50 px buttons (install, sign in). It fetches nothing of the sea: no Babylon, Havok or models, which load only after “Ra khơi”. The only early network call is the wake-up ping to the API (`wake.ts`). The hub does not show how many boats are at sea because it has no connection to know that; showing a number would need a server endpoint.
+2. **Sign-in** (`src/app/account.ts`, class `account-screen`). A full-screen dialog over the same flat sea (not the map) with the form in a card; nothing of the game is behind it. Signing in leads straight to loading.
+3. **Loading** (`startOcean`, `.ocean-loading`). An opaque full screen of the flat sea, a boat, three steps (graphics, connection, entry) and a progress bar. The map and the controls are not shown: the stick, the fishing button and the counters are hidden and only the way back stays. The screen is lifted only when the engine, the models and their shaders are ready (`OceanScene.ready()`, bounded at 8 s), the connection is up and the boat is in the sea.
+
+Tests: `tests/harbor-browser.mjs` (touch targets and fit at 844×390, 667×375 and 390×844; no engine, model or WASM request at the hub or on the sign-in screen; the sign-in covers the screen; the loading screen hides map and controls until ready).
+
 ## Loading and connecting
 
-Entering the sea shows a loading card with three steps (graphics, connection, entry). Graphics and the network start together, and `src/platform/wake.ts` nudges a sleeping API as soon as the home screen shows, so a free Render instance (30-60 s to wake) wakes while the engine downloads. The old flow gave up after a fixed 15 s and asked the player to go back to the hub.
+Entering the sea shows the loading screen above, with three steps (graphics, connection, entry). Graphics and the network start together, and `src/platform/wake.ts` nudges a sleeping API as soon as the home screen shows, so a free Render instance (30-60 s to wake) wakes while the engine downloads. The old flow gave up after a fixed 15 s and asked the player to go back to the hub.
 
 `src/ocean/connect.ts` retries instead: pauses of 1.5, 2.5 then 4 s, each attempt abandoned after 25 s, a total patience of 100 s, and a "the server is waking up" note after 5 s. A connection that arrives after its attempt timed out is closed rather than leaked. Errors retrying cannot fix (signed out, opened in another window, sea full, not configured) are shown at once. If graphics take over 60 s or connecting runs out of patience, the card becomes a failure message with a **Thử lại** button (reload, which re-enters the sea directly) and the HUD's **Về hub** stays reachable above it. The same card appears if the connection drops mid-game.
 
