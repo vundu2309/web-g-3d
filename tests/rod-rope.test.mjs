@@ -146,8 +146,8 @@ test("sag grows with the square root of the spare line: 3 % extra sags 2.5 m, a 
   // A fish that pulls: no spare line, a straight line.
   assert.ok(sagOf(() => 0) < 0.05, "taut is straight");
   // Waiting: a hair of slack, a gentle sag.
-  const waiting = sagOf(() => 0.04);
-  assert.ok(waiting > 0.2 && waiting < 1, `waiting sag ${waiting}`);
+  const waiting = sagOf(() => 0.12);
+  assert.ok(waiting > 0.4 && waiting < 1.6, `waiting sag ${waiting}`);
   // The old mistake: a few per cent of spare line makes a big loop.
   assert.ok(sagOf((span) => span * 0.03) > 2, "3 % spare line sags a lot");
 });
@@ -183,4 +183,25 @@ test("the line strip faces the viewer and is wider when it is farther", async ()
   // The strip is across the line (sideways to a line along Z, seen from above: along X).
   assert.ok(Math.abs(near[3] - near[0]) > 0.9 * width(near, 0));
   assert.ok(Number.isFinite(near[17]));
+});
+
+test("smoothing takes the saw-tooth out of a rope and keeps its ends", async () => {
+  const { smoothRope } = await import("../src/ocean/rope.ts");
+  const n = 22;
+  const zig = new Float64Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    zig[i * 3] = i;
+    zig[i * 3 + 1] = i % 2 ? 0.3 : -0.3;
+  }
+  const out = smoothRope(zig, new Float64Array(n * 3));
+  let before = 0;
+  let after = 0;
+  // Away from the ends, which are held where they are.
+  for (let i = 6; i < n - 6; i++) {
+    before = Math.max(before, Math.abs(zig[i * 3 + 1]));
+    after = Math.max(after, Math.abs(out[i * 3 + 1]));
+  }
+  assert.ok(after < before * 0.35, `${before} -> ${after}`);
+  assert.equal(out[0], zig[0]);
+  assert.equal(out[(n - 1) * 3 + 1], zig[(n - 1) * 3 + 1]);
 });

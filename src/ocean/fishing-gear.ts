@@ -10,7 +10,7 @@ import { speciesById, type FishingView } from "./fishing.ts";
 import { createCreature, type CreatureModel } from "./creature-kit.ts";
 import { fishLength, fishPose, lineColour, lineTremble } from "./fight-look.ts";
 import { Ribbon } from "./ribbon.ts";
-import { Rope } from "./rope.ts";
+import { Rope, smoothRope } from "./rope.ts";
 import { waveHeight } from "./waves.ts";
 
 /**
@@ -84,6 +84,7 @@ export class FishingGear {
   private readonly arcPoints: Vector3[] = [];
   private readonly ripples: { t: number; x: number; z: number }[] = [];
   private readonly rope = new Rope(POINTS);
+  private readonly smooth = new Float64Array(POINTS * 3);
   /** Where the line meets the water (or the fish's mouth), world. */
   private readonly entry = new Vector3();
   private readonly top = new Vector3();
@@ -389,7 +390,8 @@ export class FishingGear {
     time: number,
     tip: Vector3Like,
   ) {
-    const p = this.rope.positions;
+    // Drawn smoothed, so a rope with hardly any slack does not look saw-toothed.
+    const p = smoothRope(this.rope.positions, this.smooth);
     const n = this.rope.count;
     const dx = this.entry.x - tip.x;
     const dz = this.entry.z - tip.z;
@@ -464,7 +466,7 @@ export class FishingGear {
     // How much line there is: a hair of slack while waiting (a sag of half a metre or so;
     // sag grows with the square root of the spare line), none once a fish is taking it.
     const stretch = Math.hypot(ex - tip.x, ey - tip.y, ez - tip.z);
-    const length = flying ? stretch * 1.12 : biting ? stretch : stretch + 0.04;
+    const length = flying ? stretch * 1.12 : biting ? stretch : stretch + 0.12;
     this.stepRope(tip, length, seconds);
     this.roped = !flying;
     const direction = new Vector3(
@@ -545,8 +547,8 @@ export class FishingGear {
     }
     const stretch = Math.hypot(fx - tip.x, mouthY - tip.y, fz - tip.z);
     // A hooked fish that pulls keeps the line straight: no spare line at all. Only a tired
-    // fish lets a little go slack (3 % extra line would sag the middle by 2.5 m).
-    this.stepRope(tip, stretch + (fight.mood === "tired" ? 0.04 : 0), seconds);
+    // fish lets a little go slack (3 % extra line would sag the middle by 2.5 m; 12 cm gives a clean arc of about a metre).
+    this.stepRope(tip, stretch + (fight.mood === "tired" ? 0.12 : 0), seconds);
     this.roped = true;
     this.drawRope(
       lineColourFor(fight.tension),

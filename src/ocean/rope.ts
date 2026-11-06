@@ -181,3 +181,27 @@ export function ribbonPositions(
   }
   return out;
 }
+
+/**
+ * Smooths a rope for drawing: each inner point moves toward the average of its
+ * neighbours, a few times, with both ends left where they are. It takes the saw-tooth
+ * out of a rope whose ends bob on the waves while it has hardly any slack, and keeps the
+ * curve.
+ */
+export function smoothRope(
+  positions: ArrayLike<number>,
+  out: Float64Array,
+  passes = 3,
+): Float64Array {
+  const count = positions.length / 3;
+  for (let i = 0; i < positions.length; i++) out[i] = positions[i]!;
+  for (let pass = 0; pass < passes; pass++)
+    for (let i = 1; i < count - 1; i++)
+      for (let k = 0; k < 3; k++)
+        out[i * 3 + k] =
+          (out[(i - 1) * 3 + k]! +
+            2 * out[i * 3 + k]! +
+            out[(i + 1) * 3 + k]!) /
+          4;
+  return out;
+}
