@@ -6,6 +6,20 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import type { Scene } from "@babylonjs/core/scene";
+import { Geo, rgbOf } from "./geo.ts";
+import {
+  addBoulders,
+  addBushes,
+  addDriftwood,
+  addFlowers,
+  addGrass,
+  addHut,
+  addBoardwalk,
+  addRowboat,
+  addShells,
+  addTrees,
+  type PropSummary,
+} from "./island-props.ts";
 import { hex, meshFrom, mergeParts, paint } from "./mesh-parts.ts";
 
 /**
@@ -17,6 +31,10 @@ export interface IslandOptions {
   seed: number;
   radius: number;
   lighthouse?: boolean;
+  /** A far backdrop island beyond the sea's edge: coarser, with only palms. */
+  distant?: boolean;
+  /** False skips the foam ring (it needs a canvas); only tests turn it off. */
+  foam?: boolean;
 }
 
 function random(seed: number) {
@@ -61,14 +79,52 @@ function smooth(a: number, b: number, x: number) {
 
 export interface IslandVisual {
   mesh: Mesh;
-  foam: Mesh;
+  foam: Mesh | undefined;
   /** Terrain height at island-local (x, z). */
   height(x: number, z: number): number;
+  /** Triangles in the island mesh, and what was placed on it. */
+  triangles: number;
+  props: PropSummary;
+}
+
+/** A soft white ring where the water meets the beach. */
+function createFoam(scene: Scene, radius: number) {
+  const texture = new DynamicTexture("foam", 128, scene, true);
+  const context = texture.getContext();
+  const gradient = context.createRadialGradient(64, 64, 40, 64, 64, 64);
+  gradient.addColorStop(0, "rgba(255,255,255,0)");
+  gradient.addColorStop(0.55, "rgba(255,255,255,0.65)");
+  gradient.addColorStop(1, "rgba(255,255,255,0)");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 128, 128);
+  texture.update();
+  texture.hasAlpha = true;
+  const foamMaterial = new StandardMaterial("foam-material", scene);
+  foamMaterial.diffuseTexture = texture;
+  foamMaterial.useAlphaFromDiffuseTexture = true;
+  foamMaterial.emissiveColor = Color3.White();
+  foamMaterial.disableLighting = true;
+  foamMaterial.backFaceCulling = false;
+  const foam = MeshBuilder.CreateGround(
+    "foam",
+    { width: radius * 3.1, height: radius * 3.1 },
+    scene,
+  );
+  foam.material = foamMaterial;
+  foam.position.y = 0.08;
+  foam.isPickable = false;
+  return foam;
 }
 
 export function createIsland(
   scene: Scene,
-  { seed, radius, lighthouse = false }: IslandOptions,
+  {
+    seed,
+    radius,
+    lighthouse = false,
+    distant = false,
+    foam: withFoam = true,
+  }: IslandOptions,
 ): IslandVisual {
   const rng = random(seed);
   const peak = radius * (0.38 + rng() * 0.18);
@@ -93,7 +149,7 @@ export function createIsland(
 
   // Terrain grid with colours from height and slope.
   const extent = radius * 1.5;
-  const segments = 44;
+  const segments = distant ? 24 : 56;
   const positions: number[] = [];
   const colors: number[] = [];
   const indices: number[] = [];
@@ -102,6 +158,8 @@ export function createIsland(
   const grassLow = hex(0x7bbf6e);
   const grassHigh = hex(0x4b9a5a);
   const rock = hex(0x8d9298);
+  const rockDark = hex(0x757b83);
+  const dry = hex(0xb3bf67);
   for (let iz = 0; iz <= segments; iz++)
     for (let ix = 0; ix <= segments; ix++) {
       const x = -extent + (ix / segments) * extent * 2;
@@ -109,11 +167,21 @@ export function createIsland(
       const y = height(x, z);
       positions.push(x, Math.max(y, -1.6), z);
       const slope = Math.hypot(height(x + 1, z) - y, height(x, z + 1) - y);
+      // Patches of dry grass, and ripples in the sand, from a slow noise.
+      const patch = noise(x * 0.09 + 20, z * 0.09, seed + 3);
+      const ripple = noise(x * 0.7, z * 0.7, seed + 5) - 0.5;
       let c: Color3;
       if (y < 0.15) c = wet;
-      else if (y < 1.9) c = Color3.Lerp(sand, wet, 0.15);
-      else if (slope > 1.25 || y > peak * 0.9) c = rock;
-      else c = Color3.Lerp(grassLow, grassHigh, Math.min(1, y / (peak * 0.7)));
+      else if (y < 0.5) c = Color3.Lerp(wet, sand, (y - 0.15) / 0.35);
+      else if (y < 1.9)
+        c = Color3.Lerp(sand, wet, 0.1 + 0.25 * Math.max(0, ripple + 0.2));
+      else if (slope > 1.25 || y > peak * 0.9)
+        // Cliff and summit rock in bands, like layers.
+        c = Math.floor(y * 1.8 + patch * 2) % 2 ? rock : rockDark;
+      else {
+        c = Color3.Lerp(grassLow, grassHigh, Math.min(1, y / (peak * 0.7)));
+        c = Color3.Lerp(c, dry, smooth(0.58, 0.76, patch) * 0.7);
+      }
       const jitter = (rng() - 0.5) * 0.05;
       colors.push(c.r + jitter, c.g + jitter, c.b + jitter, 1);
     }
@@ -224,7 +292,7 @@ export function createIsland(
 
   let palms = 0;
   let attempts = 0;
-  while (palms < Math.round(radius / 3.2) && attempts++ < 400) {
+  while (palms < Math.round(radius / (distant ? 9 : 2.3)) && attempts++ < 400) {
     const angle = rng() * Math.PI * 2;
     const distance = radius * (0.35 + rng() * 0.6);
     const x = Math.cos(angle) * distance;
@@ -235,7 +303,7 @@ export function createIsland(
       palms++;
     }
   }
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < (distant ? 0 : 9); i++) {
     const angle = rng() * Math.PI * 2;
     const distance = radius * (0.5 + rng() * 0.6);
     const x = Math.cos(angle) * distance;
@@ -254,22 +322,36 @@ export function createIsland(
     ]);
     rockMesh.rotation.y = rng() * 6;
   }
-  for (let i = 0; i < 14; i++) {
-    const angle = rng() * Math.PI * 2;
-    const distance = radius * (0.2 + rng() * 0.55);
-    const x = Math.cos(angle) * distance;
-    const z = Math.sin(angle) * distance;
-    if (height(x, z) <= 1.1) continue;
-    const size = 0.7 + rng() * 0.5;
-    place(
-      MeshBuilder.CreatePolyhedron("bush", { type: 1, size }, scene),
-      0x4f9f5e,
-      x,
-      height(x, z) + 0.2,
-      z,
-      [1, 0.7, 1],
-    );
-  }
+  // The small things: grass, flowers, bushes, trees, shells, driftwood, boulders at the
+  // shore, a boardwalk, a hut and a rowboat. One buffer, one mesh.
+  const geo = new Geo();
+  const ctx = { geo, rng, height, radius, peak };
+  const f = radius / 18;
+  const props: PropSummary = {
+    grass: 0,
+    flowers: 0,
+    shells: 0,
+    driftwood: 0,
+    boulders: 0,
+    bushes: 0,
+    trees: 0,
+    boardwalk: false,
+    hut: false,
+    boat: false,
+  };
+  if (!distant) {
+    props.grass = addGrass(ctx, Math.round(520 * f));
+    props.flowers = addFlowers(ctx, Math.round(90 * f));
+    props.bushes = addBushes(ctx, Math.round(26 * f));
+    props.trees = addTrees(ctx, Math.round(7 * f));
+    props.shells = addShells(ctx, Math.round(50 * f));
+    props.driftwood = addDriftwood(ctx, Math.round(5 * f));
+    props.boulders = addBoulders(ctx, Math.round(6 * f));
+    const walk = addBoardwalk(ctx);
+    props.boardwalk = !!walk;
+    props.hut = !!addHut(ctx);
+    props.boat = addRowboat(ctx, walk);
+  } else props.bushes = addBushes(ctx, Math.min(12, Math.round(4 * f)));
 
   if (lighthouse) {
     let bestX = 0;
@@ -339,8 +421,39 @@ export function createIsland(
       base + 11.15,
       bestZ,
     );
+    // A door, windows and a railing round the gallery.
+    const dark = rgbOf(0x2b3a4a);
+    geo.box(bestX + 1.46, base + 0.8, bestZ, 0.05, 0.8, 0.4, rgbOf(0x6b4a2b));
+    for (const [h, a] of [
+      [3.4, 0.6],
+      [5.9, 2.4],
+      [7.6, 4.2],
+    ] as const)
+      geo.box(
+        bestX + Math.cos(a) * 1.2,
+        base + h,
+        bestZ + Math.sin(a) * 1.2,
+        0.05,
+        0.3,
+        0.18,
+        dark,
+        a,
+      );
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * Math.PI * 2;
+      geo.box(
+        bestX + Math.cos(a) * 1.4,
+        base + 9.75,
+        bestZ + Math.sin(a) * 1.4,
+        0.04,
+        0.3,
+        0.04,
+        rgbOf(0xe0554b),
+      );
+    }
   }
 
+  if (geo.triangles > 0) parts.push(geo.toMesh(scene, "props"));
   const mesh = mergeParts("island", parts);
   mesh.convertToFlatShadedMesh();
   const material = new StandardMaterial("island-material", scene);
@@ -351,30 +464,12 @@ export function createIsland(
   mesh.useVertexColors = true;
   mesh.freezeWorldMatrix();
 
-  // Foam where the water meets the beach.
-  const texture = new DynamicTexture("foam", 128, scene, true);
-  const context = texture.getContext();
-  const gradient = context.createRadialGradient(64, 64, 40, 64, 64, 64);
-  gradient.addColorStop(0, "rgba(255,255,255,0)");
-  gradient.addColorStop(0.55, "rgba(255,255,255,0.65)");
-  gradient.addColorStop(1, "rgba(255,255,255,0)");
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, 128, 128);
-  texture.update();
-  texture.hasAlpha = true;
-  const foamMaterial = new StandardMaterial("foam-material", scene);
-  foamMaterial.diffuseTexture = texture;
-  foamMaterial.useAlphaFromDiffuseTexture = true;
-  foamMaterial.emissiveColor = Color3.White();
-  foamMaterial.disableLighting = true;
-  foamMaterial.backFaceCulling = false;
-  const foam = MeshBuilder.CreateGround(
-    "foam",
-    { width: radius * 3.1, height: radius * 3.1 },
-    scene,
-  );
-  foam.material = foamMaterial;
-  foam.position.y = 0.08;
-  foam.isPickable = false;
-  return { mesh, foam, height };
+  const foam = withFoam ? createFoam(scene, radius) : undefined;
+  return {
+    mesh,
+    foam,
+    height,
+    triangles: mesh.getTotalIndices() / 3,
+    props,
+  };
 }
