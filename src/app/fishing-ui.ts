@@ -395,7 +395,7 @@ export function createFishingUi(options: FishingUiOptions) {
     hang.hidden = false;
     options.scene()?.holdFish({
       id: species.id,
-      scale: 2.4 + 1.6 * Math.min(1, Math.max(0, weight)),
+      scale: 3.4 + 2 * Math.min(1, Math.max(0, weight)),
     });
   }
 
