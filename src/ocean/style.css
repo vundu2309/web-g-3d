@@ -19,9 +19,13 @@
   font-size: 16px;
 }
 .ocean-root {
+  /* Full bleed: under the status bar, the notch and the home indicator. A fixed box
+     with inset 0 covers the whole screen (the controls keep to the safe area). */
+  position: fixed !important;
+  inset: 0;
   padding: 0 !important;
   max-width: none !important;
-  height: 100dvh !important;
+  height: auto !important;
   min-height: 0 !important;
   overflow: hidden;
 }
@@ -785,8 +789,8 @@
   inset: 0;
   z-index: 2;
   box-sizing: border-box;
-  width: 100%;
-  height: 100dvh;
+  /* inset: 0 makes it cover the whole screen, safe areas included; no 100dvh, which
+     some phones count without the bars. */
   overflow: hidden;
   color: #153b80;
   background: var(--flat-sea);
