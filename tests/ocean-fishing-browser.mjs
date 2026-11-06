@@ -290,17 +290,18 @@ try {
               return;
             }
             if (button.dataset.mood === "tired") return;
-            const p = window.oceanScene.gear.rope.positions;
-            const n = p.length / 3;
+            // The line as drawn (what the player sees), not the simulation under it.
+            const p = window.oceanScene.gear.linePoints;
+            const n = p.length;
             let worst = 0;
             for (let i = 1; i < n - 1; i++) {
-              const t = i / (n - 1);
-              const x = p[0] + (p[(n - 1) * 3] - p[0]) * t;
-              const y = p[1] + (p[(n - 1) * 3 + 1] - p[1]) * t;
-              const z = p[2] + (p[(n - 1) * 3 + 2] - p[2]) * t;
+              const u = i / (n - 1);
+              const x = p[0].x + (p[n - 1].x - p[0].x) * u;
+              const y = p[0].y + (p[n - 1].y - p[0].y) * u;
+              const z = p[0].z + (p[n - 1].z - p[0].z) * u;
               worst = Math.max(
                 worst,
-                Math.hypot(p[i * 3] - x, p[i * 3 + 1] - y, p[i * 3 + 2] - z),
+                Math.hypot(p[i].x - x, p[i].y - y, p[i].z - z),
               );
             }
             sags.push(worst);

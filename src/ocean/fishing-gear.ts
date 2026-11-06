@@ -389,6 +389,7 @@ export class FishingGear {
     tremble: number,
     time: number,
     tip: Vector3Like,
+    taut = 0,
   ) {
     // Drawn smoothed, so a rope with hardly any slack does not look saw-toothed.
     const p = smoothRope(this.rope.positions, this.smooth);
@@ -403,10 +404,15 @@ export class FishingGear {
       const wob = tremble
         ? Math.sin(time * 70 + s * 9) * tremble * 4 * s * (1 - s)
         : 0;
+      // A taut line is straight: with tension the drawn line is pulled onto the chord
+      // from the rod tip to the end (the rope itself can lag a fast-moving fish).
+      const cx = tip.x + (this.entry.x - tip.x) * s;
+      const cy = tip.y + (this.entry.y - tip.y) * s;
+      const cz = tip.z + (this.entry.z - tip.z) * s;
       this.linePoints[i]!.set(
-        p[i * 3]! + px * wob,
-        p[i * 3 + 1]!,
-        p[i * 3 + 2]! + pz * wob,
+        p[i * 3]! + (cx - p[i * 3]!) * taut + px * wob,
+        p[i * 3 + 1]! + (cy - p[i * 3 + 1]!) * taut,
+        p[i * 3 + 2]! + (cz - p[i * 3 + 2]!) * taut + pz * wob,
       );
     }
     this.line.draw(this.linePoints, this.eye());
@@ -477,7 +483,8 @@ export class FishingGear {
     this.pull.x = direction.x;
     this.pull.y = direction.y;
     this.pull.z = direction.z;
-    this.drawRope(WHITE, biting ? 0.05 : 0, time, tip);
+    // Waiting, the line keeps a gentle sag; once a fish takes it, it is straight.
+    this.drawRope(WHITE, biting ? 0.05 : 0, time, tip, biting ? 1 : 0.4);
     this.line.alpha = 0.9;
   }
 
@@ -555,6 +562,8 @@ export class FishingGear {
       lineTremble(fight.tension),
       time,
       tip,
+      // Straight while the fish pulls; a tired fish lets it curve a little.
+      fight.mood === "tired" ? 0.5 : 1,
     );
     this.line.alpha = 1;
     // How hard it pulls the rod: a run is hard, a tired fish hardly at all.
