@@ -3,7 +3,6 @@ import {
   Angler,
   CHARGE_MS,
   MAX_LINE,
-  RARITY_NAMES,
   SWEET_POWER,
   addCatch,
   castDirection,
@@ -84,7 +83,24 @@ export function createFishingUi(options: FishingUiOptions) {
   rect.setAttribute("stroke-linecap", "round");
   ring.append(rect);
   ring.style.display = "none";
-  screen.append(power, badge, vignette, ring);
+  // A landed fish hangs from the rod: how much it weighs, and two icon buttons.
+  const hang = document.createElement("div");
+  hang.className = "fish-hang";
+  hang.hidden = true;
+  hang.innerHTML =
+    '<div class="fish-hang-info"><span class="fish-hang-stars"></span><strong class="fish-hang-kg"></strong><span class="fish-hang-record" hidden>✦</span></div>' +
+    '<div class="fish-hang-actions">' +
+    '<button type="button" class="fish-hang-drop" aria-label="Thả cá về biển"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v9M8.5 9 12 12.5 15.5 9"/><path d="M3 17c3-3 6 3 9 0s6 3 9 0"/></svg></button>' +
+    '<button type="button" class="fish-hang-keep" aria-label="Lấy cá cất vào kho"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></button>' +
+    "</div>";
+  const hangStars = hang.querySelector<HTMLElement>(".fish-hang-stars")!;
+  const hangKg = hang.querySelector<HTMLElement>(".fish-hang-kg")!;
+  const hangRecord = hang.querySelector<HTMLElement>(".fish-hang-record")!;
+  const hangDrop = hang.querySelector<HTMLButtonElement>(".fish-hang-drop")!;
+  const hangKeep = hang.querySelector<HTMLButtonElement>(".fish-hang-keep")!;
+  screen.append(power, badge, vignette, ring, hang);
+  /** The landed fish still on the rod. */
+  let held: Catch | undefined;
 
   const vibrate = (pattern: number | number[]) => {
     try {
@@ -147,14 +163,11 @@ export function createFishingUi(options: FishingUiOptions) {
         break;
       case "retrieved":
         break;
-      case "caught": {
+      case "caught":
         hideSignals();
-        const { inventory, record } = addCatch(options.stock(), event.fish);
-        options.setStock(inventory, true);
         vibrate(30);
-        showCatch(event.fish, record);
+        holdFish(event.fish);
         break;
-      }
     }
   }
 
@@ -168,6 +181,11 @@ export function createFishingUi(options: FishingUiOptions) {
   /** The player presses the button (or Space). */
   function press() {
     if (!options.enabled()) return;
+    // A new throw keeps the fish still on the rod.
+    if (held) {
+      settle(true);
+      return;
+    }
     const now = performance.now();
     if (angler.busy) {
       // How far the fish is when it takes the hook: the boat to the bobber.
@@ -213,6 +231,10 @@ export function createFishingUi(options: FishingUiOptions) {
   /** Keyboard or assistive activation without a held press: a medium throw. */
   function click() {
     if (!options.enabled()) return;
+    if (held) {
+      settle(true);
+      return;
+    }
     if (angler.busy) {
       press();
       // No held press to end it (a keyboard or assistive click): a short pull.
@@ -228,6 +250,8 @@ export function createFishingUi(options: FishingUiOptions) {
   }
 
   function cancel() {
+    // Never lose a landed fish: leaving or opening the store keeps it.
+    settle(true);
     angler.cancel();
     hideSignals();
   }
@@ -357,52 +381,36 @@ export function createFishingUi(options: FishingUiOptions) {
     return heading;
   }
 
-  function showCatch(fish: Catch, record: boolean) {
+  /** The fish hangs from the rod until the player keeps it or lets it go. */
+  function holdFish(fish: Catch) {
     const species = speciesById(fish.species);
     if (!species) return;
-    finish("Cá lên thuyền!");
-    dialog.classList.add("is-catch");
-    const card = document.createElement("div");
-    card.className = "fish-card";
-    const art = document.createElement("div");
-    art.className = "fish-card-art";
-    art.innerHTML = fishSvg(species, 190);
-    const info = document.createElement("div");
-    info.className = "fish-card-info";
-    const rarity = document.createElement("span");
-    rarity.className = `fish-tag rarity-${species.rarity}`;
-    rarity.textContent = `${"★".repeat(species.rarity)} ${RARITY_NAMES[species.rarity]}`;
-    const name = document.createElement("strong");
-    name.className = "fish-card-name";
-    name.textContent = species.name;
-    const stats = document.createElement("div");
-    stats.className = "fish-card-stats";
-    for (const text of [kg(fish.kg), `${fish.cm} cm`]) {
-      const tag = document.createElement("span");
-      tag.className = "fish-tag";
-      tag.textContent = text;
-      stats.append(tag);
-    }
-    info.append(rarity, name, stats);
-    if (record) {
-      const badgeRecord = document.createElement("span");
-      badgeRecord.className = "fish-tag is-record";
-      badgeRecord.textContent = "Kỷ lục mới!";
-      info.append(badgeRecord);
-    }
-    card.append(art, info);
-    const close = document.createElement("button");
-    close.className = "button primary";
-    close.textContent = "Cất vào kho";
-    close.addEventListener(
-      "click",
-      () => {
-        dialog.close();
-      },
-      { once: true },
-    );
-    dialog.append(card, close);
-    openDialog();
+    held = fish;
+    const [low, high] = species.kg;
+    const weight = high > low ? (fish.kg - low) / (high - low) : 0;
+    hangStars.textContent = "★".repeat(species.rarity);
+    hangStars.className = `fish-hang-stars rarity-${species.rarity}`;
+    hangKg.textContent = kg(fish.kg);
+    hangRecord.hidden = !addCatch(options.stock(), fish).record;
+    hang.hidden = false;
+    options.scene()?.holdFish({
+      id: species.id,
+      scale: 3.4 + 2 * Math.min(1, Math.max(0, weight)),
+    });
+  }
+
+  /** Keeps the hanging fish in the store, or puts it back in the sea. */
+  function settle(keep: boolean) {
+    const fish = held;
+    if (!fish) return;
+    held = undefined;
+    hang.hidden = true;
+    const scene = options.scene();
+    if (keep) {
+      options.setStock(addCatch(options.stock(), fish).inventory, true);
+      vibrate(20);
+      scene?.leaveFish("keep");
+    } else scene?.leaveFish("drop");
   }
 
   function openDialog() {
@@ -472,7 +480,19 @@ export function createFishingUi(options: FishingUiOptions) {
     dialog.append(close);
   }
 
+  hangDrop.addEventListener("click", () => settle(false));
+  hangKeep.addEventListener("click", () => settle(true));
+
   return {
+    /** The drawn buttons of the landed fish; the input layer takes the touches. */
+    hangTargets() {
+      return held
+        ? [
+            { element: hangKeep, tap: () => settle(true) },
+            { element: hangDrop, tap: () => settle(false) },
+          ]
+        : [];
+    },
     press,
     release,
     click,
@@ -489,6 +509,7 @@ export function createFishingUi(options: FishingUiOptions) {
       badge.remove();
       vignette.remove();
       ring.remove();
+      hang.remove();
     },
   };
 }

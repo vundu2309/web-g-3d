@@ -452,7 +452,12 @@ export function startOcean(
   const releaseInput = bindInputLayer(
     root.querySelector<HTMLElement>(".ocean-input")!,
     {
-      targets: () => inputTargets,
+      targets: () => [
+        ...fishingUi
+          .hangTargets()
+          .map((target): InputTarget => ({ ...target, kind: "tap" })),
+        ...inputTargets,
+      ],
       stick: {
         controller: stickController,
         ring: stickElement,

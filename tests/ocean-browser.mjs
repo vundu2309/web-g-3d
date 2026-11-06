@@ -150,7 +150,7 @@ try {
     );
     await fightBot(host);
     landed = await host
-      .getByText("Cá lên thuyền", { exact: false })
+      .locator(".fish-hang:not([hidden])")
       .waitFor({ timeout: 10000 })
       .then(
         () => true,
@@ -158,7 +158,7 @@ try {
       );
   }
   assert.ok(landed, "a fish was landed");
-  await host.getByRole("button", { name: "Cất vào kho", exact: true }).click();
+  await tap(host, host.getByRole("button", { name: "Lấy cá cất vào kho" }));
   await tap(host, host.getByRole("button", { name: "Kho cá 1" }));
   await host
     .getByRole("dialog")

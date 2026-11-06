@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { launchBrowser } from "./browser.mjs";
+import { tap } from "./support/tap.mjs";
 import { fightBot } from "./support/fight-bot.mjs";
 
 // Dropping mid-game reconnects by itself without moving the boat, a revoked session
@@ -224,7 +225,7 @@ try {
     await pull();
     await fightBot(visit);
     const landed = await visit
-      .getByText("Cá lên thuyền", { exact: false })
+      .locator(".fish-hang:not([hidden])")
       .waitFor({ timeout: 10000 })
       .then(
         () => true,
@@ -237,8 +238,8 @@ try {
     await visit.waitForTimeout(800);
     await visit.mouse.up();
   }
-  await visit.getByText("Cá lên thuyền", { exact: false }).waitFor();
-  await visit.getByRole("button", { name: "Cất vào kho", exact: true }).click();
+  await visit.locator(".fish-hang:not([hidden])").waitFor();
+  await tap(visit, visit.getByRole("button", { name: "Lấy cá cất vào kho" }));
   assert.equal(await visit.locator("[data-catch]").innerText(), "1");
   await visit
     .waitForFunction(() => window.oceanScene.selfState().z < 4, null, {
