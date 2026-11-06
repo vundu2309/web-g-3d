@@ -325,7 +325,7 @@ export class FishingGear {
       const model = this.fish.root;
       const heading = Math.atan2(-dz, -dx); // Nose toward the boat while reeled, away in a run.
       const away = fight.mood === "surge" ? Math.PI : 0;
-      model.position.set(fx, surface - 0.15 + pose.lift, fz);
+      model.position.set(fx, surface + 0.45 + pose.lift, fz);
       model.rotation.set(pose.roll, -heading + away + pose.yaw, 0);
       model.scaling.setAll(4.2);
       if (this.fish.tail)
