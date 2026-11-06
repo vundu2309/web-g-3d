@@ -518,9 +518,9 @@ export class FishingGear {
     const fx = tip.x + dx * pose.distance - dz * pose.swing;
     const fz = tip.z + dz * pose.distance + dx * pose.swing;
     const surface = waveHeight(fx, fz, time);
-    // Far fish are drawn larger so they can be seen: 25 m away it is about 1.75 times.
+    // Far fish are drawn larger so they can be seen: 25 m away it is about 2.5 times.
     const length =
-      fishLength(view.size ?? 0.3) * (1 + Math.min(40, pose.distance) * 0.03);
+      fishLength(view.size ?? 0.3) * (1 + Math.min(30, pose.distance) * 0.06);
     // Its mouth is where the line ends, just above the water.
     const mouthY = surface + 0.25 + pose.lift * 0.6;
     this.entry.set(fx, mouthY, fz);
