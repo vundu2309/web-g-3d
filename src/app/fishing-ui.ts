@@ -371,16 +371,6 @@ export function createFishingUi(options: FishingUiOptions) {
 
   // ----- Dialogs -----
 
-  function finish(title: string) {
-    dialog.replaceChildren();
-    const heading = document.createElement("h2");
-    heading.id = "ocean-dialog-title";
-    heading.textContent = title;
-    dialog.setAttribute("aria-labelledby", heading.id);
-    dialog.append(heading);
-    return heading;
-  }
-
   /** The fish hangs from the rod until the player keeps it or lets it go. */
   function holdFish(fish: Catch) {
     const species = speciesById(fish.species);
@@ -416,7 +406,7 @@ export function createFishingUi(options: FishingUiOptions) {
   function openDialog() {
     dialog.addEventListener(
       "close",
-      () => dialog.classList.remove("is-catch", "is-stock"),
+      () => dialog.classList.remove("is-stock"),
       { once: true },
     );
     if (!dialog.open) dialog.showModal();
@@ -431,57 +421,70 @@ export function createFishingUi(options: FishingUiOptions) {
   }
 
   function renderStock() {
-    finish("Kho cá");
+    dialog.replaceChildren();
+    dialog.removeAttribute("aria-labelledby");
+    dialog.setAttribute("aria-label", "Kho cá");
     const stock = options.stock();
     const held = heldSpecies(stock);
-    const grid = document.createElement("div");
-    grid.className = "fish-grid";
+    // Header: the title, how many are held, and the X that closes the store.
+    const head = document.createElement("header");
+    head.className = "fish-store-head";
+    const title = document.createElement("h2");
+    title.textContent = "Kho cá";
+    const total = document.createElement("span");
+    total.className = "fish-total";
+    total.textContent = `Trong kho: ${stockTotal(stock)} con`;
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "fish-store-close";
+    close.setAttribute("aria-label", "Đóng");
+    close.innerHTML =
+      '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+    close.addEventListener("click", () => dialog.close());
+    head.append(title, total, close);
+    const body = document.createElement("div");
+    body.className = "fish-store-body";
     if (!held.length) {
       const empty = document.createElement("p");
       empty.className = "fish-empty";
       empty.textContent = "Kho cá trống. Ra khơi và thả câu nhé!";
-      dialog.append(empty);
+      body.append(empty);
     }
+    const grid = document.createElement("div");
+    grid.className = "fish-grid";
     for (const species of held) {
       const count = stock[species.id]?.n ?? 0;
       const cell = document.createElement("div");
       cell.className = "fish-cell";
       const art = document.createElement("div");
       art.className = "fish-cell-art";
-      art.innerHTML = fishSvg(species, 96);
+      art.innerHTML = fishSvg(species, 110);
       const name = document.createElement("span");
       name.className = "fish-cell-name";
       name.textContent = species.name;
+      const record = document.createElement("span");
+      record.className = `fish-cell-record rarity-${species.rarity}`;
+      record.textContent = `${"★".repeat(species.rarity)} ${kg(stock[species.id]?.best ?? 0)}`;
       const badgeCount = document.createElement("span");
       badgeCount.className = "fish-count";
       badgeCount.textContent = `×${count}`;
       const free = document.createElement("button");
       free.type = "button";
       free.className = "fish-release";
-      free.textContent = "Thả";
       free.setAttribute("aria-label", `Thả một con ${species.name} về biển`);
+      free.innerHTML =
+        '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v9M8.5 9 12 12.5 15.5 9"/><path d="M3 17c3-3 6 3 9 0s6 3 9 0"/></svg>';
       free.addEventListener("click", () => {
         options.setStock(releaseOne(options.stock(), species.id), false);
         renderStock();
         dialog.querySelector<HTMLButtonElement>(".fish-release")?.focus();
       });
-      cell.append(art, name, badgeCount, free);
+      cell.append(art, name, record, badgeCount, free);
       grid.append(cell);
     }
-    if (held.length) dialog.append(grid);
-    const total = document.createElement("p");
-    total.className = "fish-total";
-    total.textContent = `Trong kho: ${stockTotal(stock)} con`;
-    dialog.append(total);
-    const close = document.createElement("button");
-    close.className = "button primary";
-    close.textContent = "Đóng";
-    close.addEventListener("click", () => dialog.close(), { once: true });
-    dialog.append(close);
+    if (held.length) body.append(grid);
+    dialog.append(head, body);
   }
-
-  hangDrop.addEventListener("click", () => settle(false));
-  hangKeep.addEventListener("click", () => settle(true));
 
   return {
     /** The drawn buttons of the landed fish; the input layer takes the touches. */
