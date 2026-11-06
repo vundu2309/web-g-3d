@@ -10,6 +10,8 @@ import type { connectOcean } from "../platform/ocean";
 import { OceanScene } from "../ocean/babylon-scene";
 import { bindStick, type StickInput } from "../ocean/stick";
 import { RemoteTracks, ServerClock } from "../ocean/remote";
+import { stockTotal, type Inventory } from "../ocean/fishing";
+import { createFishingUi } from "./fishing-ui";
 import {
   connectWithRetry,
   fatalConnectionMessage,
@@ -40,7 +42,7 @@ export function startOcean(
   const abort = new AbortController();
   const network = new AbortController();
   root.classList.add("ocean-root");
-  root.innerHTML = `<main class="ocean-screen" aria-label="Map biển chung"><div class="ocean-stage"></div><div class="ocean-loading" role="status" aria-live="polite"><div class="ocean-loading-card"><div class="ocean-loading-boat" aria-hidden="true">⛵</div><h2 data-loading-title>Đang ra khơi…</h2><ol class="ocean-loading-steps"><li data-step="graphics">Tải đồ họa biển</li><li data-step="connect">Kết nối map chung</li><li data-step="enter">Vào biển</li></ol><p class="ocean-loading-note" data-loading-note></p><div class="ocean-loading-actions" hidden><button class="button primary" type="button" data-ocean="retry">Thử lại</button></div></div></div><div class="ocean-hud game-safe"><header class="ocean-top"><button class="ocean-chip" data-ocean="back" aria-label="Về hub">← <span>Về hub</span></button><div class="ocean-channel"><strong>Biển chung</strong><span>Mỗi người một thuyền</span></div><button class="ocean-chip" data-ocean="crew" aria-label="Thuyền trong kênh"><span data-count>Đang kết nối…</span></button></header><p class="ocean-status" role="status" aria-live="polite">Đang kết nối map chung…</p><section class="ocean-bottom" aria-label="Điều khiển thuyền"><div class="ocean-stick" role="group" aria-label="Cần lái: kéo lên để tiến, xuống để lùi, sang hai bên để rẽ"><span class="ocean-stick-mark" data-dir="up" aria-hidden="true">▲</span><span class="ocean-stick-mark" data-dir="down" aria-hidden="true">▼</span><span class="ocean-stick-mark" data-dir="left" aria-hidden="true">◀︎</span><span class="ocean-stick-mark" data-dir="right" aria-hidden="true">▶︎</span><span class="ocean-stick-knob" aria-hidden="true">⚓</span></div><p class="ocean-hint">Cần lái: kéo lên/xuống để chạy, sang hai bên để rẽ<br/>Bàn phím: WASD hoặc mũi tên · Space để thả câu</p><div class="ocean-actions"><button class="ocean-chip" data-ocean="catch">Kho cá <strong data-catch>0</strong></button><button class="ocean-fish" data-ocean="fish" disabled>Thả câu</button></div></section></div></main>`;
+  root.innerHTML = `<main class="ocean-screen" aria-label="Map biển chung"><div class="ocean-stage"></div><div class="ocean-loading" role="status" aria-live="polite"><div class="ocean-loading-card"><div class="ocean-loading-boat" aria-hidden="true">⛵</div><h2 data-loading-title>Đang ra khơi…</h2><ol class="ocean-loading-steps"><li data-step="graphics">Tải đồ họa biển</li><li data-step="connect">Kết nối map chung</li><li data-step="enter">Vào biển</li></ol><p class="ocean-loading-note" data-loading-note></p><div class="ocean-loading-actions" hidden><button class="button primary" type="button" data-ocean="retry">Thử lại</button></div></div></div><div class="ocean-hud game-safe"><header class="ocean-top"><button class="ocean-chip" data-ocean="back" aria-label="Về hub">← <span>Về hub</span></button><div class="ocean-channel"><strong>Biển chung</strong><span>Mỗi người một thuyền</span></div><button class="ocean-chip" data-ocean="crew" aria-label="Thuyền trong kênh"><span data-count>Đang kết nối…</span></button></header><p class="ocean-status" role="status" aria-live="polite">Đang kết nối map chung…</p><section class="ocean-bottom" aria-label="Điều khiển thuyền"><div class="ocean-stick" role="group" aria-label="Cần lái: kéo lên để tiến, xuống để lùi, sang hai bên để rẽ"><span class="ocean-stick-mark" data-dir="up" aria-hidden="true">▲</span><span class="ocean-stick-mark" data-dir="down" aria-hidden="true">▼</span><span class="ocean-stick-mark" data-dir="left" aria-hidden="true">◀︎</span><span class="ocean-stick-mark" data-dir="right" aria-hidden="true">▶︎</span><span class="ocean-stick-knob" aria-hidden="true">⚓</span></div><p class="ocean-hint">Cần lái: kéo lên/xuống để chạy, sang hai bên để rẽ<br/>Bàn phím: WASD hoặc mũi tên · giữ Space để nạp lực, thả ra để ném</p><div class="ocean-actions"><button class="ocean-chip" data-ocean="catch">Kho cá <strong data-catch>0</strong></button><button class="ocean-fish" data-ocean="fish" disabled>Thả câu</button></div></section></div></main>`;
   const status = root.querySelector<HTMLElement>(".ocean-status")!;
   const loading = root.querySelector<HTMLElement>(".ocean-loading")!;
   const loadingTitle = loading.querySelector<HTMLElement>(
@@ -131,13 +133,17 @@ export function startOcean(
     if (!selfUid) return;
     stored.write(
       saveKey(selfUid),
-      encodeSave({ x: pose.x, z: pose.z, heading: pose.heading, caught }),
+      encodeSave({
+        x: pose.x,
+        z: pose.z,
+        heading: pose.heading,
+        caught,
+        fish: fishStock,
+      }),
     );
   }
-  let castAt = 0;
-  let biteAt = 0;
-  let catchTimer: ReturnType<typeof setTimeout> | undefined;
-  let biteTimer: ReturnType<typeof setTimeout> | undefined;
+  /** The fish store: what is held now (and records), saved with the boat. */
+  let fishStock: Inventory = {};
   const keys = new Set<string>();
   let stick: StickInput = { steer: 0, throttle: 0 };
   const releaseStick = bindStick(stickElement, stickKnob, {
@@ -152,13 +158,27 @@ export function startOcean(
     if (status.textContent !== text) status.textContent = text;
   }
   function stopFishing() {
-    clearTimeout(catchTimer);
-    clearTimeout(biteTimer);
+    fishingUi.cancel();
     pose = { ...pose, fishing: false };
-    castAt = 0;
-    biteAt = 0;
-    fishButton.textContent = "Thả câu";
   }
+  const fishingUi = createFishingUi({
+    root,
+    button: fishButton,
+    dialog,
+    scene: () => scene,
+    boat: () => pose,
+    enabled: () => active && !dialog.open && !document.hidden,
+    stock: () => fishStock,
+    setStock: (next, caughtOne) => {
+      fishStock = next;
+      if (caughtOne) caught++;
+      root.querySelector("[data-catch]")!.textContent = String(
+        stockTotal(fishStock),
+      );
+      persist();
+    },
+    reduced,
+  });
   // Other boats are drawn slightly in the past, interpolated between received samples,
   // so they glide at any publish rate instead of jumping when a packet arrives.
   const tracks = new RemoteTracks();
@@ -273,44 +293,14 @@ export function startOcean(
     network.abort();
     connection?.dispose();
   }
-  function fish() {
-    if (!active || dialog.open) return;
-    if (pose.fishing) {
-      if (biteAt && performance.now() - biteAt <= 2500) {
-        caught++;
-        root.querySelector("[data-catch]")!.textContent = String(caught);
-        persist();
-        stopFishing();
-        notify("Đã kéo được cá! Cá chỉ tính trong chuyến này.");
-      } else {
-        stopFishing();
-        notify("Đã thu cần. Đợi cá cắn câu rồi kéo nhé.");
-      }
-      return;
-    }
-    keys.clear();
-    releaseStick();
-    pose = { ...pose, fishing: true };
-    castAt = performance.now();
-    fishButton.textContent = "Thu cần";
-    notify("Đã thả câu… chờ cá cắn!");
-    biteTimer = setTimeout(
-      () => {
-        if (!active || !castAt) return;
-        biteAt = performance.now();
-        fishButton.textContent = "Kéo cá!";
-        notify("Cá cắn câu! Bấm Kéo cá ngay.");
-        catchTimer = setTimeout(() => {
-          stopFishing();
-          notify("Cá đã bơi mất. Thử thả câu lần nữa.");
-        }, 2500);
-      },
-      2500 + Math.random() * 2000,
-    );
-  }
   function showDialog(kind: "crew" | "catch") {
     keys.clear();
     releaseStick();
+    if (kind === "catch") {
+      fishingUi.showStock();
+      return;
+    }
+    fishingUi.cancel();
     dialog.replaceChildren();
     const title = document.createElement("h2");
     title.id = "ocean-dialog-title";
@@ -353,6 +343,7 @@ export function startOcean(
     if (disposed) return;
     if (!active || document.hidden || dialog.open) scene?.setInput(0, 0);
     if (active && !document.hidden && !dialog.open) {
+      fishingUi.tick(now);
       // The stick is analog; keys are full deflection. The stick wins while held.
       const steer =
         stick.steer || Number(keys.has("right")) - Number(keys.has("left"));
@@ -366,7 +357,7 @@ export function startOcean(
           x: Math.max(-SEA_BOUND, Math.min(SEA_BOUND, state.x)),
           z: Math.max(-SEA_BOUND, Math.min(SEA_BOUND, state.z)),
           heading: state.heading,
-          fishing: pose.fishing,
+          fishing: fishingUi.fishing,
         };
       if (now - lastSave > 5000) {
         lastSave = now;
@@ -409,20 +400,34 @@ export function startOcean(
     frame = requestAnimationFrame(animate);
   }
   // Browsers do not synthesize a click for a second finger while the first holds
-  // the stick, so fishing acts on the press itself. Keyboard still uses click.
-  let fishPressAt = -1e9;
+  // the stick, so fishing acts on the press itself: press to start charging a throw (or
+  // to pull when a fish is on), let go to throw. Keyboard activation lands in click.
+  let fishTouchedAt = -1e9;
+  let fishPointer: number | undefined;
   root.addEventListener(
     "pointerdown",
     (event) => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
         '[data-ocean="fish"]',
       );
-      if (!button || button.disabled) return;
-      fishPressAt = performance.now();
-      fish();
+      if (!button || button.disabled || fishPointer !== undefined) return;
+      fishPointer = event.pointerId;
+      fishTouchedAt = performance.now();
+      fishingUi.press();
     },
     { signal: abort.signal },
   );
+  for (const type of ["pointerup", "pointercancel"])
+    root.addEventListener(
+      type,
+      (event) => {
+        if ((event as PointerEvent).pointerId !== fishPointer) return;
+        fishPointer = undefined;
+        fishTouchedAt = performance.now();
+        fishingUi.release();
+      },
+      { signal: abort.signal },
+    );
   root.addEventListener(
     "click",
     (event) => {
@@ -439,8 +444,9 @@ export function startOcean(
             .catch(() => {})
             .finally(() => location.assign("./"));
       }
-      // The press already acted (see below); only keyboard activation lands here.
-      if (action === "fish" && performance.now() - fishPressAt > 700) fish();
+      // The press already acted; only keyboard activation lands here.
+      if (action === "fish" && performance.now() - fishTouchedAt > 500)
+        fishingUi.click();
       if (action === "crew" || action === "catch") showDialog(action);
     },
     { signal: abort.signal },
@@ -464,12 +470,10 @@ export function startOcean(
         event.preventDefault();
         keys.add(direction);
       }
-      if (
-        event.code === "Space" &&
-        !(event.target instanceof HTMLButtonElement)
-      ) {
+      if (event.code === "Space") {
         event.preventDefault();
-        if (!event.repeat) fish();
+        fishTouchedAt = performance.now();
+        if (!event.repeat) fishingUi.press();
       }
     },
     { signal: abort.signal },
@@ -481,6 +485,11 @@ export function startOcean(
       if (direction) {
         event.preventDefault();
         keys.delete(direction);
+      }
+      if (event.code === "Space") {
+        event.preventDefault();
+        fishTouchedAt = performance.now();
+        fishingUi.release();
       }
     },
     { signal: abort.signal },
@@ -604,7 +613,10 @@ export function startOcean(
       const restored = decodeSave(stored.read(saveKey(value.uid)));
       pose = restored.pose ?? spawn(value.uid);
       caught = restored.caught;
-      root.querySelector("[data-catch]")!.textContent = String(caught);
+      fishStock = restored.fish;
+      root.querySelector("[data-catch]")!.textContent = String(
+        stockTotal(fishStock),
+      );
       created.spawnSelf(value.uid, "Bạn", pose);
       step("enter", "done");
       active = true;
@@ -628,9 +640,8 @@ export function startOcean(
     if (disposed) return;
     disposed = true;
     clearTimeout(graphicsTimer);
-    clearTimeout(catchTimer);
-    clearTimeout(biteTimer);
     persist();
+    fishingUi.dispose();
     cancelAnimationFrame(frame);
     abort.abort();
     network.abort();

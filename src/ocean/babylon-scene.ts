@@ -30,6 +30,7 @@ import {
   type Boat,
   type Pose,
 } from "./model.ts";
+import { FishingGear, type GearInput } from "./fishing-gear.ts";
 import { FOG_DENSITY, HORIZON, SUN_DIRECTION } from "./sea-style.ts";
 import { edgeIndicator } from "./indicator.ts";
 import { ScaleGovernor } from "./render-scale.ts";
@@ -87,6 +88,8 @@ export class OceanScene {
   private viewReady = false;
   private readonly governor: ScaleGovernor;
   private lost = false;
+  private gear: FishingGear | undefined;
+  private gearInput: Omit<GearInput, "tip" | "time"> | undefined;
   private readonly canvas: HTMLCanvasElement;
 
   static async create(host: HTMLElement, onLost: () => void) {
@@ -253,6 +256,44 @@ export class OceanScene {
       .multiply(Quaternion.RotationAxis(Axis.Z, roll));
   }
 
+  /** The tip of the player's rod in the world (fishing starts there). */
+  rodTip() {
+    const body = this.self?.physics.mesh;
+    if (!body) return undefined;
+    body.computeWorldMatrix(true);
+    const tip = Vector3.TransformCoordinates(
+      new Vector3(3.16, 2.88, 2.52),
+      body.getWorldMatrix(),
+    );
+    return { x: tip.x, y: tip.y, z: tip.z };
+  }
+
+  /** What the fishing gear should show this frame; undefined puts the line away. */
+  setGear(input: Omit<GearInput, "tip" | "time"> | undefined) {
+    this.gearInput = input;
+  }
+
+  /** A ring spreads from the bobber. */
+  gearRipple() {
+    this.gear?.ripple();
+  }
+
+  /** Where a world point is on screen (0..1 of the stage), if it is in front of the camera. */
+  project(x: number, y: number, z: number) {
+    const p = Vector3.Project(
+      new Vector3(x, y, z),
+      Matrix.IdentityReadOnly,
+      this.scene.getTransformMatrix(),
+      NORMALIZED,
+    );
+    return { x: p.x, y: p.y, visible: p.z >= 0 && p.z <= 1 };
+  }
+
+  /** Where the bobber is (just above it), for the on-screen bite signal. */
+  bobberTop() {
+    return this.gear?.bobberTop();
+  }
+
   /** Advances the world one frame and draws it. */
   update(
     boats: Boat[],
@@ -307,6 +348,11 @@ export class OceanScene {
       this.self.wake.setStrength(speed / 9);
       this.followWith(state, step);
     }
+    const tip = this.gearInput ? this.rodTip() : undefined;
+    if (this.gearInput && tip) {
+      this.gear ??= new FishingGear(this.scene);
+      this.gear.update({ ...this.gearInput, tip, time: this.clock });
+    } else this.gear?.hide();
     this.water.update(
       this.camera.position.x,
       this.camera.position.z,
@@ -428,6 +474,7 @@ export class OceanScene {
   dispose() {
     this.observer.disconnect();
     for (const craft of this.fleet.values()) craft.label.remove();
+    this.gear?.dispose();
     this.self?.craft.label.remove();
     this.self?.physics.dispose();
     this.fleet.clear();

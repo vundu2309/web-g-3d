@@ -47,7 +47,7 @@ try {
         pose: { x: 0, z: 0, heading: 0, fishing: false },
         dispose() {},
         publish: async (pose) => {
-          window.published.push(pose);
+          window.published.push({ ...pose, at: performance.now() });
         },
       };
     };
@@ -55,6 +55,13 @@ try {
       connect,
       onScene: (scene) => {
         window.oceanScene = scene;
+        // Remember what the player's input to the boat was, and when.
+        window.inputs = [];
+        const original = scene.setInput.bind(scene);
+        scene.setInput = (steer, throttle) => {
+          window.inputs.push({ at: performance.now(), steer, throttle });
+          original(steer, throttle);
+        };
       },
     });
   });
@@ -140,10 +147,15 @@ try {
     `and turned right: heading ${driving.heading.toFixed(2)}`,
   );
 
-  // Second thumb presses Thả câu while the first holds the stick: boat stops pushing.
+  // Second thumb holds Thả câu (charging a throw) while the first holds the stick, then
+  // lets go: the line goes out and the boat stops pushing.
   const fish = await page.locator('[data-ocean="fish"]').boundingBox();
   await touch("touchStart", [
     { x: cx + 14, y: cy - 38, id: 1 },
+    { x: fish.x + fish.width / 2, y: fish.y + fish.height / 2, id: 2 },
+  ]);
+  await page.waitForTimeout(900);
+  await touch("touchEnd", [
     { x: fish.x + fish.width / 2, y: fish.y + fish.height / 2, id: 2 },
   ]);
   await page.waitForFunction(
@@ -151,28 +163,37 @@ try {
     null,
     { timeout: 30000 },
   );
-  const speedWhile = async () =>
-    page.evaluate(() => {
-      const s = window.oceanScene.selfState();
-      return Math.hypot(s.forwardSpeed, s.sideSpeed);
-    });
-  const early = await speedWhile();
-  await touch("touchEnd", [
-    { x: fish.x + fish.width / 2, y: fish.y + fish.height / 2, id: 2 },
-  ]);
-  // Stick still held, but casting cuts the thrust: drag must bring the boat to rest.
-  await page.waitForFunction(
-    () => {
-      const s = window.oceanScene.selfState();
-      return Math.hypot(s.forwardSpeed, s.sideSpeed) < 1.2;
-    },
-    null,
-    { timeout: 90000 },
-  );
-  const late = await speedWhile();
+  // Stick still held, but with the line out the boat gets no thrust (the fish may take
+  // the line in again within seconds, so this checks the input, not the final stop).
+  await page.waitForTimeout(700);
+  const verdict = await page.evaluate(() => {
+    const out = window.published.find((p) => p.fishing)?.at ?? Infinity;
+    const back =
+      window.published.find((p) => !p.fishing && p.at > out)?.at ?? Infinity;
+    const before = window.inputs.filter(
+      (i) => i.at < out - 1200 && i.throttle !== 0,
+    );
+    const during = window.inputs.filter(
+      (i) => i.at > out + 150 && i.at < Math.min(back - 150, performance.now()),
+    );
+    return {
+      drove: before.length,
+      during: during.length,
+      pushed: during.filter((i) => i.throttle !== 0 || i.steer !== 0).length,
+    };
+  });
   assert.ok(
-    late < early,
-    `casting slows the boat: ${early.toFixed(1)} -> ${late.toFixed(1)} m/s`,
+    verdict.drove > 0,
+    "the held stick drove the boat before the throw",
+  );
+  assert.ok(
+    verdict.during > 3,
+    `frames with the line out were seen (${verdict.during})`,
+  );
+  assert.equal(
+    verdict.pushed,
+    0,
+    "no thrust or steering while the line is out",
   );
   await touch("touchEnd", [{ x: cx + 14, y: cy - 38, id: 1 }]);
   assert.deepEqual(problems, []);

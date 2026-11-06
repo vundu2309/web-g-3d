@@ -113,14 +113,19 @@ try {
     { uid, x: after.x, z: after.z },
   );
   console.log("Ocean cross-player motion received");
-  await host.getByRole("button", { name: "Thả câu", exact: true }).click();
-  await host.getByRole("button", { name: "Kéo cá!", exact: true }).waitFor();
-  await host.getByRole("button", { name: "Kéo cá!", exact: true }).click();
-  await host.getByText("Đã kéo được cá!", { exact: false }).waitFor();
+  const rod = await host.locator('[data-ocean="fish"]').boundingBox();
+  await host.mouse.move(rod.x + rod.width / 2, rod.y + rod.height / 2);
+  await host.mouse.down();
+  await host.waitForTimeout(800);
+  await host.mouse.up();
+  await host.getByRole("button", { name: "Giật!", exact: true }).waitFor();
+  await host.getByRole("button", { name: "Giật!", exact: true }).click();
+  await host.getByText("Cá lên thuyền", { exact: false }).waitFor();
+  await host.getByRole("button", { name: "Cất vào kho", exact: true }).click();
   await host.getByRole("button", { name: "Kho cá 1" }).click();
   await host
     .getByRole("dialog")
-    .getByText("Bạn đã bắt 1 con cá", { exact: false })
+    .getByText("Trong kho: 1 con", { exact: false })
     .waitFor();
   await host.getByRole("button", { name: "Đóng", exact: true }).click();
   for (const [width, height] of [

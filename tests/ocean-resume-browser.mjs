@@ -187,12 +187,45 @@ try {
   await visit.evaluate(() => localStorage.clear());
   await start(visit);
   await driveUntil(visit, () => window.oceanScene.selfState().z < 6);
-  await visit.getByRole("button", { name: "Thả câu", exact: true }).click();
-  await visit
-    .getByText("Cá cắn câu", { exact: false })
-    .waitFor({ timeout: 30000 });
-  await visit.getByRole("button", { name: "Kéo cá!", exact: true }).click();
-  await visit.getByText("Đã kéo được cá", { exact: false }).waitFor();
+  // Hold to charge, let go to throw, then pull the moment a fish takes the hook.
+  const rod = await visit.locator('[data-ocean="fish"]').boundingBox();
+  await visit.mouse.move(rod.x + rod.width / 2, rod.y + rod.height / 2);
+  await visit.mouse.down();
+  await visit.waitForTimeout(800);
+  await visit.mouse.up();
+  const pull = () =>
+    visit.evaluate(
+      () =>
+        new Promise((resolve) => {
+          const button = document.querySelector('[data-ocean="fish"]');
+          const timer = setInterval(() => {
+            if (!button.classList.contains("is-biting")) return;
+            clearInterval(timer);
+            const init = { bubbles: true, pointerId: 9, isPrimary: true };
+            button.dispatchEvent(new PointerEvent("pointerdown", init));
+            button.dispatchEvent(new PointerEvent("pointerup", init));
+            resolve(true);
+          }, 5);
+        }),
+    );
+  for (let attempt = 0; attempt < 5; attempt++) {
+    await pull();
+    const landed = await visit
+      .getByText("Cá lên thuyền", { exact: false })
+      .waitFor({ timeout: 10000 })
+      .then(
+        () => true,
+        () => false,
+      );
+    if (landed) break;
+    // The fish got away. Throw again.
+    await visit.mouse.move(rod.x + rod.width / 2, rod.y + rod.height / 2);
+    await visit.mouse.down();
+    await visit.waitForTimeout(800);
+    await visit.mouse.up();
+  }
+  await visit.getByText("Cá lên thuyền", { exact: false }).waitFor();
+  await visit.getByRole("button", { name: "Cất vào kho", exact: true }).click();
   assert.equal(await visit.locator("[data-catch]").innerText(), "1");
   await visit
     .waitForFunction(() => window.oceanScene.selfState().z < 4, null, {
@@ -205,6 +238,11 @@ try {
     JSON.parse(localStorage.getItem("photyphu:sea:v1:me")),
   );
   assert.equal(saved.caught, 1, "the catch was saved");
+  assert.equal(
+    Object.values(saved.fish).reduce((sum, stock) => sum + stock.n, 0),
+    1,
+    "and the fish is in the stored fish store",
+  );
   assert.ok(
     Math.abs(saved.x - parked.x) < 6 && Math.abs(saved.z - parked.z) < 6,
     "and so was the position",
