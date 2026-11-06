@@ -538,3 +538,62 @@ test("playback trail must cover the send period, the tick wait and jitter, or bo
     `a 300 ms trail starves between packets (${stalls(300)})`,
   );
 });
+
+test("floating stick centres under the thumb but stays fully on screen", async () => {
+  const { floatingCenter } = await import("../src/ocean/stick.ts");
+  assert.deepEqual(floatingCenter(300, 200, 68, 844, 390), { x: 300, y: 200 });
+  // Near an edge the ring is pulled in so all of it is visible.
+  assert.deepEqual(floatingCenter(5, 385, 68, 844, 390), { x: 68, y: 322 });
+  assert.deepEqual(floatingCenter(9999, -9, 68, 844, 390), { x: 776, y: 68 });
+  // A screen smaller than the ring still gives a finite centre.
+  assert.deepEqual(floatingCenter(10, 10, 68, 100, 100), { x: 50, y: 50 });
+});
+
+test("name labels that would overlap are stacked, distant ones are left alone", async () => {
+  const { separateLabels } = await import("../src/ocean/indicator.ts");
+  const box = (x, y) => ({ x, y, w: 60, h: 24 });
+  assert.deepEqual(separateLabels([]), []);
+  assert.deepEqual(separateLabels([box(100, 100), box(400, 100)]), [0, 0]);
+  // Same spot: the lower one keeps its place, the other lifts clear of it.
+  const [upper, lower] = separateLabels([box(100, 90), box(104, 100)]);
+  assert.equal(lower, 0);
+  assert.ok(upper >= 24 - 10, `lifted ${upper}`);
+  const clear = 100 - 24 - 3;
+  assert.equal(90 - upper, Math.min(90, clear));
+  // Three in a pile all end up separated.
+  const boxes = [box(100, 100), box(100, 102), box(100, 98)];
+  const lifts = separateLabels(boxes);
+  const tops = boxes.map((b, i) => b.y - lifts[i]).sort((a, b) => a - b);
+  for (let i = 1; i < tops.length; i++)
+    assert.ok(tops[i] - tops[i - 1] >= 24, `gap ${tops[i] - tops[i - 1]}`);
+});
+
+test("touch targets are never hit smaller than 44 px, and big ones are left alone", async () => {
+  const { inflate, inside, MIN_HIT } = await import(
+    "../src/ocean/input-layer.ts"
+  );
+  assert.equal(MIN_HIT, 44);
+  // A 30 x 30 icon grows around its centre to 44 x 44.
+  assert.deepEqual(inflate({ left: 100, top: 100, right: 130, bottom: 130 }), {
+    left: 93,
+    top: 93,
+    right: 137,
+    bottom: 137,
+  });
+  // Already big enough: unchanged. One axis small: only that axis grows.
+  const big = { left: 0, top: 0, right: 100, bottom: 60 };
+  assert.deepEqual(inflate(big), big);
+  assert.deepEqual(inflate({ left: 0, top: 0, right: 100, bottom: 20 }), {
+    left: 0,
+    top: -12,
+    right: 100,
+    bottom: 32,
+  });
+  const box = inflate({ left: 100, top: 100, right: 130, bottom: 130 });
+  assert.equal(
+    inside(box, 95, 135),
+    true,
+    "a touch just outside the drawing still hits",
+  );
+  assert.equal(inside(box, 90, 115), false);
+});

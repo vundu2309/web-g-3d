@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { launchBrowser } from "./browser.mjs";
+import { fightBot } from "./support/fight-bot.mjs";
 
 // Dropping mid-game reconnects by itself without moving the boat, a revoked session
 // is not retried, and leaving then coming back resumes the last position and the
@@ -53,6 +54,7 @@ async function start(page, { failNext = 0 } = {}) {
         };
       };
       window.stop = startOcean(document.querySelector("#app"), () => {}, {
+        fightSpeed: 2,
         connect,
         timing: {
           delaysMs: [300],
@@ -201,15 +203,26 @@ try {
           const timer = setInterval(() => {
             if (!button.classList.contains("is-biting")) return;
             clearInterval(timer);
-            const init = { bubbles: true, pointerId: 9, isPrimary: true };
-            button.dispatchEvent(new PointerEvent("pointerdown", init));
-            button.dispatchEvent(new PointerEvent("pointerup", init));
+            const box = button.getBoundingClientRect();
+            const init = {
+              bubbles: true,
+              pointerId: 9,
+              isPrimary: true,
+              button: 0,
+              clientX: box.x + box.width / 2,
+              clientY: box.y + box.height / 2,
+            };
+            // The controls are only drawn; the touch goes to the input layer.
+            const layer = document.querySelector(".ocean-input");
+            layer.dispatchEvent(new PointerEvent("pointerdown", init));
+            layer.dispatchEvent(new PointerEvent("pointerup", init));
             resolve(true);
           }, 5);
         }),
     );
   for (let attempt = 0; attempt < 5; attempt++) {
     await pull();
+    await fightBot(visit);
     const landed = await visit
       .getByText("Cá lên thuyền", { exact: false })
       .waitFor({ timeout: 10000 })

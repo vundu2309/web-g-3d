@@ -30,6 +30,7 @@ try {
   await run("tests/safe-area-browser.mjs", port);
   await run("tests/board-browser.mjs", port);
   await run("tests/ocean-stick-browser.mjs", port);
+  await run("tests/ocean-input-browser.mjs", port);
   await run("tests/boot-fallback-browser.mjs", port);
   await run("tests/ocean-babylon-browser.mjs", port);
   await run("tests/harbor-browser.mjs", port);

@@ -17,7 +17,7 @@ try {
     const { bindStick } = await import("/src/ocean/stick.ts");
     document.body.innerHTML = `<style>
       body{margin:0}
-      .ocean-stick{position:fixed;left:20px;bottom:20px;width:136px;height:136px;border-radius:50%;background:#ccc;touch-action:none}
+      .ocean-stick{position:fixed;left:20px;bottom:20px;width:136px;height:136px;border-radius:50%;background:#ccc;touch-action:none;pointer-events:auto}
       .ocean-stick-knob{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:gold}
       #fish{position:fixed;right:20px;bottom:20px;width:140px;height:64px}
     </style>
@@ -119,9 +119,76 @@ try {
   await touch("touchStart", [{ x: stick.x, y: stick.y - 50, id: 1 }]);
   assert.deepEqual(await read(), { steer: 0, throttle: 0 });
   await touch("touchEnd", [{ x: stick.x, y: stick.y - 50, id: 1 }]);
+
+  // Floating mode: with a touch zone, a touch away from the ring moves the ring under
+  // the thumb, steering is measured from there, and it goes home on release.
+  await page.evaluate(async () => {
+    const { bindStick } = await import("/src/ocean/stick.ts");
+    window.enabled = true;
+    window.stick = { steer: 0, throttle: 0 };
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      '<div id="zone" style="position:fixed;left:0;bottom:0;width:48%;height:66%;touch-action:none"></div>',
+    );
+    // The ring sits above the zone, as in the game.
+    document.querySelector(".ocean-stick").style.zIndex = "2";
+    window.releaseFloating = bindStick(
+      document.querySelector(".ocean-stick"),
+      document.querySelector(".ocean-stick-knob"),
+      {
+        zone: document.querySelector("#zone"),
+        enabled: () => window.enabled,
+        onChange: (input) => {
+          window.stick = input;
+        },
+        signal: new AbortController().signal,
+      },
+    );
+  });
+  const ringHome = await page.locator(".ocean-stick").boundingBox();
+  const grab = { x: 330, y: 200 };
+  await touch("touchStart", [{ x: grab.x, y: grab.y, id: 5 }]);
+  const moved = await page.locator(".ocean-stick").boundingBox();
+  assert.ok(
+    Math.abs(moved.x + moved.width / 2 - grab.x) < 2 &&
+      Math.abs(moved.y + moved.height / 2 - grab.y) < 2,
+    `ring centred on the thumb: ${JSON.stringify(moved)}`,
+  );
+  assert.deepEqual(
+    await read(),
+    { steer: 0, throttle: 0 },
+    "no input at the grab point",
+  );
+  await touch("touchMove", [{ x: grab.x + 40, y: grab.y - 40, id: 5 }]);
+  value = await read();
+  assert.ok(value.steer > 0 && value.throttle > 0, JSON.stringify(value));
+  await touch("touchEnd", [{ x: grab.x + 40, y: grab.y - 40, id: 5 }]);
+  assert.deepEqual(await read(), { steer: 0, throttle: 0 });
+  const back = await page.locator(".ocean-stick").boundingBox();
+  assert.ok(
+    Math.abs(back.x - ringHome.x) < 1 && Math.abs(back.y - ringHome.y) < 1,
+    "ring returns home on release",
+  );
+  // A touch on the ring itself still uses the home position.
+  await touch("touchStart", [
+    { x: ringHome.x + 68 + 30, y: ringHome.y + 68, id: 6 },
+  ]);
+  const onRing = await page.locator(".ocean-stick").boundingBox();
+  assert.ok(
+    Math.abs(onRing.x - ringHome.x) < 1,
+    "ring does not jump when grabbed",
+  );
+  assert.ok((await read()).steer > 0);
+  await touch("touchEnd", [
+    { x: ringHome.x + 68 + 30, y: ringHome.y + 68, id: 6 },
+  ]);
+  // The fishing side of the screen is outside the zone and never steers.
+  await touch("touchStart", [{ x: fish.x, y: fish.y, id: 7 }]);
+  assert.deepEqual(await read(), { steer: 0, throttle: 0 });
+  await touch("touchEnd", [{ x: fish.x, y: fish.y, id: 7 }]);
   assert.deepEqual(errors, []);
   console.log(
-    "Ocean stick: two real thumbs (turn+run with stick, tap fish), extra finger ignored, release/cancel/disabled passed.",
+    "Ocean stick: two real thumbs (turn+run with stick, tap fish), extra finger ignored, release/cancel/disabled, floating ring under the thumb passed.",
   );
 } finally {
   await context.close();

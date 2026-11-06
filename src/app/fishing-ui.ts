@@ -39,6 +39,8 @@ export interface FishingUiOptions {
   /** The store changed (a catch, a release): save it and update the counters. */
   setStock: (next: Inventory, caughtOne: boolean) => void;
   reduced: boolean;
+  /** Test only: runs the tug of war faster (1 is real time). */
+  fightSpeed?: number;
 }
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -99,7 +101,11 @@ export function createFishingUi(options: FishingUiOptions) {
     target.style.height = `${rectOf.height}px`;
   };
 
-  const angler = new Angler((event) => handle(event));
+  const angler = new Angler(
+    (event) => handle(event),
+    Math.random,
+    options.fightSpeed ?? 1,
+  );
 
   function handle(event: FishingEvent) {
     const scene = options.scene();
@@ -123,6 +129,20 @@ export function createFishingUi(options: FishingUiOptions) {
       case "escaped":
         shake();
         vibrate(40);
+        break;
+      case "hooked":
+        // The fish is on: the hook window's ring is done, the tug of war begins.
+        ring.style.display = "none";
+        vibrate([40, 30, 40]);
+        break;
+      case "mood":
+        // A surge is felt in the hand; a tired fish is a relief.
+        if (event.mood === "surge") vibrate([60, 25, 60]);
+        break;
+      case "lost":
+        hideSignals();
+        shake();
+        vibrate([90, 40, 90]);
         break;
       case "retrieved":
         break;
@@ -149,7 +169,15 @@ export function createFishingUi(options: FishingUiOptions) {
     if (!options.enabled()) return;
     const now = performance.now();
     if (angler.busy) {
-      angler.pull(now);
+      // How far the fish is when it takes the hook: the boat to the bobber.
+      const landing = angler.view(now).landing;
+      const boat = options.boat();
+      angler.pull(
+        now,
+        landing
+          ? Math.hypot(boat.x - landing.x, boat.z - landing.z)
+          : undefined,
+      );
       return;
     }
     if (options.scene()?.rodTip()) {
@@ -162,7 +190,13 @@ export function createFishingUi(options: FishingUiOptions) {
 
   /** The player lets go: a charged throw leaves the rod. */
   function release() {
-    if (angler.view(performance.now()).phase !== "charging") return;
+    const phase = angler.view(performance.now()).phase;
+    // Letting go while a fish is on gives it line instead of throwing.
+    if (phase === "fighting") {
+      angler.letGo();
+      return;
+    }
+    if (phase !== "charging") return;
     const tip = options.scene()?.rodTip();
     if (!tip || !options.enabled()) {
       angler.cancel();
@@ -180,6 +214,9 @@ export function createFishingUi(options: FishingUiOptions) {
     if (!options.enabled()) return;
     if (angler.busy) {
       press();
+      // No held press to end it (a keyboard or assistive click): a short pull.
+      if (angler.view(performance.now()).phase === "fighting")
+        window.setTimeout(release, 400);
       return;
     }
     if (!options.scene()?.rodTip()) return;
@@ -241,6 +278,18 @@ export function createFishingUi(options: FishingUiOptions) {
             ? labels.biting
             : labels.out;
     if (button.textContent !== label) button.textContent = label;
+    // State for styling and for tests: never shown as text.
+    button.dataset.phase = view.phase;
+    if (view.fight) {
+      button.dataset.mood = view.fight.mood;
+      button.dataset.tension = view.fight.tension.toFixed(2);
+      button.dataset.distance = view.fight.distance.toFixed(1);
+    } else {
+      delete button.dataset.mood;
+      delete button.dataset.tension;
+      delete button.dataset.distance;
+    }
+    button.classList.toggle("is-fighting", view.phase === "fighting");
     // Power bar while charging.
     power.hidden = view.phase !== "charging";
     if (view.phase === "charging") {

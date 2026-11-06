@@ -42,3 +42,40 @@ export function edgeIndicator(
     distance: Math.hypot(dx, dz),
   };
 }
+
+export interface LabelBox {
+  /** Horizontal centre and bottom edge, in px. */
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/**
+ * Nudges name labels up so two never sit on top of each other. Returns how far to
+ * lift each one (px, 0 or more), in the order given. The label nearest the bottom
+ * of the screen keeps its place; others stack above it. Pure maths.
+ */
+export function separateLabels(boxes: readonly LabelBox[], gap = 3): number[] {
+  const lift: number[] = boxes.map(() => 0);
+  // Lowest on screen first: it keeps its place and the others stack above it.
+  const order = boxes
+    .map((box, index) => ({ box, index }))
+    .sort((a, b) => b.box.y - a.box.y);
+  const placed: LabelBox[] = [];
+  for (const { box: original, index } of order) {
+    const box = { ...original };
+    for (let tries = 0; tries < 8; tries++) {
+      const hit = placed.find(
+        (other) =>
+          Math.abs(other.x - box.x) < (other.w + box.w) / 2 &&
+          Math.abs(other.y - box.y) < (other.h + box.h) / 2,
+      );
+      if (!hit) break;
+      box.y = hit.y - hit.h - gap;
+    }
+    lift[index] = Math.max(0, original.y - box.y);
+    placed.push(box);
+  }
+  return lift;
+}
