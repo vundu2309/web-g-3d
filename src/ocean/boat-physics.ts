@@ -65,12 +65,41 @@ const SAMPLES = [-1, 1].flatMap((side) =>
 );
 const STIFFNESS = (HULL.mass * 9.81) / (SAMPLES.length * DRAFT); // N per metre submerged
 const HEAVE_DAMPING = 520; // N·s/m per sample
-export const THRUST = 3600;
-const TOP_SPEED = 8;
-const C_FORWARD = THRUST / (TOP_SPEED * TOP_SPEED);
+export const THRUST = 6000;
+/** Nominal top speed with the hull planing (m/s); the real one comes out of the drag below. */
+export const TOP_SPEED = 12;
+// With the planing drag cut below, this gives a top speed a little over TOP_SPEED.
+const C_FORWARD = THRUST / (12 * 12);
 const C_SIDE = C_FORWARD * 13; // the keel resists sideslip far more than motion ahead
 const C_LINEAR = 60;
 const RUDDER = 2600;
+
+// Parting the water. The hull pushes a bow wave and, as it speeds up, climbs it ("the
+// hump", near HUMP_SPEED): the bow rises and the wave-making drag peaks. Past it the hull
+// rides up on the water (planing): lighter, less wetted, less drag. All of it grows from
+// the speed along the keel, so a slow boat behaves as before.
+const WEIGHT = HULL.mass * 9.81;
+export const HUMP_SPEED = 7;
+const HUMP_WIDTH = 2.2;
+const WAVE_DRAG = 1100; // N at the peak of the hump
+const BOW_LIFT = 0.3 * WEIGHT; // N at the peak of the hump, at the bow
+const PLANE_FROM = 6;
+const PLANE_TO = 10.5;
+const PLANE_LIFT = 0.22 * WEIGHT; // N, at full planing, at the centre
+const PLANE_DRAG_CUT = 0.15; // the share of forward drag that goes away at full planing
+const BANK = 2800; // N·m·s: how hard the hull leans into a turn at speed
+const BOW = new Vector3(0, BOTTOM, -3.2);
+
+const smoothstep = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
+/** 0 away from the hump speed, 1 at it. */
+export const humpAt = (speed: number) =>
+  Math.exp(-(((speed - HUMP_SPEED) / HUMP_WIDTH) ** 2));
+/** 0 below planing speed, 1 once the hull is up on the water. */
+export const planingAt = (speed: number) =>
+  smoothstep(PLANE_FROM, PLANE_TO, speed);
 
 /**
  * Turns physics on with a fixed 60 Hz step. Havok then integrates identical steps
@@ -173,7 +202,13 @@ export function createBoatPhysics(
     const along = velocity.x * forward.x + velocity.z * forward.z;
     const across = velocity.x * side.x + velocity.z * side.z;
     // Water drag: quadratic along the keel, much stronger across it.
-    const dragAlong = -(C_FORWARD * Math.abs(along) + C_LINEAR) * along;
+    const speed = Math.abs(along);
+    const hump = humpAt(speed);
+    const planing = planingAt(speed);
+    const dragAlong =
+      -(C_FORWARD * (1 - PLANE_DRAG_CUT * planing) * speed + C_LINEAR) * along -
+      // The bow wave: only forward, a hump of extra drag the hull has to climb.
+      Math.sign(along) * WAVE_DRAG * hump;
     const dragAcross = -(C_SIDE * Math.abs(across) + C_LINEAR) * across;
     const thrust =
       clamp(input.throttle, -1, 1) *
@@ -193,10 +228,24 @@ export function createBoatPhysics(
       (forward.z * push + side.z * dragAcross * wet) * dt,
     );
     body.applyImpulse(force, mesh.position);
+    // The bow climbs its own wave (a lift at the bow) and the hull rides up on the water
+    // (a lift at the centre) as it speeds up.
+    if (wet > 0 && speed > 0.5) {
+      force.set(0, BOW_LIFT * hump * Math.sign(along) * wet * dt, 0);
+      Vector3.TransformCoordinatesToRef(BOW, mesh.getWorldMatrix(), world);
+      body.applyImpulse(force, world);
+      force.set(0, PLANE_LIFT * planing * wet * dt, 0);
+      body.applyImpulse(force, mesh.position);
+    }
     // Rudder: a rotation about +Y lowers heading, so a right turn is a negative torque.
     const flow = clamp(Math.abs(along) / 5, 0, 1);
     const authority = (0.35 + 0.65 * flow) * wet;
     spin.set(0, -clamp(input.steer, -1, 1) * RUDDER * authority * dt, 0);
+    body.applyAngularImpulse(spin);
+    // Leaning into the turn: a roll about the keel that grows with speed and rudder.
+    const lean =
+      clamp(input.steer, -1, 1) * clamp(speed / 8, 0, 1) * wet * BANK * dt;
+    spin.set(forward.x * lean, 0, forward.z * lean);
     body.applyAngularImpulse(spin);
     // Soft wall keeps the boat inside the sea the server validates.
     const px = mesh.position.x;

@@ -9,6 +9,7 @@ import {
   createBoatPhysics,
   enableSeaPhysics,
 } from "../src/ocean/boat-physics.ts";
+import { humpAt, planingAt } from "../src/ocean/boat-physics.ts";
 import {
   WAVES,
   MAX_WAVE_HEIGHT,
@@ -153,12 +154,16 @@ test("thrust builds speed gradually, top speed is bounded, and the boat coasts a
   w.dispose();
   assert.ok(at[0.5] > 0.3, "it does start moving");
   assert.ok(
+    at[3] > 0.8 * at[11.9],
+    `it gets up to speed fast: ${at[3].toFixed(2)} m/s after 3 s of ${at[11.9].toFixed(2)}`,
+  );
+  assert.ok(
     at[0.5] < 0.4 * at[11.9],
     `inertia: ${at[0.5].toFixed(2)} after 0.5 s vs ${at[11.9].toFixed(2)} at full speed`,
   );
   assert.ok(
-    at[11.9] > 5 && at[11.9] < 9.5,
-    `top speed ${at[11.9].toFixed(2)} m/s`,
+    at[11.9] > 10.5 && at[11.9] < 14,
+    `top speed ${at[11.9].toFixed(2)} m/s (it was 8 before the boat was made faster)`,
   );
   assert.ok(
     at[13] > 0.35 * at[11.9] && at[13] < at[11.9],
@@ -317,4 +322,80 @@ test("the start heading points the bow where the movement model says it does", (
       `moves along -cos(h) in z for heading ${heading}`,
     );
   }
+});
+
+test("the hull parts the water: the bow climbs its own wave at the hump and the boat rides up when it planes", () => {
+  // The two curves: a hump of wave-making drag around 7 m/s, planing from 6 to 10.5 m/s.
+  assert.ok(humpAt(7) > 0.99 && humpAt(2) < 0.05 && humpAt(12.5) < 0.05);
+  let last = -1;
+  for (let v = 0; v <= 14; v += 0.5) {
+    assert.ok(planingAt(v) >= last);
+    last = planingAt(v);
+  }
+  assert.equal(planingAt(3), 0);
+  assert.equal(planingAt(12), 1);
+  // In the water: pitch up while climbing the hump, level once planing, and riding higher.
+  const w = world();
+  let bowUp = 0;
+  const cruise = [];
+  const idle = [];
+  w.run(
+    16,
+    () => ({ throttle: 1 }),
+    (s, t) => {
+      if (t < 4) bowUp = Math.max(bowUp, deg(s.pitch));
+      if (t > 8)
+        cruise.push({
+          pitch: deg(s.pitch),
+          above: s.y - waveHeight(s.x, s.z, t),
+        });
+    },
+  );
+  w.dispose();
+  const still = world();
+  still.run(
+    16,
+    () => ({}),
+    (s, t) => {
+      if (t > 8) idle.push(s.y - waveHeight(s.x, s.z, t));
+    },
+  );
+  still.dispose();
+  assert.ok(bowUp > 4, `the bow rises at the hump: ${bowUp.toFixed(1)} deg`);
+  assert.ok(
+    Math.abs(mean(cruise.map((c) => c.pitch))) < 3.5,
+    `and the hull levels out once planing: ${mean(cruise.map((c) => c.pitch)).toFixed(1)} deg`,
+  );
+  assert.ok(
+    mean(cruise.map((c) => c.above)) > mean(idle) + 0.04,
+    `it rides higher when planing: ${mean(cruise.map((c) => c.above)).toFixed(2)} m against ${mean(idle).toFixed(2)} m at rest`,
+  );
+});
+
+test("the hull leans into a turn at speed, the other way for the other turn, and not when going straight", () => {
+  const lean = (steer) => {
+    const w = world();
+    const rolls = [];
+    w.run(
+      13,
+      (t) => ({ throttle: 1, steer: t > 5 ? steer : 0 }),
+      (s, t) => {
+        if (t > 7) rolls.push(deg(s.roll));
+      },
+    );
+    w.dispose();
+    return mean(rolls);
+  };
+  const right = lean(1);
+  const left = lean(-1);
+  const straight = lean(0);
+  // Starboard side down (a negative roll) leans a right turn inward.
+  assert.ok(
+    right < straight - 4,
+    `right turn leans in: ${right.toFixed(1)} vs ${straight.toFixed(1)} straight`,
+  );
+  assert.ok(
+    left > straight + 4,
+    `left turn leans in: ${left.toFixed(1)} vs ${straight.toFixed(1)} straight`,
+  );
 });

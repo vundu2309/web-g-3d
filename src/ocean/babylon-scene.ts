@@ -386,7 +386,7 @@ export class OceanScene {
     const state = this.self?.physics.state();
     if (this.self && state) {
       const speed = Math.hypot(state.forwardSpeed, state.sideSpeed);
-      this.self.wake.setStrength(speed / 9);
+      this.self.wake.setStrength(speed / 12);
       this.followWith(state, step);
     }
     // The line's pull bends the rod; the rod's tip is where the line starts.
