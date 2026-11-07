@@ -1332,6 +1332,8 @@ dialog.account-screen :is(input, textarea) {
   margin: 0;
   padding: 2px 4px 6px 0;
   display: grid;
+  /* A long name must shrink with an ellipsis, not stretch the column past the box. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   max-height: calc(100dvh - 150px);
   overflow-y: auto;
