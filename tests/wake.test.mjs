@@ -106,12 +106,6 @@ test("the wake makes a V behind the boat: strong on its edges, still ahead and u
     Math.abs(field.sample(0, z, t).height) < 0.06,
     "the hull floats on the surface it sees",
   );
-  // White water right behind the boat.
-  assert.ok(
-    field.sample(0, z + 4, t).foam > 0.2,
-    "a foamy trail behind the stern",
-  );
-  assert.equal(field.sample(0, z - 25, t).foam, 0);
 });
 
 test("a slow boat has a wider V than a fast one", () => {

@@ -1,6 +1,5 @@
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
-import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
@@ -268,48 +267,4 @@ export function createFishingLine(scene: Scene, parent: TransformNode) {
   line.position.set(rest.x, 0.35, rest.z);
   line.isPickable = false;
   return line;
-}
-
-/** Soft foam under the stern and along the bow, flat on the water. */
-export function createWake(scene: Scene, parent: TransformNode) {
-  const texture = new DynamicTexture("wake", 128, scene, true);
-  const context = texture.getContext();
-  const gradient = context.createRadialGradient(64, 64, 4, 64, 64, 64);
-  gradient.addColorStop(0, "rgba(255,255,255,0.85)");
-  gradient.addColorStop(0.55, "rgba(255,255,255,0.35)");
-  gradient.addColorStop(1, "rgba(255,255,255,0)");
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, 128, 128);
-  texture.update();
-  texture.hasAlpha = true;
-  const material = new StandardMaterial("wake-material", scene);
-  material.diffuseTexture = texture;
-  material.useAlphaFromDiffuseTexture = true;
-  material.emissiveColor = Color3.White();
-  material.disableLighting = true;
-  material.backFaceCulling = false;
-  material.alpha = 0.7;
-  const pieces: Mesh[] = [];
-  const add = (width: number, depth: number, x: number, z: number, yaw = 0) => {
-    const plane = MeshBuilder.CreateGround(
-      "wake",
-      { width, height: depth },
-      scene,
-    );
-    plane.material = material;
-    plane.parent = parent;
-    plane.position.set(x, 0.12, z);
-    plane.rotation.y = yaw;
-    plane.isPickable = false;
-    pieces.push(plane);
-  };
-  add(2.6, 5.4, 0, BOAT_LENGTH / 2 + 1.9);
-  add(1.2, 4.2, 1.2, -BOAT_LENGTH * 0.18, -0.32);
-  add(1.2, 4.2, -1.2, -BOAT_LENGTH * 0.18, 0.32);
-  return {
-    setStrength(value: number) {
-      material.alpha = Math.max(0, Math.min(0.75, value));
-      for (const piece of pieces) piece.setEnabled(value > 0.03);
-    },
-  };
 }

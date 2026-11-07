@@ -19,7 +19,7 @@ export const WAKE_LIFE = 4.5;
 /** Wavelength of the ripples in a ring (m). */
 export const WAKE_WAVELENGTH = 2.6;
 /** Height of a ring from a boat at full speed, at its strongest (m). */
-export const WAKE_HEIGHT = 0.34;
+export const WAKE_HEIGHT = 0.12;
 /** A boat slower than this leaves no wake (m/s). */
 export const WAKE_MIN_SPEED = 1.5;
 /** Seconds between rings from one boat. */
@@ -33,8 +33,6 @@ export interface WakeSample {
   /** Extra slope, d height / dx and d height / dz. */
   gx: number;
   gz: number;
-  /** 0..1 white water. */
-  foam: number;
 }
 
 const smooth = (a: number, b: number, x: number) => {
@@ -114,7 +112,6 @@ export function sampleWake(
   let height = 0;
   let gx = 0;
   let gz = 0;
-  let foam = 0;
   for (let i = 0; i < WAKE_MAX; i++) {
     const strength = data[i * 4 + 3]!;
     const age = t - data[i * 4 + 2]!;
@@ -129,17 +126,9 @@ export function sampleWake(
     const fade =
       (smooth(0.35, 1.2, age) * Math.exp(-age * 0.5) * strength) /
       Math.sqrt(1 + radius * 0.5);
-    // White water right behind the boat, before the ring has left it.
-    const trail =
-      strength *
-      smooth(0.1, 0.6, age) *
-      (1 - smooth(1.2, 3.5, age)) *
-      (1 - smooth(0.6, 2.2, d));
-    foam += trail * 0.9;
     if (envelope < 0.01) continue;
     const phase = K * u;
     height += WAKE_HEIGHT * fade * Math.cos(phase) * envelope;
-    foam += envelope * fade * smooth(0.55, 1, Math.cos(phase)) * 1.6;
     const slope =
       WAKE_HEIGHT *
       fade *
@@ -149,7 +138,7 @@ export function sampleWake(
     gx += slope * dx * inv;
     gz += slope * dz * inv;
   }
-  return { height, gx, gz, foam: Math.min(1, foam) };
+  return { height, gx, gz };
 }
 
 /** The same sum as GLSL, built from the constants above so the shader cannot drift. */
@@ -157,11 +146,10 @@ export function glslWake(): string {
   const f = (n: number) => n.toFixed(6);
   return `const int WAKE_MAX = ${WAKE_MAX};
 uniform vec4 wake[WAKE_MAX];
-// x: height, y and z: slope, w: white water.
+// x: height, y and z: slope (the white water is drawn by wake-mesh.ts).
 vec4 wakeAt(vec2 p, float t) {
   float height = 0.0;
   vec2 grad = vec2(0.0);
-  float foam = 0.0;
   for (int i = 0; i < WAKE_MAX; i++) {
     vec4 e = wake[i];
     float age = t - e.z;
@@ -173,15 +161,12 @@ vec4 wakeAt(vec2 p, float t) {
     float width = 1.4 + 0.5 * age;
     float envelope = exp(-(u * u) / (width * width));
     float fade = smoothstep(0.35, 1.2, age) * exp(-age * 0.5) * e.w / sqrt(1.0 + radius * 0.5);
-    float trail = e.w * smoothstep(0.1, 0.6, age) * (1.0 - smoothstep(1.2, 3.5, age)) * (1.0 - smoothstep(0.6, 2.2, d));
-    foam += trail * 0.9;
     if (envelope < 0.01) continue;
     float phase = ${f(K)} * u;
     height += ${f(WAKE_HEIGHT)} * fade * cos(phase) * envelope;
-    foam += envelope * fade * smoothstep(0.55, 1.0, cos(phase)) * 1.6;
     float slope = ${f(WAKE_HEIGHT)} * fade * envelope * (-${f(K)} * sin(phase) + cos(phase) * (-2.0 * u / (width * width)));
     grad += slope * delta / max(d, 0.001);
   }
-  return vec4(height, grad, min(foam, 1.0));
+  return vec4(height, grad, 0.0);
 }`;
 }

@@ -120,8 +120,6 @@ void main() {
     foam = clamp(max(foam * 0.85, max(surf, trail)), 0.0, 1.0);
     color = mix(color, vec3(0.95, 0.98, 1.0), foam);
   }
-  // White water in the wake of the boats.
-  color = mix(color, vec3(0.95, 0.98, 1.0), clamp(vWake.w, 0.0, 1.0) * 0.9);
   float fog = 1.0 - exp(-fogDensity * fogDensity * dist * dist);
   color = mix(color, horizon, clamp(fog, 0.0, 1.0));
   gl_FragColor = vec4(color, 1.0);
