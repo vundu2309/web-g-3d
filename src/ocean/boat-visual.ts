@@ -14,16 +14,9 @@ import { RodSim } from "./rod.ts";
  * so a boat is one draw call and every other player's boat is a cheap instance.
  * The bow points to -Z and the hull origin is the waterline.
  */
-export interface BoatPalette {
-  hull: number;
-  trim: number;
-}
-export const boatPalettes: BoatPalette[] = [
-  { hull: 0x2a6fb8, trim: 0xffd35a },
-  { hull: 0xe0654f, trim: 0xfff1c9 },
-  { hull: 0x2f9a8a, trim: 0xffd35a },
-  { hull: 0x7a5bb5, trim: 0xfff1c9 },
-];
+import { boatPalettes, type BoatPalette } from "./palette.ts";
+
+export { boatPalettes, type BoatPalette };
 
 export const BOAT_LENGTH = 7.4;
 const HALF_BEAM = 1.5;

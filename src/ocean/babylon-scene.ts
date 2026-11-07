@@ -32,6 +32,7 @@ import {
   type Pose,
 } from "./model.ts";
 import { FishingGear, type GearInput } from "./fishing-gear.ts";
+import { paletteIndex } from "./palette.ts";
 import { RodVisual } from "./rod-visual.ts";
 import { FOG_DENSITY, HORIZON, SUN_DIRECTION } from "./sea-style.ts";
 import { edgeIndicator, separateLabels } from "./indicator.ts";
@@ -55,11 +56,6 @@ interface Craft {
   seen: boolean;
 }
 
-const paletteOf = (uid: string) => {
-  let hash = 0;
-  for (const char of uid) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-  return hash % boatPalettes.length;
-};
 const wrap = (angle: number) => Math.atan2(Math.sin(angle), Math.cos(angle));
 const blend = (dt: number, rate: number) => 1 - Math.exp(-dt * rate);
 const NORMALIZED = new Viewport(0, 0, 1, 1);
@@ -182,7 +178,9 @@ export class OceanScene {
   }
 
   private craft(uid: string, name: string, isSelf: boolean): Craft {
-    const mesh = this.templates[paletteOf(uid)]!.createInstance(`boat-${uid}`);
+    const mesh = this.templates[paletteIndex(uid)]!.createInstance(
+      `boat-${uid}`,
+    );
     mesh.isPickable = false;
     const label = document.createElement("span");
     label.className = "ocean-boat-label";

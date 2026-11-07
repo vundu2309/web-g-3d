@@ -90,22 +90,6 @@
   justify-content: center;
   gap: 8px;
 }
-.ocean-channel {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  line-height: 1.2;
-  text-shadow: 0 1px 4px #fff;
-}
-.ocean-channel strong {
-  font:
-    800 25px "Baloo 2",
-    sans-serif;
-}
-.ocean-channel span {
-  font-size: 12px;
-  font-weight: 700;
-}
 .ocean-status {
   align-self: center;
   text-align: center;
@@ -227,12 +211,6 @@
   transition: none;
 }
 @media (max-height: 430px) {
-  .ocean-channel span {
-    display: none;
-  }
-  .ocean-channel strong {
-    font-size: 21px;
-  }
   .ocean-stick {
     width: 136px;
     height: 136px;
@@ -325,12 +303,6 @@
   }
 }
 @media (orientation: portrait) {
-  .ocean-channel strong {
-    font-size: 21px;
-  }
-  .ocean-channel span {
-    display: none;
-  }
   .ocean-top {
     gap: 5px;
   }
@@ -489,7 +461,7 @@
 /* While loading, only the way back is on screen: no stick, no buttons, no counters. */
 .ocean-loading:not([hidden], .is-done)
   ~ .ocean-hud
-  :is(.ocean-status, .ocean-bottom, .ocean-channel, [data-ocean="crew"]) {
+  :is(.ocean-status, .ocean-bottom, .ocean-minimap, [data-ocean="crew"]) {
   visibility: hidden;
 }
 .ocean-loading:not([hidden], .is-done) ~ .ocean-hud [data-ocean="back"] {
@@ -1295,4 +1267,143 @@ dialog.account-screen :is(input, textarea) {
     aspect-ratio: 844 / 390;
     transform: translateX(-55.7%);
   }
+}
+
+/* The minimap: the whole sea in the corner under the crew button. Drawn only. */
+.ocean-minimap {
+  position: absolute;
+  z-index: 2;
+  top: calc(12px + 48px + 10px);
+  right: 16px;
+  width: 112px;
+  height: 112px;
+  border-radius: 18px;
+  border: 2.5px solid #ffffffd9;
+  box-shadow:
+    0 0 0 2px #153b80,
+    0 4px 14px #153b8055;
+  background: #8fd0ec;
+  pointer-events: none;
+}
+@media (max-height: 420px) {
+  .ocean-minimap {
+    width: 96px;
+    height: 96px;
+    border-radius: 16px;
+  }
+}
+@media (orientation: portrait) {
+  .ocean-minimap {
+    width: 104px;
+    height: 104px;
+  }
+}
+
+/* The crew list: one rounded row for each boat in the sea, with its colour and what it is doing. */
+.ocean-dialog.is-crew {
+  width: min(420px, calc(100vw - 32px));
+  padding: 16px 16px 14px;
+}
+.crew-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.crew-head h2 {
+  flex: 1;
+  margin: 0;
+}
+.crew-count {
+  min-width: 34px;
+  height: 30px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  border: 3px solid #153b80;
+  border-radius: 15px;
+  background: #ffd35a;
+  font:
+    900 16px/24px "Baloo 2",
+    sans-serif;
+  text-align: center;
+}
+.crew-list {
+  list-style: none;
+  margin: 0;
+  padding: 2px 4px 6px 0;
+  display: grid;
+  /* A long name must shrink with an ellipsis, not stretch the column past the box. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  max-height: calc(100dvh - 150px);
+  overflow-y: auto;
+}
+.crew-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border: 2.5px solid #153b80;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 3px 0 #153b80;
+  line-height: 1.2 !important;
+}
+.crew-row.is-you {
+  background: #fff6d6;
+}
+.crew-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2.5px solid #153b80;
+}
+.crew-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.crew-info strong {
+  font-size: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.crew-info small {
+  font-size: 13px;
+  font-weight: 700;
+  color: #385b8d;
+}
+.crew-info small::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #2fb86a;
+}
+.crew-info small.is-fishing {
+  color: #c2402a;
+}
+.crew-info small.is-fishing::before {
+  background: #e9573f;
+}
+.crew-you {
+  padding: 3px 12px;
+  border: 2px solid #153b80;
+  border-radius: 999px;
+  background: #ffd35a;
+  font-size: 13px;
+  font-weight: 800;
+}
+.crew-far {
+  font-size: 14px;
+  font-weight: 800;
+  color: #385b8d;
 }
