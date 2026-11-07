@@ -1,5 +1,5 @@
 export const SEA_BOUND = 180;
-export const BOAT_SPEED = 8;
+export const BOAT_SPEED = 12;
 export const PRESENCE_MS = 30000;
 export interface Pose {
   x: number;

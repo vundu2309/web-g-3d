@@ -20,11 +20,13 @@ import {
   boatPalettes,
   createBoatTemplate,
   createFishingLine,
-  createWake,
 } from "./boat-visual.ts";
 import { createHavok } from "./havok.ts";
 import { createIsland } from "./island-visual.ts";
 import { SeaProps } from "./sea-props.ts";
+import { WakeField } from "./wake.ts";
+import { WakeMesh } from "./wake-mesh.ts";
+import { WakeTrail } from "./wake-trail.ts";
 import {
   islandCollisionRadius,
   islands,
@@ -78,7 +80,6 @@ export class OceanScene {
     | {
         physics: BoatPhysics;
         craft: Craft;
-        wake: ReturnType<typeof createWake>;
         uid: string;
       }
     | undefined;
@@ -89,6 +90,12 @@ export class OceanScene {
   private lost = false;
   private gear: FishingGear | undefined;
   private readonly seaProps: SeaProps;
+  private readonly wakeField = new WakeField();
+  /** The visible wake (white water) of each boat, yours under "self". */
+  private readonly trails = new Map<
+    string,
+    { trail: WakeTrail; mesh: WakeMesh }
+  >();
   private gearInput: Omit<GearInput, "tip" | "time"> | undefined;
   private readonly canvas: HTMLCanvasElement;
 
@@ -217,7 +224,6 @@ export class OceanScene {
     this.self = {
       physics,
       craft,
-      wake: createWake(this.scene, craft.mesh),
       uid,
     };
     this.viewHeading = pose.heading;
@@ -265,6 +271,22 @@ export class OceanScene {
     mesh.rotationQuaternion = Quaternion.RotationAxis(Axis.Y, -heading)
       .multiply(Quaternion.RotationAxis(Axis.X, pitch))
       .multiply(Quaternion.RotationAxis(Axis.Z, roll));
+  }
+
+  /** Records where a boat is and draws the white water it leaves. */
+  private leaveTrail(id: string, x: number, z: number) {
+    let entry = this.trails.get(id);
+    if (!entry) {
+      entry = { trail: new WakeTrail(), mesh: new WakeMesh(this.scene) };
+      this.trails.set(id, entry);
+    }
+    entry.trail.push(x, z, this.clock);
+    entry.mesh.update(entry.trail, this.clock);
+  }
+
+  private forgetTrail(id: string) {
+    this.trails.get(id)?.mesh.dispose();
+    this.trails.delete(id);
   }
 
   /** Resolves once every mesh, material and shader has been compiled for the first frame. */
@@ -374,6 +396,8 @@ export class OceanScene {
     }
     for (const [id, craft] of this.fleet)
       if (!present.has(id)) {
+        this.wakeField.forget(id);
+        this.forgetTrail(id);
         craft.label.remove();
         craft.line?.dispose();
         craft.rod.dispose();
@@ -383,8 +407,6 @@ export class OceanScene {
 
     const state = this.self?.physics.state();
     if (this.self && state) {
-      const speed = Math.hypot(state.forwardSpeed, state.sideSpeed);
-      this.self.wake.setStrength(speed / 9);
       this.followWith(state, step);
     }
     // The line's pull bends the rod; the rod's tip is where the line starts.
@@ -421,10 +443,20 @@ export class OceanScene {
     else if (tip && this.gear?.holding) this.gear.updateHeld(tip, this.clock);
     else this.gear?.hide();
     this.seaProps.update(this.clock);
+    // Every moving boat, yours and the others', leaves a wake in the water.
+    if (this.self && state) {
+      this.wakeField.track("self", state.x, state.z, this.clock);
+      this.leaveTrail("self", state.x, state.z);
+    }
+    for (const [id, craft] of this.fleet) {
+      this.wakeField.track(id, craft.x, craft.z, this.clock);
+      this.leaveTrail(id, craft.x, craft.z);
+    }
     this.water.update(
       this.camera.position.x,
       this.camera.position.z,
       this.clock,
+      this.wakeField.data,
     );
     this.sky.update(
       this.camera.position.x,
@@ -568,6 +600,7 @@ export class OceanScene {
     for (const craft of this.fleet.values()) craft.label.remove();
     this.gear?.dispose();
     this.seaProps.dispose();
+    for (const id of [...this.trails.keys()]) this.forgetTrail(id);
     this.self?.craft.label.remove();
     this.self?.physics.dispose();
     this.fleet.clear();
