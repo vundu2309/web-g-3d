@@ -151,6 +151,9 @@ export function ribbonPositions(
   maxWidth = 0.4,
 ): Float32Array {
   const n = points.length;
+  let px = 0;
+  let py = 0;
+  let pz = 0;
   for (let i = 0; i < n; i++) {
     const p = points[i]!;
     const a = points[Math.max(0, i - 1)]!;
@@ -165,13 +168,32 @@ export function ribbonPositions(
     let sx = ty * ez - tz * ey;
     let sy = tz * ex - tx * ez;
     let sz = tx * ey - ty * ex;
-    const size = Math.hypot(sx, sy, sz) || 1;
+    let size = Math.hypot(sx, sy, sz);
+    // Seen end-on the sideways direction is unstable: keep it on the same side as the
+    // previous point's so the strip does not twist into a bow-tie, and reuse that one
+    // when the line points straight at the eye.
+    if (
+      size < 1e-6 * (Math.hypot(tx, ty, tz) + 1e-9) * Math.hypot(ex, ey, ez) ||
+      size < 1e-9
+    ) {
+      sx = px;
+      sy = py;
+      sz = pz;
+      size = Math.hypot(sx, sy, sz) || 1;
+    } else if (sx * px + sy * py + sz * pz < 0) {
+      sx = -sx;
+      sy = -sy;
+      sz = -sz;
+    }
     const dist = Math.hypot(ex, ey, ez);
     const half =
       Math.min(maxWidth, Math.max(minWidth, dist * widthPerMetre)) / 2;
     sx = (sx / size) * half;
     sy = (sy / size) * half;
     sz = (sz / size) * half;
+    px = sx / half;
+    py = sy / half;
+    pz = sz / half;
     out[i * 6] = p.x - sx;
     out[i * 6 + 1] = p.y - sy;
     out[i * 6 + 2] = p.z - sz;
