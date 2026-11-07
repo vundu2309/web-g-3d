@@ -139,3 +139,7 @@ Players used to start up to 40 m apart facing random directions, so the other bo
 - A server "too fast" reply to a pose update no longer ends the session.
 
 Tests: `tests/ocean.test.mjs` (harbor and arrow maths) and `tests/ocean-multiplayer-browser.mjs` (two real clients through the real server, an arrow with distance when out of view, a revoked session, same-account takeover; only Supabase Auth is faked). Replacing the new start with the old random one, or dropping the expired-session handling, makes that test fail.
+
+### Line seen end-on
+
+Cast straight ahead, the camera looks along the line, so a long line is drawn short and its end looked like it stopped in mid-air. A slow ring now marks where the line enters the water while waiting, and the line's flat strip keeps one side facing the same way along its length (no twist when the line points at the camera).

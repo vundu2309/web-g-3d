@@ -83,6 +83,7 @@ export class FishingGear {
   private readonly linePoints: Vector3[] = [];
   private readonly arcPoints: Vector3[] = [];
   private readonly ripples: { t: number; x: number; z: number }[] = [];
+  private idleRipple = -9;
   private readonly rope = new Rope(POINTS);
   private readonly smooth = new Float64Array(POINTS * 3);
   /** Where the line meets the water (or the fish's mouth), world. */
@@ -467,6 +468,12 @@ export class FishingGear {
       } else if (!dip) this.pull.strength = 0.05;
     }
     this.entry.set(ex, ey, ez);
+    // Where the line enters the water a slow ring keeps showing it, so the end of a long cast
+    // is not a thin line stopping in mid-air.
+    if (!flying && time - this.idleRipple > 1.0) {
+      this.idleRipple = time;
+      this.ripple();
+    }
     this.top.set(ex, waveHeight(ex, ez, time) + 2.4, ez);
     this.pull.shake = biting ? 0.35 : 0;
     // How much line there is: a hair of slack while waiting (a sag of half a metre or so;

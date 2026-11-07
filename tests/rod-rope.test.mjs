@@ -205,3 +205,32 @@ test("smoothing takes the saw-tooth out of a rope and keeps its ends", async () 
   assert.equal(out[0], zig[0]);
   assert.equal(out[(n - 1) * 3 + 1], zig[(n - 1) * 3 + 1]);
 });
+
+test("the line strip does not twist when the line points at the eye with a wobble", async () => {
+  const { ribbonPositions } = await import("../src/ocean/rope.ts");
+  // A line running away from the viewer, wobbling a little sideways and up.
+  const points = Array.from({ length: 22 }, (_, i) => ({
+    x: Math.sin(i * 1.3) * 0.05,
+    y: 2 - i * 0.1 + Math.cos(i * 0.9) * 0.05,
+    z: i * 0.6,
+  }));
+  const out = ribbonPositions(
+    points,
+    { x: 0, y: 3, z: -6 },
+    new Float32Array(22 * 6),
+  );
+  let prev;
+  for (let i = 0; i < 22; i++) {
+    const e = [
+      out[i * 6 + 3] - out[i * 6],
+      out[i * 6 + 4] - out[i * 6 + 1],
+      out[i * 6 + 5] - out[i * 6 + 2],
+    ];
+    if (prev)
+      assert.ok(
+        e[0] * prev[0] + e[1] * prev[1] + e[2] * prev[2] > 0,
+        `twist at ${i}`,
+      );
+    prev = e;
+  }
+});
