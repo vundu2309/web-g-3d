@@ -25,6 +25,7 @@ import {
 import { createHavok } from "./havok.ts";
 import { createIsland } from "./island-visual.ts";
 import { SeaProps } from "./sea-props.ts";
+import { WakeField } from "./wake.ts";
 import {
   islandCollisionRadius,
   islands,
@@ -89,6 +90,7 @@ export class OceanScene {
   private lost = false;
   private gear: FishingGear | undefined;
   private readonly seaProps: SeaProps;
+  private readonly wakeField = new WakeField();
   private gearInput: Omit<GearInput, "tip" | "time"> | undefined;
   private readonly canvas: HTMLCanvasElement;
 
@@ -374,6 +376,7 @@ export class OceanScene {
     }
     for (const [id, craft] of this.fleet)
       if (!present.has(id)) {
+        this.wakeField.forget(id);
         craft.label.remove();
         craft.line?.dispose();
         craft.rod.dispose();
@@ -421,10 +424,16 @@ export class OceanScene {
     else if (tip && this.gear?.holding) this.gear.updateHeld(tip, this.clock);
     else this.gear?.hide();
     this.seaProps.update(this.clock);
+    // Every moving boat, yours and the others', leaves a wake in the water.
+    if (this.self && state)
+      this.wakeField.track("self", state.x, state.z, this.clock);
+    for (const [id, craft] of this.fleet)
+      this.wakeField.track(id, craft.x, craft.z, this.clock);
     this.water.update(
       this.camera.position.x,
       this.camera.position.z,
       this.clock,
+      this.wakeField.data,
     );
     this.sky.update(
       this.camera.position.x,

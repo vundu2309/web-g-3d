@@ -5,6 +5,7 @@ import { Effect } from "@babylonjs/core/Materials/effect";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Scene } from "@babylonjs/core/scene";
 import { islands } from "./model.ts";
+import { WAKE_MAX, glslWake } from "./wake.ts";
 import { glslWaveHeight } from "./waves.ts";
 import {
   DEEP_WATER,
@@ -28,16 +29,21 @@ ${glslWaveHeight()}
 
 Effect.ShadersStore["seaVertexShader"] = `
 ${COMMON}
+${glslWake()}
 attribute vec3 position;
 uniform mat4 worldViewProjection;
 uniform vec3 anchor;
 varying vec3 vWorld;
 varying float vHeight;
+varying vec4 vWake;
 void main() {
   vec3 p = position;
   p.x += anchor.x;
   p.z += anchor.z;
-  p.y = waveHeight(p.xz, time);
+  // The wake of the boats is added to the waves: height, slope and white water.
+  vec4 wakeHere = wakeAt(p.xz, time);
+  vWake = wakeHere;
+  p.y = waveHeight(p.xz, time) + wakeHere.x;
   vWorld = p;
   vHeight = p.y;
   gl_Position = worldViewProjection * vec4(p, 1.0);
@@ -55,6 +61,7 @@ uniform float fogDensity;
 uniform vec4 islands[${islands.length}];
 varying vec3 vWorld;
 varying float vHeight;
+varying vec4 vWake;
 // A hash without sin(): cheaper on phone GPUs.
 float hash(vec2 p) {
   p = fract(p * vec2(0.1031, 0.1030));
@@ -71,7 +78,7 @@ void main() {
   float dist = length(toCamera);
   vec3 view = toCamera / dist;
   // The exact slope of the waves, with the short ones faded out with distance.
-  vec2 slope = waveSlope(vWorld.xz, time, dist);
+  vec2 slope = waveSlope(vWorld.xz, time, dist) + vWake.yz;
   // Fine ripples: two crossing layers, drifting, gone before they would shimmer.
   float ripple = 1.0 - smoothstep(25.0, 130.0, dist);
   vec2 q = vWorld.xz;
@@ -113,6 +120,8 @@ void main() {
     foam = clamp(max(foam * 0.85, max(surf, trail)), 0.0, 1.0);
     color = mix(color, vec3(0.95, 0.98, 1.0), foam);
   }
+  // White water in the wake of the boats.
+  color = mix(color, vec3(0.95, 0.98, 1.0), clamp(vWake.w, 0.0, 1.0) * 0.9);
   float fog = 1.0 - exp(-fogDensity * fogDensity * dist * dist);
   color = mix(color, horizon, clamp(fog, 0.0, 1.0));
   gl_FragColor = vec4(color, 1.0);
@@ -121,7 +130,12 @@ void main() {
 export interface Water {
   mesh: Mesh;
   /** Keeps the grid centred under the camera and advances the wave clock. */
-  update(cameraX: number, cameraZ: number, time: number): void;
+  update(
+    cameraX: number,
+    cameraZ: number,
+    time: number,
+    wake?: readonly number[],
+  ): void;
 }
 
 export function createWater(scene: Scene): Water {
@@ -174,6 +188,7 @@ export function createWater(scene: Scene): Water {
         "shallow",
         "fogDensity",
         "islands",
+        "wake",
       ],
     },
   );
@@ -184,6 +199,7 @@ export function createWater(scene: Scene): Water {
   material.setColor3("deep", DEEP_WATER);
   material.setColor3("shallow", SHALLOW_WATER);
   material.setFloat("fogDensity", FOG_DENSITY);
+  material.setArray4("wake", new Array(WAKE_MAX * 4).fill(0));
   material.setArray4(
     "islands",
     islands.flatMap((island) => [island.x, island.z, island.radius, 0]),
@@ -192,8 +208,9 @@ export function createWater(scene: Scene): Water {
   const anchor = new Vector3();
   return {
     mesh,
-    update(cameraX, cameraZ, time) {
+    update(cameraX, cameraZ, time, wake) {
       material.setFloat("time", time);
+      if (wake) material.setArray4("wake", wake as number[]);
       anchor.set(cameraX, 0, cameraZ);
       material.setVector3("anchor", anchor);
       material.setVector3(
