@@ -1,13 +1,13 @@
 import type { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import type { Scene } from "@babylonjs/core/scene";
 import { Geo, rgbOf } from "./geo.ts";
 import { createIsland } from "./island-visual.ts";
-import { hex, mergeParts, paint } from "./mesh-parts.ts";
+
 import { BACKDROP, BUOYS, GULLS, gullPose } from "./sea-layout.ts";
 import { waveGradient, waveHeight } from "./waves.ts";
 import { PAL } from "./art/colors.ts";
+import { Parts, SIDES } from "./art/shapes.ts";
 import { useSolid } from "./art/materials.ts";
 
 /**
@@ -16,45 +16,28 @@ import { useSolid } from "./art/materials.ts";
  * so they cost two draw calls; the backdrop islands are coarse and only have palms.
  */
 function buoyTemplate(scene: Scene, color: number) {
-  const parts: Mesh[] = [];
-  const add = (mesh: Mesh, c: number, y: number) => {
-    mesh.position.y = y;
-    paint(mesh, hex(c));
-    parts.push(mesh);
-  };
-  add(
-    MeshBuilder.CreateCylinder(
-      "part",
-      { diameterTop: 0.7, diameterBottom: 1.1, height: 0.9, tessellation: 8 },
-      scene,
-    ),
-    color,
-    0.1,
-  );
-  add(
-    MeshBuilder.CreateCylinder(
-      "part",
-      { diameter: 0.74, height: 0.22, tessellation: 8 },
-      scene,
-    ),
+  const parts = new Parts(scene);
+  // Float, white band, mast and lamp.
+  parts.tube({ top: 0.7, bottom: 1.1, height: 0.9 }, color, [0, 0.1, 0]);
+  parts.tube(
+    { top: 0.74, bottom: 0.74, height: 0.22 },
     PAL.paint.cream,
-    0.62,
+    [0, 0.62, 0],
   );
-  add(
-    MeshBuilder.CreateCylinder(
-      "part",
-      { diameterTop: 0.06, diameterBottom: 0.16, height: 1.3, tessellation: 5 },
-      scene,
-    ),
+  parts.tube(
+    { top: 0.06, bottom: 0.16, height: 1.3, sides: SIDES.thin },
     PAL.metal.steel,
-    1.4,
+    [0, 1.4, 0],
   );
-  add(
-    MeshBuilder.CreateSphere("part", { diameter: 0.34, segments: 5 }, scene),
+  parts.sphere(
+    0.34,
     PAL.light.lamp,
-    2.1,
+    [0, 2.1, 0],
+    undefined,
+    undefined,
+    SIDES.thin,
   );
-  const merged = mergeParts("buoy", parts);
+  const merged = parts.merge("buoy");
   useSolid(merged, "buoy");
   merged.isVisible = false;
   merged.isPickable = false;

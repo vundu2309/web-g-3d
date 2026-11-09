@@ -21,6 +21,7 @@ import {
 } from "./island-props.ts";
 import { hex, meshFrom, mergeParts, paint } from "./mesh-parts.ts";
 import { PAL } from "./art/colors.ts";
+import { SIDES, cylinderMesh, sphereMesh } from "./art/shapes.ts";
 import { useSolid, glowMaterial } from "./art/materials.ts";
 
 /**
@@ -271,11 +272,7 @@ export function createIsland(
       parts.push(frond);
     }
     for (let i = 0; i < 3; i++) {
-      const nut = MeshBuilder.CreateSphere(
-        "nut",
-        { diameter: 0.3, segments: 5 },
-        scene,
-      );
+      const nut = sphereMesh(scene, 0.3, SIDES.thin, "nut");
       nut.position.set(
         top.x + Math.cos(i * 2.1) * 0.28,
         top.y - 0.2,
@@ -373,18 +370,13 @@ export function createIsland(
     const base = best - 0.1;
     for (let i = 0; i < 4; i++) {
       const bottomR = 1.5 - i * 0.14;
-      const section = MeshBuilder.CreateCylinder(
-        "tower",
-        {
-          diameterTop: (bottomR - 0.14) * 2,
-          diameterBottom: bottomR * 2,
-          height: 2.3,
-          tessellation: 10,
-        },
-        scene,
-      );
       place(
-        section,
+        cylinderMesh(scene, {
+          top: (bottomR - 0.14) * 2,
+          bottom: bottomR * 2,
+          height: 2.3,
+          sides: SIDES.round,
+        }),
         i % 2 ? PAL.paint.red : PAL.paint.cream,
         bestX,
         base + 1.15 + i * 2.3,
@@ -392,33 +384,36 @@ export function createIsland(
       );
     }
     place(
-      MeshBuilder.CreateCylinder(
-        "gallery",
-        { diameter: 3, height: 0.22, tessellation: 10 },
-        scene,
-      ),
+      cylinderMesh(scene, {
+        top: 3,
+        bottom: 3,
+        height: 0.22,
+        sides: SIDES.round,
+      }),
       PAL.metal.steel,
       bestX,
       base + 9.3,
       bestZ,
     );
     place(
-      MeshBuilder.CreateCylinder(
-        "lantern",
-        { diameter: 1.5, height: 1.2, tessellation: 10 },
-        scene,
-      ),
+      cylinderMesh(scene, {
+        top: 1.5,
+        bottom: 1.5,
+        height: 1.2,
+        sides: SIDES.round,
+      }),
       PAL.light.lamp,
       bestX,
       base + 10,
       bestZ,
     );
     place(
-      MeshBuilder.CreateCylinder(
-        "roof",
-        { diameterTop: 0, diameterBottom: 2, height: 1.1, tessellation: 10 },
-        scene,
-      ),
+      cylinderMesh(scene, {
+        top: 0,
+        bottom: 2,
+        height: 1.1,
+        sides: SIDES.round,
+      }),
       PAL.paint.red,
       bestX,
       base + 11.15,

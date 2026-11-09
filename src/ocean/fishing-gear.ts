@@ -13,6 +13,7 @@ import { Ribbon } from "./ribbon.ts";
 import { Rope, smoothRope } from "./rope.ts";
 import { waveHeight } from "./waves.ts";
 import { PAL } from "./art/colors.ts";
+import { SIDES, sphereMesh } from "./art/shapes.ts";
 import { hex } from "./mesh-parts.ts";
 import { glowMaterial } from "./art/materials.ts";
 
@@ -160,11 +161,7 @@ export class FishingGear {
     this.marker = marker.mesh;
     this.markerMaterial = marker.material;
     // A small bright lure where the line ends; the fish takes its place in a fight.
-    this.lure = MeshBuilder.CreateSphere(
-      "gear-lure",
-      { diameter: 0.3, segments: 8 },
-      scene,
-    );
+    this.lure = sphereMesh(scene, 0.3, SIDES.small, "gear-lure");
     this.lure.material = glowMaterial(scene, "gear-lure-material", {
       color: hex(PAL.rod.lure),
     });

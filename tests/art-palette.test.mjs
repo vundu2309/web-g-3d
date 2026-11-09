@@ -56,3 +56,20 @@ test("objects get their materials from the shared factory", () => {
     );
   }
 });
+
+// Round and boxy parts come from art/shapes.ts, so every object is rounded by the same tiers.
+test("objects build their primitives through the shared shape helpers", () => {
+  for (const file of [
+    "boat-visual.ts",
+    "sea-props.ts",
+    "rod-visual.ts",
+    "island-visual.ts",
+    "fishing-gear.ts",
+  ]) {
+    const source = readFileSync(`src/ocean/${file}`, "utf8");
+    assert.ok(
+      !/MeshBuilder\.Create(Box|Cylinder|Sphere|Torus)\(/.test(source),
+      `${file} builds a primitive on its own`,
+    );
+  }
+});

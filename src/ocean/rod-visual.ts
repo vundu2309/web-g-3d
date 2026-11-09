@@ -1,12 +1,13 @@
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
-import { hex, mergeParts, paint } from "./mesh-parts.ts";
+
+import { hex } from "./mesh-parts.ts";
 import { ROD_BASE, RodSim, type V3 } from "./rod.ts";
 import { PAL } from "./art/colors.ts";
+import { Parts, SIDES } from "./art/shapes.ts";
 import { solidMaterial } from "./art/materials.ts";
 
 /**
@@ -15,7 +16,7 @@ import { solidMaterial } from "./art/materials.ts";
  * frame, so it bends and shakes. Every boat has one; only the player's is stepped.
  */
 const RINGS = 12;
-const SIDES = 6;
+const ROD_SIDES = 6;
 const HANDLE = 0.15;
 const CORK = hex(PAL.rod.cork);
 const GRAPHITE = hex(PAL.rod.graphite);
@@ -30,8 +31,8 @@ export class RodVisual {
   readonly sim: RodSim;
   private readonly blank: Mesh;
   private readonly fixed: Mesh;
-  private readonly positions = new Float32Array(RINGS * SIDES * 3);
-  private readonly normals = new Float32Array(RINGS * SIDES * 3);
+  private readonly positions = new Float32Array(RINGS * ROD_SIDES * 3);
+  private readonly normals = new Float32Array(RINGS * ROD_SIDES * 3);
   private readonly points: V3[] = [];
 
   constructor(scene: Scene, parent: TransformNode, rng?: () => number) {
@@ -40,13 +41,13 @@ export class RodVisual {
     const colors: number[] = [];
     for (let r = 0; r < RINGS; r++) {
       const c = colour(r / (RINGS - 1));
-      for (let k = 0; k < SIDES; k++) colors.push(c.r, c.g, c.b, 1);
+      for (let k = 0; k < ROD_SIDES; k++) colors.push(c.r, c.g, c.b, 1);
     }
     for (let r = 0; r < RINGS - 1; r++)
-      for (let k = 0; k < SIDES; k++) {
-        const a = r * SIDES + k;
-        const b = r * SIDES + ((k + 1) % SIDES);
-        indices.push(a, b, a + SIDES, b, b + SIDES, a + SIDES);
+      for (let k = 0; k < ROD_SIDES; k++) {
+        const a = r * ROD_SIDES + k;
+        const b = r * ROD_SIDES + ((k + 1) % ROD_SIDES);
+        indices.push(a, b, a + ROD_SIDES, b, b + ROD_SIDES, a + ROD_SIDES);
       }
     this.blank = new Mesh("rod-blank", scene);
     const data = new VertexData();
@@ -64,24 +65,19 @@ export class RodVisual {
     this.blank.alwaysSelectAsActiveMesh = true;
 
     // The reel and the holder never move.
-    const reel = MeshBuilder.CreateCylinder(
-      "part",
-      { diameter: 0.26, height: 0.12, tessellation: 12 },
-      scene,
+    const fixed = new Parts(scene);
+    fixed.tube(
+      { top: 0.26, bottom: 0.26, height: 0.12, sides: SIDES.round },
+      PAL.metal.light,
+      [ROD_BASE.x + 0.28, ROD_BASE.y + 0.1, ROD_BASE.z + 0.02],
+      [Math.PI / 2, 0, 0],
     );
-    reel.rotation.x = Math.PI / 2;
-    reel.position.set(ROD_BASE.x + 0.28, ROD_BASE.y + 0.1, ROD_BASE.z + 0.02);
-    reel.bakeCurrentTransformIntoVertices();
-    paint(reel, hex(PAL.metal.light));
-    const handle = MeshBuilder.CreateBox(
-      "part",
-      { width: 0.14, height: 0.5, depth: 0.14 },
-      scene,
-    );
-    handle.position.set(ROD_BASE.x - 0.03, ROD_BASE.y - 0.2, ROD_BASE.z);
-    handle.bakeCurrentTransformIntoVertices();
-    paint(handle, hex(PAL.metal.steel));
-    this.fixed = mergeParts("rod-fixed", [reel, handle]);
+    fixed.box([0.14, 0.5, 0.14], PAL.metal.steel, [
+      ROD_BASE.x - 0.03,
+      ROD_BASE.y - 0.2,
+      ROD_BASE.z,
+    ]);
+    this.fixed = fixed.merge("rod-fixed");
     this.fixed.material = solidMaterial(scene, "gloss");
     this.fixed.useVertexColors = true;
     this.fixed.parent = parent;
@@ -123,14 +119,14 @@ export class RodVisual {
       ux /= usize;
       uy /= usize;
       const rad = radius(r / (RINGS - 1));
-      for (let k = 0; k < SIDES; k++) {
-        const angle = (k / SIDES) * Math.PI * 2;
+      for (let k = 0; k < ROD_SIDES; k++) {
+        const angle = (k / ROD_SIDES) * Math.PI * 2;
         const c = Math.cos(angle);
         const s = Math.sin(angle);
         const nx = ux * c;
         const ny = uy * c;
         const nz = s;
-        const at = (r * SIDES + k) * 3;
+        const at = (r * ROD_SIDES + k) * 3;
         this.positions[at] = points[r]!.x + nx * rad;
         this.positions[at + 1] = points[r]!.y + ny * rad;
         this.positions[at + 2] = points[r]!.z + nz * rad;
