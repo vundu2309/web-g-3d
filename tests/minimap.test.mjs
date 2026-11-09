@@ -69,3 +69,22 @@ test("a player's colour is the same everywhere and always one of the boat colour
     assert.match(hullCss(uid), /^#[0-9a-f]{6}$/);
   }
 });
+
+test("an island's shore wobbles around a circle and stays a closed ring of its own", async () => {
+  const { coastFactor, coastPoints } = await import(
+    "../src/ocean/minimap-math.ts"
+  );
+  for (let a = 0; a < Math.PI * 2; a += 0.1) {
+    const f = coastFactor(0, a);
+    assert.ok(f > 0.75 && f < 1.25, `factor ${f} stays near 1`);
+  }
+  const points = coastPoints({ x: 50, y: 50 }, 10, 1, 1);
+  assert.equal(points.length, 48);
+  assert.notDeepEqual(points, coastPoints({ x: 50, y: 50 }, 10, 2, 1));
+  // Scaling shrinks it toward the centre.
+  const small = coastPoints({ x: 50, y: 50 }, 10, 1, 0.5);
+  assert.ok(
+    Math.hypot(small[0].x - 50, small[0].y - 50) <
+      Math.hypot(points[0].x - 50, points[0].y - 50),
+  );
+});

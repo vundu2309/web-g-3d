@@ -1,6 +1,8 @@
 import { SEA_BOUND, HARBOR } from "../ocean/model";
 import {
   arrowPoints,
+  coastPoints,
+  mapScale,
   islandsOnMap,
   toMap,
   type MapPoint,
@@ -80,22 +82,71 @@ export function createMinimap(canvas: HTMLCanvasElement) {
     c.lineWidth = Math.max(1, unit * 0.7);
     c.strokeRect(wallA.x, wallA.y, wallB.x - wallA.x, wallB.y - wallA.y);
     c.setLineDash([]);
-    // Islands: sand ring, grass, outline.
-    for (const island of islandsOnMap(px)) {
-      c.beginPath();
-      c.arc(island.x, island.y, island.radius * 1.05, 0, Math.PI * 2);
+    // Islands: shallow water, sand, grass, a hill and the shore line.
+    const trace = (c2: CanvasRenderingContext2D, pts: MapPoint[]) => {
+      c2.beginPath();
+      pts.forEach((pt, i) =>
+        i ? c2.lineTo(pt.x, pt.y) : c2.moveTo(pt.x, pt.y),
+      );
+      c2.closePath();
+    };
+    islandsOnMap(px).forEach((island, index) => {
+      const at = { x: island.x, y: island.y };
+      trace(c, coastPoints(at, island.radius, index, 1.32));
+      c.fillStyle = "rgba(190,240,240,0.55)";
+      c.fill();
+      trace(c, coastPoints(at, island.radius, index, 1.05));
       c.fillStyle = "#f2dca2";
       c.fill();
-      c.beginPath();
-      c.arc(island.x, island.y, island.radius * 0.78, 0, Math.PI * 2);
+      trace(c, coastPoints(at, island.radius, index, 0.82));
       c.fillStyle = "#6fb85f";
       c.fill();
-      c.beginPath();
-      c.arc(island.x, island.y, island.radius * 1.05, 0, Math.PI * 2);
+      trace(
+        c,
+        coastPoints(
+          { x: at.x + unit * 0.4, y: at.y - unit * 0.4 },
+          island.radius,
+          index + 3,
+          0.42,
+        ),
+      );
+      c.fillStyle = "#4f9a4e";
+      c.fill();
+      trace(c, coastPoints(at, island.radius, index, 1.05));
       c.strokeStyle = INK;
-      c.lineWidth = Math.max(1, unit * 0.8);
+      c.lineWidth = Math.max(1, unit * 0.7);
+      c.lineJoin = "round";
       c.stroke();
-    }
+      // A few palms on the grass.
+      c.fillStyle = "#2f7a3f";
+      for (let k = 0; k < 4; k++) {
+        const a = k * 2.1 + index;
+        c.beginPath();
+        c.arc(
+          at.x + Math.cos(a) * island.radius * 0.55,
+          at.y + Math.sin(a) * island.radius * 0.55,
+          Math.max(1, unit * 0.9),
+          0,
+          Math.PI * 2,
+        );
+        c.fill();
+      }
+      // The lighthouse island: a red and white tower.
+      if (index === 0) {
+        c.fillStyle = "#fff";
+        c.strokeStyle = INK;
+        c.lineWidth = Math.max(1, unit * 0.5);
+        c.fillRect(at.x - unit * 1, at.y - unit * 3.4, unit * 2, unit * 4);
+        c.strokeRect(at.x - unit * 1, at.y - unit * 3.4, unit * 2, unit * 4);
+        c.fillStyle = "#e0554b";
+        c.fillRect(
+          at.x - unit * 1.3,
+          at.y - unit * 4.6,
+          unit * 2.6,
+          unit * 1.3,
+        );
+      }
+    });
     // Channel buoys.
     for (const buoy of BUOYS) {
       const at = toMap(buoy.x, buoy.z, px);
@@ -122,6 +173,18 @@ export function createMinimap(canvas: HTMLCanvasElement) {
     );
     c.fill();
     c.stroke();
+    // A scale bar: 100 m.
+    const bar = mapScale(px) * 100;
+    c.strokeStyle = INK;
+    c.lineWidth = Math.max(1.5, unit * 0.9);
+    c.beginPath();
+    c.moveTo(unit * 6, px - unit * 7);
+    c.lineTo(unit * 6 + bar, px - unit * 7);
+    c.stroke();
+    c.fillStyle = INK;
+    c.font = `700 ${unit * 5.2}px "Baloo 2", sans-serif`;
+    c.textAlign = "left";
+    c.fillText("100 m", unit * 6, px - unit * 9);
     // North.
     c.fillStyle = INK;
     c.font = `800 ${unit * 8}px "Baloo 2", sans-serif`;

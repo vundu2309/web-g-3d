@@ -60,3 +60,35 @@ export function islandsOnMap(size: number) {
     radius: island.radius * scale,
   }));
 }
+
+/**
+ * How far an island's shore is from its centre at `angle`, as a multiple of its radius:
+ * a gentle, repeatable wobble (so the map shows bays and points rather than a circle).
+ * Each island has its own wobble.
+ */
+export function coastFactor(index: number, angle: number): number {
+  return (
+    1 +
+    0.1 * Math.sin(3 * angle + index * 1.7) +
+    0.06 * Math.sin(5 * angle + index * 2.9) +
+    0.03 * Math.sin(9 * angle + index)
+  );
+}
+
+/** The shore of an island as `count` points around it, scaled by `scale` (1 = the shore). */
+export function coastPoints(
+  center: MapPoint,
+  radius: number,
+  index: number,
+  scale: number,
+  count = 48,
+): MapPoint[] {
+  return Array.from({ length: count }, (_, i) => {
+    const angle = (i / count) * Math.PI * 2;
+    const r = radius * scale * coastFactor(index, angle);
+    return {
+      x: center.x + Math.cos(angle) * r,
+      y: center.y + Math.sin(angle) * r,
+    };
+  });
+}
