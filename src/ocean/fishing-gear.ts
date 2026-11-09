@@ -84,6 +84,7 @@ export class FishingGear {
   private readonly arcPoints: Vector3[] = [];
   private readonly ripples: { t: number; x: number; z: number }[] = [];
   private idleRipple = -9;
+  private readonly lure: Mesh;
   private readonly rope = new Rope(POINTS);
   private readonly smooth = new Float64Array(POINTS * 3);
   /** Where the line meets the water (or the fish's mouth), world. */
@@ -153,6 +154,18 @@ export class FishingGear {
     const marker = makeRing("gear-marker");
     this.marker = marker.mesh;
     this.markerMaterial = marker.material;
+    // A small bright lure where the line ends; the fish takes its place in a fight.
+    this.lure = MeshBuilder.CreateSphere(
+      "gear-lure",
+      { diameter: 0.3, segments: 8 },
+      scene,
+    );
+    const lureMaterial = new StandardMaterial("gear-lure-material", scene);
+    lureMaterial.disableLighting = true;
+    lureMaterial.emissiveColor = new Color3(1, 0.45, 0.2);
+    this.lure.material = lureMaterial;
+    this.lure.isPickable = false;
+    this.lure.isVisible = false;
     this.setVisible(false);
   }
 
@@ -182,6 +195,7 @@ export class FishingGear {
   private setVisible(on: boolean) {
     this.shown = on;
     this.line.isVisible = on;
+    if (!on) this.lure.isVisible = false;
   }
 
   /** Where the camera is, for the line strip to face it. */
@@ -468,6 +482,8 @@ export class FishingGear {
       } else if (!dip) this.pull.strength = 0.05;
     }
     this.entry.set(ex, ey, ez);
+    this.lure.position.set(ex, ey + 0.2, ez);
+    this.lure.isVisible = true;
     // Where the line enters the water a slow ring keeps showing it, so the end of a long cast
     // is not a thin line stopping in mid-air.
     if (!flying && time - this.idleRipple > 1.0) {
@@ -531,6 +547,7 @@ export class FishingGear {
     // Its mouth is where the line ends, just above the water.
     const mouthY = surface + 0.25 + pose.lift * 0.6;
     this.entry.set(fx, mouthY, fz);
+    this.lure.isVisible = false;
     this.top.set(fx, surface + 2.2, fz);
     // Nose away from the boat in a run, toward it when it is being reeled in.
     const away = fight.mood === "surge" ? 1 : -1;
@@ -640,6 +657,7 @@ export class FishingGear {
   dispose() {
     this.fish?.dispose();
     this.line.dispose();
+    this.lure.dispose();
     this.arc.dispose();
     for (const ring of this.rings) ring.dispose();
     this.marker.dispose();

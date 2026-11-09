@@ -86,6 +86,8 @@ export class OceanScene {
   private clock = 0;
   private viewHeading = 0;
   private viewReady = false;
+  /** 0..1: how far the camera has moved in for fishing. */
+  private focus = 0;
   private readonly governor: ScaleGovernor;
   private lost = false;
   private gear: FishingGear | undefined;
@@ -480,9 +482,28 @@ export class OceanScene {
       : state.heading;
     const fx = Math.sin(this.viewHeading);
     const fz = -Math.cos(this.viewHeading);
+    // Fishing: the camera comes closer and lower and looks toward where the line goes,
+    // so the rod, the line and the water it enters fill the screen.
+    const input = this.gearInput;
+    const fishing = !!input && input.view.phase !== "idle";
+    this.focus += ((fishing ? 1 : 0) - this.focus) * blend(dt, 2.2);
+    const f = this.focus * this.focus * (3 - 2 * this.focus);
     // Low and far behind, looking well ahead, so the horizon and sky stay in view.
-    const want = new Vector3(state.x - fx * 17, 7.6, state.z - fz * 17);
+    const back = 17 - 5 * f;
+    const want = new Vector3(
+      state.x - fx * back,
+      7.6 - 1.8 * f,
+      state.z - fz * back,
+    );
     const look = new Vector3(state.x + fx * 30, 2.2, state.z + fz * 30);
+    const aim = input?.view.landing ?? input?.preview;
+    if (aim && f > 0) {
+      // Halfway to the spot the lure is (or will be) on.
+      look.x += (aim.x - look.x) * 0.7 * f;
+      look.z += (aim.z - look.z) * 0.7 * f;
+      look.y = 2.2 - 1.2 * f;
+    }
+    this.camera.fov = 0.9 - 0.15 * f;
     if (!this.viewReady) {
       this.camera.position.copyFrom(want);
       this.viewReady = true;
