@@ -1,4 +1,3 @@
-import { fishLength } from "../ocean/fight-look";
 import { createHaptics } from "./haptics";
 import { fishThumb } from "./fish-thumb";
 import {
@@ -9,6 +8,7 @@ import {
   addCatch,
   castDirection,
   castTarget,
+  drawnLength,
   heldSpecies,
   releaseOne,
   speciesById,
@@ -404,8 +404,6 @@ export function createFishingUi(options: FishingUiOptions) {
     const species = speciesById(fish.species);
     if (!species) return;
     held = fish;
-    const [low, high] = species.kg;
-    const weight = high > low ? (fish.kg - low) / (high - low) : 0;
     hangStars.textContent = "★".repeat(species.rarity);
     hangStars.className = `fish-hang-stars rarity-${species.rarity}`;
     hangKg.textContent = kg(fish.kg);
@@ -413,7 +411,7 @@ export function createFishingUi(options: FishingUiOptions) {
     hang.hidden = false;
     options.scene()?.holdFish({
       id: species.id,
-      scale: fishLength(weight),
+      scale: drawnLength(species, fish.kg),
     });
   }
 

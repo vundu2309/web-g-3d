@@ -284,6 +284,17 @@ export const SPECIES: readonly Species[] = [
   },
 ];
 
+/**
+ * How long a fish is drawn in the scene (m): its real length (cm at 1 kg, scaled by the
+ * cube root of its weight) squeezed into a range a screen can use, so an anchovy is a
+ * small fish and a tuna is a big one, but nothing fills the boat. Used for the fish on
+ * the line and the one hanging from the rod.
+ */
+export function drawnLength(species: { lengthCm: number }, kg: number): number {
+  const real = (species.lengthCm * Math.cbrt(Math.max(0.01, kg))) / 100;
+  return Math.min(1.5, Math.max(0.4, 0.3 + real * 0.9));
+}
+
 const byId = new Map(SPECIES.map((species) => [species.id, species]));
 export const speciesById = (id: string) => byId.get(id);
 

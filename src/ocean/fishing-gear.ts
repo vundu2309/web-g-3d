@@ -6,9 +6,9 @@ import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import type { Scene } from "@babylonjs/core/scene";
-import { speciesById, type FishingView } from "./fishing.ts";
+import { drawnLength, speciesById, type FishingView } from "./fishing.ts";
 import { createCreature, type CreatureModel } from "./creature-kit.ts";
-import { fishLength, fishPose, lineColour, lineTremble } from "./fight-look.ts";
+import { fishPose, lineColour, lineTremble } from "./fight-look.ts";
 import { Ribbon } from "./ribbon.ts";
 import { Rope, smoothRope } from "./rope.ts";
 import { waveHeight } from "./waves.ts";
@@ -576,9 +576,20 @@ export class FishingGear {
     const fx = this.fightX;
     const fz = this.fightZ;
     const surface = waveHeight(fx, fz, time);
-    // Far fish are drawn larger so they can be seen: 25 m away it is about 2.5 times.
-    const length =
-      fishLength(view.size ?? 0.3) * (1 + Math.min(30, pose.distance) * 0.06);
+    // Drawn at its species' size, but a fish far from the camera is drawn up to twice as
+    // large so it can still be seen (about 3 degrees of the view, never more than 2.5
+    // times its size).
+    const species = view.species ? speciesById(view.species) : undefined;
+    const kg = species
+      ? species.kg[0] + (view.size ?? 0.3) * (species.kg[1] - species.kg[0])
+      : 1;
+    const baseLength = species ? drawnLength(species, kg) : 1;
+    const eye = this.eye();
+    const viewDistance = Math.hypot(fx - eye.x, surface - eye.y, fz - eye.z);
+    const length = Math.min(
+      baseLength * 2.5,
+      Math.max(baseLength, viewDistance * 0.055),
+    );
     // Its mouth is where the line ends, just above the water.
     const mouthY = surface + 0.25 + pose.lift * 0.6;
     this.entry.set(fx, mouthY, fz);

@@ -381,3 +381,22 @@ test("the fish store counts held fish, keeps records, releases one at a time and
     "unknown species untouched",
   );
 });
+
+test("a fish is drawn at a size that fits its species, never filling the boat", async () => {
+  const { SPECIES, drawnLength } = await import("../src/ocean/fishing.ts");
+  const by = (id) => SPECIES.find((s) => s.id === id);
+  const anchovy = drawnLength(by("ca-com"), by("ca-com").kg[0]);
+  const tuna = drawnLength(by("ca-ngu"), by("ca-ngu").kg[1]);
+  assert.ok(anchovy < tuna, "a small fish is drawn smaller than a big one");
+  for (const species of SPECIES)
+    for (const kg of species.kg) {
+      const length = drawnLength(species, kg);
+      assert.ok(
+        length >= 0.4 && length <= 1.5,
+        `${species.id} ${kg} kg: ${length} m`,
+      );
+    }
+  // A heavier fish of the same kind is never drawn smaller.
+  const s = by("ca-thu");
+  assert.ok(drawnLength(s, s.kg[1]) >= drawnLength(s, s.kg[0]));
+});
