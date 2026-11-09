@@ -2,7 +2,6 @@ import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Curve3 } from "@babylonjs/core/Maths/math.path";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
-import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import type { Scene } from "@babylonjs/core/scene";
@@ -22,6 +21,7 @@ import {
 } from "./island-props.ts";
 import { hex, meshFrom, mergeParts, paint } from "./mesh-parts.ts";
 import { PAL } from "./art/colors.ts";
+import { useSolid, glowMaterial } from "./art/materials.ts";
 
 /**
  * Procedural island: low-poly terrain with beach, grass and rock, plus palms, rocks,
@@ -100,12 +100,7 @@ function createFoam(scene: Scene, radius: number) {
   context.fillRect(0, 0, 128, 128);
   texture.update();
   texture.hasAlpha = true;
-  const foamMaterial = new StandardMaterial("foam-material", scene);
-  foamMaterial.diffuseTexture = texture;
-  foamMaterial.useAlphaFromDiffuseTexture = true;
-  foamMaterial.emissiveColor = Color3.White();
-  foamMaterial.disableLighting = true;
-  foamMaterial.backFaceCulling = false;
+  const foamMaterial = glowMaterial(scene, "foam-material", { texture });
   const foam = MeshBuilder.CreateGround(
     "foam",
     { width: radius * 3.1, height: radius * 3.1 },
@@ -472,12 +467,7 @@ export function createIsland(
   if (geo.triangles > 0) parts.push(geo.toMesh(scene, "props"));
   const mesh = mergeParts("island", parts);
   mesh.convertToFlatShadedMesh();
-  const material = new StandardMaterial("island-material", scene);
-  material.diffuseColor = Color3.White();
-  material.specularColor = Color3.Black();
-  material.backFaceCulling = false;
-  mesh.material = material;
-  mesh.useVertexColors = true;
+  useSolid(mesh, "matte");
   mesh.freezeWorldMatrix();
 
   const foam = withFoam ? createFoam(scene, radius) : undefined;

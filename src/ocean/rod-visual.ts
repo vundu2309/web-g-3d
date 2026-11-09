@@ -1,5 +1,3 @@
-import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
@@ -9,6 +7,7 @@ import type { Scene } from "@babylonjs/core/scene";
 import { hex, mergeParts, paint } from "./mesh-parts.ts";
 import { ROD_BASE, RodSim, type V3 } from "./rod.ts";
 import { PAL } from "./art/colors.ts";
+import { solidMaterial } from "./art/materials.ts";
 
 /**
  * The rod on the boat: a cork handle, a tapered graphite blank with a bright tip, a
@@ -21,19 +20,6 @@ const HANDLE = 0.15;
 const CORK = hex(PAL.rod.cork);
 const GRAPHITE = hex(PAL.rod.graphite);
 const TIP = hex(PAL.rod.tip);
-
-const materials = new WeakMap<Scene, StandardMaterial>();
-function material(scene: Scene) {
-  let found = materials.get(scene);
-  if (!found) {
-    found = new StandardMaterial("rod-material", scene);
-    found.diffuseColor = Color3.White();
-    found.specularColor = new Color3(0.3, 0.3, 0.3);
-    found.backFaceCulling = false;
-    materials.set(scene, found);
-  }
-  return found;
-}
 
 /** Radius along the rod, s from 0 (hand) to 1 (tip). */
 const radius = (s: number) =>
@@ -70,7 +56,7 @@ export class RodVisual {
     data.colors = colors;
     data.indices = indices;
     data.applyToMesh(this.blank, true);
-    this.blank.material = material(scene);
+    this.blank.material = solidMaterial(scene, "gloss");
     this.blank.useVertexColors = true;
     this.blank.parent = parent;
     this.blank.isPickable = false;
@@ -96,7 +82,7 @@ export class RodVisual {
     handle.bakeCurrentTransformIntoVertices();
     paint(handle, hex(PAL.metal.steel));
     this.fixed = mergeParts("rod-fixed", [reel, handle]);
-    this.fixed.material = material(scene);
+    this.fixed.material = solidMaterial(scene, "gloss");
     this.fixed.useVertexColors = true;
     this.fixed.parent = parent;
     this.fixed.isPickable = false;

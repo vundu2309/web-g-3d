@@ -1,5 +1,3 @@
-import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import type { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
@@ -10,6 +8,7 @@ import { hex, mergeParts, paint } from "./mesh-parts.ts";
 import { BACKDROP, BUOYS, GULLS, gullPose } from "./sea-layout.ts";
 import { waveGradient, waveHeight } from "./waves.ts";
 import { PAL } from "./art/colors.ts";
+import { useSolid } from "./art/materials.ts";
 
 /**
  * The extra life of the sea: bobbing channel buoys, circling gulls and the backdrop
@@ -56,12 +55,7 @@ function buoyTemplate(scene: Scene, color: number) {
     2.1,
   );
   const merged = mergeParts("buoy", parts);
-  const material = new StandardMaterial("buoy-material", scene);
-  material.diffuseColor = Color3.White();
-  material.emissiveColor = new Color3(0.18, 0.16, 0.14);
-  material.specularColor = Color3.Black();
-  merged.material = material;
-  merged.useVertexColors = true;
+  useSolid(merged, "buoy");
   merged.isVisible = false;
   merged.isPickable = false;
   return merged;
@@ -100,13 +94,7 @@ function gullTemplate(scene: Scene) {
     );
   }
   const mesh = geo.toMesh(scene, "gull");
-  const material = new StandardMaterial("gull-material", scene);
-  material.diffuseColor = Color3.White();
-  material.emissiveColor = new Color3(0.35, 0.35, 0.35);
-  material.specularColor = Color3.Black();
-  material.backFaceCulling = false;
-  mesh.material = material;
-  mesh.useVertexColors = true;
+  useSolid(mesh, "gull");
   mesh.isVisible = false;
   mesh.isPickable = false;
   mesh.scaling.setAll(1.3);

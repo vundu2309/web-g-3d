@@ -1,6 +1,4 @@
-import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
-import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
@@ -15,6 +13,7 @@ import { RodSim } from "./rod.ts";
  */
 import { boatPalettes, type BoatPalette } from "./palette.ts";
 import { PAL } from "./art/colors.ts";
+import { useSolid, glowMaterial } from "./art/materials.ts";
 
 export { boatPalettes, type BoatPalette };
 
@@ -282,13 +281,7 @@ export function createBoatTemplate(
   arm([cx - 0.2, DECK_Y + 1.02, cz], [1.02, DECK_Y + 0.7, 2.7]);
 
   const merged = mergeParts(name, parts);
-  const material = new StandardMaterial(`${name}-material`, scene);
-  material.diffuseColor = Color3.White();
-  material.specularColor = new Color3(0.12, 0.12, 0.12);
-  material.backFaceCulling = false;
-  merged.material = material;
-  merged.useVertexColors = true;
-  return merged;
+  return useSolid(merged, "satin");
 }
 
 /** Thin line shown while fishing; one small mesh per boat that is casting. */
@@ -298,10 +291,7 @@ export function createFishingLine(scene: Scene, parent: TransformNode) {
     { diameter: 0.025, height: 2.6, tessellation: 4 },
     scene,
   );
-  const material = new StandardMaterial("fishing-line-material", scene);
-  material.emissiveColor = Color3.White();
-  material.disableLighting = true;
-  line.material = material;
+  line.material = glowMaterial(scene, "fishing-line-material");
   line.parent = parent;
   const rest = new RodSim().tip();
   line.position.set(rest.x, 0.35, rest.z);

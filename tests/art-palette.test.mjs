@@ -37,3 +37,22 @@ test("the shared palette has no duplicate colours under two names", () => {
   const dupes = [...seen].filter(([, n]) => n > 1).map(([hex]) => hex);
   assert.deepEqual(dupes, [], `colours written twice: ${dupes.join(", ")}`);
 });
+
+// Materials come from art/materials.ts: a visual file that builds a StandardMaterial itself
+// is a second way of lighting objects.
+const MATERIAL_FILES = [
+  ...MIGRATED,
+  "creature-kit.ts",
+  "fishing-gear.ts",
+  "ribbon.ts",
+];
+
+test("objects get their materials from the shared factory", () => {
+  for (const file of MATERIAL_FILES) {
+    const source = readFileSync(`src/ocean/${file}`, "utf8");
+    assert.ok(
+      !/new (Standard|PBR)Material\(/.test(source),
+      `${file} builds a material of its own`,
+    );
+  }
+});
