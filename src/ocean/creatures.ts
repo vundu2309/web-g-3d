@@ -101,9 +101,9 @@ const PLANS: Partial<Record<CreatureKind, FishPlan>> = {
       [0.06, 0.07, 0.1, 0.09],
       [0.28, 0.09, 0.14, 0.12],
       [0.55, 0.08, 0.12, 0.1],
-      [0.78, 0.05, 0.07, 0.06],
-      [0.93, 0.03, 0.035, 0.03],
-      [1, 0.02, 0.02, 0.02],
+      [0.78, 0.058, 0.082, 0.07],
+      [0.93, 0.038, 0.048, 0.042],
+      [1, 0.026, 0.03, 0.028],
     ],
     noseX: 0.46,
     tailX: -0.28,
@@ -119,8 +119,8 @@ const PLANS: Partial<Record<CreatureKind, FishPlan>> = {
     keys: [
       [0, 0, 0, 0],
       [0.06, 0.04, 0.12, 0.11],
-      [0.35, 0.06, 0.22, 0.2],
-      [0.58, 0.05, 0.16, 0.14],
+      [0.35, 0.06, 0.19, 0.17],
+      [0.58, 0.05, 0.15, 0.13],
       [0.8, 0.03, 0.08, 0.07],
       [0.93, 0.02, 0.035, 0.03],
       [1, 0.012, 0.02, 0.02],
@@ -244,13 +244,21 @@ export type Pattern =
   | "bars"
   | "spots"
   | "mottled"
-  | "saddle";
+  | "saddle"
+  /** Pale vertical bands edged in black, like a clownfish. */
+  | "bands"
+  /** Dark wavy stripes down from the back, like a mackerel. */
+  | "wavy";
 export interface Look {
   pattern?: Pattern;
   /** Colour of the markings (hex); default is a darker body colour. */
   mark?: string;
   /** Colour of the iris (hex). */
   iris?: string;
+  /** Colour of the belly (hex); default is a pale version of the body. */
+  belly?: string;
+  /** 0..1: a pale metallic glow along the flank, for silvery fish. */
+  sheen?: number;
 }
 const LOOKS: Partial<Record<CreatureKind, Look>> = {
   slim: { pattern: "lateral", mark: "#f4fbff", iris: "#e8e8ee" },
@@ -268,7 +276,7 @@ const LOOKS: Partial<Record<CreatureKind, Look>> = {
 const fract = (v: number) => v - Math.floor(v);
 
 /** Paints the skin: dark back, pale belly and the species' markings. u: nose 0 to tail 1. */
-function skinOf(body: RGB, belly: RGB, mark: RGB, pattern: Pattern) {
+function skinOf(body: RGB, belly: RGB, mark: RGB, pattern: Pattern, sheen = 0) {
   return (u: number, a: number): RGB => {
     const c = Math.cos(a);
     let col = mix(belly, body, smooth(-0.55, 0.5, c));
@@ -280,8 +288,45 @@ function skinOf(body: RGB, belly: RGB, mark: RGB, pattern: Pattern) {
       lighter(col, 0.14),
       (1 - smooth(0.2, 0.3, u)) * smooth(0.04, 0.12, u) * flank,
     );
+    // A silvery fish catches the light along its flank.
+    if (sheen > 0)
+      col = mix(
+        col,
+        lighter(col, 0.38),
+        sheen *
+          smooth(0.55, 0.95, flank) *
+          smooth(0.1, 0.25, u) *
+          (1 - smooth(0.85, 1, u)),
+      );
     const turn = (a / (Math.PI * 2)) % 1;
     switch (pattern) {
+      case "bands": {
+        const ink: RGB = [0.08, 0.07, 0.07];
+        [
+          [0.2, 0.05],
+          [0.52, 0.07],
+          [0.87, 0.035],
+        ].forEach(([centre, half]) => {
+          const d = Math.abs(u - centre!);
+          const white = smooth(half!, half! * 0.7, d);
+          const edge = smooth(half! + 0.02, half!, d) * (1 - white);
+          col = mix(col, ink, edge * 0.9);
+          col = mix(col, mark, white * 0.96);
+        });
+        break;
+      }
+      case "wavy": {
+        const stripe =
+          Math.pow(
+            Math.max(0, Math.sin(u * Math.PI * 16 + Math.sin(a) * 2.4)),
+            3,
+          ) *
+          smooth(0.05, 0.55, c) *
+          smooth(0.16, 0.28, u) *
+          (1 - smooth(0.9, 0.98, u));
+        col = mix(col, mark, stripe * 0.85);
+        break;
+      }
       case "lateral": {
         const line =
           smooth(0.8, 0.97, flank) *
@@ -368,7 +413,8 @@ const fishy = (
   const spec = { ...LOOKS[kind], ...look };
   const body = rgb(bodyHex);
   const fin = rgb(finHex);
-  const belly = lighter(body, 0.62);
+  const belly = spec.belly ? rgb(spec.belly) : lighter(body, 0.62);
+  const sheen = spec.sheen ?? 0;
   const mark = spec.mark ? rgb(spec.mark) : darker(body, 0.5);
   const iris = rgb(spec.iris ?? "#ffcf4a");
   const membrane = lighter(fin, 0.12);
@@ -376,7 +422,13 @@ const fishy = (
   const main = new Builder();
   const STATIONS = 34;
   main.loft(stationsOf(plan, STATIONS), 28, (i, a) =>
-    skinOf(body, belly, mark, spec.pattern ?? "plain")(i / (STATIONS - 1), a),
+    skinOf(
+      body,
+      belly,
+      mark,
+      spec.pattern ?? "plain",
+      sheen,
+    )(i / (STATIONS - 1), a),
   );
 
   const span = plan.noseX - plan.tailX;
@@ -400,7 +452,8 @@ const fishy = (
   };
 
   // Dorsal fin: a spiny leading edge then soft rays, swept back.
-  const [d0, d1, dh] = plan.dorsal;
+  const [d0, d1, dhBase] = plan.dorsal;
+  const dh = dhBase * 1.08;
   const dBase: V3[] = [];
   const dTip: V3[] = [];
   const dn = 9;
@@ -433,14 +486,15 @@ const fishy = (
     const tips: V3[] = [];
     for (let k = 0; k < 7; k++) {
       const t = k / 6;
-      const len = plan.pectoral * (1.5 - 0.5 * Math.abs(t - 0.4));
+      const len = plan.pectoral * 1.15 * (1.5 - 0.5 * Math.abs(t - 0.4));
       tips.push([
         root[0] - len * (0.7 + 0.3 * t),
         root[1] - len * (0.5 - 0.85 * t) * 0.7 - 0.008,
         root[2] + side * len * 0.14,
       ]);
     }
-    main.fan(root, tips, membrane, ray);
+    // Pectorals are glassy: a pale membrane with faint rays, not dark blades.
+    main.fan(root, tips, lighter(fin, 0.4), lighter(fin, 0.1));
     const ps = at(0.36);
     const proot: V3 = [ps.x, -ps.bottom * 0.95, ps.w * 0.45 * side];
     main.fan(
@@ -514,8 +568,8 @@ const fishy = (
     );
     // The eye: socket, white, iris, pupil and a spark of light.
     const es = at(plan.eyeU);
-    const e = plan.eyeSize * 1.25;
-    const ey = es.top * 0.32;
+    const e = plan.eyeSize * 1.08;
+    const ey = es.top * 0.38;
     const ez = es.w * 0.9 * side;
     main.ellipsoid(
       [es.x, ey, ez],
@@ -533,14 +587,14 @@ const fishy = (
     );
     main.ellipsoid(
       [es.x + 0.006, ey, ez + side * e * 0.46],
-      [e * 0.72, e * 0.72, e * 0.45],
+      [e * 0.9, e * 0.9, e * 0.5],
       iris,
       6,
       9,
     );
     main.ellipsoid(
       [es.x + 0.01, ey, ez + side * e * 0.62],
-      [e * 0.42, e * 0.42, e * 0.35],
+      [e * 0.56, e * 0.56, e * 0.4],
       rgb(0x0b1d3a),
       5,
       8,
@@ -632,7 +686,7 @@ const fishy = (
   // The tail swings on its own: a fan of rays pivoting where the body ends.
   const tail = new Builder();
   const tx = plan.tailX;
-  const s = plan.tailSpan;
+  const s = plan.tailSpan * 1.1;
   const tips: [number, number, number][] = [];
   const count = 11;
   for (let k = 0; k < count; k++) {
@@ -1762,6 +1816,7 @@ export function buildCreature(
   kind: CreatureKind,
   body: string,
   fin: string,
+  look?: Look,
 ): Creature {
   switch (kind) {
     case "flat":
@@ -1782,6 +1837,6 @@ export function buildCreature(
     case "starfish":
       return standUp(starfish(body, fin));
     default:
-      return fishy(kind, body, fin);
+      return fishy(kind, body, fin, look);
   }
 }

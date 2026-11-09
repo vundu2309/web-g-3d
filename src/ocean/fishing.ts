@@ -1,4 +1,4 @@
-import type { CreatureKind } from "./creatures.ts";
+import type { CreatureKind, Look } from "./creatures.ts";
 import { SEA_BOUND, islandCollisionRadius, islands } from "./model.ts";
 import {
   Fight,
@@ -33,6 +33,8 @@ export interface Species {
   fight: FightStyle;
   body: string;
   fin: string;
+  /** How the skin is painted beyond the two colours (see creatures.ts). */
+  look?: Look;
 }
 
 export const RARITY_NAMES: Record<Rarity, string> = {
@@ -53,6 +55,7 @@ export const SPECIES: readonly Species[] = [
     fight: "steady",
     body: "#8fc4e8",
     fin: "#5b9cc9",
+    look: { sheen: 0.45, belly: "#f4fbff" },
   },
   {
     id: "ca-bong",
@@ -77,6 +80,7 @@ export const SPECIES: readonly Species[] = [
     fight: "steady",
     body: "#c9d6e3",
     fin: "#8ea4bd",
+    look: { sheen: 0.4, belly: "#f1f4f7" },
   },
   {
     id: "ca-noc",
@@ -113,6 +117,7 @@ export const SPECIES: readonly Species[] = [
     fight: "runner",
     body: "#5aa7d6",
     fin: "#2f78a8",
+    look: { pattern: "wavy", mark: "#14304f", sheen: 0.3, belly: "#e8f0f4" },
   },
   {
     id: "ca-hong",
@@ -125,6 +130,7 @@ export const SPECIES: readonly Species[] = [
     fight: "steady",
     body: "#e0584f",
     fin: "#b03a33",
+    look: { belly: "#f6c9c0" },
   },
   {
     id: "ca-ngu",
@@ -137,6 +143,7 @@ export const SPECIES: readonly Species[] = [
     fight: "runner",
     body: "#2f5fa8",
     fin: "#1d3f78",
+    look: { pattern: "plain", sheen: 0.35, belly: "#dfe6ee" },
   },
   {
     id: "ca-duoi",
@@ -161,6 +168,7 @@ export const SPECIES: readonly Species[] = [
     fight: "runner",
     body: "#3b4f8c",
     fin: "#243063",
+    look: { sheen: 0.3, belly: "#c9d4e6" },
   },
   {
     id: "ca-nuc",
@@ -173,6 +181,12 @@ export const SPECIES: readonly Species[] = [
     fight: "jet",
     body: "#7fb6c9",
     fin: "#4f8aa3",
+    look: {
+      pattern: "lateral",
+      mark: "#ffe08a",
+      sheen: 0.35,
+      belly: "#f4f6f0",
+    },
   },
   {
     id: "cua-bien",
@@ -209,6 +223,7 @@ export const SPECIES: readonly Species[] = [
     fight: "steady",
     body: "#f2862e",
     fin: "#e0701c",
+    look: { pattern: "bands", mark: "#ffffff", belly: "#f2862e" },
   },
   {
     id: "ca-bon",
@@ -281,6 +296,7 @@ export const SPECIES: readonly Species[] = [
     fight: "heavy",
     body: "#7b8a99",
     fin: "#55626f",
+    look: { belly: "#eef1f4" },
   },
 ];
 
