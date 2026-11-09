@@ -9,6 +9,7 @@ import { createIsland } from "./island-visual.ts";
 import { hex, mergeParts, paint } from "./mesh-parts.ts";
 import { BACKDROP, BUOYS, GULLS, gullPose } from "./sea-layout.ts";
 import { waveGradient, waveHeight } from "./waves.ts";
+import { PAL } from "./art/colors.ts";
 
 /**
  * The extra life of the sea: bobbing channel buoys, circling gulls and the backdrop
@@ -37,7 +38,7 @@ function buoyTemplate(scene: Scene, color: number) {
       { diameter: 0.74, height: 0.22, tessellation: 8 },
       scene,
     ),
-    0xfff7e6,
+    PAL.paint.cream,
     0.62,
   );
   add(
@@ -46,12 +47,12 @@ function buoyTemplate(scene: Scene, color: number) {
       { diameterTop: 0.06, diameterBottom: 0.16, height: 1.3, tessellation: 5 },
       scene,
     ),
-    0x4b4f56,
+    PAL.metal.steel,
     1.4,
   );
   add(
     MeshBuilder.CreateSphere("part", { diameter: 0.34, segments: 5 }, scene),
-    0xffe28a,
+    PAL.light.lamp,
     2.1,
   );
   const merged = mergeParts("buoy", parts);
@@ -69,10 +70,10 @@ function buoyTemplate(scene: Scene, color: number) {
 /** A seagull: a body, a tail and two long wings in a shallow V, dark at the tips. */
 function gullTemplate(scene: Scene) {
   const geo = new Geo();
-  const white = rgbOf(0xf6f8fa);
-  const grey = rgbOf(0xc9d0d8);
-  const dark = rgbOf(0x3b4048);
-  const beak = rgbOf(0xf2b640);
+  const white = rgbOf(PAL.paint.white);
+  const grey = rgbOf(PAL.gull.grey);
+  const dark = rgbOf(PAL.gull.dark);
+  const beak = rgbOf(PAL.gull.beak);
   // Nose along +X, wings along Z, up is Y; about 1.5 m across.
   geo.tri([0.55, 0, 0], [-0.1, 0.06, 0.12], [-0.1, 0.06, -0.12], white);
   geo.tri([-0.1, 0.06, 0.12], [-0.1, 0.06, -0.12], [-0.45, 0.02, 0], grey);
@@ -119,8 +120,8 @@ export class SeaProps {
   private readonly extra: Mesh[] = [];
 
   constructor(scene: Scene) {
-    const red = buoyTemplate(scene, 0xe0554b);
-    const green = buoyTemplate(scene, 0x2f9a6a);
+    const red = buoyTemplate(scene, PAL.paint.red);
+    const green = buoyTemplate(scene, PAL.paint.green);
     this.templates.push(red, green);
     BUOYS.forEach((buoy, i) => {
       const instance = (buoy.color === "red" ? red : green).createInstance(

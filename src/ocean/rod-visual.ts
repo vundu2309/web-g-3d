@@ -8,6 +8,7 @@ import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import { hex, mergeParts, paint } from "./mesh-parts.ts";
 import { ROD_BASE, RodSim, type V3 } from "./rod.ts";
+import { PAL } from "./art/colors.ts";
 
 /**
  * The rod on the boat: a cork handle, a tapered graphite blank with a bright tip, a
@@ -17,9 +18,9 @@ import { ROD_BASE, RodSim, type V3 } from "./rod.ts";
 const RINGS = 12;
 const SIDES = 6;
 const HANDLE = 0.15;
-const CORK = hex(0xe3c38d);
-const GRAPHITE = hex(0x6b4423);
-const TIP = hex(0xff7a2e);
+const CORK = hex(PAL.rod.cork);
+const GRAPHITE = hex(PAL.rod.graphite);
+const TIP = hex(PAL.rod.tip);
 
 const materials = new WeakMap<Scene, StandardMaterial>();
 function material(scene: Scene) {
@@ -85,7 +86,7 @@ export class RodVisual {
     reel.rotation.x = Math.PI / 2;
     reel.position.set(ROD_BASE.x + 0.28, ROD_BASE.y + 0.1, ROD_BASE.z + 0.02);
     reel.bakeCurrentTransformIntoVertices();
-    paint(reel, hex(0xcfd6df));
+    paint(reel, hex(PAL.metal.light));
     const handle = MeshBuilder.CreateBox(
       "part",
       { width: 0.14, height: 0.5, depth: 0.14 },
@@ -93,7 +94,7 @@ export class RodVisual {
     );
     handle.position.set(ROD_BASE.x - 0.03, ROD_BASE.y - 0.2, ROD_BASE.z);
     handle.bakeCurrentTransformIntoVertices();
-    paint(handle, hex(0x4b4f56));
+    paint(handle, hex(PAL.metal.steel));
     this.fixed = mergeParts("rod-fixed", [reel, handle]);
     this.fixed.material = material(scene);
     this.fixed.useVertexColors = true;

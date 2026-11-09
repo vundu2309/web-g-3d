@@ -14,6 +14,7 @@ import { RodSim } from "./rod.ts";
  * The bow points to -Z and the hull origin is the waterline.
  */
 import { boatPalettes, type BoatPalette } from "./palette.ts";
+import { PAL } from "./art/colors.ts";
 
 export { boatPalettes, type BoatPalette };
 
@@ -47,9 +48,9 @@ function section(u: number, s: number, side: number): [number, number, number] {
 
 function hullMesh(scene: Scene, palette: BoatPalette) {
   const hull = hex(palette.hull);
-  const trim = hex(0xc98a4b);
-  const boot = hex(0xfff3d6);
-  const paintRed = hex(0x8c3a35);
+  const trim = hex(PAL.wood.trim);
+  const boot = hex(PAL.hull.boot);
+  const paintRed = hex(PAL.hull.waterline);
   const positions: number[] = [];
   const colors: number[] = [];
   const indices: number[] = [];
@@ -92,7 +93,7 @@ function hullMesh(scene: Scene, palette: BoatPalette) {
 }
 
 function deckMesh(scene: Scene) {
-  const planks = [hex(0xb98757), hex(0xa57647)];
+  const planks = PAL.wood.deck.map(hex);
   const positions: number[] = [];
   const colors: number[] = [];
   const indices: number[] = [];
@@ -128,7 +129,7 @@ function railMesh(scene: Scene, side: number) {
       { path, radius: 0.075, tessellation: 6 },
       scene,
     ),
-    hex(0xc98a4b),
+    hex(PAL.wood.trim),
   );
 }
 
@@ -174,23 +175,35 @@ export function createBoatTemplate(
   const mastZ = -BOAT_LENGTH * 0.12;
 
   // Wheelhouse, windows and roof.
-  place(box(2, 1.55, 2), 0xfff7e0, [0, DECK_Y + 0.78, houseZ]);
-  place(box(2.4, 0.16, 2.4), 0xef866a, [0, DECK_Y + 1.62, houseZ]);
-  place(box(1.5, 0.5, 0.04), 0x1d4e73, [0, DECK_Y + 0.98, houseZ - 1.01]);
+  place(box(2, 1.55, 2), PAL.paint.cream, [0, DECK_Y + 0.78, houseZ]);
+  place(box(2.4, 0.16, 2.4), PAL.paint.coral, [0, DECK_Y + 1.62, houseZ]);
+  place(box(1.5, 0.5, 0.04), PAL.paint.window, [
+    0,
+    DECK_Y + 0.98,
+    houseZ - 1.01,
+  ]);
   for (const side of [1, -1])
-    place(box(0.04, 0.5, 1.15), 0x1d4e73, [
+    place(box(0.04, 0.5, 1.15), PAL.paint.window, [
       side * 1.01,
       DECK_Y + 0.98,
       houseZ - 0.1,
     ]);
-  place(tube(0.2, 0.26, 0.6), 0xb23a32, [0.55, DECK_Y + 2.1, houseZ + 0.55]);
-  place(tube(0.03, 0.03, 1.4, 5), 0x4b4f56, [-0.6, DECK_Y + 2.4, houseZ + 0.4]);
+  place(tube(0.2, 0.26, 0.6), PAL.paint.funnel, [
+    0.55,
+    DECK_Y + 2.1,
+    houseZ + 0.55,
+  ]);
+  place(tube(0.03, 0.03, 1.4, 5), PAL.metal.steel, [
+    -0.6,
+    DECK_Y + 2.4,
+    houseZ + 0.4,
+  ]);
 
   // Mast, derrick boom, pennant and lamp.
-  place(tube(0.14, 0.2, 3.3), 0x9b6b3f, [0, DECK_Y + 1.65, mastZ]);
+  place(tube(0.14, 0.2, 3.3), PAL.wood.mid, [0, DECK_Y + 1.65, mastZ]);
   place(
     tube(0.1, 0.14, 1.9, 6),
-    0x9b6b3f,
+    PAL.wood.mid,
     [0.85, DECK_Y + 2.3, mastZ - 0.55],
     [Math.PI / 2.6, 0, -Math.PI / 4],
   );
@@ -202,7 +215,7 @@ export function createBoatTemplate(
   );
   place(
     MeshBuilder.CreateSphere("part", { diameter: 0.26, segments: 8 }, scene),
-    0xfff1b0,
+    PAL.light.lamp,
     [0, DECK_Y + 3.38, mastZ],
   );
 
@@ -212,12 +225,12 @@ export function createBoatTemplate(
     [0.85, 0],
     [-0.85, 0.36],
   ] as const) {
-    place(box(0.72, 0.34, 0.55), 0xffb93d, [
+    place(box(0.72, 0.34, 0.55), PAL.paint.crate, [
       x,
       DECK_Y + 0.18 + y,
       BOAT_LENGTH * 0.42,
     ]);
-    place(box(0.74, 0.05, 0.57), 0xc77f1b, [
+    place(box(0.74, 0.05, 0.57), PAL.paint.crateLid, [
       x,
       DECK_Y + 0.36 + y,
       BOAT_LENGTH * 0.42,
@@ -225,7 +238,7 @@ export function createBoatTemplate(
   }
   place(
     MeshBuilder.CreateSphere("part", { diameter: 1, segments: 7 }, scene),
-    0x7ea0b8,
+    PAL.paint.net,
     [-0.7, DECK_Y + 0.2, -BOAT_LENGTH * 0.05],
     [0, 0, 0],
     [1.2, 0.55, 1],
@@ -236,7 +249,7 @@ export function createBoatTemplate(
       { diameter: 0.6, thickness: 0.15, tessellation: 18 },
       scene,
     ),
-    0xe5534b,
+    PAL.paint.red,
     [1.015, DECK_Y + 1.05, houseZ + 0.6],
     [0, 0, Math.PI / 2],
   );
@@ -247,11 +260,11 @@ export function createBoatTemplate(
   const cz = 3.02;
   const sphere = (d: number, seg = 10) =>
     MeshBuilder.CreateSphere("part", { diameter: d, segments: seg }, scene);
-  place(tube(0.3, 0.34, 0.5, 10), 0x2f5d8a, [cx, DECK_Y + 0.25, cz]); // trousers
-  place(tube(0.5, 0.58, 0.62, 12), 0xffc83d, [cx, DECK_Y + 0.8, cz]); // coat
-  place(sphere(0.4), 0xf2b98f, [cx, DECK_Y + 1.32, cz]); // head
-  place(tube(0.5, 0.5, 0.03, 16), 0xe9c46a, [cx, DECK_Y + 1.46, cz]); // brim
-  place(tube(0.26, 0.34, 0.16, 12), 0xe9c46a, [cx, DECK_Y + 1.55, cz]); // crown
+  place(tube(0.3, 0.34, 0.5, 10), PAL.crew.trousers, [cx, DECK_Y + 0.25, cz]); // trousers
+  place(tube(0.5, 0.58, 0.62, 12), PAL.crew.coat, [cx, DECK_Y + 0.8, cz]); // coat
+  place(sphere(0.4), PAL.crew.skin, [cx, DECK_Y + 1.32, cz]); // head
+  place(tube(0.5, 0.5, 0.03, 16), PAL.crew.hat, [cx, DECK_Y + 1.46, cz]); // brim
+  place(tube(0.26, 0.34, 0.16, 12), PAL.crew.hat, [cx, DECK_Y + 1.55, cz]); // crown
   const arm = (
     from: [number, number, number],
     to: [number, number, number],
@@ -260,7 +273,7 @@ export function createBoatTemplate(
     const len = Math.hypot(...d);
     place(
       tube(0.13, 0.15, len, 8),
-      0xffc83d,
+      PAL.crew.coat,
       [from[0] + d[0] / 2, from[1] + d[1] / 2, from[2] + d[2] / 2],
       [Math.asin(d[2] / len), 0, -Math.asin(d[0] / len)],
     );

@@ -1,4 +1,5 @@
 import { Geo, rgbOf, shade, type Rgb } from "./geo.ts";
+import { PAL } from "./art/colors.ts";
 
 /**
  * The small things that make an island look lived in: grass, flowers, shells, driftwood,
@@ -56,19 +57,13 @@ function scatter(
   return points;
 }
 
-const GRASS: readonly Rgb[] = [0x6fb85f, 0x5aa856, 0x8cc766, 0xa9c860].map(
+const GRASS: readonly Rgb[] = PAL.plants.blades.map(rgbOf);
+const FLOWERS: readonly Rgb[] = PAL.plants.flowers.map(rgbOf);
+const SHELLS: readonly Rgb[] = PAL.plants.shells.map(rgbOf);
+const WOOD: readonly Rgb[] = [PAL.wood.mid, PAL.wood.light, PAL.wood.dark].map(
   rgbOf,
 );
-const FLOWERS: readonly Rgb[] = [
-  0xfff3a8, 0xffffff, 0xff9fb3, 0xff8a5c, 0xc79bff,
-].map(rgbOf);
-const SHELLS: readonly Rgb[] = [0xfff1dc, 0xf6c9c0, 0xf2b27a, 0xe9e1d0].map(
-  rgbOf,
-);
-const WOOD: readonly Rgb[] = [0x9b6b3f, 0xb07c49, 0x8a5d36].map(rgbOf);
-const LEAVES: readonly Rgb[] = [0x3f9b57, 0x4fae63, 0x6cbb5f, 0x358a52].map(
-  rgbOf,
-);
+const LEAVES: readonly Rgb[] = PAL.plants.leaves.map(rgbOf);
 
 export function addGrass(ctx: PropContext, count: number) {
   const spots = scatter(
@@ -145,7 +140,7 @@ export function addShells(ctx: PropContext, count: number) {
   for (const { x, y, z } of spots) {
     if (ctx.rng() < 0.3) {
       // A starfish.
-      const color = rgbOf(ctx.rng() < 0.5 ? 0xf08a4b : 0xe9573f);
+      const color = rgbOf(PAL.plants.berries[ctx.rng() < 0.5 ? 0 : 1]!);
       const turn = ctx.rng() * 6;
       for (let i = 0; i < 5; i++) {
         const a = turn + (i / 5) * Math.PI * 2;
@@ -203,8 +198,8 @@ function boulder(
   z: number,
   size: number,
 ) {
-  const grey = shade(rgbOf(0x8f9499), (ctx.rng() - 0.5) * 0.1);
-  const moss = rgbOf(0x6f9a58);
+  const grey = shade(rgbOf(PAL.stone.rock), (ctx.rng() - 0.5) * 0.1);
+  const moss = rgbOf(PAL.stone.moss);
   const jitter = () => 0.78 + ctx.rng() * 0.44;
   const top: [number, number, number] = [x, y + size * 0.8 * jitter(), z];
   const bottom: [number, number, number] = [x, y - size * 0.1, z];
@@ -432,8 +427,17 @@ export function addBoardwalk(ctx: PropContext): Structure | undefined {
   const lz = dz * (end - 0.1) + dx * 0.8;
   const base = deckAt(end);
   ctx.geo.box(lx, base + 0.9, lz, 0.06, 0.9, 0.06, wood(-0.1), angle);
-  ctx.geo.box(lx, base + 1.9, lz, 0.14, 0.14, 0.14, rgbOf(0xffe28a), angle);
-  ctx.geo.cone(lx, base + 2.02, lz, 0.22, 0.2, 4, rgbOf(0x4b4f56), 0.78);
+  ctx.geo.box(
+    lx,
+    base + 1.9,
+    lz,
+    0.14,
+    0.14,
+    0.14,
+    rgbOf(PAL.light.lamp),
+    angle,
+  );
+  ctx.geo.cone(lx, base + 2.02, lz, 0.22, 0.2, 4, rgbOf(PAL.metal.steel), 0.78);
   return { x: dx * end, z: dz * end, angle };
 }
 
@@ -469,10 +473,19 @@ export function addHut(ctx: PropContext): Structure | undefined {
   for (const sx of [-1, 1])
     for (const sz of [-1, 1]) {
       const [px, pz] = forward(sx * 1.2, sz * 0.95);
-      ctx.geo.box(px, floor - 0.6, pz, 0.1, 0.7, 0.1, rgbOf(0x8a5d36), angle);
+      ctx.geo.box(
+        px,
+        floor - 0.6,
+        pz,
+        0.1,
+        0.7,
+        0.1,
+        rgbOf(PAL.wood.dark),
+        angle,
+      );
     }
-  ctx.geo.box(x, floor, z, 1.5, 0.08, 1.2, rgbOf(0xb07c49), angle);
-  ctx.geo.box(x, floor + 0.95, z, 1.3, 0.85, 1.0, rgbOf(0xf3e3b8), angle);
+  ctx.geo.box(x, floor, z, 1.5, 0.08, 1.2, rgbOf(PAL.wood.light), angle);
+  ctx.geo.box(x, floor + 0.95, z, 1.3, 0.85, 1.0, rgbOf(PAL.hut.wall), angle);
   const [doorX, doorZ] = forward(1.31);
   ctx.geo.box(
     doorX,
@@ -481,7 +494,7 @@ export function addHut(ctx: PropContext): Structure | undefined {
     0.03,
     0.55,
     0.28,
-    rgbOf(0x6b4a2b),
+    rgbOf(PAL.wood.deep),
     angle,
   );
   const [winX, winZ] = forward(1.31, 0.72);
@@ -492,7 +505,7 @@ export function addHut(ctx: PropContext): Structure | undefined {
     0.03,
     0.22,
     0.22,
-    rgbOf(0x8fd0e8),
+    rgbOf(PAL.hut.glass),
     angle,
   );
   ctx.geo.cone(
@@ -502,15 +515,33 @@ export function addHut(ctx: PropContext): Structure | undefined {
     2.0,
     1.05,
     4,
-    rgbOf(0xc9573f),
+    rgbOf(PAL.paint.redDeep),
     Math.PI / 4 + angle,
     0.08,
   );
   const [chX, chZ] = forward(-0.5, 0.4);
-  ctx.geo.box(chX, floor + 2.6, chZ, 0.16, 0.35, 0.16, rgbOf(0x8d9298), angle);
+  ctx.geo.box(
+    chX,
+    floor + 2.6,
+    chZ,
+    0.16,
+    0.35,
+    0.16,
+    rgbOf(PAL.stone.rock),
+    angle,
+  );
   // Steps down to the ground.
   const [stX, stZ] = forward(1.75);
-  ctx.geo.box(stX, floor - 0.2, stZ, 0.3, 0.06, 0.4, rgbOf(0xb07c49), angle);
+  ctx.geo.box(
+    stX,
+    floor - 0.2,
+    stZ,
+    0.3,
+    0.06,
+    0.4,
+    rgbOf(PAL.wood.light),
+    angle,
+  );
   return { x, z, angle };
 }
 
@@ -526,8 +557,8 @@ export function addRowboat(ctx: PropContext, near?: Structure): boolean {
     const y = ctx.height(x, z);
     if (y < 0.25 || y > 0.95) continue;
     const yaw = angle + 0.5;
-    const hull = rgbOf(0x3a6ea5);
-    const trim = rgbOf(0xfff1c9);
+    const hull = rgbOf(PAL.hut.rowboat);
+    const trim = rgbOf(PAL.paint.creamWarm);
     ctx.geo.box(x, y + 0.14, z, 1.25, 0.07, 0.46, shade(hull, -0.05), yaw);
     for (const side of [-1, 1]) {
       const sx = x - Math.sin(yaw) * 0.5 * side;
@@ -543,7 +574,7 @@ export function addRowboat(ctx: PropContext, near?: Structure): boolean {
         0.07,
         0.03,
         0.46,
-        rgbOf(0xb07c49),
+        rgbOf(PAL.wood.light),
         yaw,
       );
     }
