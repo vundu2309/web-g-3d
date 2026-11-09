@@ -59,11 +59,20 @@ export interface InputLayerOptions {
     zone: HTMLElement;
     enabled: () => boolean;
   };
+  /** A finger dragged on open sea (no control, not the stick) looks around. */
+  look?: {
+    enabled: () => boolean;
+    /** The finger went down (true) or up (false). */
+    hold: (on: boolean) => void;
+    /** The finger moved by this many pixels. */
+    drag: (dx: number, dy: number) => void;
+  };
   signal: AbortSignal;
 }
 
 type Route =
   | { kind: "stick" }
+  | { kind: "look"; x: number; y: number }
   | { kind: "press"; target: InputTarget }
   | { kind: "tap"; target: InputTarget };
 
@@ -112,6 +121,10 @@ export function bindInputLayer(
     if (!route) return;
     routes.delete(id);
     if (route.kind === "stick") return;
+    if (route.kind === "look") {
+      options.look?.hold(false);
+      return;
+    }
     route.target.element.classList.remove(PRESSED);
     if (route.kind === "press") route.target.up?.();
     else if (!cancelled && inside(inflate(boxOf(route.target.element)), x, y))
@@ -143,12 +156,28 @@ export function bindInputLayer(
       if (stick.controller.down(event, !onRing)) {
         routes.set(event.pointerId, { kind: "stick" });
         capture(event.pointerId);
+        return;
       }
+    }
+    // Anywhere else on the sea: a drag looks around the boat.
+    if (options.look?.enabled()) {
+      routes.set(event.pointerId, {
+        kind: "look",
+        x: event.clientX,
+        y: event.clientY,
+      });
+      capture(event.pointerId);
+      options.look.hold(true);
     }
   });
   listen("pointermove", (event) => {
-    if (routes.get(event.pointerId)?.kind === "stick")
-      options.stick?.controller.move(event);
+    const route = routes.get(event.pointerId);
+    if (route?.kind === "stick") options.stick?.controller.move(event);
+    else if (route?.kind === "look") {
+      options.look?.drag(event.clientX - route.x, event.clientY - route.y);
+      route.x = event.clientX;
+      route.y = event.clientY;
+    }
   });
   const lift = (event: PointerEvent, cancelled: boolean) => {
     const route = routes.get(event.pointerId);
@@ -171,6 +200,10 @@ export function bindInputLayer(
     for (const [id, route] of [...routes]) {
       routes.delete(id);
       if (route.kind === "stick") continue;
+      if (route.kind === "look") {
+        options.look?.hold(false);
+        continue;
+      }
       route.target.element.classList.remove(PRESSED);
       if (route.kind === "press") route.target.up?.();
     }
