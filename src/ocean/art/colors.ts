@@ -52,5 +52,7 @@ export const PAL = {
   /** The fisherman on the boat. */
   crew: { coat: 0xffc83d, trousers: 0x2f5d8a, skin: 0xf2b98f, hat: 0xe9c46a },
   /** The rod and the lure. */
-  rod: { cork: 0xe3c38d, graphite: 0x6b4423, tip: 0xff7a2e },
+  rod: { cork: 0xe3c38d, graphite: 0x6b4423, tip: 0xff7a2e, lure: 0xff7333 },
+  /** The throw marker: no water and the sweet spot (otherwise white). */
+  signal: { blocked: 0xff594d, sweet: 0x73ff99 },
 } as const;

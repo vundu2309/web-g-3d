@@ -37,3 +37,39 @@ test("the shared palette has no duplicate colours under two names", () => {
   const dupes = [...seen].filter(([, n]) => n > 1).map(([hex]) => hex);
   assert.deepEqual(dupes, [], `colours written twice: ${dupes.join(", ")}`);
 });
+
+// Materials come from art/materials.ts: a visual file that builds a StandardMaterial itself
+// is a second way of lighting objects.
+const MATERIAL_FILES = [
+  ...MIGRATED,
+  "creature-kit.ts",
+  "fishing-gear.ts",
+  "ribbon.ts",
+];
+
+test("objects get their materials from the shared factory", () => {
+  for (const file of MATERIAL_FILES) {
+    const source = readFileSync(`src/ocean/${file}`, "utf8");
+    assert.ok(
+      !/new (Standard|PBR)Material\(/.test(source),
+      `${file} builds a material of its own`,
+    );
+  }
+});
+
+// Round and boxy parts come from art/shapes.ts, so every object is rounded by the same tiers.
+test("objects build their primitives through the shared shape helpers", () => {
+  for (const file of [
+    "boat-visual.ts",
+    "sea-props.ts",
+    "rod-visual.ts",
+    "island-visual.ts",
+    "fishing-gear.ts",
+  ]) {
+    const source = readFileSync(`src/ocean/${file}`, "utf8");
+    assert.ok(
+      !/MeshBuilder\.Create(Box|Cylinder|Sphere|Torus)\(/.test(source),
+      `${file} builds a primitive on its own`,
+    );
+  }
+});

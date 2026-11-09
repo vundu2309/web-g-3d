@@ -5,6 +5,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import type { Scene } from "@babylonjs/core/scene";
 import { ribbonPositions, type Point3 } from "./rope.ts";
+import { glowMaterial } from "./art/materials.ts";
 
 /** The fishing line as a flat strip that faces the camera: visible at any distance. */
 export class Ribbon {
@@ -24,10 +25,7 @@ export class Ribbon {
     data.positions = Array.from(this.positions);
     data.indices = indices;
     data.applyToMesh(this.mesh, true);
-    this.material = new StandardMaterial(`${name}-material`, scene);
-    this.material.disableLighting = true;
-    this.material.backFaceCulling = false;
-    this.material.emissiveColor = new Color3(1, 1, 1);
+    this.material = glowMaterial(scene, `${name}-material`);
     this.mesh.material = this.material;
     this.mesh.isPickable = false;
     this.mesh.alwaysSelectAsActiveMesh = true;

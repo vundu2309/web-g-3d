@@ -1,11 +1,10 @@
-import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import type { Creature, Part } from "./creature-geometry.ts";
 import { buildCreature, type CreatureKind } from "./creatures.ts";
 import { meshFrom } from "./mesh-parts.ts";
+import { solidMaterial } from "./art/materials.ts";
 
 /**
  * Turns a built animal into Babylon meshes: one mesh for the body and fins, and one for
@@ -22,23 +21,10 @@ export interface CreatureModel {
   dispose(): void;
 }
 
-const materials = new WeakMap<Scene, StandardMaterial>();
-function material(scene: Scene) {
-  let found = materials.get(scene);
-  if (!found) {
-    found = new StandardMaterial("creature-material", scene);
-    found.diffuseColor = Color3.White();
-    found.specularColor = new Color3(0.14, 0.14, 0.14);
-    found.backFaceCulling = false;
-    materials.set(scene, found);
-  }
-  return found;
-}
-
 function meshOf(name: string, scene: Scene, part: Part, shift = [0, 0, 0]) {
   const positions = part.positions.map((v, i) => v - shift[i % 3]!);
   const mesh = meshFrom(name, scene, positions, part.indices, part.colors);
-  mesh.material = material(scene);
+  mesh.material = solidMaterial(scene, "satin");
   mesh.useVertexColors = true;
   mesh.isPickable = false;
   return mesh;

@@ -1,11 +1,9 @@
-import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
-import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import type { Scene } from "@babylonjs/core/scene";
-import { hex, meshFrom, mergeParts, paint } from "./mesh-parts.ts";
+import { hex, meshFrom, paint } from "./mesh-parts.ts";
 import { RodSim } from "./rod.ts";
 
 /**
@@ -15,6 +13,8 @@ import { RodSim } from "./rod.ts";
  */
 import { boatPalettes, type BoatPalette } from "./palette.ts";
 import { PAL } from "./art/colors.ts";
+import { Parts, SIDES, cylinderMesh } from "./art/shapes.ts";
+import { useSolid, glowMaterial } from "./art/materials.ts";
 
 export { boatPalettes, type BoatPalette };
 
@@ -139,85 +139,61 @@ export function createBoatTemplate(
   palette: BoatPalette,
   name: string,
 ): Mesh {
-  const parts: Mesh[] = [
+  const parts = new Parts(scene);
+  for (const mesh of [
     hullMesh(scene, palette),
     deckMesh(scene),
     railMesh(scene, 1),
     railMesh(scene, -1),
-  ];
-  const place = (
-    mesh: Mesh,
-    color: number,
-    position: [number, number, number],
-    rotation: [number, number, number] = [0, 0, 0],
-    scale: [number, number, number] = [1, 1, 1],
-  ) => {
-    mesh.position.set(...position);
-    mesh.rotation.set(...rotation);
-    mesh.scaling.set(...scale);
-    paint(mesh, hex(color));
-    parts.push(mesh);
-  };
-  const box = (w: number, h: number, d: number) =>
-    MeshBuilder.CreateBox("part", { width: w, height: h, depth: d }, scene);
-  const tube = (top: number, bottomD: number, h: number, tess = 8) =>
-    MeshBuilder.CreateCylinder(
-      "part",
-      {
-        diameterTop: top,
-        diameterBottom: bottomD,
-        height: h,
-        tessellation: tess,
-      },
-      scene,
-    );
+  ])
+    parts.add(mesh);
   const houseZ = BOAT_LENGTH * 0.22;
   const mastZ = -BOAT_LENGTH * 0.12;
 
   // Wheelhouse, windows and roof.
-  place(box(2, 1.55, 2), PAL.paint.cream, [0, DECK_Y + 0.78, houseZ]);
-  place(box(2.4, 0.16, 2.4), PAL.paint.coral, [0, DECK_Y + 1.62, houseZ]);
-  place(box(1.5, 0.5, 0.04), PAL.paint.window, [
+  parts.box([2, 1.55, 2], PAL.paint.cream, [0, DECK_Y + 0.78, houseZ]);
+  parts.box([2.4, 0.16, 2.4], PAL.paint.coral, [0, DECK_Y + 1.62, houseZ]);
+  parts.box([1.5, 0.5, 0.04], PAL.paint.window, [
     0,
     DECK_Y + 0.98,
     houseZ - 1.01,
   ]);
   for (const side of [1, -1])
-    place(box(0.04, 0.5, 1.15), PAL.paint.window, [
+    parts.box([0.04, 0.5, 1.15], PAL.paint.window, [
       side * 1.01,
       DECK_Y + 0.98,
       houseZ - 0.1,
     ]);
-  place(tube(0.2, 0.26, 0.6), PAL.paint.funnel, [
+  parts.tube({ top: 0.2, bottom: 0.26, height: 0.6 }, PAL.paint.funnel, [
     0.55,
     DECK_Y + 2.1,
     houseZ + 0.55,
   ]);
-  place(tube(0.03, 0.03, 1.4, 5), PAL.metal.steel, [
-    -0.6,
-    DECK_Y + 2.4,
-    houseZ + 0.4,
-  ]);
+  parts.tube(
+    { top: 0.03, bottom: 0.03, height: 1.4, sides: SIDES.thin },
+    PAL.metal.steel,
+    [-0.6, DECK_Y + 2.4, houseZ + 0.4],
+  );
 
   // Mast, derrick boom, pennant and lamp.
-  place(tube(0.14, 0.2, 3.3), PAL.wood.mid, [0, DECK_Y + 1.65, mastZ]);
-  place(
-    tube(0.1, 0.14, 1.9, 6),
+  parts.tube({ top: 0.14, bottom: 0.2, height: 3.3 }, PAL.wood.mid, [
+    0,
+    DECK_Y + 1.65,
+    mastZ,
+  ]);
+  parts.tube(
+    { top: 0.1, bottom: 0.14, height: 1.9 },
     PAL.wood.mid,
     [0.85, DECK_Y + 2.3, mastZ - 0.55],
     [Math.PI / 2.6, 0, -Math.PI / 4],
   );
-  place(
-    box(0.55, 0.3, 0.02),
+  parts.box(
+    [0.55, 0.3, 0.02],
     palette.trim,
     [0.3, DECK_Y + 3.05, mastZ],
     [0, 0.25, 0],
   );
-  place(
-    MeshBuilder.CreateSphere("part", { diameter: 0.26, segments: 8 }, scene),
-    PAL.light.lamp,
-    [0, DECK_Y + 3.38, mastZ],
-  );
+  parts.sphere(0.26, PAL.light.lamp, [0, DECK_Y + 3.38, mastZ]);
 
   // Crates, net heap and life ring (the rod is its own mesh: ocean/rod-visual.ts).
   for (const [x, y] of [
@@ -225,30 +201,27 @@ export function createBoatTemplate(
     [0.85, 0],
     [-0.85, 0.36],
   ] as const) {
-    place(box(0.72, 0.34, 0.55), PAL.paint.crate, [
+    parts.box([0.72, 0.34, 0.55], PAL.paint.crate, [
       x,
       DECK_Y + 0.18 + y,
       BOAT_LENGTH * 0.42,
     ]);
-    place(box(0.74, 0.05, 0.57), PAL.paint.crateLid, [
+    parts.box([0.74, 0.05, 0.57], PAL.paint.crateLid, [
       x,
       DECK_Y + 0.36 + y,
       BOAT_LENGTH * 0.42,
     ]);
   }
-  place(
-    MeshBuilder.CreateSphere("part", { diameter: 1, segments: 7 }, scene),
+  parts.sphere(
+    1,
     PAL.paint.net,
     [-0.7, DECK_Y + 0.2, -BOAT_LENGTH * 0.05],
     [0, 0, 0],
     [1.2, 0.55, 1],
   );
-  place(
-    MeshBuilder.CreateTorus(
-      "part",
-      { diameter: 0.6, thickness: 0.15, tessellation: 18 },
-      scene,
-    ),
+  parts.torus(
+    0.6,
+    0.15,
     PAL.paint.red,
     [1.015, DECK_Y + 1.05, houseZ + 0.6],
     [0, 0, Math.PI / 2],
@@ -258,21 +231,42 @@ export function createBoatTemplate(
   // straw hat), so the boat has someone on it.
   const cx = 0.88;
   const cz = 3.02;
-  const sphere = (d: number, seg = 10) =>
-    MeshBuilder.CreateSphere("part", { diameter: d, segments: seg }, scene);
-  place(tube(0.3, 0.34, 0.5, 10), PAL.crew.trousers, [cx, DECK_Y + 0.25, cz]); // trousers
-  place(tube(0.5, 0.58, 0.62, 12), PAL.crew.coat, [cx, DECK_Y + 0.8, cz]); // coat
-  place(sphere(0.4), PAL.crew.skin, [cx, DECK_Y + 1.32, cz]); // head
-  place(tube(0.5, 0.5, 0.03, 16), PAL.crew.hat, [cx, DECK_Y + 1.46, cz]); // brim
-  place(tube(0.26, 0.34, 0.16, 12), PAL.crew.hat, [cx, DECK_Y + 1.55, cz]); // crown
+  parts.tube(
+    { top: 0.3, bottom: 0.34, height: 0.5, sides: SIDES.round },
+    PAL.crew.trousers,
+    [cx, DECK_Y + 0.25, cz],
+  );
+  parts.tube(
+    { top: 0.5, bottom: 0.58, height: 0.62, sides: SIDES.round },
+    PAL.crew.coat,
+    [cx, DECK_Y + 0.8, cz],
+  );
+  parts.sphere(
+    0.4,
+    PAL.crew.skin,
+    [cx, DECK_Y + 1.32, cz],
+    undefined,
+    undefined,
+    SIDES.round,
+  );
+  parts.tube(
+    { top: 0.5, bottom: 0.5, height: 0.03, sides: SIDES.round },
+    PAL.crew.hat,
+    [cx, DECK_Y + 1.46, cz],
+  );
+  parts.tube(
+    { top: 0.26, bottom: 0.34, height: 0.16, sides: SIDES.round },
+    PAL.crew.hat,
+    [cx, DECK_Y + 1.55, cz],
+  );
   const arm = (
     from: [number, number, number],
     to: [number, number, number],
   ) => {
     const d = [to[0] - from[0], to[1] - from[1], to[2] - from[2]] as const;
     const len = Math.hypot(...d);
-    place(
-      tube(0.13, 0.15, len, 8),
+    parts.tube(
+      { top: 0.13, bottom: 0.15, height: len },
       PAL.crew.coat,
       [from[0] + d[0] / 2, from[1] + d[1] / 2, from[2] + d[2] / 2],
       [Math.asin(d[2] / len), 0, -Math.asin(d[0] / len)],
@@ -281,27 +275,17 @@ export function createBoatTemplate(
   arm([cx + 0.2, DECK_Y + 1.02, cz], [1.2, DECK_Y + 0.62, 2.62]);
   arm([cx - 0.2, DECK_Y + 1.02, cz], [1.02, DECK_Y + 0.7, 2.7]);
 
-  const merged = mergeParts(name, parts);
-  const material = new StandardMaterial(`${name}-material`, scene);
-  material.diffuseColor = Color3.White();
-  material.specularColor = new Color3(0.12, 0.12, 0.12);
-  material.backFaceCulling = false;
-  merged.material = material;
-  merged.useVertexColors = true;
-  return merged;
+  return useSolid(parts.merge(name), "satin");
 }
 
 /** Thin line shown while fishing; one small mesh per boat that is casting. */
 export function createFishingLine(scene: Scene, parent: TransformNode) {
-  const line = MeshBuilder.CreateCylinder(
-    "fishing-line",
-    { diameter: 0.025, height: 2.6, tessellation: 4 },
+  const line = cylinderMesh(
     scene,
+    { top: 0.025, bottom: 0.025, height: 2.6, sides: 4 },
+    "fishing-line",
   );
-  const material = new StandardMaterial("fishing-line-material", scene);
-  material.emissiveColor = Color3.White();
-  material.disableLighting = true;
-  line.material = material;
+  line.material = glowMaterial(scene, "fishing-line-material");
   line.parent = parent;
   const rest = new RodSim().tip();
   line.position.set(rest.x, 0.35, rest.z);

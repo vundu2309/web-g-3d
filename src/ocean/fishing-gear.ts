@@ -1,7 +1,7 @@
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
-import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
@@ -12,6 +12,10 @@ import { fishLength, fishPose, lineColour, lineTremble } from "./fight-look.ts";
 import { Ribbon } from "./ribbon.ts";
 import { Rope, smoothRope } from "./rope.ts";
 import { waveHeight } from "./waves.ts";
+import { PAL } from "./art/colors.ts";
+import { SIDES, sphereMesh } from "./art/shapes.ts";
+import { hex } from "./mesh-parts.ts";
+import { glowMaterial } from "./art/materials.ts";
 
 /**
  * What the player sees of their own fishing: the throw preview, the line and the ripples
@@ -142,13 +146,10 @@ export class FishingGear {
         { width: 2, height: 2 },
         scene,
       );
-      const material = new StandardMaterial(`${name}-material`, scene);
-      material.diffuseTexture = texture;
-      material.useAlphaFromDiffuseTexture = true;
-      material.emissiveColor = Color3.White();
-      material.disableLighting = true;
-      material.backFaceCulling = false;
-      material.alpha = 0;
+      const material = glowMaterial(scene, `${name}-material`, {
+        texture,
+        alpha: 0,
+      });
       mesh.material = material;
       mesh.isPickable = false;
       mesh.isVisible = false;
@@ -160,15 +161,10 @@ export class FishingGear {
     this.marker = marker.mesh;
     this.markerMaterial = marker.material;
     // A small bright lure where the line ends; the fish takes its place in a fight.
-    this.lure = MeshBuilder.CreateSphere(
-      "gear-lure",
-      { diameter: 0.3, segments: 8 },
-      scene,
-    );
-    const lureMaterial = new StandardMaterial("gear-lure-material", scene);
-    lureMaterial.disableLighting = true;
-    lureMaterial.emissiveColor = new Color3(1, 0.45, 0.2);
-    this.lure.material = lureMaterial;
+    this.lure = sphereMesh(scene, 0.3, SIDES.small, "gear-lure");
+    this.lure.material = glowMaterial(scene, "gear-lure-material", {
+      color: hex(PAL.rod.lure),
+    });
     this.lure.isPickable = false;
     this.lure.isVisible = false;
     this.setVisible(false);
@@ -240,9 +236,9 @@ export class FishingGear {
       this.marker.scaling.set(2.6 * pulse, 1, 2.6 * pulse);
       this.markerMaterial.alpha = 0.95;
       this.markerMaterial.emissiveColor = !preview.water
-        ? new Color3(1, 0.35, 0.3)
+        ? hex(PAL.signal.blocked)
         : preview.sweet
-          ? new Color3(0.45, 1, 0.6)
+          ? hex(PAL.signal.sweet)
           : Color3.White();
     }
     let ringsOn = false;
