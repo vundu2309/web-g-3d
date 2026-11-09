@@ -162,3 +162,9 @@ All object colours of the sea game live in `src/ocean/art/colors.ts` (`PAL`, by 
 - `src/ocean/art/materials.ts`: the two kinds of material objects may use. A SOLID material (vertex colours lit by the scene, with a look: `matte`, `satin`, `gloss`, `buoy`, `gull`), one shared per look and scene via `solidMaterial` / `useSolid`; and a GLOW material (unlit flat colour or texture, `glowMaterial`) for the fishing line, lure, rings and foam. Water, sky and wake stay as their own shaders.
 - `src/ocean/art/shapes.ts`: `Parts` builds an object out of coloured primitives (`box`, `tube`, `sphere`, `torus`, `add` for custom meshes) and merges it into one mesh; `SIDES` gives the roundness tiers (`thin`, `small`, `round`, `smooth`); `cylinderMesh` / `sphereMesh` make bare primitives. The boat, the buoys, the rod holder, the lighthouse and the lure use them.
 - `tests/art-palette.test.mjs` also fails when a visual file builds its own `StandardMaterial`/`PBRMaterial` or calls `MeshBuilder.CreateBox/Cylinder/Sphere/Torus` itself. Creatures (their own geometry in `creature-geometry.ts`) and the water/sky/wake shaders are not moved yet. Next: the light and shading rules, applied once in the solid and glow materials.
+
+### Art system, step 4: light and shading, once
+
+- `src/ocean/art/lighting.ts`: the only light rig (`createSeaLights`): a warm sun from the front left and a sky fill whose underside is the blue bounce of the sea, plus the rim-light values. Objects never create lights (a test checks).
+- `src/ocean/art/toon.ts`: soft cel shading (a partly applied posterize, 5 steps, amount 0.55) added by `solidMaterial` to every solid look, so hulls, hills, props and fish read as bands of colour. The solid materials also get a cool rim glow on edges that turn away from the viewer (`LIGHT.rim`). Water, sky, wake and the unlit glow materials are not touched.
+- Tuning is in the constants of these two files, not in the objects.

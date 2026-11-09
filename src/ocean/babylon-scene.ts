@@ -1,9 +1,7 @@
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
 import { FreeCamera } from "@babylonjs/core/Cameras/freeCamera";
-import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
-import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
-import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
+import { Color4 } from "@babylonjs/core/Maths/math.color";
 import { Matrix, Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Viewport } from "@babylonjs/core/Maths/math.viewport";
 import { Axis } from "@babylonjs/core/Maths/math.axis";
@@ -36,7 +34,8 @@ import {
 import { FishingGear, type GearInput } from "./fishing-gear.ts";
 import { paletteIndex } from "./palette.ts";
 import { RodVisual } from "./rod-visual.ts";
-import { FOG_DENSITY, HORIZON, SUN_DIRECTION } from "./sea-style.ts";
+import { FOG_DENSITY, HORIZON } from "./sea-style.ts";
+import { createSeaLights } from "./art/lighting.ts";
 import { edgeIndicator, separateLabels } from "./indicator.ts";
 import { ScaleGovernor } from "./render-scale.ts";
 import { createSky, type Sky } from "./sky.ts";
@@ -148,21 +147,7 @@ export class OceanScene {
     this.camera.minZ = 0.5;
     this.camera.maxZ = 3200;
     this.scene.activeCamera = this.camera;
-    const sky = new HemisphericLight(
-      "sky-light",
-      new Vector3(0, 1, 0),
-      this.scene,
-    );
-    sky.intensity = 0.9;
-    sky.diffuse = new Color3(0.9, 0.95, 1);
-    sky.groundColor = new Color3(0.32, 0.42, 0.5);
-    const sun = new DirectionalLight(
-      "sun",
-      SUN_DIRECTION.scale(-1),
-      this.scene,
-    );
-    sun.intensity = 1.5;
-    sun.diffuse = new Color3(1, 0.94, 0.82);
+    createSeaLights(this.scene);
     this.water = createWater(this.scene);
     this.sky = createSky(this.scene);
     this.templates = boatPalettes.map((palette, i) => {
