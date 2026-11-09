@@ -19,10 +19,10 @@ export const BUOYS: readonly Buoy[] = [
   { x: 9, z: -6, color: "green" },
   { x: -30, z: -30, color: "red" },
   { x: -22, z: -44, color: "green" },
-  { x: 78, z: -80, color: "red" },
-  { x: 96, z: -80, color: "green" },
-  { x: 92, z: 48, color: "red" },
-  { x: 112, z: 46, color: "green" },
+  { x: 78, z: -58, color: "red" },
+  { x: 100, z: -56, color: "green" },
+  { x: 92, z: 28, color: "red" },
+  { x: 114, z: 26, color: "green" },
 ];
 
 export interface Gull {

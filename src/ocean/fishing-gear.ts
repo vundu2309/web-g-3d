@@ -84,6 +84,7 @@ export class FishingGear {
   private readonly arcPoints: Vector3[] = [];
   private readonly ripples: { t: number; x: number; z: number }[] = [];
   private idleRipple = -9;
+  private readonly lure: Mesh;
   private readonly rope = new Rope(POINTS);
   private readonly smooth = new Float64Array(POINTS * 3);
   /** Where the line meets the water (or the fish's mouth), world. */
@@ -101,6 +102,11 @@ export class FishingGear {
   private fishYaw = 0;
   private recoil = 0;
   private lastFight = false;
+  /** The fish's smoothed place and heading while it fights (so it swims, not teleports). */
+  private fightX = 0;
+  private fightZ = 0;
+  private fightYaw = 0;
+  private fightSeeded = false;
   private lastSplash = 0;
   private held:
     | { id: string; scale: number; since: number; from: Vector3 }
@@ -153,6 +159,18 @@ export class FishingGear {
     const marker = makeRing("gear-marker");
     this.marker = marker.mesh;
     this.markerMaterial = marker.material;
+    // A small bright lure where the line ends; the fish takes its place in a fight.
+    this.lure = MeshBuilder.CreateSphere(
+      "gear-lure",
+      { diameter: 0.3, segments: 8 },
+      scene,
+    );
+    const lureMaterial = new StandardMaterial("gear-lure-material", scene);
+    lureMaterial.disableLighting = true;
+    lureMaterial.emissiveColor = new Color3(1, 0.45, 0.2);
+    this.lure.material = lureMaterial;
+    this.lure.isPickable = false;
+    this.lure.isVisible = false;
     this.setVisible(false);
   }
 
@@ -160,6 +178,11 @@ export class FishingGear {
   ripple() {
     this.ripples.push({ t: this.clock, x: this.entry.x, z: this.entry.z });
     if (this.ripples.length > RINGS) this.ripples.shift();
+  }
+
+  /** Where the line ends (the lure, or the fish's mouth) while fishing, for the camera. */
+  endPoint(): { x: number; z: number } | undefined {
+    return this.shown && this.roped ? this.entry : undefined;
   }
 
   /** World position above where the line enters the water, for the "!" badge. */
@@ -182,6 +205,7 @@ export class FishingGear {
   private setVisible(on: boolean) {
     this.shown = on;
     this.line.isVisible = on;
+    if (!on) this.lure.isVisible = false;
   }
 
   /** Where the camera is, for the line strip to face it. */
@@ -223,6 +247,7 @@ export class FishingGear {
     }
     let ringsOn = false;
     this.roped = false;
+    if (!(view.phase === "fighting" && view.fight)) this.fightSeeded = false;
     if (out && view.landing) {
       if (view.phase === "fighting" && view.fight)
         this.drawFight(view, tip, time, seconds);
@@ -259,6 +284,7 @@ export class FishingGear {
   snap(time: number) {
     if (!this.lastFight) return;
     this.lastFight = false;
+    this.fightSeeded = false;
     this.recoil = time;
     this.recoilFrom.copyFrom(this.entry);
     this.showFish(undefined);
@@ -468,6 +494,8 @@ export class FishingGear {
       } else if (!dip) this.pull.strength = 0.05;
     }
     this.entry.set(ex, ey, ez);
+    this.lure.position.set(ex, ey + 0.2, ez);
+    this.lure.isVisible = true;
     // Where the line enters the water a slow ring keeps showing it, so the end of a long cast
     // is not a thin line stopping in mid-air.
     if (!flying && time - this.idleRipple > 1.0) {
@@ -479,7 +507,7 @@ export class FishingGear {
     // How much line there is: a hair of slack while waiting (a sag of half a metre or so;
     // sag grows with the square root of the spare line), none once a fish is taking it.
     const stretch = Math.hypot(ex - tip.x, ey - tip.y, ez - tip.z);
-    const length = flying ? stretch * 1.12 : biting ? stretch : stretch + 0.12;
+    const length = flying ? stretch * 1.12 : biting ? stretch : stretch + 0.05;
     this.stepRope(tip, length, seconds);
     this.roped = !flying;
     const direction = new Vector3(
@@ -491,7 +519,7 @@ export class FishingGear {
     this.pull.y = direction.y;
     this.pull.z = direction.z;
     // Waiting, the line keeps a gentle sag; once a fish takes it, it is straight.
-    this.drawRope(WHITE, biting ? 0.05 : 0, time, tip, biting ? 1 : 0.4);
+    this.drawRope(WHITE, biting ? 0.05 : 0, time, tip, biting ? 1 : 0.85);
     this.line.alpha = 0.9;
   }
 
@@ -522,8 +550,35 @@ export class FishingGear {
     const span = Math.hypot(landing.x - tip.x, landing.z - tip.z) || 1;
     const dx = (landing.x - tip.x) / span;
     const dz = (landing.z - tip.z) / span;
-    const fx = tip.x + dx * pose.distance - dz * pose.swing;
-    const fz = tip.z + dz * pose.distance + dx * pose.swing;
+    const targetX = tip.x + dx * pose.distance - dz * pose.swing;
+    const targetZ = tip.z + dz * pose.distance + dx * pose.swing;
+    // The fish swims to where it wants to be (no jumps between moods) and faces the way
+    // it is going: along its run, sideways when it thrashes across, toward the boat when
+    // it is hauled in.
+    const follow = seconds > 0 ? 1 - Math.exp(-seconds * 8) : 1;
+    const away = fight.mood === "surge" ? 1 : -1;
+    let headX = dx * away;
+    let headZ = dz * away;
+    if (!this.fightSeeded) {
+      this.fightSeeded = true;
+      this.fightX = targetX;
+      this.fightZ = targetZ;
+      this.fightYaw = Math.atan2(-headZ, headX);
+    } else if (seconds > 0) {
+      const lastX = this.fightX;
+      const lastZ = this.fightZ;
+      this.fightX += (targetX - lastX) * follow;
+      this.fightZ += (targetZ - lastZ) * follow;
+      const vx = (this.fightX - lastX) / seconds;
+      const vz = (this.fightZ - lastZ) / seconds;
+      const speed = Math.hypot(vx, vz);
+      // Heading follows the motion once it is moving; the line's axis otherwise.
+      const w = clamp(speed / 2);
+      headX = headX * (1 - w) + (vx / (speed || 1)) * w;
+      headZ = headZ * (1 - w) + (vz / (speed || 1)) * w;
+    }
+    const fx = this.fightX;
+    const fz = this.fightZ;
     const surface = waveHeight(fx, fz, time);
     // Far fish are drawn larger so they can be seen: 25 m away it is about 2.5 times.
     const length =
@@ -531,16 +586,23 @@ export class FishingGear {
     // Its mouth is where the line ends, just above the water.
     const mouthY = surface + 0.25 + pose.lift * 0.6;
     this.entry.set(fx, mouthY, fz);
+    this.lure.isVisible = false;
     this.top.set(fx, surface + 2.2, fz);
-    // Nose away from the boat in a run, toward it when it is being reeled in.
-    const away = fight.mood === "surge" ? 1 : -1;
-    const yaw = Math.atan2(-dz * away + pose.yaw * 0.4, dx * away);
+    const wanted = Math.atan2(-headZ + pose.yaw * 0.15, headX);
+    let turn = wanted - this.fightYaw;
+    turn = Math.atan2(Math.sin(turn), Math.cos(turn));
+    this.fightYaw += turn * (seconds > 0 ? 1 - Math.exp(-seconds * 6) : 1);
+    this.fightYaw = Math.atan2(
+      Math.sin(this.fightYaw),
+      Math.cos(this.fightYaw),
+    );
+    const yaw = this.fightYaw;
     if (this.fish) {
       const nx = Math.cos(yaw);
       const nz = -Math.sin(yaw);
       this.fishWhere.set(
         fx - nx * length * 0.45,
-        mouthY - 0.1 - length * 0.12,
+        mouthY - 0.1 - length * 0.02,
         fz - nz * length * 0.45,
       );
       this.fish.root.position.copyFrom(this.fishWhere);
@@ -562,7 +624,7 @@ export class FishingGear {
     const stretch = Math.hypot(fx - tip.x, mouthY - tip.y, fz - tip.z);
     // A hooked fish that pulls keeps the line straight: no spare line at all. Only a tired
     // fish lets a little go slack (3 % extra line would sag the middle by 2.5 m; 12 cm gives a clean arc of about a metre).
-    this.stepRope(tip, stretch + (fight.mood === "tired" ? 0.12 : 0), seconds);
+    this.stepRope(tip, stretch + (fight.mood === "tired" ? 0.05 : 0), seconds);
     this.roped = true;
     this.drawRope(
       lineColourFor(fight.tension),
@@ -570,7 +632,7 @@ export class FishingGear {
       time,
       tip,
       // Straight while the fish pulls; a tired fish lets it curve a little.
-      fight.mood === "tired" ? 0.5 : 1,
+      fight.mood === "tired" ? 0.85 : 1,
     );
     this.line.alpha = 1;
     // How hard it pulls the rod: a run is hard, a tired fish hardly at all.
@@ -640,6 +702,7 @@ export class FishingGear {
   dispose() {
     this.fish?.dispose();
     this.line.dispose();
+    this.lure.dispose();
     this.arc.dispose();
     for (const ring of this.rings) ring.dispose();
     this.marker.dispose();

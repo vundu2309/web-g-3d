@@ -6,9 +6,10 @@
  * with no angle written anywhere. The water shader sums the rings from the same
  * constants (glslWake), so what the CPU tests is what the GPU draws.
  *
- * It does not push the boats: they float on the waves in waves.ts, as before. The ring a
- * boat has just made is faded in over its first second, so the water under the hull is
- * not displaced and the boat still floats on the surface it sees.
+ * The boats float on it: the physics adds this height to the waves, so a boat rocks on the
+ * wake of another (and on the swell of its own, once it has slowed). The ring a boat has
+ * just made is faded in over its first second, so the water under its own hull is not
+ * displaced the moment it is made.
  */
 /** Rings in the field at once; the oldest are overwritten. */
 export const WAKE_MAX = 64;

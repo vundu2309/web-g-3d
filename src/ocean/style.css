@@ -1275,9 +1275,9 @@ dialog.account-screen :is(input, textarea) {
   z-index: 2;
   top: calc(12px + 48px + 10px);
   right: 16px;
-  width: 112px;
-  height: 112px;
-  border-radius: 18px;
+  width: 156px;
+  height: 156px;
+  border-radius: 20px;
   border: 2.5px solid #ffffffd9;
   box-shadow:
     0 0 0 2px #153b80,
@@ -1287,15 +1287,15 @@ dialog.account-screen :is(input, textarea) {
 }
 @media (max-height: 420px) {
   .ocean-minimap {
-    width: 96px;
-    height: 96px;
-    border-radius: 16px;
+    width: 136px;
+    height: 136px;
+    border-radius: 18px;
   }
 }
 @media (orientation: portrait) {
   .ocean-minimap {
-    width: 104px;
-    height: 104px;
+    width: 140px;
+    height: 140px;
   }
 }
 

@@ -143,3 +143,12 @@ Tests: `tests/ocean.test.mjs` (harbor and arrow maths) and `tests/ocean-multipla
 ### Line seen end-on
 
 Cast straight ahead, the camera looks along the line, so a long line is drawn short and its end looked like it stopped in mid-air. A slow ring now marks where the line enters the water while waiting, and the line's flat strip keeps one side facing the same way along its length (no twist when the line points at the camera).
+
+### Fishing camera, fisherman, bigger islands, calmer sea
+
+- While fishing (charging, flying, waiting, fighting) the camera moves closer and lower with a narrower view, and looks toward the end of the line (the lure, or the fish in a fight); it eases back to the chase camera afterwards. The line strip is a little wider and a small orange lure marks its end (the fish takes its place in a fight).
+- The fish swims toward where it wants to be (no jumps between moods), faces the way it moves and floats on the surface. The line is nearly straight while waiting and with a tired fish (sag about 0.05–0.16 m).
+- A fisherman (yellow coat, straw hat) stands at the stern holding the rod, part of the merged boat mesh.
+- The minimap is larger (156 px; 136 px on short phones) with curved shores, shallows, palms, a lighthouse mark and a 100 m scale bar.
+- Islands are about 1.7 times bigger (radii 31, 39, 26 m); props per island are capped to keep each island under the phone triangle budget. Channel buoys moved off the larger islands.
+- Wave amplitudes are about 40 % lower. The wake height is added to the water the hulls float on (`extraHeight` in boat physics), so a boat rocks on the wake of another.
