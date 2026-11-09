@@ -241,6 +241,33 @@ export function createBoatTemplate(
     [0, 0, Math.PI / 2],
   );
 
+  // The fisherman: a round, friendly sailor at the stern holding the rod (yellow coat,
+  // straw hat), so the boat has someone on it.
+  const cx = 0.88;
+  const cz = 3.02;
+  const sphere = (d: number, seg = 10) =>
+    MeshBuilder.CreateSphere("part", { diameter: d, segments: seg }, scene);
+  place(tube(0.3, 0.34, 0.5, 10), 0x2f5d8a, [cx, DECK_Y + 0.25, cz]); // trousers
+  place(tube(0.5, 0.58, 0.62, 12), 0xffc83d, [cx, DECK_Y + 0.8, cz]); // coat
+  place(sphere(0.4), 0xf2b98f, [cx, DECK_Y + 1.32, cz]); // head
+  place(tube(0.5, 0.5, 0.03, 16), 0xe9c46a, [cx, DECK_Y + 1.46, cz]); // brim
+  place(tube(0.26, 0.34, 0.16, 12), 0xe9c46a, [cx, DECK_Y + 1.55, cz]); // crown
+  const arm = (
+    from: [number, number, number],
+    to: [number, number, number],
+  ) => {
+    const d = [to[0] - from[0], to[1] - from[1], to[2] - from[2]] as const;
+    const len = Math.hypot(...d);
+    place(
+      tube(0.13, 0.15, len, 8),
+      0xffc83d,
+      [from[0] + d[0] / 2, from[1] + d[1] / 2, from[2] + d[2] / 2],
+      [Math.asin(d[2] / len), 0, -Math.asin(d[0] / len)],
+    );
+  };
+  arm([cx + 0.2, DECK_Y + 1.02, cz], [1.2, DECK_Y + 0.62, 2.62]);
+  arm([cx - 0.2, DECK_Y + 1.02, cz], [1.02, DECK_Y + 0.7, 2.7]);
+
   const merged = mergeParts(name, parts);
   const material = new StandardMaterial(`${name}-material`, scene);
   material.diffuseColor = Color3.White();
