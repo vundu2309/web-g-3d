@@ -152,3 +152,7 @@ Cast straight ahead, the camera looks along the line, so a long line is drawn sh
 - The minimap is larger (156 px; 136 px on short phones) with curved shores, shallows, palms, a lighthouse mark and a 100 m scale bar.
 - Islands are about 1.7 times bigger (radii 31, 39, 26 m); props per island are capped to keep each island under the phone triangle budget. Channel buoys moved off the larger islands.
 - Wave amplitudes are about 40 % lower. The wake height is added to the water the hulls float on (`extraHeight` in boat physics), so a boat rocks on the wake of another.
+
+### Art system (graphics refactor, step 1: one palette)
+
+All object colours of the sea game live in `src/ocean/art/colors.ts` (`PAL`, by role: wood, paint, stone, sand, plants, crew, rod, ...). Visual files take colours from it and may not write a hex of their own; `tests/art-palette.test.mjs` fails if a migrated file does, or if the palette lists one colour under two names. Near-duplicate colours that had drifted apart (three reds, two rock greys, two lamp yellows, two cream whites) were merged, so a few shades moved by a hair. Remaining files to migrate: creatures, fishing gear, water/sky/fog constants. Next steps of the refactor: one shared material factory, then shared shape helpers, then the light and shading rules applied centrally so every object follows them.

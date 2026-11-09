@@ -21,6 +21,7 @@ import {
   type PropSummary,
 } from "./island-props.ts";
 import { hex, meshFrom, mergeParts, paint } from "./mesh-parts.ts";
+import { PAL } from "./art/colors.ts";
 
 /**
  * Procedural island: low-poly terrain with beach, grass and rock, plus palms, rocks,
@@ -153,13 +154,13 @@ export function createIsland(
   const positions: number[] = [];
   const colors: number[] = [];
   const indices: number[] = [];
-  const wet = hex(0xc9b27b);
-  const sand = hex(0xf2dca2);
-  const grassLow = hex(0x7bbf6e);
-  const grassHigh = hex(0x4b9a5a);
-  const rock = hex(0x8d9298);
-  const rockDark = hex(0x757b83);
-  const dry = hex(0xb3bf67);
+  const wet = hex(PAL.sand.wet);
+  const sand = hex(PAL.sand.dry);
+  const grassLow = hex(PAL.plants.grassLow);
+  const grassHigh = hex(PAL.plants.grassHigh);
+  const rock = hex(PAL.stone.rock);
+  const rockDark = hex(PAL.stone.dark);
+  const dry = hex(PAL.plants.grassDry);
   for (let iz = 0; iz <= segments; iz++)
     for (let ix = 0; ix <= segments; ix++) {
       const x = -extent + (ix / segments) * extent * 2;
@@ -243,7 +244,7 @@ export function createIsland(
           { path, radius: 0.2, tessellation: 6 },
           scene,
         ),
-        hex(0x9b6b3f),
+        hex(PAL.wood.mid),
       ),
     );
     const top = path[path.length - 1]!;
@@ -268,7 +269,7 @@ export function createIsland(
         scene,
         fp,
         fi,
-        hex(i % 2 ? 0x5cba6e : 0x4fae63),
+        hex(i % 2 ? PAL.plants.frond : PAL.plants.leaves[1]!),
       );
       frond.position.copyFrom(top);
       frond.rotation.y = (i / 8) * Math.PI * 2;
@@ -285,7 +286,7 @@ export function createIsland(
         top.y - 0.2,
         top.z + Math.sin(i * 2.1) * 0.28,
       );
-      paint(nut, hex(0x6b4a2b));
+      paint(nut, hex(PAL.wood.deep));
       parts.push(nut);
     }
   }
@@ -318,11 +319,14 @@ export function createIsland(
       { type: 1, size },
       scene,
     );
-    place(rockMesh, 0x8f9499, x, Math.max(height(x, z), 0) + size * 0.25, z, [
-      0.85 + rng() * 0.3,
-      0.7 + rng() * 0.3,
-      0.85 + rng() * 0.3,
-    ]);
+    place(
+      rockMesh,
+      PAL.stone.rock,
+      x,
+      Math.max(height(x, z), 0) + size * 0.25,
+      z,
+      [0.85 + rng() * 0.3, 0.7 + rng() * 0.3, 0.85 + rng() * 0.3],
+    );
     rockMesh.rotation.y = rng() * 6;
   }
   // The small things: grass, flowers, bushes, trees, shells, driftwood, boulders at the
@@ -386,7 +390,7 @@ export function createIsland(
       );
       place(
         section,
-        i % 2 ? 0xe0554b : 0xfff7e6,
+        i % 2 ? PAL.paint.red : PAL.paint.cream,
         bestX,
         base + 1.15 + i * 2.3,
         bestZ,
@@ -398,7 +402,7 @@ export function createIsland(
         { diameter: 3, height: 0.22, tessellation: 10 },
         scene,
       ),
-      0x4b4f56,
+      PAL.metal.steel,
       bestX,
       base + 9.3,
       bestZ,
@@ -409,7 +413,7 @@ export function createIsland(
         { diameter: 1.5, height: 1.2, tessellation: 10 },
         scene,
       ),
-      0xfff1b0,
+      PAL.light.lamp,
       bestX,
       base + 10,
       bestZ,
@@ -420,14 +424,22 @@ export function createIsland(
         { diameterTop: 0, diameterBottom: 2, height: 1.1, tessellation: 10 },
         scene,
       ),
-      0xe0554b,
+      PAL.paint.red,
       bestX,
       base + 11.15,
       bestZ,
     );
     // A door, windows and a railing round the gallery.
-    const dark = rgbOf(0x2b3a4a);
-    geo.box(bestX + 1.46, base + 0.8, bestZ, 0.05, 0.8, 0.4, rgbOf(0x6b4a2b));
+    const dark = rgbOf(PAL.stone.night);
+    geo.box(
+      bestX + 1.46,
+      base + 0.8,
+      bestZ,
+      0.05,
+      0.8,
+      0.4,
+      rgbOf(PAL.wood.deep),
+    );
     for (const [h, a] of [
       [3.4, 0.6],
       [5.9, 2.4],
@@ -452,7 +464,7 @@ export function createIsland(
         0.04,
         0.3,
         0.04,
-        rgbOf(0xe0554b),
+        rgbOf(PAL.paint.red),
       );
     }
   }
