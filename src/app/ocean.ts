@@ -547,6 +547,12 @@ export function startOcean(
         zone: root.querySelector<HTMLElement>(".ocean-stick-zone")!,
         enabled: () => active && !dialog.open,
       },
+      // Dragging on open sea looks around the boat; the view eases back when it moves.
+      look: {
+        enabled: () => active && !dialog.open,
+        hold: (on) => scene?.orbitHold(on),
+        drag: (dx, dy) => scene?.orbitBy(dx, dy),
+      },
       signal: abort.signal,
     },
   );

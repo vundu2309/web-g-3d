@@ -25,6 +25,7 @@ import { createHavok } from "./havok.ts";
 import { createIsland } from "./island-visual.ts";
 import { SeaProps } from "./sea-props.ts";
 import { WakeField, sampleWake } from "./wake.ts";
+import { OrbitCamera } from "./orbit-camera.ts";
 import { WakeMesh } from "./wake-mesh.ts";
 import { WakeTrail } from "./wake-trail.ts";
 import {
@@ -86,6 +87,7 @@ export class OceanScene {
   private clock = 0;
   private viewHeading = 0;
   private viewReady = false;
+  private readonly orbit = new OrbitCamera();
   /** 0..1: how far the camera has moved in for fishing. */
   private focus = 0;
   private readonly governor: ScaleGovernor;
@@ -310,6 +312,16 @@ export class OceanScene {
     return { x: tip.x, y: tip.y, z: tip.z };
   }
 
+  /** A finger dragged on the sea: turn the camera around the boat (see orbit-camera.ts). */
+  orbitBy(dx: number, dy: number) {
+    this.orbit.drag(dx, dy);
+  }
+
+  /** A finger is down on the sea (true) or lifted (false). */
+  orbitHold(on: boolean) {
+    this.orbit.hold(on);
+  }
+
   /** What the fishing gear should show this frame; undefined puts the line away. */
   setGear(input: Omit<GearInput, "tip" | "time"> | undefined) {
     this.gearInput = input;
@@ -505,16 +517,46 @@ export class OceanScene {
       look.y = 2.2 - 1.2 * f;
     }
     this.camera.fov = 0.9 - 0.15 * f;
+    // Looking around: the finger's yaw and pitch move the camera on a sphere around the
+    // boat, and the view eases back while the boat moves (orbit-camera.ts).
+    this.orbit.step(dt, Math.hypot(state.forwardSpeed, state.sideSpeed));
+    if (this.orbit.away) {
+      const pivotY = 1.2;
+      const rightX = Math.cos(this.viewHeading);
+      const rightZ = Math.sin(this.viewHeading);
+      const flat = Math.hypot(want.x - state.x, want.z - state.z);
+      const rise = want.y - pivotY;
+      const reach = Math.hypot(flat, rise);
+      const elevation = Math.min(
+        1.4,
+        Math.max(0.08, Math.atan2(rise, flat) + this.orbit.pitch),
+      );
+      const away = Math.cos(elevation) * reach;
+      const sin = Math.sin(this.orbit.yaw);
+      const cos = Math.cos(this.orbit.yaw);
+      want.set(
+        state.x + (-fx * cos - rightX * sin) * away,
+        pivotY + Math.sin(elevation) * reach,
+        state.z + (-fz * cos - rightZ * sin) * away,
+      );
+      // From the side or the front the view looks at the boat, not far ahead of it.
+      const toBoat = Math.min(
+        1,
+        Math.abs(this.orbit.yaw) + Math.abs(this.orbit.pitch) * 0.5,
+      );
+      look.x += (state.x - look.x) * toBoat;
+      look.y += (1.6 - look.y) * toBoat;
+      look.z += (state.z - look.z) * toBoat;
+    }
     if (!this.viewReady) {
       this.camera.position.copyFrom(want);
       this.viewReady = true;
     } else {
-      this.camera.position.x +=
-        (want.x - this.camera.position.x) * blend(dt, 4);
-      this.camera.position.y +=
-        (want.y - this.camera.position.y) * blend(dt, 4);
-      this.camera.position.z +=
-        (want.z - this.camera.position.z) * blend(dt, 4);
+      // Follows the finger closely while it is down, the boat a little slower.
+      const follow = blend(dt, this.orbit.holding ? 14 : 4);
+      this.camera.position.x += (want.x - this.camera.position.x) * follow;
+      this.camera.position.y += (want.y - this.camera.position.y) * follow;
+      this.camera.position.z += (want.z - this.camera.position.z) * follow;
     }
     this.camera.setTarget(look);
   }
