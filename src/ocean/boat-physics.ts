@@ -53,6 +53,8 @@ export interface BoatPhysicsOptions {
   islands: readonly IslandBody[];
   /** Sea clock in seconds, the same one the water shader uses. */
   time: () => number;
+  /** Extra height of the water on top of the waves, such as the boats' wakes (m). */
+  extraHeight?: (x: number, z: number, t: number) => number;
   start?: { x: number; z: number; heading: number };
 }
 
@@ -171,6 +173,10 @@ export function createBoatPhysics(
   const clamp = (v: number, lo: number, hi: number) =>
     Math.min(hi, Math.max(lo, v));
 
+  // The water the hull floats on: the waves and, when given, the wakes on top of them.
+  const surface = (x: number, z: number, t: number) =>
+    waveHeight(x, z, t) + (options.extraHeight?.(x, z, t) ?? 0);
+
   const beforeStep = () => {
     // Fixed sub-steps (see enableSeaPhysics): every step is exactly this long.
     const dt = physics.getTimeStep();
@@ -179,7 +185,7 @@ export function createBoatPhysics(
     // Buoyancy and heave damping at every sample point.
     for (const local of SAMPLES) {
       Vector3.TransformCoordinatesToRef(local, mesh.getWorldMatrix(), world);
-      const depth = waveHeight(world.x, world.z, t) - world.y;
+      const depth = surface(world.x, world.z, t) - world.y;
       if (depth <= 0) continue;
       body.getLinearVelocityToRef(velocity);
       body.getAngularVelocityToRef(spin);
@@ -215,7 +221,7 @@ export function createBoatPhysics(
       (input.throttle >= 0 ? THRUST : THRUST * 0.45);
     // Only a hull in the water is pushed and slowed by it.
     const wet = clamp(
-      (waveHeight(mesh.position.x, mesh.position.z, t) -
+      (surface(mesh.position.x, mesh.position.z, t) -
         (mesh.position.y + BOTTOM)) /
         0.2,
       0,

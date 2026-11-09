@@ -24,7 +24,7 @@ import {
 import { createHavok } from "./havok.ts";
 import { createIsland } from "./island-visual.ts";
 import { SeaProps } from "./sea-props.ts";
-import { WakeField } from "./wake.ts";
+import { WakeField, sampleWake } from "./wake.ts";
 import { WakeMesh } from "./wake-mesh.ts";
 import { WakeTrail } from "./wake-trail.ts";
 import {
@@ -218,6 +218,7 @@ export class OceanScene {
         radius: islandCollisionRadius(island),
       })),
       time: () => this.clock,
+      extraHeight: (x, z, t) => sampleWake(this.wakeField.data, x, z, t).height,
       start: { x: pose.x, z: pose.z, heading: pose.heading },
     });
     const craft = this.craft(uid, name, true);

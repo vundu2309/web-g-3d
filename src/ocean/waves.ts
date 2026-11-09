@@ -20,13 +20,13 @@ export interface Wave {
 }
 export const GRAVITY = 9.81;
 export const WAVES: readonly Wave[] = [
-  { length: 46, amplitude: 0.34, direction: 0.2, phase: 1.7, sharp: 1.5 },
-  { length: 31, amplitude: 0.42, direction: 0.35, phase: 0.4, sharp: 2.2 },
-  { length: 19, amplitude: 0.26, direction: -0.5, phase: 2.1, sharp: 2.4 },
-  { length: 12, amplitude: 0.15, direction: 1.1, phase: 4.2, sharp: 2.6 },
-  { length: 7.5, amplitude: 0.09, direction: -1.25, phase: 1.3, sharp: 2.8 },
-  { length: 4.2, amplitude: 0.05, direction: 0.8, phase: 5.5, sharp: 3 },
-  { length: 2.7, amplitude: 0.025, direction: -0.15, phase: 3.3, sharp: 3 },
+  { length: 46, amplitude: 0.2, direction: 0.2, phase: 1.7, sharp: 1.5 },
+  { length: 31, amplitude: 0.25, direction: 0.35, phase: 0.4, sharp: 2.2 },
+  { length: 19, amplitude: 0.15, direction: -0.5, phase: 2.1, sharp: 2.4 },
+  { length: 12, amplitude: 0.09, direction: 1.1, phase: 4.2, sharp: 2.6 },
+  { length: 7.5, amplitude: 0.055, direction: -1.25, phase: 1.3, sharp: 2.8 },
+  { length: 4.2, amplitude: 0.03, direction: 0.8, phase: 5.5, sharp: 3 },
+  { length: 2.7, amplitude: 0.015, direction: -0.15, phase: 3.3, sharp: 3 },
 ];
 
 /** The mean of ((1 + sin) / 2)^sharp over a period, so every wave averages to zero. */

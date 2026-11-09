@@ -292,7 +292,10 @@ export function createIsland(
 
   let palms = 0;
   let attempts = 0;
-  while (palms < Math.round(radius / (distant ? 9 : 2.3)) && attempts++ < 400) {
+  while (
+    palms < Math.round(Math.min(radius, 24) / (distant ? 9 : 2.3)) &&
+    attempts++ < 400
+  ) {
     const angle = rng() * Math.PI * 2;
     const distance = radius * (0.35 + rng() * 0.6);
     const x = Math.cos(angle) * distance;
@@ -326,7 +329,8 @@ export function createIsland(
   // shore, a boardwalk, a hut and a rowboat. One buffer, one mesh.
   const geo = new Geo();
   const ctx = { geo, rng, height, radius, peak };
-  const f = radius / 18;
+  // Bigger islands get more of everything, but only up to a phone-sized budget.
+  const f = Math.min(1.25, radius / 18);
   const props: PropSummary = {
     grass: 0,
     flowers: 0,

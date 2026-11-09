@@ -14,9 +14,9 @@ export interface Boat extends Pose {
   updatedAt: number;
 }
 export const islands = [
-  { x: -68, z: -65, radius: 18 },
-  { x: 95, z: -110, radius: 23 },
-  { x: 110, z: 70, radius: 15 },
+  { x: -68, z: -65, radius: 31 },
+  { x: 95, z: -110, radius: 39 },
+  { x: 110, z: 70, radius: 26 },
 ];
 /** Shoreline radius the hull collides at: just past the visible beach edge. */
 export const islandCollisionRadius = (island: { radius: number }) =>
