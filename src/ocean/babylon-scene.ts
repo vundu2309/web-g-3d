@@ -496,7 +496,7 @@ export class OceanScene {
       state.z - fz * back,
     );
     const look = new Vector3(state.x + fx * 30, 2.2, state.z + fz * 30);
-    const aim = input?.view.landing ?? input?.preview;
+    const aim = this.gear?.endPoint() ?? input?.view.landing ?? input?.preview;
     if (aim && f > 0) {
       // Halfway to the spot the lure is (or will be) on.
       look.x += (aim.x - look.x) * 0.7 * f;
