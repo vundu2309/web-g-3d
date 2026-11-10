@@ -271,6 +271,7 @@ export class FishingGear {
           species.shape,
           species.body,
           species.fin,
+          species.look,
         );
     }
     this.fish?.root.setEnabled(id !== undefined);
@@ -577,7 +578,7 @@ export class FishingGear {
     const fz = this.fightZ;
     const surface = waveHeight(fx, fz, time);
     // Drawn at its species' size, but a fish far from the camera is drawn up to twice as
-    // large so it can still be seen (about 3 degrees of the view, never more than 2.5
+    // large so it can still be seen (about 4 degrees of the view, never more than 3.5
     // times its size).
     const species = view.species ? speciesById(view.species) : undefined;
     const kg = species
@@ -587,8 +588,8 @@ export class FishingGear {
     const eye = this.eye();
     const viewDistance = Math.hypot(fx - eye.x, surface - eye.y, fz - eye.z);
     const length = Math.min(
-      baseLength * 2.5,
-      Math.max(baseLength, viewDistance * 0.055),
+      baseLength * 3.5,
+      Math.max(baseLength, viewDistance * 0.07),
     );
     // Its mouth is where the line ends, just above the water.
     const mouthY = surface + 0.25 + pose.lift * 0.6;

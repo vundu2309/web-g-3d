@@ -29,6 +29,19 @@ export const PAL = {
     crateLid: 0xc77f1b,
     white: 0xf6f8fa,
   },
+  /** Fittings on the boat: glass, frames, tyre fenders, rope, barrels, winch. */
+  fit: {
+    glass: 0xa6dcf0,
+    frame: 0xf4efe2,
+    rubber: 0x2b2f36,
+    rope: 0xd9c08a,
+    barrel: 0x3f78b5,
+    door: 0x7f5a3a,
+    winch: 0xe2a52a,
+    anchor: 0x3a3f47,
+    boots: 0x242830,
+    belt: 0x5a3b22,
+  },
   /** Hull bands below the palette colour. */
   hull: { boot: 0xfff3d6, waterline: 0x8c3a35 },
   metal: { steel: 0x4b4f56, light: 0xcfd6df },

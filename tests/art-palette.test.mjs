@@ -73,3 +73,34 @@ test("objects build their primitives through the shared shape helpers", () => {
     );
   }
 });
+
+// One light rig (art/lighting.ts) and one shading rule (art/toon.ts, added by the solid
+// materials): an object that adds its own light breaks the shared look.
+test("only the shared light rig creates lights", async () => {
+  const { readdirSync } = await import("node:fs");
+  for (const file of readdirSync("src/ocean")) {
+    // _sheet.ts renders the creature contact sheet off screen, outside the sea.
+    if (!file.endsWith(".ts") || file === "_sheet.ts") continue;
+    const source = readFileSync(`src/ocean/${file}`, "utf8");
+    assert.ok(
+      !/new (Hemispheric|Directional|Point|Spot)Light\(/.test(source),
+      `${file} adds a light of its own`,
+    );
+  }
+});
+
+// The boat is drawn once per player in the sea: it may be detailed, but stays cheap enough
+// for a phone to draw a dozen of them.
+test("a boat stays within a phone-sized triangle budget", async () => {
+  const { NullEngine } = await import("@babylonjs/core/Engines/nullEngine.js");
+  const { Scene } = await import("@babylonjs/core/scene.js");
+  const { createBoatTemplate, boatPalettes } = await import(
+    "../src/ocean/boat-visual.ts"
+  );
+  const scene = new Scene(new NullEngine());
+  const boat = createBoatTemplate(scene, boatPalettes[0], "budget-boat");
+  const triangles = boat.getTotalIndices() / 3;
+  assert.ok(triangles > 3000, `${triangles} triangles is too bare`);
+  assert.ok(triangles < 12000, `${triangles} triangles is too many`);
+  scene.dispose();
+});

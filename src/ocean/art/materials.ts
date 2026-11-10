@@ -1,8 +1,11 @@
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { FresnelParameters } from "@babylonjs/core/Materials/fresnelParameters";
 import type { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { Scene } from "@babylonjs/core/scene";
+import { LIGHT } from "./lighting.ts";
+import { addToon } from "./toon.ts";
 
 /**
  * The only two kinds of material the sea game's objects use, so every object is lit the same
@@ -25,19 +28,35 @@ interface Look {
   glow: readonly [number, number, number];
   /** False draws only the outside of each face (closed shapes). */
   doubleSided: boolean;
+  /** How much of the rim light it takes (0 none, 1 full). */
+  rim: number;
+  /** How much the cel shading flattens the brightness (0 smooth, 1 flat steps). */
+  toon: number;
 }
 
 const LOOKS: Record<SolidLook, Look> = {
   /** Terrain and rock: no shine. */
-  matte: { shine: 0, glow: [0, 0, 0], doubleSided: true },
+  matte: { shine: 0, glow: [0, 0, 0], doubleSided: true, rim: 0.5, toon: 0 },
   /** Boats and creatures: a faint highlight. */
-  satin: { shine: 0.12, glow: [0, 0, 0], doubleSided: true },
+  satin: { shine: 0.12, glow: [0, 0, 0], doubleSided: true, rim: 1, toon: 0.7 },
   /** The rod: a clear highlight. */
-  gloss: { shine: 0.3, glow: [0, 0, 0], doubleSided: true },
+  gloss: { shine: 0.3, glow: [0, 0, 0], doubleSided: true, rim: 1, toon: 0.7 },
   /** Buoys: closed shapes with a warm glow. */
-  buoy: { shine: 0, glow: [0.18, 0.16, 0.14], doubleSided: false },
+  buoy: {
+    shine: 0,
+    glow: [0.18, 0.16, 0.14],
+    doubleSided: false,
+    rim: 1,
+    toon: 0.7,
+  },
   /** Gulls: bright from every side. */
-  gull: { shine: 0, glow: [0.35, 0.35, 0.35], doubleSided: true },
+  gull: {
+    shine: 0,
+    glow: [0.35, 0.35, 0.35],
+    doubleSided: true,
+    rim: 0,
+    toon: 0,
+  },
 };
 
 const solids = new WeakMap<Scene, Map<SolidLook, StandardMaterial>>();
@@ -52,8 +71,19 @@ export function solidMaterial(scene: Scene, look: SolidLook): StandardMaterial {
     found = new StandardMaterial(`solid-${look}`, scene);
     found.diffuseColor = Color3.White();
     found.specularColor = new Color3(spec.shine, spec.shine, spec.shine);
-    found.emissiveColor = new Color3(...spec.glow);
     found.backFaceCulling = !spec.doubleSided;
+    // The rim light: a cool glow on edges that turn away from the viewer, on top of the
+    // look's own glow, so every solid object gets the same soft edge.
+    const glow = new Color3(...spec.glow);
+    const rim = LIGHT.rim.colour.scale(LIGHT.rim.strength * spec.rim);
+    found.emissiveColor = Color3.White();
+    found.emissiveFresnelParameters = new FresnelParameters({
+      power: LIGHT.rim.power,
+      bias: 0,
+      leftColor: glow,
+      rightColor: glow.add(rim),
+    });
+    addToon(found, spec.toon);
     byLook.set(look, found);
   }
   return found;
