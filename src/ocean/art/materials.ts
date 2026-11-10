@@ -30,19 +30,33 @@ interface Look {
   doubleSided: boolean;
   /** How much of the rim light it takes (0 none, 1 full). */
   rim: number;
+  /** How much the cel shading flattens the brightness (0 smooth, 1 flat steps). */
+  toon: number;
 }
 
 const LOOKS: Record<SolidLook, Look> = {
   /** Terrain and rock: no shine. */
-  matte: { shine: 0, glow: [0, 0, 0], doubleSided: true, rim: 0.5 },
+  matte: { shine: 0, glow: [0, 0, 0], doubleSided: true, rim: 0.5, toon: 0 },
   /** Boats and creatures: a faint highlight. */
-  satin: { shine: 0.12, glow: [0, 0, 0], doubleSided: true, rim: 1 },
+  satin: { shine: 0.12, glow: [0, 0, 0], doubleSided: true, rim: 1, toon: 0.7 },
   /** The rod: a clear highlight. */
-  gloss: { shine: 0.3, glow: [0, 0, 0], doubleSided: true, rim: 1 },
+  gloss: { shine: 0.3, glow: [0, 0, 0], doubleSided: true, rim: 1, toon: 0.7 },
   /** Buoys: closed shapes with a warm glow. */
-  buoy: { shine: 0, glow: [0.18, 0.16, 0.14], doubleSided: false, rim: 1 },
+  buoy: {
+    shine: 0,
+    glow: [0.18, 0.16, 0.14],
+    doubleSided: false,
+    rim: 1,
+    toon: 0.7,
+  },
   /** Gulls: bright from every side. */
-  gull: { shine: 0, glow: [0.35, 0.35, 0.35], doubleSided: true, rim: 0 },
+  gull: {
+    shine: 0,
+    glow: [0.35, 0.35, 0.35],
+    doubleSided: true,
+    rim: 0,
+    toon: 0,
+  },
 };
 
 const solids = new WeakMap<Scene, Map<SolidLook, StandardMaterial>>();
@@ -69,7 +83,7 @@ export function solidMaterial(scene: Scene, look: SolidLook): StandardMaterial {
       leftColor: glow,
       rightColor: glow.add(rim),
     });
-    addToon(found);
+    addToon(found, spec.toon);
     byLook.set(look, found);
   }
   return found;

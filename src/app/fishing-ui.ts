@@ -411,7 +411,8 @@ export function createFishingUi(options: FishingUiOptions) {
     hang.hidden = false;
     options.scene()?.holdFish({
       id: species.id,
-      scale: drawnLength(species, fish.kg),
+      // Shown a little larger than at sea: this is the moment the catch is admired.
+      scale: Math.max(0.8, drawnLength(species, fish.kg) * 2.2),
     });
   }
 

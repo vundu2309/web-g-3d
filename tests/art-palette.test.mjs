@@ -88,3 +88,19 @@ test("only the shared light rig creates lights", async () => {
     );
   }
 });
+
+// The boat is drawn once per player in the sea: it may be detailed, but stays cheap enough
+// for a phone to draw a dozen of them.
+test("a boat stays within a phone-sized triangle budget", async () => {
+  const { NullEngine } = await import("@babylonjs/core/Engines/nullEngine.js");
+  const { Scene } = await import("@babylonjs/core/scene.js");
+  const { createBoatTemplate, boatPalettes } = await import(
+    "../src/ocean/boat-visual.ts"
+  );
+  const scene = new Scene(new NullEngine());
+  const boat = createBoatTemplate(scene, boatPalettes[0], "budget-boat");
+  const triangles = boat.getTotalIndices() / 3;
+  assert.ok(triangles > 3000, `${triangles} triangles is too bare`);
+  assert.ok(triangles < 12000, `${triangles} triangles is too many`);
+  scene.dispose();
+});

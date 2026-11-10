@@ -138,11 +138,12 @@ export class Parts {
     color: number,
     position: V3,
     rotation?: V3,
+    sides: number = SIDES.round,
   ): Mesh {
     return this.add(
       MeshBuilder.CreateTorus(
         "part",
-        { diameter, thickness, tessellation: SIDES.smooth },
+        { diameter, thickness, tessellation: sides },
         this.scene,
       ),
       color,

@@ -8,11 +8,17 @@ import type { StandardMaterial } from "@babylonjs/core/Materials/standardMateria
  * plugin, added by `solidMaterial`, so every solid object gets the same treatment.
  */
 export const TOON = {
-  /** Brightness steps per channel. */
+  /** Brightness steps. */
   steps: 5,
-  /** 0 keeps the smooth shading, 1 is fully flat bands. */
-  amount: 0.55,
 } as const;
+
+/**
+ * The brightness (not the colour) is pulled toward flat steps, so lit and shaded sides read
+ * as bands while hues and painted details (windows, stripes, grass) stay as they are.
+ */
+// The base class asks for the shader code while it is being built, before any field of this
+// class exists, so the amount waits here keyed by the material.
+const amounts = new WeakMap<object, number>();
 
 class ToonPlugin extends MaterialPluginBase {
   constructor(material: StandardMaterial) {
@@ -31,14 +37,18 @@ class ToonPlugin extends MaterialPluginBase {
       CUSTOM_FRAGMENT_BEFORE_FRAGCOLOR: `
 #ifdef TOON
         {
-          vec3 steps = floor(color.rgb * ${TOON.steps.toFixed(1)} + 0.5) / ${TOON.steps.toFixed(1)};
-          color.rgb = mix(color.rgb, steps, ${TOON.amount.toFixed(2)});
+          float lum = max(dot(color.rgb, vec3(0.299, 0.587, 0.114)), 0.0001);
+          float stepped = floor(lum * ${TOON.steps.toFixed(1)} + 0.5) / ${TOON.steps.toFixed(1)};
+          color.rgb *= mix(1.0, max(stepped, 0.08) / lum, ${(amounts.get(this._material) ?? 0).toFixed(2)});
         }
 #endif`,
     };
   }
 }
 
-export function addToon(material: StandardMaterial) {
+/** Adds the cel shading to a solid material; `amount` 0 leaves it smooth. */
+export function addToon(material: StandardMaterial, amount: number) {
+  if (amount <= 0) return undefined;
+  amounts.set(material, amount);
   return new ToonPlugin(material);
 }

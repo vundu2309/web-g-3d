@@ -483,18 +483,24 @@ export class OceanScene {
     // Fishing: the camera comes closer and lower and looks toward where the line goes,
     // so the rod, the line and the water it enters fill the screen.
     const input = this.gearInput;
-    const fishing = !!input && input.view.phase !== "idle";
+    // The same close view while a caught fish hangs from the rod, to show it off.
+    const holding = !!this.gear?.holding;
+    const fishing = (!!input && input.view.phase !== "idle") || holding;
     this.focus += ((fishing ? 1 : 0) - this.focus) * blend(dt, 2.2);
     const f = this.focus * this.focus * (3 - 2 * this.focus);
     // Low and far behind, looking well ahead, so the horizon and sky stay in view.
-    const back = 17 - 5 * f;
+    const back = 14.5 - 2 * f;
     const want = new Vector3(
       state.x - fx * back,
-      7.6 - 1.8 * f,
+      6.8 - 0.4 * f,
       state.z - fz * back,
     );
     const look = new Vector3(state.x + fx * 30, 2.2, state.z + fz * 30);
-    const aim = this.gear?.endPoint() ?? input?.view.landing ?? input?.preview;
+    const aim =
+      this.gear?.endPoint() ??
+      (holding ? this.rodTip() : undefined) ??
+      input?.view.landing ??
+      input?.preview;
     if (aim && f > 0) {
       // Halfway to the spot the lure is (or will be) on.
       look.x += (aim.x - look.x) * 0.7 * f;
@@ -505,7 +511,10 @@ export class OceanScene {
     // Looking around: the finger's yaw and pitch move the camera on a sphere around the
     // boat, and the view eases back while the boat moves (orbit-camera.ts).
     this.orbit.step(dt, Math.hypot(state.forwardSpeed, state.sideSpeed));
-    if (this.orbit.away) {
+    // While fishing the camera also swings to the boat's left, so the line goes out across
+    // the view and is seen from the side, not end-on as a thin streak.
+    const yaw = this.orbit.yaw + 0.55 * f;
+    if (this.orbit.away || f > 0.01) {
       const pivotY = 1.2;
       const rightX = Math.cos(this.viewHeading);
       const rightZ = Math.sin(this.viewHeading);
@@ -517,8 +526,8 @@ export class OceanScene {
         Math.max(0.08, Math.atan2(rise, flat) + this.orbit.pitch),
       );
       const away = Math.cos(elevation) * reach;
-      const sin = Math.sin(this.orbit.yaw);
-      const cos = Math.cos(this.orbit.yaw);
+      const sin = Math.sin(yaw);
+      const cos = Math.cos(yaw);
       want.set(
         state.x + (-fx * cos - rightX * sin) * away,
         pivotY + Math.sin(elevation) * reach,

@@ -169,7 +169,7 @@ Dragging a finger (or the mouse) on open sea turns the camera around the boat an
 
 ### Fish size
 
-A fish is drawn at its species' real size (`drawnLength` in `src/ocean/fishing.ts`: length in cm at 1 kg times the cube root of its weight, squeezed into 0.4 to 1.5 m), for the fish on the line and the one hanging from the rod. During a fight a fish far from the camera is drawn larger so it stays visible (about 3 degrees of the view, at most 2.5 times its size). It used to be 1.7 to 3.2 m for every species, an anchovy as long as a tuna.
+A fish is drawn at its species' real size (`drawnLength` in `src/ocean/fishing.ts`: length in cm at 1 kg times the cube root of its weight, squeezed into 0.4 to 1.5 m), for the fish on the line and the one hanging from the rod. During a fight a fish far from the camera is drawn larger so it stays visible (about 4 degrees of the view, at most 3.5 times its size). It used to be 1.7 to 3.2 m for every species, an anchovy as long as a tuna.
 
 ### Art system, step 4: light and shading, once
 
