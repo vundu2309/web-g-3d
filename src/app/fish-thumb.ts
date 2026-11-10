@@ -21,7 +21,7 @@ export function fishThumb(species: Species, size = 120): string {
     const context = canvas.getContext("2d");
     if (context) {
       const thumb = projectCreature(
-        buildCreature(species.shape, species.body, species.fin),
+        buildCreature(species.shape, species.body, species.fin, species.look),
       );
       const width = thumb.maxX - thumb.minX || 1;
       const height = thumb.maxY - thumb.minY || 1;

@@ -271,6 +271,7 @@ export class FishingGear {
           species.shape,
           species.body,
           species.fin,
+          species.look,
         );
     }
     this.fish?.root.setEnabled(id !== undefined);

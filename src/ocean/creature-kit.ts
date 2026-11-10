@@ -2,7 +2,7 @@ import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import type { Creature, Part } from "./creature-geometry.ts";
-import { buildCreature, type CreatureKind } from "./creatures.ts";
+import { buildCreature, type CreatureKind, type Look } from "./creatures.ts";
 import { meshFrom } from "./mesh-parts.ts";
 import { solidMaterial } from "./art/materials.ts";
 
@@ -36,8 +36,9 @@ export function createCreature(
   kind: CreatureKind,
   body: string,
   fin: string,
+  look?: Look,
 ): CreatureModel {
-  const creature = buildCreature(kind, body, fin);
+  const creature = buildCreature(kind, body, fin, look);
   const root = new TransformNode(name, scene);
   const bodyMesh = meshOf(`${name}-body`, scene, creature.main);
   bodyMesh.parent = root;
