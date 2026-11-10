@@ -170,3 +170,9 @@ Dragging a finger (or the mouse) on open sea turns the camera around the boat an
 ### Fish size
 
 A fish is drawn at its species' real size (`drawnLength` in `src/ocean/fishing.ts`: length in cm at 1 kg times the cube root of its weight, squeezed into 0.4 to 1.5 m), for the fish on the line and the one hanging from the rod. During a fight a fish far from the camera is drawn larger so it stays visible (about 3 degrees of the view, at most 2.5 times its size). It used to be 1.7 to 3.2 m for every species, an anchovy as long as a tuna.
+
+### Art system, step 4: light and shading, once
+
+- `src/ocean/art/lighting.ts`: the only light rig (`createSeaLights`): a warm sun from the front left and a sky fill whose underside is the blue bounce of the sea, plus the rim-light values. Objects never create lights (a test checks).
+- `src/ocean/art/toon.ts`: soft cel shading (a partly applied posterize, 5 steps, amount 0.55) added by `solidMaterial` to every solid look, so hulls, hills, props and fish read as bands of colour. The solid materials also get a cool rim glow on edges that turn away from the viewer (`LIGHT.rim`). Water, sky, wake and the unlit glow materials are not touched.
+- Tuning is in the constants of these two files, not in the objects.

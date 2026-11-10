@@ -73,3 +73,18 @@ test("objects build their primitives through the shared shape helpers", () => {
     );
   }
 });
+
+// One light rig (art/lighting.ts) and one shading rule (art/toon.ts, added by the solid
+// materials): an object that adds its own light breaks the shared look.
+test("only the shared light rig creates lights", async () => {
+  const { readdirSync } = await import("node:fs");
+  for (const file of readdirSync("src/ocean")) {
+    // _sheet.ts renders the creature contact sheet off screen, outside the sea.
+    if (!file.endsWith(".ts") || file === "_sheet.ts") continue;
+    const source = readFileSync(`src/ocean/${file}`, "utf8");
+    assert.ok(
+      !/new (Hemispheric|Directional|Point|Spot)Light\(/.test(source),
+      `${file} adds a light of its own`,
+    );
+  }
+});
