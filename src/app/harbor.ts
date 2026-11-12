@@ -1,7 +1,7 @@
 import "../ocean/style.css";
 import { CHROME_COLORS, setChromeColor } from "./chrome-color";
 import { wakeApi } from "../platform/wake";
-import { hubArt } from "../ui/hub-art";
+import { mountHubArt } from "../ui/hub-canvas";
 import { stockTotal } from "../ocean/fishing";
 import { decodeSave, saveKey } from "../ocean/save";
 
@@ -52,6 +52,7 @@ export function startHarbor(root: HTMLElement) {
     { signal: abort.signal },
   );
   let stopAuth: (() => void) | undefined;
+  let stopArt: (() => void) | undefined;
   let stopGame: (() => void) | undefined;
   let playing = false;
   let error = "";
@@ -61,7 +62,10 @@ export function startHarbor(root: HTMLElement) {
     const captain = name
       ? `<div class="hub-avatar">${BOAT}</div><div class="hub-who"><strong>Thuyền trưởng ${escape(name)}</strong><span>🐟 ${fishHeld(uid)} cá trong kho</span></div><button class="hub-out" data-harbor="logout" ${busy ? "disabled" : ""}>Đăng xuất</button>`
       : `<div class="hub-who"><strong>Mỗi người một thuyền, một biển chung</strong><span>Đăng nhập để ra khơi cùng bạn bè</span></div>`;
-    root.innerHTML = `<main class="hub" aria-labelledby="page-title"><div class="hub-art" aria-hidden="true">${hubArt({ boat: true })}</div><h1 id="page-title" class="hub-logo"><span>Ra khơi</span><small>cùng bạn</small></h1><div class="hub-tools"><button class="hub-round" data-pwa-install data-pwa-label aria-label="Cài lên điện thoại" title="Cài lên điện thoại">${INSTALL}</button>${name ? "" : `<button class="hub-round" data-harbor="account" aria-label="Đăng nhập / Đăng ký" title="Đăng nhập / Đăng ký" ${busy ? "disabled" : ""}>${PERSON}</button>`}</div><section class="hub-card" aria-label="Thuyền trưởng">${captain}</section><button class="hub-cta" data-harbor="play" ${busy ? "disabled" : ""}><span class="hub-anchor" aria-hidden="true">⚓</span><span class="hub-cta-text"><strong>${busy ? "Đang chuẩn bị…" : "Ra khơi"}</strong><small>${name ? "Vào thẳng biển chung" : "Đăng nhập để vào biển chung"}</small></span></button><p class="form-error hub-error" role="alert" ${error ? "" : "hidden"}>${escape(error)}</p></main>`;
+    stopArt?.();
+    root.innerHTML = `<main class="hub" aria-labelledby="page-title"><div class="hub-art" aria-hidden="true"><canvas class="hub-canvas"></canvas></div><h1 id="page-title" class="hub-logo"><span>Ra khơi</span><small>cùng bạn</small></h1><div class="hub-tools"><button class="hub-round" data-pwa-install data-pwa-label aria-label="Cài lên điện thoại" title="Cài lên điện thoại">${INSTALL}</button>${name ? "" : `<button class="hub-round" data-harbor="account" aria-label="Đăng nhập / Đăng ký" title="Đăng nhập / Đăng ký" ${busy ? "disabled" : ""}>${PERSON}</button>`}</div><section class="hub-card" aria-label="Thuyền trưởng">${captain}</section><button class="hub-cta" data-harbor="play" ${busy ? "disabled" : ""}><span class="hub-anchor" aria-hidden="true">⚓</span><span class="hub-cta-text"><strong>${busy ? "Đang chuẩn bị…" : "Ra khơi"}</strong><small>${name ? "Vào thẳng biển chung" : "Đăng nhập để vào biển chung"}</small></span></button><p class="form-error hub-error" role="alert" ${error ? "" : "hidden"}>${escape(error)}</p></main>`;
+    const canvas = root.querySelector<HTMLCanvasElement>(".hub-canvas");
+    if (canvas) stopArt = mountHubArt(canvas, { boat: true });
   }
   async function enter() {
     if (busy || playing) return;
@@ -153,6 +157,7 @@ export function startHarbor(root: HTMLElement) {
     disposed = true;
     abort.abort();
     stopAuth?.();
+    stopArt?.();
     stopGame?.();
     root.replaceChildren();
   };

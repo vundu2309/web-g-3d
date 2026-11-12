@@ -1,4 +1,4 @@
-import { hubArtUrl } from "../ui/hub-art";
+import { hubArtUrl } from "../ui/hub-canvas";
 import {
   accountError,
   currentPlayer,

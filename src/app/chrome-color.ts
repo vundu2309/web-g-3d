@@ -5,7 +5,7 @@
  * live here, next to the one function that writes the `theme-color` meta tag.
  */
 export const CHROME_COLORS = {
-  /** The top of the harbor sky (src/ui/hub-art.ts). */
+  /** The top of the harbor sky (src/ui/hub-canvas.ts). */
   harbor: "#4b3a8f",
   /** The sky at the top of the sea view (about the middle of its gradient). */
   sea: "#9cc6ee",
