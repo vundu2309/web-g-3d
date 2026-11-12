@@ -6,6 +6,7 @@ import { PAL } from "./art/colors.ts";
 import { glowMaterial, useSolid } from "./art/materials.ts";
 import { Parts, SIDES } from "./art/shapes.ts";
 import type { Market } from "./market.ts";
+import { createVendor } from "./market-vendor.ts";
 
 /**
  * One fish market: a floating wooden pier on rope-wrapped pylons with a stall under a
@@ -120,9 +121,9 @@ function stall(parts: Parts) {
     [1, 1, 0.5],
   );
   for (const x of [-3.3, 3.3])
-    parts.box([0.22, 3.4, 0.22], PAL.market.post, [x, DECK + 1.75, 2.3]);
+    parts.box([0.22, 4.0, 0.22], PAL.market.post, [x, DECK + 2.05, 2.3]);
   for (const x of [-3.3, 3.3])
-    parts.box([0.22, 3.0, 0.22], PAL.market.post, [x, DECK + 1.55, -0.55]);
+    parts.box([0.22, 3.6, 0.22], PAL.market.post, [x, DECK + 1.85, -0.55]);
   // The counter: a planked front, a top that overhangs, and a lower shelf.
   parts.box([6.4, 1.0, 1.3], wood.light, [0, DECK + 0.6, 0.75]);
   for (let i = 0; i < 8; i++)
@@ -130,21 +131,21 @@ function stall(parts: Parts) {
   parts.box([6.7, 0.12, 1.6], wood.trim, [0, DECK + 1.16, 0.75]);
   // Two posts that carry the sign above the awning.
   for (const x of [-2.2, 2.2])
-    parts.box([0.14, 1.5, 0.14], PAL.market.post, [x, DECK + 3.55, 1.2]);
+    parts.box([0.14, 1.5, 0.14], PAL.market.post, [x, DECK + 4.15, 1.2]);
   // The awning: a striped roof sloping to the sea with a scalloped fringe.
   const stripe = [PAL.paint.coral, PAL.paint.cream];
   for (let i = 0; i < 9; i++)
     parts.box(
       [0.78, 0.1, 3.6],
       stripe[i % 2]!,
-      [-3.1 + i * 0.78, DECK + 3.0, 0.85],
+      [-3.1 + i * 0.78, DECK + 3.6, 0.85],
       [-0.3, 0, 0],
     );
   for (let i = 0; i < 17; i++)
     parts.box(
       [0.4, 0.4, 0.06],
       stripe[i % 2]!,
-      [-3.2 + i * 0.4, DECK + 2.55, -0.98],
+      [-3.2 + i * 0.4, DECK + 3.15, -0.98],
       [0, 0, Math.PI / 4],
     );
   // Fish drying on a pole under the awning, and a hanging lantern.
@@ -367,12 +368,14 @@ export function createMarket(scene: Scene, market: Market): Mesh {
     textureAlpha: false,
   });
   sign.parent = mesh;
-  sign.position.set(0, DECK + 4.15, 1.2);
+  sign.position.set(0, DECK + 4.75, 1.2);
   sign.rotation.y = Math.PI;
   sign.isPickable = false;
   mesh.position.set(market.x, 0, market.z);
   mesh.rotation.y = -market.facing;
   mesh.isPickable = false;
   mesh.freezeWorldMatrix();
+  // The vendor is a child of the (frozen) pier, so it follows it but is free to animate.
+  createVendor(scene, mesh, market.id, market.vendor, market.x * 0.37);
   return mesh;
 }

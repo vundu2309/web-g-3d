@@ -200,3 +200,16 @@ Sky and water share `src/ocean/sky-model.ts`: one linear-light radiance function
 ### Boat shadows on the water
 
 `water.ts` darkens the sea in the shadow of every boat (yours first, then the fleet, up to `BOAT_MAX` = 12). There is no shadow map: each boat is three slices (hull, cabin, mast), each projected onto the water along the sun's ground direction by `height / tan(elevation)`, so the low sun throws a long shadow away from it (`SUN_DIRECTION` in `sea-style.ts`). In shadow the water loses the sun's share of its light (body, glitter, foam) and a little of the mirrored sky. Boats do not shadow islands or each other's decks, and islands/markets cast no shadow on the sea.
+
+## Market vendors
+
+Each fish market has a vendor (`vendor` on `Market` in `market.ts`; built in `market-vendor.ts`): Cô Lan (Hải Đăng, straw hat), Chú Tư (Đồi Xanh, flat cap), Bà Sáu (Bãi Cọ, scarf), each with their own skin, apron and hair from `PAL.vendor`. They stand on the pier deck in front of the counter, facing the sea, breathe slowly and wave every eight seconds (two meshes parented to the frozen pier, animated in `onBeforeRenderObservable`; the phase differs per market). When the market hub opens, the vendor's name and greeting show under the title. Vendors are decoration and flavour only: no gameplay effect, no server state, no chat.
+
+## Deferred work (debt)
+
+Decided to postpone, in the order we would take them:
+
+1. **NPC boats on the sea.** A few boats sailing between islands or lying at anchor so the sea is not empty when few players are online. Plan: simulate them on the API as ordinary boat states (the client already draws boats, wakes, shadows and labels), with a distinct NPC label so they are never presented as real players (AGENTS.md). Sea state is ephemeral on one Render instance, so NPCs live there too. Waypoints must avoid `seaObstacles()`.
+2. **NPC quests.** Fishermen or vendors who ask for a catch ("three mackerel", "a fish over 5 kg") and pay coins. Blocked by server-authoritative fishing: catches are still reported by the client, so a quest reward could be cheated. Do it only after the server decides catches.
+
+Other known gaps: the upgrade shop (rod, line, bait, boat colour), applying `supabase/pending/…economy.sql` and turning `VITE_ECONOMY` on (needs the owner's go-ahead), shadows cast by islands and markets, and real-phone performance checks.
