@@ -1475,3 +1475,22 @@ dialog.account-screen :is(input, textarea) {
   border: 0;
   padding: 0;
 }
+.is-settings .fish-store-head h2 {
+  flex: 1;
+}
+.settings-leave {
+  background: #fff;
+  border: 3px solid #153b80;
+  border-radius: 18px;
+  box-shadow: 0 4px 0 #153b80;
+  color: #153b80;
+  font:
+    800 18px/1 "Baloo 2",
+    sans-serif;
+  padding: 10px 22px;
+  cursor: pointer;
+}
+.settings-leave:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #153b80;
+}
