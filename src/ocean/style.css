@@ -1011,65 +1011,12 @@ body:has(.hub) .paper-card {
   overflow: hidden;
 }
 
-.hub-svg {
+.hub-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-}
-.hub-art .wave,
-.hub-art .boat,
-.hub-art .sun-glow,
-.hub-art .birds {
-  transform-box: fill-box;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .hub-art .wave {
-    animation: hub-drift 14s linear infinite;
-  }
-  .hub-art .w2 {
-    animation-duration: 10s;
-    animation-direction: reverse;
-  }
-  .hub-art .w3 {
-    animation-duration: 12s;
-  }
-  .hub-art .w4 {
-    animation-duration: 9s;
-    animation-direction: reverse;
-  }
-  .hub-art .boat {
-    transform-origin: 50% 80%;
-    animation: hub-bob 3.2s ease-in-out infinite;
-  }
-  .hub-art .sun-glow {
-    transform-origin: 50% 50%;
-    animation: hub-glow 4s ease-in-out infinite;
-  }
-  .hub-art .birds {
-    animation: hub-fly 9s ease-in-out infinite alternate;
-  }
-}
-@keyframes hub-drift {
-  to {
-    transform: translateX(calc(var(--period) * -1));
-  }
-}
-@keyframes hub-bob {
-  50% {
-    transform: translateY(-7px) rotate(2deg);
-  }
-}
-@keyframes hub-glow {
-  50% {
-    transform: scale(1.08);
-    opacity: 0.4;
-  }
-}
-@keyframes hub-fly {
-  to {
-    transform: translate(26px, -8px);
-  }
+  display: block;
 }
 
 /* The picture sits behind the loading card, never over it. */
@@ -1246,28 +1193,9 @@ dialog.account-screen :is(input, textarea) {
   display: none;
 }
 
-/* Portrait phones: the landscape harbor art is shown wide enough for the whole boat and
-   sun (x 270..670 of 844) instead of being cropped to the middle sliver. The bands above
-   and below it are the art's own top and bottom colours, so no seam shows. */
-@media (orientation: portrait) {
-  .hub-art {
-    background: linear-gradient(
-      #4b3a8f 0,
-      #4b3a8f 25%,
-      #1d2a66 45%,
-      #1d2a66 100%
-    );
-  }
-  .hub-art .hub-svg {
-    inset: auto;
-    top: 18%;
-    left: 50%;
-    width: 211%;
-    height: auto;
-    aspect-ratio: 844 / 390;
-    transform: translateX(-55.7%);
-  }
-}
+/* Portrait phones: the canvas lays the art out wide enough for the whole boat and sun
+   itself (art/hub-canvas.ts `artLayout`), with the sky's and the deep sea's colours
+   above and below it, so nothing here changes. */
 
 /* The minimap: the whole sea in the corner under the crew button. Drawn only. */
 .ocean-minimap {
