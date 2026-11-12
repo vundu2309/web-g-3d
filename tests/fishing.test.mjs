@@ -392,7 +392,7 @@ test("a fish is drawn at a size that fits its species, never filling the boat", 
     for (const kg of species.kg) {
       const length = drawnLength(species, kg);
       assert.ok(
-        length >= 0.4 && length <= 1.5,
+        length >= 0.3 && length <= 4,
         `${species.id} ${kg} kg: ${length} m`,
       );
     }

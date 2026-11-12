@@ -176,3 +176,7 @@ A fish is drawn at its species' real size (`drawnLength` in `src/ocean/fishing.t
 - `src/ocean/art/lighting.ts`: the only light rig (`createSeaLights`): a warm sun from the front left and a sky fill whose underside is the blue bounce of the sea, plus the rim-light values. Objects never create lights (a test checks).
 - `src/ocean/art/toon.ts`: soft cel shading (a partly applied posterize, 5 steps, amount 0.55) added by `solidMaterial` to every solid look, so hulls, hills, props and fish read as bands of colour. The solid materials also get a cool rim glow on edges that turn away from the viewer (`LIGHT.rim`). Water, sky, wake and the unlit glow materials are not touched.
 - Tuning is in the constants of these two files, not in the objects.
+
+### Proportions: line and fish against a 7.4 m boat
+
+The fishing line is a flat strip about two pixels wide on a phone at any distance (`0.0035` m per metre of distance, at least 1.2 cm; was about 4 px, a tape). The lure is 14 cm. A fish is drawn at its real size from its species length and weight (`drawnLength`: an anchovy a hand long, a tuna as long as a person, a shark up to 4 m, never under 0.3 m); a far fish in a fight is drawn up to 3 times larger (at most 2.2 m) so it is not a speck, and shrinks to its real size as it is reeled in. A soft dark patch on the water under the hooked fish helps to find it. The hanging catch is drawn at real size (at least 0.45 m).

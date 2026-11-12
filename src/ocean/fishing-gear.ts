@@ -89,6 +89,8 @@ export class FishingGear {
   private readonly ripples: { t: number; x: number; z: number }[] = [];
   private idleRipple = -9;
   private readonly lure: Mesh;
+  /** A soft dark patch in the water under the hooked fish, so it can be found from afar. */
+  private readonly shadow: Mesh;
   private readonly rope = new Rope(POINTS);
   private readonly smooth = new Float64Array(POINTS * 3);
   /** Where the line meets the water (or the fish's mouth), world. */
@@ -161,12 +163,25 @@ export class FishingGear {
     this.marker = marker.mesh;
     this.markerMaterial = marker.material;
     // A small bright lure where the line ends; the fish takes its place in a fight.
-    this.lure = sphereMesh(scene, 0.3, SIDES.small, "gear-lure");
+    this.lure = sphereMesh(scene, 0.14, SIDES.small, "gear-lure");
     this.lure.material = glowMaterial(scene, "gear-lure-material", {
       color: hex(PAL.rod.lure),
     });
     this.lure.isPickable = false;
     this.lure.isVisible = false;
+    this.shadow = MeshBuilder.CreateDisc(
+      "gear-shadow",
+      { radius: 0.5, tessellation: 20 },
+      scene,
+    );
+    this.shadow.rotation.x = Math.PI / 2;
+    this.shadow.bakeCurrentTransformIntoVertices();
+    this.shadow.material = glowMaterial(scene, "gear-shadow-material", {
+      color: new Color3(0.01, 0.12, 0.2),
+      alpha: 0.38,
+    });
+    this.shadow.isPickable = false;
+    this.shadow.isVisible = false;
     this.setVisible(false);
   }
 
@@ -201,7 +216,10 @@ export class FishingGear {
   private setVisible(on: boolean) {
     this.shown = on;
     this.line.isVisible = on;
-    if (!on) this.lure.isVisible = false;
+    if (!on) {
+      this.lure.isVisible = false;
+      this.shadow.isVisible = false;
+    }
   }
 
   /** Where the camera is, for the line strip to face it. */
@@ -242,6 +260,7 @@ export class FishingGear {
           : Color3.White();
     }
     let ringsOn = false;
+    this.shadow.isVisible = false;
     this.roped = false;
     if (!(view.phase === "fighting" && view.fight)) this.fightSeeded = false;
     if (out && view.landing) {
@@ -577,9 +596,9 @@ export class FishingGear {
     const fx = this.fightX;
     const fz = this.fightZ;
     const surface = waveHeight(fx, fz, time);
-    // Drawn at its species' size, but a fish far from the camera is drawn up to twice as
-    // large so it can still be seen (about 4 degrees of the view, never more than 3.5
-    // times its size).
+    // Drawn at its species' size (against a 7.4 m boat). A fish far from the camera is drawn
+    // larger so it can still be seen (up to 3 times, and never past 2.2 m); as it is reeled
+    // in it shrinks to its real size beside the boat.
     const species = view.species ? speciesById(view.species) : undefined;
     const kg = species
       ? species.kg[0] + (view.size ?? 0.3) * (species.kg[1] - species.kg[0])
@@ -587,14 +606,18 @@ export class FishingGear {
     const baseLength = species ? drawnLength(species, kg) : 1;
     const eye = this.eye();
     const viewDistance = Math.hypot(fx - eye.x, surface - eye.y, fz - eye.z);
-    const length = Math.min(
-      baseLength * 3.5,
-      Math.max(baseLength, viewDistance * 0.07),
+    const length = Math.max(
+      baseLength,
+      Math.min(baseLength * 3, viewDistance * 0.065, 2.2),
     );
     // Its mouth is where the line ends, just above the water.
     const mouthY = surface + 0.25 + pose.lift * 0.6;
     this.entry.set(fx, mouthY, fz);
     this.lure.isVisible = false;
+    // The shadow lies on the water under the fish, about as long as the fish, a bit wider.
+    this.shadow.isVisible = true;
+    this.shadow.position.set(fx, surface + 0.06, fz);
+    this.shadow.scaling.set(length * 1.5, 1, length * 0.8);
     this.top.set(fx, surface + 2.2, fz);
     const wanted = Math.atan2(-headZ + pose.yaw * 0.15, headX);
     let turn = wanted - this.fightYaw;
@@ -605,6 +628,7 @@ export class FishingGear {
       Math.cos(this.fightYaw),
     );
     const yaw = this.fightYaw;
+    this.shadow.rotation.y = yaw;
     if (this.fish) {
       const nx = Math.cos(yaw);
       const nz = -Math.sin(yaw);
@@ -711,6 +735,7 @@ export class FishingGear {
     this.fish?.dispose();
     this.line.dispose();
     this.lure.dispose();
+    this.shadow.dispose();
     this.arc.dispose();
     for (const ring of this.rings) ring.dispose();
     this.marker.dispose();
