@@ -47,7 +47,8 @@ export class Ribbon {
 
   /** Lays the strip along `points`, facing `eye`. */
   draw(points: readonly Point3[], eye: Point3) {
-    ribbonPositions(points, eye, this.positions, 0.007, 0.05);
+    // About two pixels wide on a phone at any distance (a fishing line, not a tape).
+    ribbonPositions(points, eye, this.positions, 0.0035, 0.012, 0.12);
     this.mesh.updateVerticesData(VertexBuffer.PositionKind, this.positions);
     this.mesh.refreshBoundingInfo();
   }
