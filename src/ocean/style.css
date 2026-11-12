@@ -755,6 +755,94 @@
   }
 }
 
+/* The fish market (src/app/market-ui.ts): the Bán button that shows near a pier, and the hub. */
+.ocean-market {
+  gap: 6px;
+  padding-right: 14px;
+  border-color: #ffd35a;
+  animation: market-pop 0.32s ease-out;
+}
+.ocean-market[hidden] {
+  display: none;
+}
+.ocean-market strong {
+  font:
+    800 16px/1 "Baloo 2",
+    sans-serif;
+}
+@keyframes market-pop {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ocean-market {
+    animation: none;
+  }
+}
+.market-wallet {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font:
+    900 20px/1 "Baloo 2",
+    sans-serif;
+  color: #153b80;
+}
+.market-coin {
+  display: inline-grid;
+  place-items: center;
+}
+.fish-cell .market-sell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 96px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 2.5px solid #153b80;
+  border-radius: 14px;
+  background: #ffd35a;
+  box-shadow: 0 3px 0 #153b80;
+  color: #153b80;
+  font:
+    900 16px/1 "Baloo 2",
+    sans-serif;
+  cursor: pointer;
+}
+.fish-cell .market-sell:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #153b80;
+}
+.market-foot {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+}
+.market-foot:empty {
+  display: none;
+}
+.market-sell-all {
+  min-height: 48px;
+}
+.market-flash {
+  margin: 0 0 8px;
+  font:
+    900 18px/1.2 "Baloo 2",
+    sans-serif;
+  color: #1c7a3a;
+}
+.market-error {
+  margin: 0 0 8px;
+  color: #b3261e;
+  font-weight: 800;
+}
+
 /* The game's front door (src/app/harbor.ts): a still sea, a title, one big button. */
 .hub {
   position: fixed;

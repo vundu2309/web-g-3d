@@ -40,6 +40,8 @@ export interface FishingUiOptions {
   /** The store changed (a catch, a release): save it and update the counters. */
   setStock: (next: Inventory, caughtOne: boolean) => void;
   reduced: boolean;
+  /** A landed fish was kept (the market tells the server about it). */
+  onKeep?: (fish: Catch) => void;
   /** Test only: runs the tug of war faster (1 is real time). */
   fightSpeed?: number;
 }
@@ -425,6 +427,7 @@ export function createFishingUi(options: FishingUiOptions) {
     const scene = options.scene();
     if (keep) {
       options.setStock(addCatch(options.stock(), fish).inventory, true);
+      options.onKeep?.(fish);
       vibrate(20);
       scene?.leaveFish("keep");
     } else scene?.leaveFish("drop");

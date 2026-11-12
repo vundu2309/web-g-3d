@@ -24,14 +24,11 @@ import { createIsland } from "./island-visual.ts";
 import { SeaProps } from "./sea-props.ts";
 import { WakeField, sampleWake } from "./wake.ts";
 import { OrbitCamera } from "./orbit-camera.ts";
+import { MARKETS, seaObstacles } from "./market.ts";
+import { createMarket } from "./market-visual.ts";
 import { WakeMesh } from "./wake-mesh.ts";
 import { WakeTrail } from "./wake-trail.ts";
-import {
-  islandCollisionRadius,
-  islands,
-  type Boat,
-  type Pose,
-} from "./model.ts";
+import { islands, type Boat, type Pose } from "./model.ts";
 import { FishingGear, type GearInput } from "./fishing-gear.ts";
 import { paletteIndex } from "./palette.ts";
 import { RodVisual } from "./rod-visual.ts";
@@ -87,6 +84,7 @@ export class OceanScene {
   private viewHeading = 0;
   private viewReady = false;
   private readonly orbit = new OrbitCamera();
+  private readonly markets: Mesh[];
   /** 0..1: how far the camera has moved in for fishing. */
   private focus = 0;
   private readonly governor: ScaleGovernor;
@@ -167,6 +165,8 @@ export class OceanScene {
       visual.mesh.freezeWorldMatrix();
       visual.foam?.position.set(island.x, 0.08, island.z);
     });
+    // A fish market on the water off each island.
+    this.markets = MARKETS.map((market) => createMarket(this.scene, market));
     this.seaProps = new SeaProps(this.scene);
     this.observer = new ResizeObserver(() => this.engine.resize());
     this.observer.observe(host);
@@ -199,11 +199,7 @@ export class OceanScene {
   spawnSelf(uid: string, name: string, pose: Pose) {
     if (this.self) return;
     const physics = createBoatPhysics(this.scene, {
-      islands: islands.map((island) => ({
-        x: island.x,
-        z: island.z,
-        radius: islandCollisionRadius(island),
-      })),
+      islands: seaObstacles(),
       time: () => this.clock,
       extraHeight: (x, z, t) => sampleWake(this.wakeField.data, x, z, t).height,
       start: { x: pose.x, z: pose.z, heading: pose.heading },
@@ -658,6 +654,7 @@ export class OceanScene {
     for (const craft of this.fleet.values()) craft.label.remove();
     this.gear?.dispose();
     this.seaProps.dispose();
+    for (const market of this.markets) market.dispose();
     for (const id of [...this.trails.keys()]) this.forgetTrail(id);
     this.self?.craft.label.remove();
     this.self?.physics.dispose();
