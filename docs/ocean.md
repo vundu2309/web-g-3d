@@ -213,3 +213,7 @@ Decided to postpone, in the order we would take them:
 2. **NPC quests.** Fishermen or vendors who ask for a catch ("three mackerel", "a fish over 5 kg") and pay coins. Blocked by server-authoritative fishing: catches are still reported by the client, so a quest reward could be cheated. Do it only after the server decides catches.
 
 Other known gaps: the upgrade shop (rod, line, bait, boat colour), applying `supabase/pending/…economy.sql` and turning `VITE_ECONOMY` on (needs the owner's go-ahead), shadows cast by islands and markets, and real-phone performance checks.
+
+## Settings hub
+
+The sea's screen keeps only what the game needs: the stick, the rod, the fish store, the market button and the minimap. Everything else is behind one gear button at the top left (`data-ocean="settings"`), which opens a full-screen "Cài đặt" hub (`showSettings` in `app/ocean.ts`): the list of boats in the channel (who is online, fishing or sailing, distance) and "Về sảnh" to leave the sea. The old back arrow and "N thuyền" chip are gone from the HUD; the boat count is still kept as a screen-reader-only live status (`[data-count]`) that tests and assistive tech read. While the sea loads, the gear stays reachable so a stuck load can still be left. Put new non-gameplay screens (sound, account, help) here, not on the HUD.

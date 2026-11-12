@@ -145,20 +145,21 @@ try {
   );
   const covered = await never.evaluate(() => {
     const back = document
-      .querySelector('[data-ocean="back"]')
+      .querySelector('[data-ocean="settings"]')
       .getBoundingClientRect();
     const hit = document.elementFromPoint(
       back.x + back.width / 2,
       back.y + back.height / 2,
     );
-    return !hit?.closest('[data-ocean="back"]');
+    return !hit?.closest('[data-ocean="settings"]');
   });
   assert.equal(
     covered,
     false,
-    "the back button is not covered by the loading card",
+    "the settings button is not covered by the loading card",
   );
-  await never.locator('[data-ocean="back"]').click();
+  await never.locator('[data-ocean="settings"]').click();
+  await never.getByRole("button", { name: "Về sảnh" }).click();
   assert.equal(
     await never.evaluate(() => window.left),
     true,

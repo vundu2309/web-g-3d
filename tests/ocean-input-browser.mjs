@@ -123,7 +123,7 @@ try {
     };
     return {
       fish: read('[data-ocean="fish"]'),
-      back: read('[data-ocean="back"]'),
+      settings: read('[data-ocean="settings"]'),
       ring: read(".ocean-stick"),
     };
   });
@@ -204,14 +204,15 @@ try {
   await reelIn();
 
   // 4. A tap on a drawn button works like a click, and reaches 44 px even if drawn smaller.
-  const crew = await centre('[data-ocean="crew"]');
-  await touch("touchStart", [{ x: crew.x, y: crew.y, id: 5 }]);
-  await touch("touchEnd", [{ x: crew.x, y: crew.y, id: 5 }]);
+  const gear = await centre('[data-ocean="settings"]');
+  await touch("touchStart", [{ x: gear.x, y: gear.y, id: 5 }]);
+  await touch("touchEnd", [{ x: gear.x, y: gear.y, id: 5 }]);
   await page.locator("dialog.ocean-dialog[open]").waitFor();
   await page.getByRole("button", { name: "Đóng", exact: true }).click();
-  const back = await centre('[data-ocean="back"]');
-  await touch("touchStart", [{ x: back.x, y: back.y, id: 6 }]);
-  await touch("touchEnd", [{ x: back.x, y: back.y, id: 6 }]);
+  // The way back is in Settings too.
+  await touch("touchStart", [{ x: gear.x, y: gear.y, id: 6 }]);
+  await touch("touchEnd", [{ x: gear.x, y: gear.y, id: 6 }]);
+  await page.getByRole("button", { name: "Về sảnh" }).click();
   assert.equal(
     await page.evaluate(() => window.left),
     true,

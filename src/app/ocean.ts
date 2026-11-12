@@ -59,7 +59,7 @@ export function startOcean(
   root.classList.add("ocean-root");
   // The loading screen shares the harbor sky; the bar turns sea-sky once the sea is shown.
   const barBefore = setChromeColor(CHROME_COLORS.harbor);
-  root.innerHTML = `<main class="ocean-screen" aria-label="Map biển chung"><div class="ocean-stage"></div><div class="ocean-stick-zone" aria-hidden="true"></div><div class="ocean-loading" role="status" aria-live="polite"><div class="hub-art" aria-hidden="true"><canvas class="hub-canvas"></canvas></div><div class="ocean-loading-card"><svg class="ocean-loading-boat" viewBox="0 0 120 56" width="76" height="36" aria-hidden="true" focusable="false"><path d="M0 30h120l-18 22H20Z" fill="#e97760" stroke="#153b80" stroke-width="5" stroke-linejoin="round"/><rect x="48" y="4" width="38" height="26" rx="5" fill="#fff6e0" stroke="#153b80" stroke-width="5"/></svg><h2 data-loading-title>Đang ra khơi…</h2><ol class="ocean-loading-steps"><li data-step="graphics">Tải đồ họa biển</li><li data-step="connect">Kết nối map chung</li><li data-step="enter">Vào biển</li></ol><div class="ocean-loading-bar" aria-hidden="true"><i></i></div><p class="ocean-loading-note" data-loading-note></p><div class="ocean-loading-actions" hidden><button class="button primary" type="button" data-ocean="retry">Thử lại</button></div></div></div><div class="ocean-hud game-safe"><header class="ocean-top"><button class="ocean-chip ocean-glass ocean-round" data-ocean="back" aria-label="Về hub"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><button class="ocean-chip ocean-glass" data-ocean="crew" aria-label="Thuyền trong kênh"><span data-count>Đang kết nối…</span></button></header><canvas class="ocean-minimap" role="img" aria-label="Bản đồ nhỏ: thuyền của bạn, các đảo và thuyền khác"></canvas><p class="ocean-status" role="status" aria-live="polite">Đang kết nối map chung…</p><section class="ocean-bottom" aria-label="Điều khiển thuyền"><div class="ocean-stick" role="group" aria-label="Cần lái: kéo lên để tiến, xuống để lùi, sang hai bên để rẽ"><span class="ocean-stick-mark" data-dir="up" aria-hidden="true">▲</span><span class="ocean-stick-mark" data-dir="down" aria-hidden="true">▼</span><span class="ocean-stick-mark" data-dir="left" aria-hidden="true">◀︎</span><span class="ocean-stick-mark" data-dir="right" aria-hidden="true">▶︎</span><span class="ocean-stick-knob" aria-hidden="true">⚓</span></div><div class="ocean-actions"><button class="ocean-chip ocean-glass ocean-market" data-ocean="market" aria-label="Bán cá" hidden><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9.5" fill="#ffd35a" stroke="currentColor" stroke-width="2.4"/><path d="M6.5 12c1.6-2.6 4.6-3 7-1.4l3-1.6v6l-3-1.6c-2.4 1.6-5.4 1.2-7-1.4Z" fill="currentColor"/></svg><strong>Bán</strong></button><button class="ocean-chip ocean-glass" data-ocean="catch" aria-label="Kho cá 0"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c3-5 9-6 13-3l5-3v12l-5-3c-4 3-10 2-13-3Z"/><circle cx="8" cy="11" r=".6" fill="currentColor"/></svg><strong data-catch>0</strong></button><button class="ocean-fish" data-ocean="fish" aria-label="Thả câu" disabled></button></div></section></div><div class="ocean-input" aria-hidden="true"></div></main>`;
+  root.innerHTML = `<main class="ocean-screen" aria-label="Map biển chung"><div class="ocean-stage"></div><div class="ocean-stick-zone" aria-hidden="true"></div><div class="ocean-loading" role="status" aria-live="polite"><div class="hub-art" aria-hidden="true"><canvas class="hub-canvas"></canvas></div><div class="ocean-loading-card"><svg class="ocean-loading-boat" viewBox="0 0 120 56" width="76" height="36" aria-hidden="true" focusable="false"><path d="M0 30h120l-18 22H20Z" fill="#e97760" stroke="#153b80" stroke-width="5" stroke-linejoin="round"/><rect x="48" y="4" width="38" height="26" rx="5" fill="#fff6e0" stroke="#153b80" stroke-width="5"/></svg><h2 data-loading-title>Đang ra khơi…</h2><ol class="ocean-loading-steps"><li data-step="graphics">Tải đồ họa biển</li><li data-step="connect">Kết nối map chung</li><li data-step="enter">Vào biển</li></ol><div class="ocean-loading-bar" aria-hidden="true"><i></i></div><p class="ocean-loading-note" data-loading-note></p><div class="ocean-loading-actions" hidden><button class="button primary" type="button" data-ocean="retry">Thử lại</button></div></div></div><div class="ocean-hud game-safe"><header class="ocean-top"><button class="ocean-chip ocean-glass ocean-round" data-ocean="settings" aria-label="Cài đặt"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.8 1.8M16.7 16.7l1.8 1.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8"/></svg><span class="sr-only" data-count role="status">Đang kết nối…</span></button></header><canvas class="ocean-minimap" role="img" aria-label="Bản đồ nhỏ: thuyền của bạn, các đảo và thuyền khác"></canvas><p class="ocean-status" role="status" aria-live="polite">Đang kết nối map chung…</p><section class="ocean-bottom" aria-label="Điều khiển thuyền"><div class="ocean-stick" role="group" aria-label="Cần lái: kéo lên để tiến, xuống để lùi, sang hai bên để rẽ"><span class="ocean-stick-mark" data-dir="up" aria-hidden="true">▲</span><span class="ocean-stick-mark" data-dir="down" aria-hidden="true">▼</span><span class="ocean-stick-mark" data-dir="left" aria-hidden="true">◀︎</span><span class="ocean-stick-mark" data-dir="right" aria-hidden="true">▶︎</span><span class="ocean-stick-knob" aria-hidden="true">⚓</span></div><div class="ocean-actions"><button class="ocean-chip ocean-glass ocean-market" data-ocean="market" aria-label="Bán cá" hidden><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9.5" fill="#ffd35a" stroke="currentColor" stroke-width="2.4"/><path d="M6.5 12c1.6-2.6 4.6-3 7-1.4l3-1.6v6l-3-1.6c-2.4 1.6-5.4 1.2-7-1.4Z" fill="currentColor"/></svg><strong>Bán</strong></button><button class="ocean-chip ocean-glass" data-ocean="catch" aria-label="Kho cá 0"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c3-5 9-6 13-3l5-3v12l-5-3c-4 3-10 2-13-3Z"/><circle cx="8" cy="11" r=".6" fill="currentColor"/></svg><strong data-catch>0</strong></button><button class="ocean-fish" data-ocean="fish" aria-label="Thả câu" disabled></button></div></section></div><div class="ocean-input" aria-hidden="true"></div></main>`;
   const status = root.querySelector<HTMLElement>(".ocean-status")!;
   const loading = root.querySelector<HTMLElement>(".ocean-loading")!;
   const loadingTitle = loading.querySelector<HTMLElement>(
@@ -362,43 +362,26 @@ export function startOcean(
       ?.setAttribute("aria-label", `Kho cá ${total}`);
   }
 
-  function showDialog(kind: "crew" | "catch") {
+  function showDialog(kind: "catch") {
     keys.clear();
     releaseStick();
-    if (kind === "catch") {
-      fishingUi.showStock();
-      return;
-    }
-    fishingUi.cancel();
-    if (kind === "crew") {
-      showCrew();
-      return;
-    }
-    dialog.replaceChildren();
-    dialog.classList.remove("is-crew", "is-stock");
-    const title = document.createElement("h2");
-    title.id = "ocean-dialog-title";
-    title.textContent = "Kho cá chuyến này";
-    dialog.setAttribute("aria-labelledby", title.id);
-    dialog.append(title);
-    const text = document.createElement("p");
-    text.textContent = `Bạn đã bắt tổng cộng ${caught} con cá. Số cá và vị trí thuyền được lưu trên thiết bị này để lần sau bạn tiếp tục.`;
-    dialog.append(text);
-    const close = document.createElement("button");
-    close.className = "button primary";
-    close.textContent = "Đóng";
-    close.addEventListener("click", () => dialog.close(), { once: true });
-    dialog.append(close);
-    dialog.showModal();
+    if (kind === "catch") fishingUi.showStock();
   }
 
-  /** The boats in the sea: you first, then the nearest, each with its colour and what it is doing. */
-  function showCrew() {
+  /**
+   * Settings: everything that is not part of playing. The boats in the sea (who is online and
+   * what they are doing) and the way back to the harbor live here, so the sea's screen has only
+   * what the game needs: the stick, the rod, the fish store, the market and the map.
+   */
+  function showSettings() {
+    keys.clear();
+    releaseStick();
+    fishingUi.cancel();
     dialog.replaceChildren();
-    dialog.classList.remove("is-stock");
-    dialog.classList.add("is-crew");
+    dialog.classList.remove("is-crew");
+    dialog.classList.add("is-stock", "is-settings");
     dialog.removeAttribute("aria-labelledby");
-    dialog.setAttribute("aria-label", "Thuyền trong kênh");
+    dialog.setAttribute("aria-label", "Cài đặt");
     const here = visibleBoats().map((boat) => ({
       boat,
       you: boat.uid === connection?.uid,
@@ -406,12 +389,9 @@ export function startOcean(
     }));
     here.sort((a, b) => Number(b.you) - Number(a.you) || a.meters - b.meters);
     const head = document.createElement("header");
-    head.className = "crew-head";
+    head.className = "fish-store-head";
     const title = document.createElement("h2");
-    title.textContent = "Thuyền trong kênh";
-    const total = document.createElement("span");
-    total.className = "crew-count";
-    total.textContent = String(here.length);
+    title.textContent = "Cài đặt";
     const close = document.createElement("button");
     close.type = "button";
     close.className = "fish-store-close";
@@ -419,7 +399,17 @@ export function startOcean(
     close.innerHTML =
       '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
     close.addEventListener("click", () => dialog.close());
-    head.append(title, total, close);
+    head.append(title, close);
+    const body = document.createElement("div");
+    body.className = "fish-store-body settings-body";
+    const section = document.createElement("div");
+    section.className = "crew-head";
+    const sectionTitle = document.createElement("h3");
+    sectionTitle.textContent = "Thuyền trong kênh";
+    const total = document.createElement("span");
+    total.className = "crew-count";
+    total.textContent = String(here.length);
+    section.append(sectionTitle, total);
     const list = document.createElement("ul");
     list.className = "crew-list";
     for (const { boat, you, meters } of here) {
@@ -452,10 +442,25 @@ export function startOcean(
       }
       list.append(li);
     }
-    dialog.append(head, list);
-    dialog.addEventListener("close", () => dialog.classList.remove("is-crew"), {
-      once: true,
+    body.append(section, list);
+    const foot = document.createElement("footer");
+    foot.className = "settings-foot";
+    const leave = document.createElement("button");
+    leave.type = "button";
+    leave.className = "button settings-leave";
+    leave.dataset.ocean = "back";
+    leave.textContent = "Về sảnh";
+    leave.addEventListener("click", () => {
+      dialog.close();
+      back();
     });
+    foot.append(leave);
+    dialog.append(head, body, foot);
+    dialog.addEventListener(
+      "close",
+      () => dialog.classList.remove("is-stock", "is-settings"),
+      { once: true },
+    );
     dialog.showModal();
   }
   function visibleBoats() {
@@ -557,16 +562,15 @@ export function startOcean(
         fishingUi.release();
       },
     },
-    { element: control("back"), kind: "tap", tap: () => back() },
     {
       element: control("market"),
       kind: "tap",
       tap: () => void marketUi.openNearest(),
     },
     {
-      element: control("crew"),
+      element: control("settings"),
       kind: "tap",
-      tap: () => showDialog("crew"),
+      tap: () => showSettings(),
     },
     {
       element: control("catch"),
@@ -608,7 +612,6 @@ export function startOcean(
       const action = (event.target as HTMLElement).closest<HTMLElement>(
         "[data-ocean]",
       )?.dataset.ocean;
-      if (action === "back") back();
       // A reload re-enters the sea directly (?view=ocean) and also clears any stale state.
       if (action === "retry") {
         if (loadingActions.dataset.auth !== "true") location.reload();
@@ -621,7 +624,8 @@ export function startOcean(
       // The press already acted; only keyboard activation lands here.
       if (action === "fish" && performance.now() - fishTouchedAt > 500)
         fishingUi.click();
-      if (action === "crew" || action === "catch") showDialog(action);
+      if (action === "settings") showSettings();
+      if (action === "catch") showDialog(action);
       if (action === "market") void marketUi.openNearest();
     },
     { signal: abort.signal },
