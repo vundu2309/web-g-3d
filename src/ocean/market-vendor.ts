@@ -4,6 +4,9 @@ import { PAL } from "./art/colors.ts";
 import { useSolid } from "./art/materials.ts";
 import { Parts, SIDES } from "./art/shapes.ts";
 import type { Vendor } from "./market.ts";
+import { loadModel } from "./model-loader.ts";
+import { Quaternion } from "@babylonjs/core/Maths/math.vector";
+import { Axis } from "@babylonjs/core/Maths/math.axis";
 
 /**
  * The person behind a fish stall, built like the fisherman on the boat (round and friendly,
@@ -19,6 +22,8 @@ const DECK = 0.8;
  */
 const SPOT = { x: 1.9, y: DECK, z: -0.75 } as const;
 const SCALE = 1.1;
+/** The Blender vendor stands 1.7 m; this makes it about as tall as the stall's posts suggest. */
+const MODEL_SCALE = 1.2;
 
 function body(parts: Parts, vendor: Vendor) {
   const skin = PAL.vendor.skin[vendor.skin]!;
@@ -108,7 +113,7 @@ export interface VendorFigure {
  * Builds the vendor into `parent` (the market's mesh) and animates them: a slow breath, and
  * every few seconds a wave. The phase differs per market so they are not in step.
  */
-export function createVendor(
+function buildCodeVendor(
   scene: Scene,
   parent: Mesh,
   id: string,
@@ -157,4 +162,47 @@ export function createVendor(
     wave.position.y = person.position.y + 1.2 * SCALE;
   });
   return { meshes: [person, wave] };
+}
+
+/**
+ * The vendor of a market: the Blender model (public/models/vendor-<market>.glb) when it loads,
+ * otherwise the figure built from primitives above, so a missing or broken file never leaves the
+ * stall empty. Either way they breathe and wave on the same rhythm.
+ */
+export function createVendor(
+  scene: Scene,
+  parent: Mesh,
+  id: string,
+  vendor: Vendor,
+  phase: number,
+): void {
+  loadModel(scene, `vendor-${id}.glb`)
+    .then((model) => {
+      if (scene.isDisposed) return;
+      const { root } = model;
+      root.parent = parent;
+      root.position.set(SPOT.x, SPOT.y, SPOT.z);
+      // A little larger than life, so the face and the wave read from the boat.
+      root.scaling.scaleInPlace(MODEL_SCALE);
+      // The model already stands 1.7 m tall and the loader's root keeps it facing the sea.
+      const pivot = model.node("arm_wave");
+      const rest = pivot?.rotationQuaternion?.clone();
+      scene.onBeforeRenderObservable.add(() => {
+        const t = performance.now() / 1000 + phase;
+        root.position.y = SPOT.y + Math.sin(t * 1.6) * 0.01;
+        if (!pivot || !rest) return;
+        const cycle = t % 8;
+        const raised = cycle < 2.2 ? Math.sin((cycle / 2.2) * Math.PI) : 0;
+        const wave = Quaternion.RotationAxis(Axis.X, -raised * 2.3).multiply(
+          Quaternion.RotationAxis(
+            Axis.Z,
+            -raised * (0.5 + Math.sin(t * 9) * 0.35),
+          ),
+        );
+        pivot.rotationQuaternion = wave.multiply(rest);
+      });
+    })
+    .catch(() => {
+      if (!scene.isDisposed) buildCodeVendor(scene, parent, id, vendor, phase);
+    });
 }

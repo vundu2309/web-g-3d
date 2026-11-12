@@ -73,6 +73,16 @@ export const PAL = {
     hair: [0x3b2a22, 0xb9b3a8, 0x1f1b1a],
     hat: { straw: 0xf0d98a, cap: 0x35506e, scarf: 0xf08a5d },
   },
+  /** What a person is made of besides skin, hair and hat (the Blender characters, tools/blender). */
+  person: {
+    shirt: 0xfaf0da,
+    lip: 0xc9605a,
+    blush: 0xe99a86,
+    eye: 0x2a1d19,
+    eyeWhite: 0xfdfdfb,
+    band: 0xd9573f,
+    pocket: 0x228a82,
+  },
   /** The rod and the lure. */
   rod: { cork: 0xe3c38d, graphite: 0x6b4423, tip: 0xff7a2e, lure: 0xff7333 },
   /** The throw marker: no water and the sweet spot (otherwise white). */
