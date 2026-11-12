@@ -213,8 +213,11 @@ def finish(objs, name, keep=(), budget=None):
         d = body.modifiers.new("dec", "DECIMATE")
         d.decimate_type = "COLLAPSE"
         d.ratio = max(0.05, budget / triangles(body))
+        # Blender collapses a vertex in proportion to its weight (0 = never), so the group is
+        # inverted: the face (weight 1 in "keep") holds still and everything else is collapsed.
         d.vertex_group = "keep"
-        d.vertex_group_factor = 6.0
+        d.invert_vertex_group = True
+        d.vertex_group_factor = 1.0
         d.use_collapse_triangulate = True
         bpy.ops.object.modifier_apply(modifier="dec")
     return body

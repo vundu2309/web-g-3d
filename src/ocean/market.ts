@@ -21,12 +21,8 @@ export interface Market {
 /** The person behind a stall: a name, how they look and a line they say when the market opens. */
 export interface Vendor {
   name: string;
-  /** The headwear: a conical straw hat, a flat cap or a knotted scarf. */
-  hat: "straw" | "cap" | "scarf";
-  /** Index into the palette's skin, apron and hair lists (art/colors.ts). */
-  skin: number;
-  apron: number;
-  hair: number;
+  /** The person's model in public/models (built by tools/blender/people.py). */
+  model: string;
   /** Said when the market opens. */
   greeting: string;
 }
@@ -61,26 +57,17 @@ const place = (
 export const MARKETS: readonly Market[] = [
   place(0, 0.25, "hai-dang", "Chợ Hải Đăng", {
     name: "Cô Lan",
-    hat: "straw",
-    skin: 0,
-    apron: 0,
-    hair: 0,
+    model: "people-1.glb",
     greeting: "Chào em! Cá hôm nay tươi lắm, để cô xem em câu được gì nào.",
   }),
   place(1, 0, "doi-xanh", "Chợ Đồi Xanh", {
     name: "Chú Tư",
-    hat: "cap",
-    skin: 1,
-    apron: 1,
-    hair: 1,
+    model: "people-4.glb",
     greeting: "Ê, về rồi đó hả? Đưa cá đây, chú trả giá tốt cho.",
   }),
   place(2, 0, "bai-co", "Chợ Bãi Cọ", {
     name: "Bà Sáu",
-    hat: "scarf",
-    skin: 2,
-    apron: 2,
-    hair: 2,
+    model: "people-5.glb",
     greeting: "Trời ơi, con cá to quá! Lại đây bà cân cho.",
   }),
 ];

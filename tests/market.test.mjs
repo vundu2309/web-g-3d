@@ -81,17 +81,15 @@ test("the piers are solid for the boats, like the islands", () => {
   }
 });
 
-test("every market has its own vendor with a name and a greeting", () => {
+test("every market has its own vendor with a name, a greeting and a model", () => {
   const names = new Set();
   for (const market of MARKETS) {
     const { vendor } = market;
     assert.ok(vendor.name.length > 1 && vendor.greeting.length > 10, market.id);
-    assert.ok(["straw", "cap", "scarf"].includes(vendor.hat));
+    assert.match(vendor.model, /^people-\d\.glb$/, `${market.id} model`);
     names.add(vendor.name);
   }
   assert.equal(names.size, MARKETS.length, "vendors are different people");
-  const looks = new Set(
-    MARKETS.map((m) => `${m.vendor.hat}${m.vendor.skin}${m.vendor.apron}`),
-  );
+  const looks = new Set(MARKETS.map((m) => m.vendor.model));
   assert.equal(looks.size, MARKETS.length, "and look different");
 });

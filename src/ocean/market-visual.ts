@@ -376,6 +376,6 @@ export function createMarket(scene: Scene, market: Market): Mesh {
   mesh.isPickable = false;
   mesh.freezeWorldMatrix();
   // The vendor is a child of the (frozen) pier, so it follows it but is free to animate.
-  createVendor(scene, mesh, market.id, market.vendor, market.x * 0.37);
+  createVendor(scene, mesh, market.vendor, market.x * 0.37);
   return mesh;
 }
