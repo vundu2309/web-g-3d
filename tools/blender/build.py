@@ -14,7 +14,7 @@ import lib, people
 ROOT = os.path.abspath(os.path.join(lib.HERE, "..", ".."))
 OUT = os.path.join(ROOT, "public", "models")
 # Triangle budgets: what the game can afford for one person (see docs/ocean.md "Blender pipeline").
-BUDGET = {"vendor_body": 4500, "vendor_arm": 600}
+BUDGET = {"vendor_body": 4800, "vendor_arm": 500}
 
 
 def build_person(pid, look):
