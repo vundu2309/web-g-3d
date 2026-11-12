@@ -8,14 +8,14 @@ Mọi thay đổi của ván phải đi theo một trình tự có người th�
 
 ## SESSION-002 — Ngoài lượt chỉ quan sát diễn biến chung, không có action
 
-| Thao tác                                          | Ngoài lượt                                                                      | Đến lượt                                    |
-| ------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------- |
-| Xem diễn biến bàn chung                           | Tự hiển thị quyết định, thẻ, kết quả của người đang chơi; không có nút thao tác | Được xem                                    |
-| Mở tài sản/kho đồ                                 | Không                                                                           | Được khi không có tác vụ bắt buộc xung đột  |
-| Chủ động đề nghị trade                            | Không                                                                           | Được nếu không có tác vụ bắt buộc đang treo |
-| Chủ động xây/bán nhà, thế chấp/giải chấp          | Không                                                                           | Được khi đúng pha và đủ điều kiện luật      |
-| Tung xúc xắc, mua đất, kết thúc lượt              | Không                                                                           | Chỉ đúng người/pha đang được yêu cầu        |
-| Phản hồi trade/đấu giá hoặc yêu cầu bắt buộc khác | Chỉ người được phiên yêu cầu phản hồi, đúng bước                                | Cùng điều kiện đó                           |
+| Thao tác | Ngoài lượt | Đến lượt |
+| --- | --- | --- |
+| Xem diễn biến bàn chung | Tự hiển thị quyết định, thẻ, kết quả của người đang chơi; không có nút thao tác | Được xem |
+| Mở tài sản/kho đồ | Không | Được khi không có tác vụ bắt buộc xung đột |
+| Chủ động đề nghị trade | Không | Được nếu không có tác vụ bắt buộc đang treo |
+| Chủ động xây/bán nhà, thế chấp/giải chấp | Không | Được khi đúng pha và đủ điều kiện luật |
+| Tung xúc xắc, mua đất, kết thúc lượt | Không | Chỉ đúng người/pha đang được yêu cầu |
+| Phản hồi trade/đấu giá hoặc yêu cầu bắt buộc khác | Chỉ người được phiên yêu cầu phản hồi, đúng bước | Cùng điều kiện đó |
 
 Ngoài lượt không mở kho đồ. Người dùng đã bỏ nút Lịch sử khỏi giao diện. “Bạn” là danh tính local; highlight “Đến lượt” và dấu “Cần phản hồi” phải phân biệt được.
 

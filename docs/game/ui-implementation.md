@@ -21,14 +21,14 @@ Phòng Auth/Firestore cũ tiếp tục hoạt động. Bắt đầu phòng chưa
 
 ## Ownership và đường nối backend sau này
 
-| File                    | Trách nhiệm                                                                                   |
-| ----------------------- | --------------------------------------------------------------------------------------------- |
-| `src/main.ts`           | Chọn route preview theo query, lazy-load module UI                                            |
-| `src/game-ui/model.ts`  | Catalog 24 scenario, contract action và presentation permission guard, fixed bid increments   |
-| `src/game-ui/render.ts` | Markup HUD, deed, inventory/trade/event/result surfaces; escape payload text                  |
-| `src/game-ui/icons.ts`  | SVG outline nhất quán và escape helper                                                        |
-| `src/game-ui/style.css` | Layout mobile landscape, portrait fallback, reduced-motion                                    |
-| `src/app/play.ts`       | Controller preview, local scripted transitions, dialog scenario selector, event/timer cleanup |
+| File | Trách nhiệm |
+| --- | --- |
+| `src/main.ts` | Chọn route preview theo query, lazy-load module UI |
+| `src/game-ui/model.ts` | Catalog 24 scenario, contract action và presentation permission guard, fixed bid increments |
+| `src/game-ui/render.ts` | Markup HUD, deed, inventory/trade/event/result surfaces; escape payload text |
+| `src/game-ui/icons.ts` | SVG outline nhất quán và escape helper |
+| `src/game-ui/style.css` | Layout mobile landscape, portrait fallback, reduced-motion |
+| `src/app/play.ts` | Controller preview, local scripted transitions, dialog scenario selector, event/timer cleanup |
 
 `Scenario` và dispatch guard là contract hiển thị, **không phải authorization bảo mật**. Adapter thật sau này phải nhận state authoritative, command hợp lệ, outcome và errors từ backend. Không đưa Firebase vào renderer/model UI. Mọi lệnh thay đổi tiền/quyền sở hữu cần backend kiểm tra; không tái sử dụng local preview dispatcher làm server.
 
@@ -50,16 +50,16 @@ HUD foreground shares one `.game-safe` coordinate system inset by the four `--sa
 
 Phạm vi đã được người dùng duyệt: bàn 3D WebGL (Three.js) trong `?view=game`, thay thế sơ đồ HTML cũ, cùng hai chế độ camera và các điều khiển xem. Đây vẫn là **bản xem trước cục bộ**: không ghi Firestore, không gửi lệnh gameplay, không thay đổi quyền thao tác. Camera không phải action; observer cũng dùng được.
 
-| File                           | Trách nhiệm                                                                                              |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `src/board/spaces.ts`          | Dữ liệu 40 ô theo `docs/game/rules/board-and-properties.md` (G0009, Rhode Island Avenue ở ô 6), nhóm màu |
-| `src/board/layout.ts`          | Hình học thuần: một lưới seam `GRID` dùng chung, chỉ số ô, hướng nhãn, dải màu, vị trí token/nhà         |
-| `src/board/camera-math.ts`     | Pose camera thuần: toàn cảnh (fit theo góc chiếu thật) và theo dõi (quay về phía ô của quân)             |
-| `src/board/texture.ts`         | Vẽ mặt bàn bằng canvas 2D (một texture duy nhất); cũng dùng cho bản phẳng dự phòng                       |
-| `src/board/models.ts`          | Token nguyên thủy (xe, mũ, tàu, chó), nhà, khách sạn, xúc xắc, chồng bài                                 |
-| `src/board/scene.ts`           | Nội dung cảnh: mặt bàn, slab, quân di chuyển theo đường đi, công trình; không tạo renderer               |
-| `src/board/stage.ts`           | `BoardStage`: một renderer suốt đời game view, một canvas di chuyển giữa các host sau mỗi lần HUD vẽ lại |
-| `src/game-ui/board-preview.ts` | Adapter fixture từ presentation sang trạng thái bàn                                                      |
+| File | Trách nhiệm |
+| --- | --- |
+| `src/board/spaces.ts` | Dữ liệu 40 ô theo `docs/game/rules/board-and-properties.md` (G0009, Rhode Island Avenue ở ô 6), nhóm màu |
+| `src/board/layout.ts` | Hình học thuần: một lưới seam `GRID` dùng chung, chỉ số ô, hướng nhãn, dải màu, vị trí token/nhà |
+| `src/board/camera-math.ts` | Pose camera thuần: toàn cảnh (fit theo góc chiếu thật) và theo dõi (quay về phía ô của quân) |
+| `src/board/texture.ts` | Vẽ mặt bàn bằng canvas 2D (một texture duy nhất); cũng dùng cho bản phẳng dự phòng |
+| `src/board/models.ts` | Token nguyên thủy (xe, mũ, tàu, chó), nhà, khách sạn, xúc xắc, chồng bài |
+| `src/board/scene.ts` | Nội dung cảnh: mặt bàn, slab, quân di chuyển theo đường đi, công trình; không tạo renderer |
+| `src/board/stage.ts` | `BoardStage`: một renderer suốt đời game view, một canvas di chuyển giữa các host sau mỗi lần HUD vẽ lại |
+| `src/game-ui/board-preview.ts` | Adapter fixture từ presentation sang trạng thái bàn |
 
 **Hình học.** Ô ngoài có chiều dài 1 đơn vị (frontage) và chiều sâu `RING_DEPTH` = 2.2. Bốn góc là hình vuông cạnh 2.2. Mọi seam lấy từ 12 toạ độ `GRID`, nên ô liền kề và góc khớp chính xác, không có bậc ở GO. Dải màu nằm phía trong ô (`STRIPE_DEPTH` 0.4). Tên nằm trong dải trắng, token nằm vùng ngoài. Nhà 0.19 đơn vị nằm trọn trong dải; khách sạn dài 0.5.
 

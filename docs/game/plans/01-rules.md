@@ -8,13 +8,13 @@ Ghi đủ luật Monopoly Classic US thành tài liệu có nguồn, ID và tìn
 
 ## Các phần làm lần lượt
 
-| Phần | Đầu ra                                                                 | Trạng thái                                                      |
-| ---- | ---------------------------------------------------------------------- | --------------------------------------------------------------- |
-| 01A  | [Bàn cờ, nhóm tài sản, bảng kinh tế](../rules/board-and-properties.md) | Baseline bàn giao cho thiết kế, ngoại lệ lưu lại trước gameplay |
-| 01B  | [Thiết lập, lượt và đấu giá](../rules/turns.md)                        | Backlog                                                         |
-| 01C  | [Thuê, xây, trao đổi, thế chấp](../rules/assets.md)                    | Backlog                                                         |
-| 01D  | [Thẻ, thuế, nhà tù](../rules/cards-and-jail.md)                        | Backlog                                                         |
-| 01E  | [Nợ, phá sản và kết thúc](../rules/bankruptcy.md)                      | Backlog                                                         |
+| Phần | Đầu ra | Trạng thái |
+| --- | --- | --- |
+| 01A | [Bàn cờ, nhóm tài sản, bảng kinh tế](../rules/board-and-properties.md) | Baseline bàn giao cho thiết kế, ngoại lệ lưu lại trước gameplay |
+| 01B | [Thiết lập, lượt và đấu giá](../rules/turns.md) | Backlog |
+| 01C | [Thuê, xây, trao đổi, thế chấp](../rules/assets.md) | Backlog |
+| 01D | [Thẻ, thuế, nhà tù](../rules/cards-and-jail.md) | Backlog |
+| 01E | [Nợ, phá sản và kết thúc](../rules/bankruptcy.md) | Backlog |
 
 ## Các bước riêng của 01A
 

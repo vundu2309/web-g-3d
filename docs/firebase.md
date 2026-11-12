@@ -24,10 +24,10 @@ The web API key is public and cannot grant administrator access. Never put servi
 
 ## Data and permissions
 
-| Document path                   | Data                                                                 | Access                                                                                                 |
-| ------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `monopolyHub/v1/profiles/<UID>` | displayName, createdAt Timestamp                                     | Signed-in password user owns get/create/update; no listing/delete                                      |
-| `monopolyHub/v1/rooms/<CODE>`   | title, hostId, capacity, createdAt Timestamp, status, players, seats | Signed-in password users read lobby; host creates/closes, each guest modifies own membership/readiness |
+| Document path | Data | Access |
+| --- | --- | --- |
+| `monopolyHub/v1/profiles/<UID>` | displayName, createdAt Timestamp | Signed-in password user owns get/create/update; no listing/delete |
+| `monopolyHub/v1/rooms/<CODE>` | title, hostId, capacity, createdAt Timestamp, status, players, seats | Signed-in password users read lobby; host creates/closes, each guest modifies own membership/readiness |
 
 Room title, host, capacity and creation time are immutable. Rules strictly validate shape, map sizes, seat/player correspondence and own identity. Starting needs the host, at least two players and all present ready. Lobby documents are visible to authenticated players; email/password/private profile data must never be added to them.
 

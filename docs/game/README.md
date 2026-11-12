@@ -28,14 +28,14 @@
 
 ## Bản đồ tài liệu
 
-| Plan độc lập                                          | Trạng thái                                                                    |
-| ----------------------------------------------------- | ----------------------------------------------------------------------------- |
-| [01 — Luật chơi](plans/01-rules.md)                   | Baseline đã chốt để thiết kế; nghiên cứu tạm dừng, còn backlog trước gameplay |
-| [02 — Giao diện mobile](plans/02-mobile-ui.md)        | Thiết kế đã duyệt; UI preview 24 trạng thái đã triển khai                     |
-| [03 — Model và luật thuần](plans/03-domain-model.md)  | Backlog                                                                       |
-| [04 — Backend gameplay](plans/04-game-backend.md)     | Backlog                                                                       |
-| [05 — Multiplayer](plans/05-multiplayer.md)           | Backlog                                                                       |
-| [06 — Bàn chơi và đồ họa](plans/06-board-graphics.md) | Backlog                                                                       |
-| [07 — Kiểm thử và phát hành](plans/07-release.md)     | Backlog                                                                       |
+| Plan độc lập | Trạng thái |
+| --- | --- |
+| [01 — Luật chơi](plans/01-rules.md) | Baseline đã chốt để thiết kế; nghiên cứu tạm dừng, còn backlog trước gameplay |
+| [02 — Giao diện mobile](plans/02-mobile-ui.md) | Thiết kế đã duyệt; UI preview 24 trạng thái đã triển khai |
+| [03 — Model và luật thuần](plans/03-domain-model.md) | Backlog |
+| [04 — Backend gameplay](plans/04-game-backend.md) | Backlog |
+| [05 — Multiplayer](plans/05-multiplayer.md) | Backlog |
+| [06 — Bàn chơi và đồ họa](plans/06-board-graphics.md) | Backlog |
+| [07 — Kiểm thử và phát hành](plans/07-release.md) | Backlog |
 
 Luật nằm trong [rules](rules/README.md). Tài liệu này là đặc tả dự kiến, không phải mô tả gameplay đã tồn tại. Xem [kiến trúc hiện tại](../architecture.md) cho hub đang chạy.

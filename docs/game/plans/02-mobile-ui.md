@@ -25,15 +25,15 @@ Ngoại lệ đã chốt: bỏ text di chuyển ở 02. Nội dung minh họa/t�
 
 ## Tiến độ theo màn
 
-| Phần | Phạm vi                                     | Trạng thái                    |
-| ---- | ------------------------------------------- | ----------------------------- |
-| 02A  | HUD chính, đầu lượt/chờ/di chuyển/tung tiếp | Thiết kế duyệt, UI preview có |
-| 02B  | Thẻ tài sản và mua, observer mua            | Thiết kế duyệt, UI preview có |
-| 02C  | Đấu giá và observer                         | Thiết kế duyệt, UI preview có |
-| 02D  | Tài sản, xây/bán, mortgage/unmortgage       | Thiết kế duyệt, UI preview có |
-| 02E  | Đề nghị/phản hồi/quan sát trade             | Thiết kế duyệt, UI preview có |
-| 02F  | Thanh toán/nợ, nhà tù/thẻ, phá sản          | Thiết kế duyệt, UI preview có |
-| 02G  | Kết quả, mất kết nối và khôi phục           | Thiết kế duyệt, UI preview có |
+| Phần | Phạm vi | Trạng thái |
+| --- | --- | --- |
+| 02A | HUD chính, đầu lượt/chờ/di chuyển/tung tiếp | Thiết kế duyệt, UI preview có |
+| 02B | Thẻ tài sản và mua, observer mua | Thiết kế duyệt, UI preview có |
+| 02C | Đấu giá và observer | Thiết kế duyệt, UI preview có |
+| 02D | Tài sản, xây/bán, mortgage/unmortgage | Thiết kế duyệt, UI preview có |
+| 02E | Đề nghị/phản hồi/quan sát trade | Thiết kế duyệt, UI preview có |
+| 02F | Thanh toán/nợ, nhà tù/thẻ, phá sản | Thiết kế duyệt, UI preview có |
+| 02G | Kết quả, mất kết nối và khôi phục | Thiết kế duyệt, UI preview có |
 
 ## Tiêu chí implementation trong phạm vi HUD
 
