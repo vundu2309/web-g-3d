@@ -453,6 +453,7 @@ export class OceanScene {
       this.camera.position.z,
       this.clock,
       this.wakeField.data,
+      [...(this.self && state ? [state] : []), ...this.fleet.values()],
     );
     this.sky.update(
       this.camera.position.x,

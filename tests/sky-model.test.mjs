@@ -26,3 +26,17 @@ test("water shader uses physically based terms and no GLSL reserved words", () =
   assert.match(src, /exp\(-absorb/);
   assert.doesNotMatch(src, /vec3 half\b|float half\b/);
 });
+
+import { packBoats, BOAT_MAX } from "../src/ocean/water.ts";
+test("boat shadows pack boats for the shader and cap at BOAT_MAX", () => {
+  const packed = packBoats([{ x: 1, z: 2, heading: 0.5 }]);
+  assert.equal(packed.length, BOAT_MAX * 4);
+  assert.deepEqual(packed.slice(0, 4), [1, 2, 0.5, 1]);
+  assert.equal(packed[7], 0, "empty slots are inactive");
+  const many = Array.from({ length: BOAT_MAX + 5 }, (_, i) => ({
+    x: i,
+    z: 0,
+    heading: 0,
+  }));
+  assert.equal(packBoats(many).length, BOAT_MAX * 4);
+});
