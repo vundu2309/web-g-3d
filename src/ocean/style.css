@@ -458,13 +458,13 @@
   content: "✕ ";
   color: #c0392b;
 }
-/* While loading, only the way back is on screen: no stick, no buttons, no counters. */
+/* While loading, only the settings button (the way back) is on screen: no stick, no buttons, no counters. */
 .ocean-loading:not([hidden], .is-done)
   ~ .ocean-hud
-  :is(.ocean-status, .ocean-bottom, .ocean-minimap, [data-ocean="crew"]) {
+  :is(.ocean-status, .ocean-bottom, .ocean-minimap) {
   visibility: hidden;
 }
-.ocean-loading:not([hidden], .is-done) ~ .ocean-hud [data-ocean="back"] {
+.ocean-loading:not([hidden], .is-done) ~ .ocean-hud [data-ocean="settings"] {
   position: relative;
   z-index: 4;
   /* The input layer is off while loading, so this one control takes its own touches. */
@@ -1442,4 +1442,36 @@ dialog.account-screen :is(input, textarea) {
   font-size: 14px;
   font-weight: 800;
   color: #385b8d;
+}
+
+/* Settings: the crew list sits in the full-screen hub, with the way back at the foot. */
+.crew-head h3 {
+  flex: 1;
+  margin: 0;
+  font-size: 18px;
+}
+.settings-body .crew-list {
+  max-height: none;
+  overflow: visible;
+}
+.settings-foot {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  padding-top: 10px;
+}
+.settings-leave {
+  min-width: 200px;
+  min-height: 48px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+  padding: 0;
 }

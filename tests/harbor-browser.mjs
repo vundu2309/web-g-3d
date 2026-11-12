@@ -194,7 +194,7 @@ try {
       covers: r.width >= window.innerWidth && r.height >= window.innerHeight,
       stick: visible(".ocean-stick"),
       fish: visible('[data-ocean="fish"]'),
-      back: visible('[data-ocean="back"]'),
+      back: visible('[data-ocean="settings"]'),
       bar: parseFloat(getComputedStyle(el).getPropertyValue("--progress")),
       steps: [...el.querySelectorAll("[data-step]")].map((s) => s.className),
     };
@@ -205,7 +205,11 @@ try {
   assert.ok(loading.covers, "the loading screen covers the whole screen");
   assert.equal(loading.stick, false, "no stick while loading");
   assert.equal(loading.fish, false, "no fishing button while loading");
-  assert.equal(loading.back, true, "but the way back stays");
+  assert.equal(
+    loading.back,
+    true,
+    "but the settings button (the way back) stays",
+  );
   assert.deepEqual(
     loading.steps,
     ["is-done", "is-active", ""],

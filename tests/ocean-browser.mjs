@@ -71,13 +71,18 @@ async function boatData(page) {
   }));
 }
 
+// Leaving the sea lives in Settings: open it from the HUD, then "Về sảnh".
+const leave = async (page) => {
+  await tap(page, page.getByRole("button", { name: "Cài đặt", exact: true }));
+  await page.getByRole("button", { name: "Về sảnh" }).click();
+};
 try {
   await mkdir("test-results", { recursive: true });
   const host = await player("Biển Minh", "ocean-minh@example.test");
   const guest = await player("Lan <b>", "ocean-lan@example.test");
   await host.getByText("2 thuyền", { exact: true }).waitFor();
   await guest.getByText("2 thuyền", { exact: true }).waitFor();
-  await tap(host, host.getByRole("button", { name: "Thuyền trong kênh" }));
+  await tap(host, host.getByRole("button", { name: "Cài đặt", exact: true }));
   await host.getByRole("listitem").filter({ hasText: "Lan <b>" }).waitFor();
   assert.equal(await host.locator("dialog li b").count(), 0);
   await host.getByRole("button", { name: "Đóng", exact: true }).click();
@@ -181,7 +186,7 @@ try {
       true,
     );
     for (const selector of [
-      '[data-ocean="back"]',
+      '[data-ocean="settings"]',
       '[data-ocean="fish"]',
       ".ocean-stick",
     ]) {
@@ -213,16 +218,16 @@ try {
     .getByText("Tài khoản đã mở thuyền ở cửa sổ khác.", { exact: false })
     .waitFor();
   assert.equal(await host.locator('[data-ocean="fish"]').isDisabled(), true);
-  await tap(host, host.getByRole("button", { name: "Về hub" }));
+  await leave(host);
   await host.locator('[data-harbor="play"]').waitFor();
-  await tap(duplicate, duplicate.getByRole("button", { name: "Về hub" }));
+  await leave(duplicate);
   await guest.getByText("1 thuyền", { exact: true }).waitFor();
   await guest.context().setOffline(true);
   await guest
     .locator("[data-loading-note]")
     .getByText("Đã mất mạng.", { exact: false })
     .waitFor();
-  await tap(guest, guest.getByRole("button", { name: "Về hub" }));
+  await leave(guest);
   await guest.locator('[data-harbor="play"]').waitFor();
   assert.deepEqual(errors, []);
   console.log(
