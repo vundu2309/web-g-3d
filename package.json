@@ -14,7 +14,7 @@
     "lint": "eslint src",
     "format": "prettier --write src tests scripts server eslint.config.js vite.config.ts",
     "format:check": "prettier --check src tests scripts server eslint.config.js vite.config.ts",
-    "test:unit": "node --import ./tests/support/register-resolve.mjs --test tests/rooms.test.mjs tests/diagnostics.test.mjs tests/game-ui.test.mjs tests/board-layout.test.mjs tests/ocean.test.mjs tests/fishing.test.mjs tests/fight.test.mjs tests/fight-look.test.mjs tests/rod-rope.test.mjs tests/haptics.test.mjs tests/map-detail.test.mjs tests/minimap.test.mjs tests/wake.test.mjs tests/wake-trail.test.mjs tests/creatures.test.mjs tests/boat-physics.test.mjs tests/art-palette.test.mjs tests/orbit-camera.test.mjs tests/hub-canvas.test.mjs tests/economy.test.mjs tests/market.test.mjs tests/economy-client.test.mjs",
+    "test:unit": "node --import ./tests/support/register-resolve.mjs --test tests/rooms.test.mjs tests/diagnostics.test.mjs tests/game-ui.test.mjs tests/board-layout.test.mjs tests/ocean.test.mjs tests/fishing.test.mjs tests/fight.test.mjs tests/fight-look.test.mjs tests/rod-rope.test.mjs tests/haptics.test.mjs tests/map-detail.test.mjs tests/minimap.test.mjs tests/wake.test.mjs tests/wake-trail.test.mjs tests/creatures.test.mjs tests/boat-physics.test.mjs tests/art-palette.test.mjs tests/orbit-camera.test.mjs tests/hub-canvas.test.mjs tests/economy.test.mjs tests/market.test.mjs tests/economy-client.test.mjs tests/sky-model.test.mjs",
     "test:browser": "node scripts/test-browser.mjs && node tests/pwa-browser.mjs",
     "test": "npm run test:unit && npm run build && npm run test:browser",
     "check": "npm run lint && npm run format:check && npm test && npm run test:rules && npm run test:api",

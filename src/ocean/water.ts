@@ -7,6 +7,7 @@ import type { Scene } from "@babylonjs/core/scene";
 import { islands } from "./model.ts";
 import { WAKE_MAX, glslWake } from "./wake.ts";
 import { glslWaveHeight } from "./waves.ts";
+import { glslSkyModel } from "./sky-model.ts";
 import {
   DEEP_WATER,
   FOG_DENSITY,
@@ -62,6 +63,7 @@ uniform vec4 islands[${islands.length}];
 varying vec3 vWorld;
 varying float vHeight;
 varying vec4 vWake;
+${glslSkyModel()}
 // A hash without sin(): cheaper on phone GPUs.
 float hash(vec2 p) {
   p = fract(p * vec2(0.1031, 0.1030));
@@ -73,10 +75,21 @@ float noise(vec2 p) {
   f = f * f * (3.0 - 2.0 * f);
   return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
 }
+// GGX / Trowbridge-Reitz normal distribution and Smith visibility (the sun's glitter).
+float distributionGGX(float nh, float a) {
+  float a2 = a * a;
+  float d = nh * nh * (a2 - 1.0) + 1.0;
+  return a2 / (3.14159265 * d * d);
+}
+float visibilitySmith(float nl, float nv, float a) {
+  float k = a * 0.5;
+  return 0.25 / ((nl * (1.0 - k) + k) * (nv * (1.0 - k) + k));
+}
 void main() {
   vec3 toCamera = cameraPosition - vWorld;
   float dist = length(toCamera);
   vec3 view = toCamera / dist;
+  vec3 sunDir = normalize(sunDirection);
   // The exact slope of the waves, with the short ones faded out with distance.
   vec2 slope = waveSlope(vWorld.xz, time, dist) + vWake.yz;
   // Fine ripples: two crossing layers, drifting, gone before they would shimmer.
@@ -88,29 +101,49 @@ void main() {
   detail += vec2(-0.5, 0.87) * cos(dot(q, vec2(-0.5, 0.87)) * 4.3 - time * 1.4 + sin(dot(q, vec2(0.9, 0.4)) * 0.7) * 2.0) * 0.05;
   }
   vec3 n = normalize(vec3(-slope.x - detail.x * ripple, 1.0, -slope.y - detail.y * ripple));
-  float fresnel = mix(0.03, 1.0, pow(1.0 - max(dot(n, view), 0.0), 4.5));
+  float nv = max(dot(n, view), 0.02);
+  // Roughness: the waves too small to draw make the sea rougher the farther it is.
+  float rough = clamp(0.04 + 0.5 * smoothstep(20.0, 400.0, dist) + 0.5 * length(slope) * 0.15, 0.04, 0.6);
+  float alpha = rough * rough;
+  // Schlick's Fresnel for water (F0 about 0.02), tamed at grazing angles on a rough sea.
+  float f0 = 0.02;
+  float fresnel = f0 + (max(1.0 - rough, f0) - f0) * pow(1.0 - nv, 5.0);
+  // What the sea mirrors: the same sky the dome draws (the sun itself is added below with GGX).
   vec3 reflected = reflect(-view, n);
-  float sky = clamp(reflected.y, 0.0, 1.0);
-  vec3 skyColor = mix(horizon, zenith, pow(sky, 0.55));
-  // Shore: how far this water is from the nearest beach.
+  reflected.y = abs(reflected.y);
+  vec3 mirror = skyRadiance(reflected, false);
+  // Shore and depth: how far this water is from the nearest beach, and how deep it is there.
   float shore = 1.0e3;
   for (int i = 0; i < ${islands.length}; i++)
     shore = min(shore, distance(vWorld.xz, islands[i].xy) - islands[i].z);
   float near = 1.0 - smoothstep(0.0, 26.0, shore);
-  // Body colour: deeper with distance from land, lighter on the crests.
-  vec3 body = mix(deep, shallow, clamp(0.35 + vHeight * 0.8 + near * 0.55, 0.0, 1.0));
-  // Light through the waves: crests seen against the sun glow green-blue.
-  float against = pow(clamp(dot(-view, normalize(vec3(sunDirection.x, 0.0, sunDirection.z))) * 0.5 + 0.5, 0.0, 1.0), 3.0);
+  float depth = mix(40.0, 0.4, near);
+  // Light that goes in and comes back: Beer-Lambert absorption (red is eaten first, then green),
+  // the bottom showing through the shallows, and scattering from the water itself.
+  vec3 absorb = vec3(0.52, 0.10, 0.045);
+  vec3 transmit = exp(-absorb * depth * 2.0);
+  vec3 skyIrradiance = mix(toLinear(horizon), toLinear(zenith), 0.6);
+  float nl = max(dot(vec3(0.0, 1.0, 0.0), sunDir), 0.0);
+  vec3 incident = skyIrradiance * 0.55 + sunColor() * SUN_RADIANCE * nl * 0.55;
+  vec3 scatterColor = toLinear(deep) * 1.2 + toLinear(shallow) * 0.25;
+  vec3 bottom = vec3(0.78, 0.68, 0.46) * incident * 0.35;
+  vec3 body = (bottom * transmit + scatterColor * incident * (1.0 - transmit * 0.8)) * 0.55;
+  // Light through the waves: crests seen against the sun glow green-blue (subsurface).
+  float against = pow(clamp(dot(-view, normalize(vec3(sunDir.x, 0.0, sunDir.z))) * 0.5 + 0.5, 0.0, 1.0), 3.0);
   float thin = smoothstep(0.0, 0.8, vHeight * 1.2 + length(slope) * 1.5);
-  body += vec3(0.05, 0.42, 0.34) * against * thin * 0.55;
-  vec3 color = mix(body, skyColor, fresnel);
-  // Sun glitter: a sharp core and a broad soft path; wider with distance so it never sparkles.
-  float sun = max(dot(reflected, normalize(sunDirection)), 0.0);
-  float tight = mix(300.0, 60.0, smoothstep(40.0, 320.0, dist));
-  color += vec3(1.0, 0.94, 0.8) * (pow(sun, tight) * 1.5 + pow(sun, 18.0) * 0.12);
-  // Foam: white caps on steep crests, broken up by noise, and a surf line at the beach.
+  body += vec3(0.02, 0.32, 0.26) * against * thin * incident * 0.35;
+  vec3 color = body * (1.0 - fresnel) + mirror * fresnel;
+  // The sun on the water: GGX specular, a bright glitter path whose width grows with roughness.
+  vec3 halfway = normalize(view + sunDir);
+  float nh = max(dot(n, halfway), 0.0);
+  float nlSun = max(dot(n, sunDir), 0.0);
+  float vh = max(dot(view, halfway), 0.0);
+  float fSun = f0 + (1.0 - f0) * pow(1.0 - vh, 5.0);
+  float specular = distributionGGX(nh, max(alpha, 0.0009)) * visibilitySmith(nlSun, nv, max(alpha, 0.03)) * fSun * nlSun;
+  color += sunColor() * SUN_RADIANCE * min(specular, 40.0);
+  // Foam: white caps on steep crests, broken up by noise, and a surf line at the beach. It is a
+  // rough white surface, so it takes the light that falls on it (sun and sky), not the mirror.
   float cap = smoothstep(0.46, 0.92, vHeight * 0.9 + length(slope) * 0.9);
-  // The foam pattern is only worked out where there can be foam (steep crests, the beach).
   if (cap > 0.0 || shore < 10.0) {
     float lace = noise(vWorld.xz * 1.35 + vec2(time * 0.25, -time * 0.18)) * 0.65 + noise(vWorld.xz * 3.7 - time * 0.4) * 0.35;
     float foam = cap * smoothstep(0.38, 0.72, lace);
@@ -118,11 +151,15 @@ void main() {
     float surf = (1.0 - smoothstep(0.4, 3.4, edge)) * smoothstep(-1.2, 0.2, edge);
     float trail = (1.0 - smoothstep(2.8, 6.0, edge)) * smoothstep(2.2, 3.0, edge) * smoothstep(0.55, 0.8, lace) * 0.55;
     foam = clamp(max(foam * 0.85, max(surf, trail)), 0.0, 1.0);
-    color = mix(color, vec3(0.95, 0.98, 1.0), foam);
+    vec3 foamColor = vec3(0.92, 0.95, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * nlSun * 0.3);
+    color = mix(color, foamColor, foam);
   }
+  // Aerial perspective: far water takes the colour of the sky toward the horizon in its own
+  // direction, so the fog and the sky meet without a seam.
+  vec3 haze = skyRadiance(normalize(vec3(-view.x, 0.015, -view.z)), false);
   float fog = 1.0 - exp(-fogDensity * fogDensity * dist * dist);
-  color = mix(color, horizon, clamp(fog, 0.0, 1.0));
-  gl_FragColor = vec4(color, 1.0);
+  color = mix(color, haze, clamp(fog, 0.0, 1.0));
+  gl_FragColor = vec4(toScreen(color), 1.0);
 }`;
 
 export interface Water {
