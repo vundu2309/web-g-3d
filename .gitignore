@@ -21,3 +21,4 @@ test-results/
 
 # Supabase CLI local metadata
 supabase/.temp/
+.blender-venv
