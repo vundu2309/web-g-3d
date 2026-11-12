@@ -26,29 +26,34 @@ CL = PP["clothes"]
 # The five looks (order of the reference line-up). Ids are the GLB names.
 # --------------------------------------------------------------------------------------------
 LOOKS = {
-    # slim woman, long straight dark hair, white button shirt, khaki trousers, dark flats
+    # Cô Lan: slim woman, long dark hair under a non la, cream ao ba ba, black trousers, teal apron
     "people-1": dict(sex="f", height=1.67, girth=0.93, bust=0.8, skin="fair", lip="lip",
                      hair="long", hair_col="black", part=0.0,
-                     top="shirt", bottom="trousers", shoes="flats", left="hang", weight=1),
-    # woman, short dark bob, black tee, blue jeans, pink sneakers
+                     top="shirt", top_col="babaCream", bottom="trousers", bottom_col="blackPants",
+                     shoes="flats", shoe_col="sandal", hat="non", hat_col="hatStraw", apron="apronTeal",
+                     left="hang", weight=1),
+    # a young woman: short bob, lilac ao ba ba, black trousers, rose apron (spare)
     "people-2": dict(sex="f", height=1.62, girth=1.0, bust=0.9, skin="light", lip="lip",
                      hair="bob", hair_col="dark", part=0.35,
-                     top="tee", top_col="tee", bottom="jeans", shoes="sneaker", shoe_col="sneakerPink",
-                     left="hip", weight=-1, head=(-6, 4)),
-    # woman, shoulder-length dark hair, lavender zip jacket over a light top, purple shorts
+                     top="tee", top_col="babaLilac", bottom="trousers", bottom_col="blackPants",
+                     shoes="flats", shoe_col="sandal", apron="apronRose", left="hip", weight=-1, head=(-6, 4)),
+    # a woman with a blue head scarf, mustard ao ba ba, dark trousers (spare)
     "people-3": dict(sex="f", height=1.64, girth=0.97, bust=0.85, skin="tan", lip="lip",
                      hair="shoulder", hair_col="dark", part=-0.3,
-                     top="jacket", bottom="shorts", shoes="sneaker", shoe_col="sneakerGrey", socks=True,
+                     top="shirt", top_col="babaMustard", bottom="trousers", bottom_col="blackPants",
+                     shoes="flats", shoe_col="sandal", hat="scarf", hat_col="scarfBlue",
                      left="bent", weight=1, head=(5, -2)),
-    # dark-skinned man, short black hair, yellow-green tee, jeans, grey sneakers
+    # Chú Tư: dark-skinned fisherman, short hair, a faded blue work shirt, brown trousers, flat cap
     "people-4": dict(sex="m", height=1.78, girth=1.04, bust=0.0, skin="deep", lip="lipDeep",
                      hair="short", hair_col="black", part=0.0,
-                     top="tee", top_col="lime", bottom="jeans", jeans_col="jeansDark", shoes="sneaker",
-                     shoe_col="sneakerGrey", left="hang", weight=-1, head=(-3, 0)),
-    # fuller-figured woman, wavy brown hair (grey streaks), salmon knit sweater, jeans, light shoes
+                     top="tee", top_col="fisherShirt", bottom="trousers", bottom_col="fisherPants",
+                     shoes="flats", shoe_col="sandal", hat="cap", hat_col="capNavy",
+                     left="hang", weight=-1, head=(-3, 0)),
+    # Bà Sáu: fuller-figured older woman, grey-streaked hair under a coral scarf, maroon ao ba ba, rose apron
     "people-5": dict(sex="f", height=1.60, girth=1.32, bust=1.3, skin="warm", lip="lip",
                      hair="wavy", hair_col="brown", streak="grey", part=0.25,
-                     top="sweater", bottom="jeans", shoes="sneaker", shoe_col="shoeLight",
+                     top="sweater", top_col="babaMaroon", bottom="trousers", bottom_col="blackPants",
+                     shoes="flats", shoe_col="sandal", hat="scarf", hat_col="scarfCoral", apron="apronRose",
                      left="bent", weight=1, head=(4, 3)),
 }
 
@@ -282,21 +287,24 @@ class Person:
         c = lambda k: mat(k, CL[k], 0.8)
         top = L["top"]
         if top == "shirt":
-            self.TOP, self.SLEEVE = c("shirt"), c("shirt")
+            self.TOP, self.SLEEVE = c(L.get("top_col", "shirt")), c(L.get("top_col", "shirt"))
         elif top == "tee":
             self.TOP = self.SLEEVE = c(L["top_col"])
         elif top == "jacket":
             self.TOP, self.SLEEVE = c("top"), c("jacket")
             self.JACKET, self.ZIP = c("jacket"), c("zip")
         else:
-            self.TOP = self.SLEEVE = c("knit")
+            self.TOP = self.SLEEVE = c(L.get("top_col", "knit"))
         b = L["bottom"]
-        self.BOTTOM = c("khaki") if b == "trousers" else c("shorts") if b == "shorts" else c(L.get("jeans_col", "jeans"))
+        self.BOTTOM = (c(L["bottom_col"]) if "bottom_col" in L else
+                       c("khaki") if b == "trousers" else c("shorts") if b == "shorts" else c(L.get("jeans_col", "jeans")))
         self.BELT = mat("belt", PAL["fit"]["belt"], 0.5)
-        self.SHOE = c("flats") if L["shoes"] == "flats" else c(L["shoe_col"])
+        self.SHOE = c(L.get("shoe_col", "flats")) if L["shoes"] == "flats" else c(L["shoe_col"])
         self.SOLE = c("sole")
         self.SOCK = c("sock")
         self.BUTTON = c("button")
+        self.APRON = c(L["apron"]) if L.get("apron") else None
+        self.HATM = c(L["hat_col"]) if L.get("hat") else None
         sk = SKELETON[self.sex]
         self.sk = sk
         self.shift = 0.012 * L["weight"]  # hips toward the weight-bearing leg
@@ -1079,6 +1087,115 @@ class Person:
         bm.free()
 
     # ---- the whole person --------------------------------------------------------------------
+
+    # ---- village headwear and the apron --------------------------------------------------
+    def _shell(self, g, m, flip_if_inward=None):
+        """Makes an object from an open or closed surface; open ones are thickened a little."""
+        o = g.obj(recalc=flip_if_inward is None)
+        if flip_if_inward is not None:
+            c = flip_if_inward
+            s = sum((p.normal.dot(p.center - c)) for p in o.data.polygons)
+            if s < 0:
+                bm = bmesh.new(); bm.from_mesh(o.data)
+                bmesh.ops.reverse_faces(bm, faces=bm.faces)
+                bm.to_mesh(o.data); bm.free()
+            md = o.modifiers.new("s", "SOLIDIFY")
+            md.thickness = 0.007
+            md.offset = -1
+            bpy.context.view_layer.objects.active = o
+            bpy.ops.object.modifier_apply(modifier="s")
+        self.objs.append(o)
+        self.keep.append(o)   # thin shells tear when they are simplified
+        return o
+
+    def _revolve(self, name, prof, c, m, n=28, thick=0.006, sy=1.0):
+        """A thin closed dome: `prof` is (radius, height) from the rim to the apex."""
+        g = Geo(name)
+        outer, inner = [], []
+        for r, z in prof:
+            outer.append([g.vert(V((c.x + math.cos(TAU * i / n) * r, c.y + math.sin(TAU * i / n) * r * sy, c.z + z)))
+                          for i in range(n)])
+            ri = max(r - thick, 0.0)
+            inner.append([g.vert(V((c.x + math.cos(TAU * i / n) * ri, c.y + math.sin(TAU * i / n) * ri * sy,
+                                    c.z + z - thick))) for i in range(n)])
+        for k in range(len(prof) - 1):
+            for i in range(n):
+                j = (i + 1) % n
+                g.face((outer[k][i], outer[k][j], outer[k + 1][j], outer[k + 1][i]), m)
+                g.face((inner[k][j], inner[k][i], inner[k + 1][i], inner[k + 1][j]), m)
+        for i in range(n):
+            j = (i + 1) % n
+            g.face((outer[0][j], outer[0][i], inner[0][i], inner[0][j]), m)
+        return self._shell(g, m)
+
+    def hat(self):
+        kind, m = self.L.get("hat"), self.HATM
+        if not kind:
+            return
+        c = V((HEAD_C.x, HEAD_C.y + 0.004, HEAD_C.z + 0.062))
+        if kind == "non":        # the conical straw hat
+            self._revolve("hat", [(0.345, 0.0), (0.315, 0.010), (0.255, 0.036), (0.185, 0.074), (0.115, 0.118),
+                                  (0.05, 0.158), (0.0, 0.178)], c, m, n=30)
+            band = mat("hatband", CL["scarfCoral"], 0.8)
+            for s in (-1, 1):   # chin strap
+                a = lib.Build(False).bar((s * 0.098, c.y - 0.02, c.z + 0.012), (s * 0.052, c.y - 0.075, HEAD_C.z - 0.105), 0.008, band)
+                self.objs.append(a)
+                self.keep.append(a)
+        elif kind == "cap":      # a flat cap with a short peak
+            self._revolve("cap", [(0.106, 0.0), (0.109, 0.018), (0.102, 0.046), (0.082, 0.072), (0.05, 0.09),
+                                  (0.0, 0.098)], V((c.x, c.y + 0.004, c.z + 0.004)), m, n=22, sy=1.08)
+            g = Geo("peak")
+            top = [g.vert(V((c.x + 0.098 * math.cos(math.pi + math.pi * k / 10),
+                             c.y - 0.075 + 0.105 * math.sin(math.pi + math.pi * k / 10), c.z + 0.004))) for k in range(11)]
+            bot = [g.vert(V((p.x, p.y, p.z - 0.008))) for p in [g.v[i] for i in top]]
+            for k in range(10):
+                g.face((top[k], top[k + 1], bot[k + 1], bot[k]), m)
+            g.face(tuple(top), m)
+            g.face(tuple(reversed(bot)), m)
+            pk = g.obj()
+            self.objs.append(pk)
+            self.keep.append(pk)
+        else:                    # a knotted head scarf
+            self._revolve("scarf", [(0.113, 0.0), (0.119, 0.030), (0.113, 0.066), (0.091, 0.097), (0.056, 0.117),
+                                    (0.0, 0.127)], V((c.x, c.y + 0.006, c.z - 0.012)), m, n=26, sy=1.04)
+            b = lib.Build(False)
+            for s in (-1, 1):
+                kb = b.ball(0.034, (s * 0.04, c.y + 0.115, c.z + 0.05), m, (1.5, 0.8, 0.9), seg=10, rings=6,
+                            rot=(0, 0, s * 0.5))
+                self.objs.append(kb)
+                self.keep.append(kb)
+
+    def apron(self):
+        m = self.APRON
+        if m is None:
+            return
+        g = Geo("apron")
+        zs = [1.34, 1.29, 1.23, 1.16, 1.09, 1.02, 0.95, 0.88, 0.80, 0.72, 0.64]
+        angs = [-1.2 + 2.4 * k / 12 for k in range(13)]
+        rows = []
+        for z in zs:
+            zz = max(z, 0.795)
+            r, c = self.torso_ring(zz)
+            bib = 0.55 + 0.45 * smooth01((1.34 - z) / 0.16)
+            flare = 1.03 + 0.30 * smooth01((1.02 - z) / 0.38)
+            # stand clear of the bust and belly, which push the shirt out in front
+            off = 0.018 + 0.030 * self.L["bust"] * smooth01((z - 1.02) / 0.1) * smooth01((1.38 - z) / 0.1) + 0.012 * (self.g - 1) * 4
+            row = []
+            for a in angs:
+                x = c.x + r["w"] * math.sin(a) * bib * flare
+                y = c.y + r["oy"] - (r["f"] + off) * math.cos(a) * flare
+                row.append(g.vert(V((x, y, z))))
+            rows.append(row)
+        for k in range(len(zs) - 1):
+            for i in range(len(angs) - 1):
+                g.face((rows[k][i], rows[k][i + 1], rows[k + 1][i + 1], rows[k + 1][i]), m)
+        self._shell(g, m, flip_if_inward=V((0, 0.2, 1.0)))
+        b = lib.Build(False)
+        for s in (-1, 1):   # shoulder straps from the bib's top corners
+            st = b.bar((s * 0.062 * self.g, -0.066, 1.335), (s * 0.075, -0.014, 1.468), 0.02, m, depth=0.008)
+            self.objs.append(st)
+            self.keep.append(st)
+
     def build(self):
         o, neck_z = self.torso()
         if self.L["top"] == "shirt":
@@ -1089,6 +1206,8 @@ class Person:
             self.leg(side)
         self.head()
         self.hair()
+        self.hat()
+        self.apron()
         hang = (7, -3, 3, 16, 1, 9)
         left = {"hang": (8, -2, 5, 18, 2, 10), "hip": (38, -18, -50, 12, -75, 25),
                 "bent": (6, 4, 2, 48, 0, 40)}[self.L["left"]]
@@ -1097,12 +1216,58 @@ class Person:
         return S
 
 
+# --------------------------------------------------------------------------------------------
+# "Cute" proportions: a bigger head on a shorter, rounder body, applied to the finished mesh.
+# --------------------------------------------------------------------------------------------
+CUTE = dict(head=1.42, legs=0.86, round=1.07, neck=(1.38, 1.50))
+
+
+def cute_warp(objs, extra_points=()):
+    """Smoothly rescale everything: the body below the neck is shortened and made rounder, the head
+    above it is enlarged (more at the top), with a blend across the neck so nothing tears."""
+    H, K, R = CUTE["head"], CUTE["legs"], CUTE["round"]
+    n0, n1 = CUTE["neck"]
+    cy = HEAD_C.y
+
+    def w(z):
+        t = min(1.0, max(0.0, (z - n0) / (n1 - n0)))
+        return t * t * (3 - 2 * t)
+
+    # cumulative height map z -> z' (the vertical scale blends from K to H across the neck)
+    steps = 2400
+    zmax = 2.2
+    table = [0.0]
+    for i in range(steps):
+        z = (i + 0.5) * zmax / steps
+        table.append(table[-1] + (K + (H - K) * w(z)) * zmax / steps)
+
+    def zmap(z):
+        t = min(max(z, 0.0), zmax) / zmax * steps
+        i = min(int(t), steps - 1)
+        return table[i] + (table[i + 1] - table[i]) * (t - i)
+
+    def warp(p):
+        wz = w(p.z)
+        sx = R + (H - R) * wz
+        py = cy * wz
+        return V((p.x * sx, py + (p.y - py) * sx, zmap(p.z)))
+
+    for o in objs:
+        for v in o.data.vertices:
+            v.co = warp(v.co)
+        o.data.update()
+    return [warp(q) for q in extra_points]
+
+
 def build(look):
     """Builds one look. Returns (body objects, face objects to protect, the arm_wave pivot, the
     arm's objects, height scale)."""
     p = Person(look)
     S = p.build()
+    (S,) = cute_warp(p.objs + p.wave, [S])
+    top = max(v.co.z for o in p.objs for v in o.data.vertices)
     bpy.ops.object.empty_add(location=S)
     pv = bpy.context.object
     pv.name = "arm_wave"
-    return p.objs, p.keep, pv, p.wave, look["height"] / 1.70
+    # the tallest look is 1.78 m; everyone is a little shorter than life, which reads cuter
+    return p.objs, p.keep, pv, p.wave, look["height"] * 0.94 / top

@@ -7,7 +7,7 @@ import { PAL } from "../src/ocean/art/colors.ts";
 // The GLB models made by the Blender pipeline (tools/blender, public/models) must stay valid,
 // painted with vertex colours, inside their triangle budget and animatable: the game loads them
 // without Blender, so a bad file would only show up in a player's browser.
-const BUDGET = { body: 4500, arm: 600 };
+const BUDGET = { body: 4900, arm: 600 };
 
 function readGlb(path) {
   const data = readFileSync(path);
