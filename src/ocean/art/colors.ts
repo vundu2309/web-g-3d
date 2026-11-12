@@ -66,22 +66,51 @@ export const PAL = {
   hut: { wall: 0xf3e3b8, glass: 0x8fd0e8, rowboat: 0x3a6ea5 },
   /** The fisherman on the boat. */
   crew: { coat: 0xffc83d, trousers: 0x2f5d8a, skin: 0xf2b98f, hat: 0xe9c46a },
-  /** The market vendors: skin tones, aprons, hair and the three kinds of headwear. */
-  vendor: {
-    skin: [0xe6ad84, 0xc98b63, 0xf5c7a1],
-    apron: [0x2fa39a, 0x5b6fc7, 0xd9577a],
-    hair: [0x3b2a22, 0xb9b3a8, 0x1f1b1a],
-    hat: { straw: 0xf0d98a, cap: 0x35506e, scarf: 0xf08a5d },
-  },
-  /** What a person is made of besides skin, hair and hat (the Blender characters, tools/blender). */
-  person: {
-    shirt: 0xfaf0da,
-    lip: 0xc9605a,
-    blush: 0xe99a86,
-    eye: 0x2a1d19,
-    eyeWhite: 0xfdfdfb,
-    band: 0xd9573f,
-    pocket: 0x228a82,
+  /**
+   * The people of the sea (the market vendors and later NPCs, built in Blender: tools/blender/people.py):
+   * skin tones, hair, the face and each look's clothes, by role.
+   */
+  people: {
+    skin: {
+      fair: 0xf1cba8,
+      light: 0xe7b48f,
+      tan: 0xcf9a72,
+      deep: 0x6e4632,
+      warm: 0xdda07c,
+    },
+    hair: {
+      black: 0x1d1917,
+      dark: 0x2c211c,
+      brown: 0x5b3b28,
+      grey: 0xa9a39b,
+    },
+    face: {
+      iris: 0x3b2618,
+      white: 0xf4f1ea,
+      lash: 0x161212,
+      lip: 0xc0716b,
+      lipDeep: 0x8c4c44,
+    },
+    clothes: {
+      shirt: 0xf3f1ec,
+      button: 0xcfcac0,
+      khaki: 0xc6ac82,
+      flats: 0x2d2a2b,
+      tee: 0x26282d,
+      jeans: 0x4b6c9c,
+      jeansDark: 0x3d5884,
+      sneakerPink: 0xd77eb1,
+      sole: 0xf0eee9,
+      jacket: 0xab97d8,
+      zip: 0x7f68b8,
+      top: 0xe9ecf2,
+      shorts: 0x76579f,
+      sneakerGrey: 0x9ba1a9,
+      sock: 0xf8f8f6,
+      lime: 0xc2cf3d,
+      knit: 0xe98c6c,
+      shoeLight: 0xe7dece,
+    },
   },
   /** The rod and the lure. */
   rod: { cork: 0xe3c38d, graphite: 0x6b4423, tip: 0xff7a2e, lure: 0xff7333 },

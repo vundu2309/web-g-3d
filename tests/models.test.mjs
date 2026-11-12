@@ -1,13 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { MARKETS } from "../src/ocean/market.ts";
 import { PAL } from "../src/ocean/art/colors.ts";
 
 // The GLB models made by the Blender pipeline (tools/blender, public/models) must stay valid,
 // painted with vertex colours, inside their triangle budget and animatable: the game loads them
 // without Blender, so a bad file would only show up in a player's browser.
-const BUDGET = { body: 3300, arm: 500 };
+const BUDGET = { body: 4500, arm: 600 };
 
 function readGlb(path) {
   const data = readFileSync(path);
@@ -18,20 +18,36 @@ function readGlb(path) {
   return JSON.parse(data.toString("utf8", 20, 20 + jsonLength));
 }
 
-test("every market has a vendor model with a body, a waving arm and baked colours", () => {
-  for (const market of MARKETS) {
-    const file = new URL(
-      `../public/models/vendor-${market.id}.glb`,
-      import.meta.url,
-    );
+const PEOPLE = readdirSync(new URL("../public/models/", import.meta.url))
+  .filter((file) => /^people-\d\.glb$/.test(file))
+  .sort();
+
+test("all five people are built and every market's vendor is one of them", () => {
+  assert.deepEqual(
+    PEOPLE,
+    [1, 2, 3, 4, 5].map((n) => `people-${n}.glb`),
+  );
+  for (const market of MARKETS)
     assert.ok(
-      existsSync(file),
-      `${market.id}: public/models/vendor-${market.id}.glb`,
+      existsSync(
+        new URL(`../public/models/${market.vendor.model}`, import.meta.url),
+      ),
+      `${market.id}: public/models/${market.vendor.model}`,
     );
-    const gltf = readGlb(file);
+});
+
+test("every person has a body, a waving arm and baked colours, within budget", () => {
+  for (const file of PEOPLE) {
+    const gltf = readGlb(new URL(`../public/models/${file}`, import.meta.url));
     const names = gltf.nodes.map((n) => n.name);
-    assert.ok(names.includes("vendor_body"), `${market.id}: vendor_body`);
-    assert.ok(names.includes("arm_wave"), `${market.id}: arm_wave pivot`);
+    assert.ok(names.includes("vendor_body"), `${file}: vendor_body`);
+    const pivot = gltf.nodes.find((n) => n.name === "arm_wave");
+    assert.ok(pivot, `${file}: arm_wave pivot`);
+    assert.equal(
+      pivot.children?.length,
+      1,
+      `${file}: the arm hangs from the pivot`,
+    );
     let triangles = { body: 0, arm: 0 };
     for (const node of gltf.nodes) {
       if (node.mesh === undefined) continue;
@@ -47,13 +63,19 @@ test("every market has a vendor model with a body, a waving arm and baked colour
       }
     }
     assert.ok(
-      triangles.body > 500 && triangles.body <= BUDGET.body,
-      `${market.id} body ${triangles.body}`,
+      triangles.body > 2000 && triangles.body <= BUDGET.body,
+      `${file} body ${triangles.body}`,
     );
     assert.ok(
-      triangles.arm > 50 && triangles.arm <= BUDGET.arm,
-      `${market.id} arm ${triangles.arm}`,
+      triangles.arm > 200 && triangles.arm <= BUDGET.arm,
+      `${file} arm ${triangles.arm}`,
     );
+    // about 1.6-1.85 m tall (the position accessor's bounds, scaled by the node)
+    const body = gltf.nodes.find((n) => n.name === "vendor_body");
+    const pos =
+      gltf.accessors[gltf.meshes[body.mesh].primitives[0].attributes.POSITION];
+    const height = (pos.max[1] - pos.min[1]) * (body.scale?.[1] ?? 1);
+    assert.ok(height > 1.5 && height < 1.9, `${file} height ${height}`);
   }
 });
 
