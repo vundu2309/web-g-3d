@@ -196,3 +196,7 @@ Each island has a fish market: a floating wooden pier with a striped-awning stal
 ## Sea light model
 
 Sky and water share `src/ocean/sky-model.ts`: one linear-light radiance function (horizon→zenith gradient, warm glow and Mie halo toward the sun, sun disc) and one ACES tone map + gamma. The water fragment (`water.ts`) is physically based: Schlick Fresnel (F0 0.02) softened by roughness, a GGX/Smith sun specular whose roughness grows with distance, reflection of the same sky the dome draws, Beer–Lambert absorption by depth (shallows near islands show the sandy bottom), subsurface glow on crests against the sun, foam lit by sun and sky, and aerial-perspective fog tinted by the sky in the view direction. Boats, markets and islands still use Babylon's Standard materials in gamma space; there are no cast shadows yet.
+
+### Boat shadows on the water
+
+`water.ts` darkens the sea in the shadow of every boat (yours first, then the fleet, up to `BOAT_MAX` = 12). There is no shadow map: each boat is three slices (hull, cabin, mast), each projected onto the water along the sun's ground direction by `height / tan(elevation)`, so the low sun throws a long shadow away from it (`SUN_DIRECTION` in `sea-style.ts`). In shadow the water loses the sun's share of its light (body, glitter, foam) and a little of the mirrored sky. Boats do not shadow islands or each other's decks, and islands/markets cast no shadow on the sea.
