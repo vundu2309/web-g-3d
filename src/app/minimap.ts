@@ -9,6 +9,7 @@ import {
 } from "../ocean/minimap-math";
 import { hullCss } from "../ocean/palette";
 import { BUOYS } from "../ocean/sea-layout";
+import { MARKETS } from "../ocean/market";
 
 /**
  * A small map of the whole sea in the corner of the screen: islands, the harbor, the
@@ -157,6 +158,30 @@ export function createMinimap(canvas: HTMLCanvasElement) {
       c.strokeStyle = "#fff";
       c.lineWidth = Math.max(1, unit * 0.5);
       c.stroke();
+    }
+    // The fish markets: a gold coin with a small fish on it, bigger than a buoy so it can be
+    // found from afar.
+    for (const market of MARKETS) {
+      const at = toMap(market.x, market.z, px);
+      const r = unit * 3.4;
+      c.beginPath();
+      c.arc(at.x, at.y, r, 0, Math.PI * 2);
+      c.fillStyle = "#ffd35a";
+      c.fill();
+      c.lineWidth = Math.max(1, unit * 0.9);
+      c.strokeStyle = INK;
+      c.stroke();
+      // The fish: a body and a tail.
+      c.fillStyle = INK;
+      c.beginPath();
+      c.ellipse(at.x - r * 0.1, at.y, r * 0.46, r * 0.27, 0, 0, Math.PI * 2);
+      c.fill();
+      c.beginPath();
+      c.moveTo(at.x + r * 0.28, at.y);
+      c.lineTo(at.x + r * 0.62, at.y - r * 0.3);
+      c.lineTo(at.x + r * 0.62, at.y + r * 0.3);
+      c.closePath();
+      c.fill();
     }
     // The harbor: a small white dock.
     const harbor = toMap(HARBOR.x, HARBOR.z, px);

@@ -1,10 +1,6 @@
 import { speciesById, type Inventory } from "./fishing.ts";
-import {
-  SEA_BOUND,
-  islandCollisionRadius,
-  islands,
-  type Pose,
-} from "./model.ts";
+import { SEA_BOUND, type Pose } from "./model.ts";
+import { seaObstacles } from "./market.ts";
 
 /**
  * What the player keeps between visits: where the boat was and how many fish they
@@ -94,11 +90,8 @@ export function decodeSave(
   if (Math.abs(heading) > Math.PI) return { caught, fish };
   if (Math.abs(x) > SEA_BOUND - 6 || Math.abs(z) > SEA_BOUND - 6)
     return { caught, fish };
-  if (
-    islands.some(
-      (i) => Math.hypot(x - i.x, z - i.z) < islandCollisionRadius(i) + 5,
-    )
-  )
+  // Not near an island, nor inside or beside a market pier (see market.ts).
+  if (seaObstacles().some((o) => Math.hypot(x - o.x, z - o.z) < o.radius + 5))
     return { caught, fish };
   return { pose: { x, z, heading, fishing: false }, caught, fish };
 }

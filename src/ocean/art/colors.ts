@@ -42,6 +42,8 @@ export const PAL = {
     boots: 0x242830,
     belt: 0x5a3b22,
   },
+  /** The fish markets: awning, sign board, coin and the silver of the fish on display. */
+  market: { board: 0x1f4f8f, coin: 0xffd35a, silver: 0xc4d3e0, post: 0x7a5232 },
   /** Hull bands below the palette colour. */
   hull: { boot: 0xfff3d6, waterline: 0x8c3a35 },
   metal: { steel: 0x4b4f56, light: 0xcfd6df },
