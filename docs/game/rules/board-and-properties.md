@@ -6,48 +6,48 @@
 
 Chỉ số 0 là GO, tăng theo chiều di chuyển. Đây là chỉ số đặc tả dự kiến, không phải schema đã tồn tại trong source. Tên hiển thị tiếng Anh không được tự Việt hóa. Khác biệt dấu câu/cách viết phải đối chiếu đúng edition, đặc biệt railroad.
 
-| Vị trí | Tên | Loại / nhóm |
-| --- | --- | --- |
-| 0 | GO | Special |
-| 1 | Mediterranean Avenue | Brown |
-| 2 | Community Chest | Card |
-| 3 | Baltic Avenue | Brown |
-| 4 | Income Tax | Special |
-| 5 | Reading Railroad | Railroad |
-| 6 | Rhode Island Avenue | Light blue |
-| 7 | Chance | Card |
-| 8 | Vermont Avenue | Light blue |
-| 9 | Connecticut Avenue | Light blue |
-| 10 | Jail / Just Visiting | Special |
-| 11 | St. Charles Place | Pink |
-| 12 | Electric Company | Utility |
-| 13 | States Avenue | Pink |
-| 14 | Virginia Avenue | Pink |
-| 15 | Pennsylvania Railroad | Railroad |
-| 16 | St. James Place | Orange |
-| 17 | Community Chest | Card |
-| 18 | Tennessee Avenue | Orange |
-| 19 | New York Avenue | Orange |
-| 20 | Free Parking | Special |
-| 21 | Kentucky Avenue | Red |
-| 22 | Chance | Card |
-| 23 | Indiana Avenue | Red |
-| 24 | Illinois Avenue | Red |
-| 25 | B. & O. Railroad | Railroad |
-| 26 | Atlantic Avenue | Yellow |
-| 27 | Ventnor Avenue | Yellow |
-| 28 | Water Works | Utility |
-| 29 | Marvin Gardens | Yellow |
-| 30 | Go To Jail | Special |
-| 31 | Pacific Avenue | Green |
-| 32 | North Carolina Avenue | Green |
-| 33 | Community Chest | Card |
-| 34 | Pennsylvania Avenue | Green |
-| 35 | Short Line | Railroad |
-| 36 | Chance | Card |
-| 37 | Park Place | Dark blue |
-| 38 | Luxury Tax | Special |
-| 39 | Boardwalk | Dark blue |
+| Vị trí | Tên                   | Loại / nhóm |
+| ------ | --------------------- | ----------- |
+| 0      | GO                    | Special     |
+| 1      | Mediterranean Avenue  | Brown       |
+| 2      | Community Chest       | Card        |
+| 3      | Baltic Avenue         | Brown       |
+| 4      | Income Tax            | Special     |
+| 5      | Reading Railroad      | Railroad    |
+| 6      | Rhode Island Avenue   | Light blue  |
+| 7      | Chance                | Card        |
+| 8      | Vermont Avenue        | Light blue  |
+| 9      | Connecticut Avenue    | Light blue  |
+| 10     | Jail / Just Visiting  | Special     |
+| 11     | St. Charles Place     | Pink        |
+| 12     | Electric Company      | Utility     |
+| 13     | States Avenue         | Pink        |
+| 14     | Virginia Avenue       | Pink        |
+| 15     | Pennsylvania Railroad | Railroad    |
+| 16     | St. James Place       | Orange      |
+| 17     | Community Chest       | Card        |
+| 18     | Tennessee Avenue      | Orange      |
+| 19     | New York Avenue       | Orange      |
+| 20     | Free Parking          | Special     |
+| 21     | Kentucky Avenue       | Red         |
+| 22     | Chance                | Card        |
+| 23     | Indiana Avenue        | Red         |
+| 24     | Illinois Avenue       | Red         |
+| 25     | B. & O. Railroad      | Railroad    |
+| 26     | Atlantic Avenue       | Yellow      |
+| 27     | Ventnor Avenue        | Yellow      |
+| 28     | Water Works           | Utility     |
+| 29     | Marvin Gardens        | Yellow      |
+| 30     | Go To Jail            | Special     |
+| 31     | Pacific Avenue        | Green       |
+| 32     | North Carolina Avenue | Green       |
+| 33     | Community Chest       | Card        |
+| 34     | Pennsylvania Avenue   | Green       |
+| 35     | Short Line            | Railroad    |
+| 36     | Chance                | Card        |
+| 37     | Park Place            | Dark blue   |
+| 38     | Luxury Tax            | Special     |
+| 39     | Boardwalk             | Dark blue   |
 
 ## US-ASSET-001 — Dữ liệu phải hoàn thiện
 

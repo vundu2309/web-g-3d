@@ -8,24 +8,24 @@ Phân biệt ba việc: **khớp nguồn text**, **xác minh đúng edition G000
 
 ## Sổ nguồn
 
-| ID | Nguồn | Trạng thái |
-| --- | --- | --- |
-| S-001 | Các quyết định người dùng được ghi lại tại [game README](../README.md), D-001 đến D-005 | Xác nhận hướng sản phẩm, không thay thế rulebook |
+| ID    | Nguồn                                                                                                                                                                                                    | Trạng thái                                                                                                             |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| S-001 | Các quyết định người dùng được ghi lại tại [game README](../README.md), D-001 đến D-005                                                                                                                  | Xác nhận hướng sản phẩm, không thay thế rulebook                                                                       |
 | S-002 | [Hasbro G0009, Classic với storage tray](https://instructions.hasbro.com/en-us/instruction/monopoly-board-game-classic-game-with-storage-tray-and-larger-tokens-family-games-8), PDF chính thức bên dưới | Đã đọc rulebook tiếng Anh Mỹ, copyright 2025; chọn làm nguồn cơ sở sau khi người dùng đồng ý hướng Classic US hiện đại |
-| S-003 | Title Deed cards, mặt bàn và hai bộ thẻ của G0009 US | Chưa thu thập đủ; hình mẫu trong S-002 chỉ xác minh các trường được ghi trong property-economics.md |
-| S-004 | [Wikibooks Properties reference, revision 4662179](https://en.wikibooks.org/w/index.php?title=Monopoly/Properties_reference&oldid=4662179), bảng US/Canada | Nguồn cộng đồng, không chứng minh G0009; dùng lập nháp có nhãn, không quyết định luật khi mâu thuẫn nguồn chính thức |
+| S-003 | Title Deed cards, mặt bàn và hai bộ thẻ của G0009 US                                                                                                                                                     | Chưa thu thập đủ; hình mẫu trong S-002 chỉ xác minh các trường được ghi trong property-economics.md                    |
+| S-004 | [Wikibooks Properties reference, revision 4662179](https://en.wikibooks.org/w/index.php?title=Monopoly/Properties_reference&oldid=4662179), bảng US/Canada                                               | Nguồn cộng đồng, không chứng minh G0009; dùng lập nháp có nhãn, không quyết định luật khi mâu thuẫn nguồn chính thức   |
 
 Khi xác minh S-002/S-003, ghi URL trực tiếp, tên sản phẩm, mã bộ, năm/edition, ngày truy cập và trang/section/card ID. Trang tìm kiếm chung không đủ chứng minh một con số. Ưu tiên nguồn Hasbro chính thức; không dùng wiki/fan rules làm nguồn quyết định khi có khác biệt.
 
 ## Câu hỏi mở
 
-| ID | Cần giải quyết | Ảnh hưởng |
-| --- | --- | --- |
-| Q-001 | Đã chọn G0009 US, rulebook copyright 2025 (S-002); chốt hướng nguồn, không đồng nghĩa duyệt toàn bộ luật | Đóng phần chọn rulebook; bảng kinh tế/thẻ vẫn chờ S-003 |
-| Q-002 | Đối chiếu bảng giá, rent tiers, mortgage và giá xây trên Title Deed | 01A |
-| Q-003 | Chốt bộ thẻ của cùng edition, tránh trộn thẻ Community Chest cũ/mới | 01D |
-| Q-004 | S-002 bìa và trang sản phẩm ghi 2–6 người, 8+; hub hiện chỉ 2–4 | Đã xác minh số người của bộ gốc; hỗ trợ thêm người cần quyết định riêng, không tự nới hub |
-| Q-005 | Cách diễn đạt/giới hạn thời gian để yêu cầu rent, đấu giá, giao dịch trong online | Tách chính sách số hóa khỏi luật gốc, không tự thêm timeout hoặc auto-forfeit |
+| ID    | Cần giải quyết                                                                                           | Ảnh hưởng                                                                                 |
+| ----- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Q-001 | Đã chọn G0009 US, rulebook copyright 2025 (S-002); chốt hướng nguồn, không đồng nghĩa duyệt toàn bộ luật | Đóng phần chọn rulebook; bảng kinh tế/thẻ vẫn chờ S-003                                   |
+| Q-002 | Đối chiếu bảng giá, rent tiers, mortgage và giá xây trên Title Deed                                      | 01A                                                                                       |
+| Q-003 | Chốt bộ thẻ của cùng edition, tránh trộn thẻ Community Chest cũ/mới                                      | 01D                                                                                       |
+| Q-004 | S-002 bìa và trang sản phẩm ghi 2–6 người, 8+; hub hiện chỉ 2–4                                          | Đã xác minh số người của bộ gốc; hỗ trợ thêm người cần quyết định riêng, không tự nới hub |
+| Q-005 | Cách diễn đạt/giới hạn thời gian để yêu cầu rent, đấu giá, giao dịch trong online                        | Tách chính sách số hóa khỏi luật gốc, không tự thêm timeout hoặc auto-forfeit             |
 
 Không có câu trả lời mặc định cho các mục này. Có thể nghiên cứu/xác minh phần độc lập; chỉ cần hỏi người dùng khi quyết định edition/chính sách ảnh hưởng kết quả không thể suy ra từ hướng đã chốt.
 
@@ -97,11 +97,11 @@ Hash giúp nhận diện đúng ảnh nếu nội dung URL đổi; không biến
 
 ### Danh sách ngoại lệ cần xử lý cùng đợt
 
-| Mục | Trạng thái / cách tiếp tục |
-| --- | --- |
+| Mục                            | Trạng thái / cách tiếp tục                                                                          |
+| ------------------------------ | --------------------------------------------------------------------------------------------------- |
 | Rhode Island: 7 rent + giá xây | Không có trong S-004; cần text ghi đúng tên/edition hoặc bằng chứng thẻ cụ thể, không copy Oriental |
-| Mortgage/unmortgage chưa có số | Chỉ dùng text có nguồn phù hợp; không suy nửa giá mua/10% thành số xác minh từ hai ảnh mẫu |
-| Marvin Gardens 24/48 | Đã khớp S-004; còn cảnh báo khác edition cần đối chiếu trước khi chốt |
-| Bộ thẻ sự kiện | Thuộc 01D, chưa mở; không tiếp tục tìm ảnh ngoài phần 01A |
+| Mortgage/unmortgage chưa có số | Chỉ dùng text có nguồn phù hợp; không suy nửa giá mua/10% thành số xác minh từ hai ảnh mẫu          |
+| Marvin Gardens 24/48           | Đã khớp S-004; còn cảnh báo khác edition cần đối chiếu trước khi chốt                               |
+| Bộ thẻ sự kiện                 | Thuộc 01D, chưa mở; không tiếp tục tìm ảnh ngoài phần 01A                                           |
 
 Không lặp tìm gallery eBay bị chặn hoặc render lại các thẻ đã đọc ở lượt tiếp theo nếu không có URL/bằng chứng mới. Không để một ngoại lệ ngăn việc so phần bảng còn lại.

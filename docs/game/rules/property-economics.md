@@ -15,51 +15,51 @@
 
 `Nhóm` là sở hữu cả nhóm nhưng chưa xây. `KS` là một khách sạn. `Xây` là chi phí mỗi nhà hoặc khoản trả thêm để nâng 4 nhà thành khách sạn, không phải tổng chi phí từ đất trống lên khách sạn. Điều kiện được xây vẫn thuộc 01C.
 
-| Ô | Đất | Mua | Trống | Nhóm | 1 nhà | 2 nhà | 3 nhà | 4 nhà | KS | Xây |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Mediterranean Avenue | 60 | 2 | 4 | 10 | 30 | 90 | 160 | 250 | 50 |
-| 3 | Baltic Avenue | 60 | 4 | 8 | 20 | 60 | 180 | 320 | 450 | 50 |
-| 6 | Rhode Island Avenue | 100 | — | — | — | — | — | — | — | — |
-| 8 | Vermont Avenue | 100 | 6 | 12 | 30 | 90 | 270 | 400 | 550 | 50 |
-| 9 | Connecticut Avenue | 120 | 8 | 16 | 40 | 100 | 300 | 450 | 600 | 50 |
-| 11 | St. Charles Place | 140 | 10 | 20 | 50 | 150 | 450 | 625 | 750 | 100 |
-| 13 | States Avenue | 140 | 10 | 20 | 50 | 150 | 450 | 625 | 750 | 100 |
-| 14 | Virginia Avenue | 160 | 12 | 24 | 60 | 180 | 500 | 700 | 900 | 100 |
-| 16 | St. James Place | 180 | 14 | 28 | 70 | 200 | 550 | 750 | 950 | 100 |
-| 18 | Tennessee Avenue | 180 | 14 | 28 | 70 | 200 | 550 | 750 | 950 | 100 |
-| 19 | New York Avenue | 200 | 16 | 32 | 80 | 220 | 600 | 800 | 1000 | 100 |
-| 21 | Kentucky Avenue | 220 | 18 | 36 | 90 | 250 | 700 | 875 | 1050 | 150 |
-| 23 | Indiana Avenue | 220 | 18 | 36 | 90 | 250 | 700 | 875 | 1050 | 150 |
-| 24 | Illinois Avenue | 240 | 20 | 40 | 100 | 300 | 750 | 925 | 1100 | 150 |
-| 26 | Atlantic Avenue | 260 | 22 | 44 | 110 | 330 | 800 | 975 | 1150 | 150 |
-| 27 | Ventnor Avenue | 260 | 22 | 44 | 110 | 330 | 800 | 975 | 1150 | 150 |
-| 29 | Marvin Gardens | 280 | 24 | 48 | 120 | 360 | 850 | 1025 | 1200 | 150 |
-| 31 | Pacific Avenue | 300 | 26 | 52 | 130 | 390 | 900 | 1100 | 1275 | 200 |
-| 32 | North Carolina Avenue | 300 | 26 | 52 | 130 | 390 | 900 | 1100 | 1275 | 200 |
-| 34 | Pennsylvania Avenue | 320 | 28 | 56 | 150 | 450 | 1000 | 1200 | 1400 | 200 |
-| 37 | Park Place | 350 | 35 | 70 | 175 | 500 | 1100 | 1300 | 1500 | 200 |
-| 39 | Boardwalk | 400 | 50 | 100 | 200 | 600 | 1400 | 1700 | 2000 | 200 |
+| Ô   | Đất                   | Mua | Trống | Nhóm | 1 nhà | 2 nhà | 3 nhà | 4 nhà | KS   | Xây |
+| --- | --------------------- | --- | ----- | ---- | ----- | ----- | ----- | ----- | ---- | --- |
+| 1   | Mediterranean Avenue  | 60  | 2     | 4    | 10    | 30    | 90    | 160   | 250  | 50  |
+| 3   | Baltic Avenue         | 60  | 4     | 8    | 20    | 60    | 180   | 320   | 450  | 50  |
+| 6   | Rhode Island Avenue   | 100 | —     | —    | —     | —     | —     | —     | —    | —   |
+| 8   | Vermont Avenue        | 100 | 6     | 12   | 30    | 90    | 270   | 400   | 550  | 50  |
+| 9   | Connecticut Avenue    | 120 | 8     | 16   | 40    | 100   | 300   | 450   | 600  | 50  |
+| 11  | St. Charles Place     | 140 | 10    | 20   | 50    | 150   | 450   | 625   | 750  | 100 |
+| 13  | States Avenue         | 140 | 10    | 20   | 50    | 150   | 450   | 625   | 750  | 100 |
+| 14  | Virginia Avenue       | 160 | 12    | 24   | 60    | 180   | 500   | 700   | 900  | 100 |
+| 16  | St. James Place       | 180 | 14    | 28   | 70    | 200   | 550   | 750   | 950  | 100 |
+| 18  | Tennessee Avenue      | 180 | 14    | 28   | 70    | 200   | 550   | 750   | 950  | 100 |
+| 19  | New York Avenue       | 200 | 16    | 32   | 80    | 220   | 600   | 800   | 1000 | 100 |
+| 21  | Kentucky Avenue       | 220 | 18    | 36   | 90    | 250   | 700   | 875   | 1050 | 150 |
+| 23  | Indiana Avenue        | 220 | 18    | 36   | 90    | 250   | 700   | 875   | 1050 | 150 |
+| 24  | Illinois Avenue       | 240 | 20    | 40   | 100   | 300   | 750   | 925   | 1100 | 150 |
+| 26  | Atlantic Avenue       | 260 | 22    | 44   | 110   | 330   | 800   | 975   | 1150 | 150 |
+| 27  | Ventnor Avenue        | 260 | 22    | 44   | 110   | 330   | 800   | 975   | 1150 | 150 |
+| 29  | Marvin Gardens        | 280 | 24    | 48   | 120   | 360   | 850   | 1025  | 1200 | 150 |
+| 31  | Pacific Avenue        | 300 | 26    | 52   | 130   | 390   | 900   | 1100  | 1275 | 200 |
+| 32  | North Carolina Avenue | 300 | 26    | 52   | 130   | 390   | 900   | 1100  | 1275 | 200 |
+| 34  | Pennsylvania Avenue   | 320 | 28    | 56   | 150   | 450   | 1000  | 1200  | 1400 | 200 |
+| 37  | Park Place            | 350 | 35    | 70   | 175   | 500   | 1100  | 1300  | 1500 | 200 |
+| 39  | Boardwalk             | 400 | 50    | 100  | 200   | 600   | 1400  | 1700  | 2000 | 200 |
 
 ### Các trường đã đối chiếu trực tiếp với S-002 trang 2
 
-| Tài sản | Trường xác minh | Vị trí bằng chứng |
-| --- | --- | --- |
-| Mediterranean Avenue | Rent: 2 / 4 / 10 / 30 / 90 / 160 / 250 | Hình Title Deed trong Deals & Trades; phần giá xây bị thẻ khác che, chưa xác nhận |
-| St. James Place | Rent: 14 / 28 / 70 / 200 / 550 / 750 / 950; nhà 100; nâng KS thêm 100 + trả 4 nhà | Hình Title Deed trong Deals & Trades |
-| Kentucky Avenue | Rent: 18 / 36 / 90 / 250 / 700 / 875 / 1050; nhà 150; nâng KS thêm 150 + trả 4 nhà | Hình Title Deed trong Owned Properties / Streets |
-| Illinois Avenue | Giá mua 240 | Hình minh họa Want to buy it? |
-| Rhode Island Avenue | Tên và giá mua 100, đứng trước Vermont theo chiều di chuyển | Hình light-blue ở Unowned Properties |
-| Vermont Avenue | Giá mua 100 | Cùng hình light-blue |
-| Connecticut Avenue | Giá mua 120 | Cùng hình light-blue |
+| Tài sản              | Trường xác minh                                                                    | Vị trí bằng chứng                                                                 |
+| -------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Mediterranean Avenue | Rent: 2 / 4 / 10 / 30 / 90 / 160 / 250                                             | Hình Title Deed trong Deals & Trades; phần giá xây bị thẻ khác che, chưa xác nhận |
+| St. James Place      | Rent: 14 / 28 / 70 / 200 / 550 / 750 / 950; nhà 100; nâng KS thêm 100 + trả 4 nhà  | Hình Title Deed trong Deals & Trades                                              |
+| Kentucky Avenue      | Rent: 18 / 36 / 90 / 250 / 700 / 875 / 1050; nhà 150; nâng KS thêm 150 + trả 4 nhà | Hình Title Deed trong Owned Properties / Streets                                  |
+| Illinois Avenue      | Giá mua 240                                                                        | Hình minh họa Want to buy it?                                                     |
+| Rhode Island Avenue  | Tên và giá mua 100, đứng trước Vermont theo chiều di chuyển                        | Hình light-blue ở Unowned Properties                                              |
+| Vermont Avenue       | Giá mua 100                                                                        | Cùng hình light-blue                                                              |
+| Connecticut Avenue   | Giá mua 120                                                                        | Cùng hình light-blue                                                              |
 
 ### Bằng chứng bổ sung từ ảnh thẻ 2025 (nguồn thứ cấp)
 
-| Nguồn | Tài sản | Số đọc trực tiếp | Giới hạn |
-| --- | --- | --- | --- |
-| S-005 | Vermont Avenue | Rent 6/12/30/90/270/400/550; nhà/KS 50 | Ảnh in copyright 2025; chưa có hộp/mã G0009 |
-| S-005 | Rhode Island Avenue | Mortgage 50; unmortgage 55 | Chỉ thấy mặt sau, không xác minh rent/giá xây |
-| S-006 | Short Line | Mortgage 100; unmortgage 110 | Listing ghi 2025, chưa có hộp/mã G0009 |
-| S-007 | Mediterranean Avenue | Rent 2/4/10/30/90/160/250; nhà/KS 50 | Rent khớp S-002; ảnh in copyright 2025, mã thẻ 4140D1254000020; chưa có hộp/mã G0009 |
+| Nguồn | Tài sản              | Số đọc trực tiếp                       | Giới hạn                                                                             |
+| ----- | -------------------- | -------------------------------------- | ------------------------------------------------------------------------------------ |
+| S-005 | Vermont Avenue       | Rent 6/12/30/90/270/400/550; nhà/KS 50 | Ảnh in copyright 2025; chưa có hộp/mã G0009                                          |
+| S-005 | Rhode Island Avenue  | Mortgage 50; unmortgage 55             | Chỉ thấy mặt sau, không xác minh rent/giá xây                                        |
+| S-006 | Short Line           | Mortgage 100; unmortgage 110           | Listing ghi 2025, chưa có hộp/mã G0009                                               |
+| S-007 | Mediterranean Avenue | Rent 2/4/10/30/90/160/250; nhà/KS 50   | Rent khớp S-002; ảnh in copyright 2025, mã thẻ 4140D1254000020; chưa có hộp/mã G0009 |
 
 Các số này được đọc từ ảnh, không phải suy từ công thức. Mức xác minh là **ảnh thẻ 2025 nguồn thứ cấp**, chưa nâng thành đối chiếu đầy đủ G0009. Các trường khác của các tài sản trên vẫn nháp S-004. Ví dụ xác minh rent của Kentucky không tự xác minh giá mua/mortgage của Kentucky. Không truyền xác minh sang đất cùng nhóm hoặc cùng giá.
 
@@ -67,21 +67,21 @@ Các số này được đọc từ ảnh, không phải suy từ công thức. 
 
 ## US-ECON-002 — Bốn railroad
 
-| Ô | Tài sản | Giá mua ứng viên S-004 | Thế chấp / giải chấp |
-| --- | --- | --- | --- |
-| 5 | Reading Railroad | 200 | — / — |
-| 15 | Pennsylvania Railroad | 200 | — / — |
-| 25 | B. & O. Railroad | 200 | — / — |
-| 35 | Short Line | 200 | 100 / 110 (ảnh S-006; còn chờ đối chiếu G0009) |
+| Ô   | Tài sản               | Giá mua ứng viên S-004 | Thế chấp / giải chấp                           |
+| --- | --------------------- | ---------------------- | ---------------------------------------------- |
+| 5   | Reading Railroad      | 200                    | — / —                                          |
+| 15  | Pennsylvania Railroad | 200                    | — / —                                          |
+| 25  | B. & O. Railroad      | 200                    | — / —                                          |
+| 35  | Short Line            | 200                    | 100 / 110 (ảnh S-006; còn chờ đối chiếu G0009) |
 
 **Đã xác minh S-002 trang 2 / Railroads:** sở hữu 1/2/3/4 railroad → mức thuê lần lượt **25/50/100/200** trong trường hợp thông thường. Giá mua/tên chi tiết/mặt sau từng thẻ vẫn cần S-003. Không xây nhà/khách sạn trên railroad; không ghi giá xây 0 vì đó là hành động không áp dụng. Thẻ di chuyển đến railroad có thể quy định mức thuê khác; chưa mở phần thẻ.
 
 ## US-ECON-003 — Hai utility
 
-| Ô | Tài sản | Giá mua ứng viên S-004 | Thế chấp / giải chấp |
-| --- | --- | --- | --- |
-| 12 | Electric Company | 150 | — / — |
-| 28 | Water Works | 150 | — / — |
+| Ô   | Tài sản          | Giá mua ứng viên S-004 | Thế chấp / giải chấp |
+| --- | ---------------- | ---------------------- | -------------------- |
+| 12  | Electric Company | 150                    | — / —                |
+| 28  | Water Works      | 150                    | — / —                |
 
 **Đã xác minh S-002 trang 2 / Utilities:** dùng kết quả tung hai xúc xắc để tính rent; chủ có 1 utility → **4 × tổng xúc xắc**, có cả 2 → **10 × tổng xúc xắc**. Cách yêu cầu tung và thẻ ngoại lệ phải theo 01A.3/01D, không tự lấy giá trị lần di chuyển trước. Không xây nhà/KS trên utility. Giá mua và mortgage từng utility còn chờ S-003.
 

@@ -4,11 +4,11 @@
 
 ## Phân vai
 
-| Dịch vụ | Trách nhiệm đích |
-| --- | --- |
-| Vercel | Frontend Vite, asset 3D, PWA và HTTPS; không giữ trạng thái phòng trong memory của function |
-| Render | API Node cho tạo/vào phòng, readiness, bắt đầu/rời phòng; xác thực token và thực thi kiểm tra server |
-| Supabase | Email/password Auth và PostgreSQL lưu profile, room, membership; dữ liệu bền vững qua restart API |
+| Dịch vụ  | Trách nhiệm đích                                                                                     |
+| -------- | ---------------------------------------------------------------------------------------------------- |
+| Vercel   | Frontend Vite, asset 3D, PWA và HTTPS; không giữ trạng thái phòng trong memory của function          |
+| Render   | API Node cho tạo/vào phòng, readiness, bắt đầu/rời phòng; xác thực token và thực thi kiểm tra server |
+| Supabase | Email/password Auth và PostgreSQL lưu profile, room, membership; dữ liệu bền vững qua restart API    |
 
 Một repository tiếp tục chứa frontend, backend và migrations. Không di chuyển engine gameplay chưa tồn tại hoặc tự thêm luật ở bước đổi hạ tầng. Bàn 3D/HUD vẫn là preview độc lập.
 
@@ -47,7 +47,6 @@ Chuyển origin từ Pages sang Vercel không chuyển localStorage, session đ�
 
 Tool discovery không thấy tool Vercel/Render/Supabase trong phiên này. CLI của ba dịch vụ cũng chưa có, và không có các biến quản trị tương ứng được cấu hình. Việc người dùng đã connect trong ChatGPT không tự chứng minh tools/quyền đã được cấp cho phiên Codex hiện tại. Cần project/service được xác định và quyền truy cập khả dụng trước khi provision/deploy; không yêu cầu đưa token hoặc khóa bí mật vào chat.
 
-
 ## Tiến độ triển khai Socket.IO
 
 Người dùng chọn Socket.IO và đăng ký tài khoản mới trên Supabase. API Render xác thực token, gọi RPC PostgreSQL được kiểm tra quyền; client không được ghi trực tiếp vào bảng. Schema private gồm profiles, rooms, memberships, room version và transaction locks. RPC được gọi trực tiếp cũng chịu cùng kiểm tra quyền DB.
@@ -55,7 +54,6 @@ Người dùng chọn Socket.IO và đăng ký tài khoản mới trên Supabase
 Sau commit, trigger PostgreSQL NOTIFY tới dedicated LISTEN connection của từng API instance. Socket.IO đẩy invalidation không chứa dữ liệu phòng; client lấy snapshot có xác thực qua socket, và tải lại khi reconnect. Không dùng polling client. Database connection phải là direct/session pooler với TLS được kiểm chứng; không dùng transaction pooler. `/health` chưa ready nếu LISTEN chưa hoạt động. Xem `docs/infrastructure.md`.
 
 Đây là staging, chưa hoàn tất cutover: backend cần DATABASE_URL trong Render, Auth callbacks và hai browser cần kiểm chứng trên hạ tầng thật trước khi bật frontend Supabase. Firebase/Pages và tài khoản cũ được giữ nguyên.
-
 
 ## Frontend sẵn sàng chuyển đổi
 

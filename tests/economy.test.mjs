@@ -11,7 +11,7 @@ import {
 import { SPECIES } from "../src/ocean/fishing.ts";
 
 const migration = readFileSync(
-  "supabase/migrations/20261112090000_economy.sql",
+  "supabase/pending/20261112090000_economy.sql",
   "utf8",
 );
 
