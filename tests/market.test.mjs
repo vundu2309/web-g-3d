@@ -80,3 +80,18 @@ test("the piers are solid for the boats, like the islands", () => {
     assert.equal(hit?.radius, MARKET_BODY_RADIUS);
   }
 });
+
+test("every market has its own vendor with a name and a greeting", () => {
+  const names = new Set();
+  for (const market of MARKETS) {
+    const { vendor } = market;
+    assert.ok(vendor.name.length > 1 && vendor.greeting.length > 10, market.id);
+    assert.ok(["straw", "cap", "scarf"].includes(vendor.hat));
+    names.add(vendor.name);
+  }
+  assert.equal(names.size, MARKETS.length, "vendors are different people");
+  const looks = new Set(
+    MARKETS.map((m) => `${m.vendor.hat}${m.vendor.skin}${m.vendor.apron}`),
+  );
+  assert.equal(looks.size, MARKETS.length, "and look different");
+});

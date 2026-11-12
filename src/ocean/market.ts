@@ -9,11 +9,26 @@ import { HARBOR, SEA_BOUND, islandCollisionRadius, islands } from "./model.ts";
 export interface Market {
   id: string;
   name: string;
+  /** Who runs the stall: a person to greet the player (no gameplay effect). */
+  vendor: Vendor;
   /** Centre of the pier on the water. */
   x: number;
   z: number;
   /** Which way the pier faces (radians, 0 is toward -Z like a boat heading): toward the harbor. */
   facing: number;
+}
+
+/** The person behind a stall: a name, how they look and a line they say when the market opens. */
+export interface Vendor {
+  name: string;
+  /** The headwear: a conical straw hat, a flat cap or a knotted scarf. */
+  hat: "straw" | "cap" | "scarf";
+  /** Index into the palette's skin, apron and hair lists (art/colors.ts). */
+  skin: number;
+  apron: number;
+  hair: number;
+  /** Said when the market opens. */
+  greeting: string;
 }
 
 /** How far outside an island's shoreline collision circle the pier's centre lies (m). */
@@ -24,6 +39,7 @@ const place = (
   turn: number,
   id: string,
   name: string,
+  vendor: Vendor,
 ): Market => {
   const island = islands[index]!;
   const toHarbor = Math.atan2(HARBOR.z - island.z, HARBOR.x - island.x) + turn;
@@ -35,6 +51,7 @@ const place = (
   return {
     id,
     name,
+    vendor,
     x,
     z,
     facing: Math.atan2(Math.cos(outward), -Math.sin(outward)),
@@ -42,9 +59,30 @@ const place = (
 };
 
 export const MARKETS: readonly Market[] = [
-  place(0, 0.25, "hai-dang", "Chợ Hải Đăng"),
-  place(1, 0, "doi-xanh", "Chợ Đồi Xanh"),
-  place(2, 0, "bai-co", "Chợ Bãi Cọ"),
+  place(0, 0.25, "hai-dang", "Chợ Hải Đăng", {
+    name: "Cô Lan",
+    hat: "straw",
+    skin: 0,
+    apron: 0,
+    hair: 0,
+    greeting: "Chào em! Cá hôm nay tươi lắm, để cô xem em câu được gì nào.",
+  }),
+  place(1, 0, "doi-xanh", "Chợ Đồi Xanh", {
+    name: "Chú Tư",
+    hat: "cap",
+    skin: 1,
+    apron: 1,
+    hair: 1,
+    greeting: "Ê, về rồi đó hả? Đưa cá đây, chú trả giá tốt cho.",
+  }),
+  place(2, 0, "bai-co", "Chợ Bãi Cọ", {
+    name: "Bà Sáu",
+    hat: "scarf",
+    skin: 2,
+    apron: 2,
+    hair: 2,
+    greeting: "Trời ơi, con cá to quá! Lại đây bà cân cho.",
+  }),
 ];
 
 /** A boat this close to a pier (m, from its centre) can open the market. */

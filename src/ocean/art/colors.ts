@@ -66,6 +66,13 @@ export const PAL = {
   hut: { wall: 0xf3e3b8, glass: 0x8fd0e8, rowboat: 0x3a6ea5 },
   /** The fisherman on the boat. */
   crew: { coat: 0xffc83d, trousers: 0x2f5d8a, skin: 0xf2b98f, hat: 0xe9c46a },
+  /** The market vendors: skin tones, aprons, hair and the three kinds of headwear. */
+  vendor: {
+    skin: [0xe6ad84, 0xc98b63, 0xf5c7a1],
+    apron: [0x2fa39a, 0x5b6fc7, 0xd9577a],
+    hair: [0x3b2a22, 0xb9b3a8, 0x1f1b1a],
+    hat: { straw: 0xf0d98a, cap: 0x35506e, scarf: 0xf08a5d },
+  },
   /** The rod and the lure. */
   rod: { cork: 0xe3c38d, graphite: 0x6b4423, tip: 0xff7a2e, lure: 0xff7333 },
   /** The throw marker: no water and the sweet spot (otherwise white). */

@@ -99,7 +99,12 @@ export function createMarketUi(options: MarketUiOptions) {
     head.append(title, wallet, close);
     const body = el("div", "fish-store-body");
     const foot = el("footer", "market-foot");
-    dialog.append(head, body, foot);
+    const vendor = el(
+      "p",
+      "market-vendor",
+      `${market.vendor.name}: “${market.vendor.greeting}”`,
+    );
+    dialog.append(head, vendor, body, foot);
     return { wallet, body, foot };
   }
 
