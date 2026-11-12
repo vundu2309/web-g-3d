@@ -41,6 +41,9 @@ export async function loadModel(
   );
   for (const mesh of meshes) {
     mesh.isPickable = false;
+    // The baked colours carry an alpha channel (always 1): left on, Babylon would draw the
+    // model in the transparent pass without depth writes and its far side would show through.
+    mesh.hasVertexAlpha = false;
     useSolid(mesh, "satin");
   }
   for (const material of container.materials) material.dispose();

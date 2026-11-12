@@ -220,6 +220,8 @@ def finish(objs, name, keep=(), budget=None):
         d.vertex_group_factor = 1.0
         d.use_collapse_triangulate = True
         bpy.ops.object.modifier_apply(modifier="dec")
+        for p in body.data.polygons:  # the collapse leaves new faces flat-shaded
+            p.use_smooth = True
     return body
 
 

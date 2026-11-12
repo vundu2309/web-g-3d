@@ -37,6 +37,9 @@ export function createVendor(
       const { root } = model;
       root.parent = parent;
       root.position.set(SPOT.x, SPOT.y, SPOT.z);
+      // The sea scene is right-handed, so the loaded model faces +Z: the counter. Half a turn
+      // makes the vendor face the sea and the player's boat (checked in the game).
+      root.rotationQuaternion = Quaternion.RotationAxis(Axis.Y, Math.PI);
       // A little larger than life, so the face and the wave read from the boat.
       root.scaling.scaleInPlace(MODEL_SCALE);
       const pivot = model.node("arm_wave");
