@@ -1315,6 +1315,15 @@ dialog.account-screen :is(input, textarea) {
   }
 }
 
+/* A fish hanging from the rod shows its card, stars and the keep / put-back buttons in the
+   right-hand column: the minimap steps aside so nothing overlaps on a short screen. */
+.ocean-minimap {
+  transition: opacity 0.2s;
+}
+.is-holding .ocean-minimap {
+  opacity: 0;
+}
+
 /* The crew list: one rounded row for each boat in the sea, with its colour and what it is doing. */
 .ocean-dialog.is-crew {
   width: min(420px, calc(100vw - 32px));

@@ -113,13 +113,13 @@ try {
     frame.width >= 843 && frame.height >= 389,
     "the sign-in is a full screen",
   );
-  // Its picture is the drawn sunset (an inline SVG), never an image file such as a
-  // screenshot of the map.
+  // Its picture is the drawn sunset (an inline data image painted on a canvas at run time),
+  // never an image file such as a screenshot of the map.
   const art = await login.evaluate(
     (el) => getComputedStyle(el).backgroundImage,
   );
   assert.ok(
-    art.startsWith('url("data:image/svg+xml'),
+    art.startsWith('url("data:image/jpeg;base64,'),
     "the sign-in has the drawn sunset",
   );
   assert.ok(

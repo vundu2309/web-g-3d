@@ -411,6 +411,8 @@ export function createFishingUi(options: FishingUiOptions) {
     hangKg.textContent = kg(fish.kg);
     hangRecord.hidden = !addCatch(options.stock(), fish).record;
     hang.hidden = false;
+    // The catch card needs the right-hand column: the minimap steps aside while it shows.
+    screen.classList.add("is-holding");
     options.scene()?.holdFish({
       id: species.id,
       // Hangs at its real size next to the fisherman (a little larger only when tiny).
@@ -424,6 +426,7 @@ export function createFishingUi(options: FishingUiOptions) {
     if (!fish) return;
     held = undefined;
     hang.hidden = true;
+    screen.classList.remove("is-holding");
     const scene = options.scene();
     if (keep) {
       options.setStock(addCatch(options.stock(), fish).inventory, true);
