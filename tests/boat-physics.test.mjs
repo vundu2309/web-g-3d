@@ -12,6 +12,7 @@ import {
 import { humpAt, planingAt } from "../src/ocean/boat-physics.ts";
 import {
   WAVES,
+  WIND_DIRECTION,
   MAX_WAVE_HEIGHT,
   glslWaveHeight,
   waveGradient,
@@ -103,6 +104,29 @@ test("the sea has sharp crests and broad troughs, a zero mean, and an exact slop
   assert.ok(WAVES.every((w) => w.sharp >= 1));
 });
 
+test("the waves are a calm wind sea: a band of headings around the wind, swell to chop", () => {
+  assert.ok(WAVES.length >= 10, `${WAVES.length} waves`);
+  const lengths = WAVES.map((w) => w.length);
+  assert.ok(Math.min(...lengths) >= 2 && Math.max(...lengths) <= 62);
+  assert.equal(new Set(lengths).size, WAVES.length, "no two the same length");
+  // Calm: the summed amplitude stays near 0.8 m.
+  assert.ok(
+    MAX_WAVE_HEIGHT > 0.65 && MAX_WAVE_HEIGHT < 0.9,
+    `${MAX_WAVE_HEIGHT}`,
+  );
+  const off = WAVES.map((w) => w.direction - WIND_DIRECTION);
+  // Every wave comes from the wind's side of the sea, but not all from one heading.
+  assert.ok(off.every((d) => Math.abs(d) < Math.PI / 2));
+  const spread = Math.sqrt(mean(off.map((d) => d * d)));
+  assert.ok(spread > 0.4, `heading spread ${spread.toFixed(2)} rad`);
+  // The long swell runs closer to the wind than the short chop.
+  const byLength = [...WAVES].sort((a, b) => b.length - a.length);
+  const gap = (w) => Math.abs(w.direction - WIND_DIRECTION);
+  const longest = mean(byLength.slice(0, 4).map(gap));
+  const shortest = mean(byLength.slice(-4).map(gap));
+  assert.ok(longest < 0.3 && shortest > longest * 2, `${longest} ${shortest}`);
+});
+
 test("a boat floats on the surface it sees and bobs with the waves instead of sinking or flying", () => {
   const w = world();
   const above = [];
@@ -138,6 +162,11 @@ test("a boat floats on the surface it sees and bobs with the waves instead of si
     `stays upright: roll ${worstRoll.toFixed(1)} pitch ${worstPitch.toFixed(1)}`,
   );
   assert.ok(worstRoll + worstPitch > 0.5, "and it does tilt with the waves");
+  // A calm fishing sea: an idle boat rocks gently (the fishing camera rides on it).
+  assert.ok(
+    worstRoll < 12 && worstPitch < 8,
+    `rocks gently: roll ${worstRoll.toFixed(1)} pitch ${worstPitch.toFixed(1)}`,
+  );
 });
 
 test("thrust builds speed gradually, top speed is bounded, and the boat coasts after release", () => {

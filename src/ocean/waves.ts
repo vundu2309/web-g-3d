@@ -19,14 +19,31 @@ export interface Wave {
   sharp: number;
 }
 export const GRAVITY = 9.81;
+/**
+ * The dominant wind, radians in the XZ plane (the same convention as `Wave.direction`). The
+ * long swell runs close to it; the shorter the wave, the wider its spread around it, as in a
+ * real wind sea. The water shader lays its wind streaks and ripples along it too.
+ */
+export const WIND_DIRECTION = 0.25;
+/**
+ * Twelve waves from 61 m swell down to 2.2 m chop. Neighbouring lengths and headings beat
+ * against each other, so the swell comes in groups (higher sets, calmer gaps) instead of a
+ * uniform corrugation. Calm on purpose: the amplitudes sum to about 0.8 m and the root mean
+ * square height is under 0.3 m.
+ */
 export const WAVES: readonly Wave[] = [
-  { length: 46, amplitude: 0.2, direction: 0.2, phase: 1.7, sharp: 1.5 },
-  { length: 31, amplitude: 0.25, direction: 0.35, phase: 0.4, sharp: 2.2 },
-  { length: 19, amplitude: 0.15, direction: -0.5, phase: 2.1, sharp: 2.4 },
-  { length: 12, amplitude: 0.09, direction: 1.1, phase: 4.2, sharp: 2.6 },
-  { length: 7.5, amplitude: 0.055, direction: -1.25, phase: 1.3, sharp: 2.8 },
-  { length: 4.2, amplitude: 0.03, direction: 0.8, phase: 5.5, sharp: 3 },
-  { length: 2.7, amplitude: 0.015, direction: -0.15, phase: 3.3, sharp: 3 },
+  { length: 61, amplitude: 0.15, direction: 0.12, phase: 1.7, sharp: 1.3 },
+  { length: 47, amplitude: 0.17, direction: 0.4, phase: 0.4, sharp: 1.5 },
+  { length: 37, amplitude: 0.14, direction: 0.07, phase: 5.2, sharp: 1.8 },
+  { length: 28, amplitude: 0.115, direction: 0.62, phase: 2.1, sharp: 2 },
+  { length: 21, amplitude: 0.08, direction: -0.25, phase: 3.6, sharp: 2.2 },
+  { length: 15.5, amplitude: 0.055, direction: 0.95, phase: 4.2, sharp: 2.4 },
+  { length: 11, amplitude: 0.04, direction: -0.55, phase: 0.9, sharp: 2.5 },
+  { length: 8, amplitude: 0.028, direction: 1.2, phase: 1.3, sharp: 2.6 },
+  { length: 5.7, amplitude: 0.019, direction: -0.85, phase: 5.5, sharp: 2.8 },
+  { length: 4.1, amplitude: 0.013, direction: 0.55, phase: 2.8, sharp: 3 },
+  { length: 3, amplitude: 0.009, direction: 1.5, phase: 3.3, sharp: 3 },
+  { length: 2.2, amplitude: 0.006, direction: -1.1, phase: 4.7, sharp: 3 },
 ];
 
 /** The mean of ((1 + sin) / 2)^sharp over a period, so every wave averages to zero. */

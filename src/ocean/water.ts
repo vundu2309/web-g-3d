@@ -6,7 +6,11 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Scene } from "@babylonjs/core/scene";
 import { islands } from "./model.ts";
 import { WAKE_MAX, glslWake } from "./wake.ts";
-import { glslWaveHeight } from "./waves.ts";
+import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+import { Constants } from "@babylonjs/core/Engines/constants";
+import { WIND_DIRECTION, glslWaveHeight } from "./waves.ts";
+import { RIPPLE_RANGE, RIPPLE_SIZE, ripplePixels } from "./ripples.ts";
 import { glslSkyModel } from "./sky-model.ts";
 import {
   DEEP_WATER,
@@ -22,6 +26,9 @@ import {
  * physics floats on. Reflection is the analytic sky (no extra render pass), which
  * keeps the cost near a plain mesh on phones.
  */
+/** A unit vector turned `offset` radians from the wind, as a GLSL vec2. */
+const glslAxis = (offset: number) =>
+  `vec2(${Math.cos(WIND_DIRECTION + offset).toFixed(6)}, ${Math.sin(WIND_DIRECTION + offset).toFixed(6)})`;
 const COMMON = `
 precision highp float;
 uniform float time;
@@ -77,6 +84,7 @@ uniform vec3 shallow;
 uniform float fogDensity;
 uniform vec4 islands[${islands.length}];
 uniform vec4 boats[${BOAT_MAX}];
+uniform sampler2D rippleMap;
 varying vec3 vWorld;
 varying float vHeight;
 varying vec4 vWake;
@@ -91,6 +99,16 @@ float noise(vec2 p) {
   vec2 i = floor(p), f = fract(p);
   f = f * f * (3.0 - 2.0 * f);
   return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+const vec2 WIND = ${glslAxis(0)};
+// One layer of the ripple map (ripples.ts): the map's +u axis turned to \`axis\` in the world,
+// one tile every \`tile\` metres, drifting, and its ripples moved along their own directions by
+// the phase. Returns the slope in the world, one standard deviation being about 1 / RANGE.
+vec2 rippleLayer(vec2 p, vec2 axis, float tile, vec2 drift, float phase) {
+  vec2 side = vec2(-axis.y, axis.x);
+  vec4 s = texture2D(rippleMap, vec2(dot(p, axis), dot(p, side)) / tile + drift) * 2.0 - 1.0;
+  vec2 g = s.xy * cos(phase) + s.zw * sin(phase);
+  return (g.x * axis + g.y * side) * ${RIPPLE_RANGE.toFixed(1)};
 }
 // GGX / Trowbridge-Reitz normal distribution and Smith visibility (the sun's glitter).
 float distributionGGX(float nh, float a) {
@@ -133,18 +151,29 @@ void main() {
   vec3 sunDir = normalize(sunDirection);
   // The exact slope of the waves, with the short ones faded out with distance.
   vec2 slope = waveSlope(vWorld.xz, time, dist) + vWake.yz;
-  // Fine ripples: two crossing layers, drifting, gone before they would shimmer.
-  float ripple = 1.0 - smoothstep(25.0, 130.0, dist);
+  // How choppy the sea is here: wide calm and rough patches drifting downwind, and faint
+  // streaks along the wind (faded far away, where they would alias).
   vec2 q = vWorld.xz;
+  vec2 across = vec2(-WIND.y, WIND.x);
+  float patches = noise(q * 0.0059 - WIND * time * 0.0016) * 0.65 + noise(q * 0.0163 + across * time * 0.002 + 17.0) * 0.35;
+  float streak = noise(vec2(dot(q, WIND) * 0.009 - time * 0.012, dot(q, across) * 0.11)) - 0.5;
+  float choppy = smoothstep(0.28, 0.72, patches) * (1.0 + streak * 0.8 * (1.0 - smoothstep(90.0, 220.0, dist)));
+  // Fine ripples (purely visual, the boats never feel them): two layers of the ripple map at
+  // different sizes, turned to either side of the wind and drifting apart, so no tile repeats.
+  float rippleNear = 1.0 - smoothstep(30.0, 110.0, dist);
+  float rippleFar = 1.0 - smoothstep(70.0, 260.0, dist);
   vec2 detail = vec2(0.0);
-  if (ripple > 0.0) {
-  detail += vec2(0.8, 0.6) * cos(dot(q, vec2(0.8, 0.6)) * 3.1 + time * 1.9 + sin(dot(q, vec2(-0.6, 0.8)) * 0.9) * 2.0) * 0.075;
-  detail += vec2(-0.5, 0.87) * cos(dot(q, vec2(-0.5, 0.87)) * 4.3 - time * 1.4 + sin(dot(q, vec2(0.9, 0.4)) * 0.7) * 2.0) * 0.05;
+  if (rippleFar > 0.0) {
+    detail += rippleLayer(q, ${glslAxis(0.2)}, 6.7, vec2(0.03, 0.006) * time, -time * 1.15) * 0.06 * rippleFar;
+    if (rippleNear > 0.0)
+      detail += rippleLayer(q, ${glslAxis(-0.5)}, 2.3, vec2(0.05, -0.02) * time, -time * 2.3) * 0.04 * rippleNear;
+    detail *= mix(0.15, 1.5, choppy);
   }
-  vec3 n = normalize(vec3(-slope.x - detail.x * ripple, 1.0, -slope.y - detail.y * ripple));
+  vec3 n = normalize(vec3(-slope.x - detail.x, 1.0, -slope.y - detail.y));
   float nv = max(dot(n, view), 0.02);
   // Roughness: the waves too small to draw make the sea rougher the farther it is.
-  float rough = clamp(0.04 + 0.5 * smoothstep(20.0, 400.0, dist) + 0.5 * length(slope) * 0.15, 0.04, 0.6);
+  // Calm patches stay glassy far out and rough ones go matt, so the far sea is not one tone.
+  float rough = clamp(0.04 + 0.5 * smoothstep(20.0, 400.0, dist) * mix(0.6, 1.25, choppy) + 0.5 * length(slope) * 0.15, 0.04, 0.6);
   float alpha = rough * rough;
   // Schlick's Fresnel for water (F0 about 0.02), tamed at grazing angles on a rough sea.
   float f0 = 0.02;
@@ -272,6 +301,7 @@ export function createWater(scene: Scene): Water {
         "wake",
         "boats",
       ],
+      samplers: ["rippleMap"],
     },
   );
   material.backFaceCulling = false;
@@ -283,6 +313,20 @@ export function createWater(scene: Scene): Water {
   material.setFloat("fogDensity", FOG_DENSITY);
   material.setArray4("wake", new Array(WAKE_MAX * 4).fill(0));
   material.setArray4("boats", new Array(BOAT_MAX * 4).fill(0));
+  const ripples = new RawTexture(
+    ripplePixels(),
+    RIPPLE_SIZE,
+    RIPPLE_SIZE,
+    Constants.TEXTUREFORMAT_RGBA,
+    scene,
+    true,
+    false,
+    Texture.TRILINEAR_SAMPLINGMODE,
+  );
+  ripples.wrapU = Texture.WRAP_ADDRESSMODE;
+  ripples.wrapV = Texture.WRAP_ADDRESSMODE;
+  ripples.anisotropicFilteringLevel = 4;
+  material.setTexture("rippleMap", ripples);
   material.setArray4(
     "islands",
     islands.flatMap((island) => [island.x, island.z, island.radius, 0]),
