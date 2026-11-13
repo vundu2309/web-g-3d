@@ -24,6 +24,15 @@ import { createIsland } from "./island-visual.ts";
 import { SeaProps } from "./sea-props.ts";
 import { WakeField, sampleWake } from "./wake.ts";
 import { OrbitCamera } from "./orbit-camera.ts";
+import {
+  CHASE,
+  clearFraction,
+  easeClear,
+  heightFor,
+  pushOut,
+  reachFor,
+  turnLead,
+} from "./chase-camera.ts";
 import { MARKETS, seaObstacles } from "./market.ts";
 import { createMarket } from "./market-visual.ts";
 import { WakeMesh } from "./wake-mesh.ts";
@@ -84,6 +93,13 @@ export class OceanScene {
   private viewHeading = 0;
   private viewReady = false;
   private readonly orbit = new OrbitCamera();
+  /** What the chase camera keeps clear of: the islands' shores and the piers. */
+  private readonly obstacles = seaObstacles();
+  /** 0..1: how much of its reach the camera keeps while something is in the way. */
+  private clear = 1;
+  /** How far the view looks into the boat's turn (rad), and the heading last frame. */
+  private lead = 0;
+  private lastHeading: number | undefined;
   private readonly markets: Mesh[];
   /** 0..1: how far the camera has moved in for fishing. */
   private focus = 0;
@@ -477,6 +493,13 @@ export class OceanScene {
       : state.heading;
     const fx = Math.sin(this.viewHeading);
     const fz = -Math.cos(this.viewHeading);
+    // Looking into a turn: the view swings ahead of the bow toward the way it is turning.
+    const yawRate =
+      this.lastHeading === undefined || dt <= 0
+        ? 0
+        : wrap(state.heading - this.lastHeading) / dt;
+    this.lastHeading = state.heading;
+    this.lead = turnLead(this.lead, yawRate, dt);
     // Fishing: the camera comes closer and lower and looks toward where the line goes,
     // so the rod, the line and the water it enters fill the screen.
     const input = this.gearInput;
@@ -485,14 +508,17 @@ export class OceanScene {
     const fishing = (!!input && input.view.phase !== "idle") || holding;
     this.focus += ((fishing ? 1 : 0) - this.focus) * blend(dt, 2.2);
     const f = this.focus * this.focus * (3 - 2 * this.focus);
-    // Low and far behind, looking well ahead, so the horizon and sky stay in view.
-    const back = 14.5 - 2 * f;
-    const want = new Vector3(
-      state.x - fx * back,
-      6.8 - 0.4 * f,
-      state.z - fz * back,
+    // High and far behind, looking well ahead, so the sea, the islands and the horizon stay in
+    // view (chase-camera.ts); closer and lower while fishing.
+    const back = CHASE.back + (CHASE.fishingBack - CHASE.back) * f;
+    const height = CHASE.height + (CHASE.fishingHeight - CHASE.height) * f;
+    const want = new Vector3(state.x - fx * back, height, state.z - fz * back);
+    const ahead = this.viewHeading + this.lead * (1 - f);
+    const look = new Vector3(
+      state.x + Math.sin(ahead) * CHASE.lookAhead,
+      2.2,
+      state.z - Math.cos(ahead) * CHASE.lookAhead,
     );
-    const look = new Vector3(state.x + fx * 30, 2.2, state.z + fz * 30);
     const aim =
       this.gear?.endPoint() ??
       (holding ? this.rodTip() : undefined) ??
@@ -539,6 +565,20 @@ export class OceanScene {
       look.y += (1.6 - look.y) * toBoat;
       look.z += (state.z - look.z) * toBoat;
     }
+    // Keep clear of islands and piers: come in toward the boat when one is in the way, quickly,
+    // and go back out slowly once it is not.
+    const wanted = Math.hypot(want.x - state.x, want.z - state.z);
+    if (wanted > 0) {
+      const fraction = clearFraction(state, want, this.obstacles);
+      this.clear = this.viewReady
+        ? easeClear(this.clear, fraction, dt)
+        : fraction;
+      const reach = reachFor(wanted, this.clear);
+      const k = reach / wanted;
+      want.x = state.x + (want.x - state.x) * k;
+      want.z = state.z + (want.z - state.z) * k;
+      want.y = heightFor(want.y, reach, wanted);
+    }
     if (!this.viewReady) {
       this.camera.position.copyFrom(want);
       this.viewReady = true;
@@ -549,6 +589,11 @@ export class OceanScene {
       this.camera.position.y += (want.y - this.camera.position.y) * follow;
       this.camera.position.z += (want.z - this.camera.position.z) * follow;
     }
+    // The camera follows with a little lag, so it can drift into an obstacle on a tight turn
+    // round a shore: whatever it does, it ends up outside.
+    const outside = pushOut(this.camera.position, this.obstacles);
+    this.camera.position.x = outside.x;
+    this.camera.position.z = outside.z;
     this.camera.setTarget(look);
   }
 
