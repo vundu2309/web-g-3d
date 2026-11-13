@@ -28,10 +28,10 @@ export const WIND_DIRECTION = 0.25;
 /**
  * Twelve waves from 61 m swell down to 2.2 m chop. Neighbouring lengths and headings beat
  * against each other, so the swell comes in groups (higher sets, calmer gaps) instead of a
- * uniform corrugation. Calm on purpose: the amplitudes sum to about 0.8 m and the root mean
- * square height is under 0.3 m.
+ * uniform corrugation. These are the shapes of the sea at a base amplitude (summing to about
+ * 0.8 m); `WAVES` below raises them to the sea the game shows.
  */
-export const WAVES: readonly Wave[] = [
+export const BASE_WAVES: readonly Wave[] = [
   { length: 61, amplitude: 0.15, direction: 0.12, phase: 1.7, sharp: 1.3 },
   { length: 47, amplitude: 0.17, direction: 0.4, phase: 0.4, sharp: 1.5 },
   { length: 37, amplitude: 0.14, direction: 0.07, phase: 5.2, sharp: 1.8 },
@@ -45,6 +45,29 @@ export const WAVES: readonly Wave[] = [
   { length: 3, amplitude: 0.009, direction: 1.5, phase: 3.3, sharp: 3 },
   { length: 2.2, amplitude: 0.006, direction: -1.1, phase: 4.7, sharp: 3 },
 ];
+
+/**
+ * How much higher the game's sea is than the base table (the user asked for bigger waves, the
+ * sea was judged too flat): the long swell grows most (1.85 x from 40 m up), the short chop
+ * least (1.35 x under 10 m), so the sea gets taller without getting spiky. The amplitudes sum
+ * to about 1.4 m and the slopes follow, so the boats pitch and roll more and the surf, the
+ * reflection and the wake all see the same taller water.
+ */
+export const SWELL_GAIN = { chop: 1.35, swell: 1.85, from: 10, to: 40 };
+const gainFor = (length: number) => {
+  const t = Math.min(
+    1,
+    Math.max(0, (length - SWELL_GAIN.from) / (SWELL_GAIN.to - SWELL_GAIN.from)),
+  );
+  return (
+    SWELL_GAIN.chop + (SWELL_GAIN.swell - SWELL_GAIN.chop) * t * t * (3 - 2 * t)
+  );
+};
+/** The waves of the sea (shared by the boats' physics and the water shader). */
+export const WAVES: readonly Wave[] = BASE_WAVES.map((wave) => ({
+  ...wave,
+  amplitude: wave.amplitude * gainFor(wave.length),
+}));
 
 /** The mean of ((1 + sin) / 2)^sharp over a period, so every wave averages to zero. */
 function meanOfSharpened(sharp: number) {

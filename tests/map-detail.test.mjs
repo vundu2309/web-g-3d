@@ -259,10 +259,10 @@ test("the beach is long and gently shelving: slope, dry-sand width and the shelf
       assert.ok(Math.abs(off10 - shelfDepth(10)) < 1e-9);
     }
   });
-  // What is drawn below the waterline dips a little more there (the troughs of the waves bare
-  // 2 m of it, not 6), and is the land itself above it.
+  // What is drawn below the waterline dips a little more there (BED_DIP 0.65 m, for the
+  // taller sea: its troughs bare about 2 m of it, not 10), and is the land itself above it.
   assert.equal(drawnBed(0.5), 0.5);
   assert.equal(drawnBed(0), 0);
-  assert.ok(drawnBed(-0.07) < -0.2 && drawnBed(-0.07) > -0.4);
-  assert.ok(drawnBed(-0.6) < -0.6 && drawnBed(-0.6) > -1);
+  assert.ok(drawnBed(-0.07) < -0.4 && drawnBed(-0.07) > -0.7);
+  assert.ok(drawnBed(-0.6) < -1 && drawnBed(-0.6) > -1.5);
 });

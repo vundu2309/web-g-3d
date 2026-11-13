@@ -14,6 +14,7 @@ import {
   WAVES,
   WIND_DIRECTION,
   MAX_WAVE_HEIGHT,
+  BASE_WAVES,
   glslWaveHeight,
   waveGradient,
   waveHeight,
@@ -68,7 +69,7 @@ test("the shader wave function is generated from the same waves as the CPU one",
   assert.equal((glsl.match(/sin\(/g) ?? []).length, 2 * WAVES.length);
   // Bounded by the summed amplitudes, and it really moves in time.
   for (let i = 0; i < 200; i++)
-    assert.ok(Math.abs(waveHeight(i * 3.1, i * 1.7, i * 0.37)) <= 1.2);
+    assert.ok(Math.abs(waveHeight(i * 3.1, i * 1.7, i * 0.37)) <= 2.0);
   assert.notEqual(waveHeight(5, 5, 0), waveHeight(5, 5, 1.3));
 });
 
@@ -109,11 +110,15 @@ test("the waves are a calm wind sea: a band of headings around the wind, swell t
   const lengths = WAVES.map((w) => w.length);
   assert.ok(Math.min(...lengths) >= 2 && Math.max(...lengths) <= 62);
   assert.equal(new Set(lengths).size, WAVES.length, "no two the same length");
-  // Calm: the summed amplitude stays near 0.8 m.
+  // A moderate sea: the summed amplitude is about 1.4 m (it was 0.8 m before the user asked for
+  // bigger waves), and the long swell is raised more than the short chop.
   assert.ok(
-    MAX_WAVE_HEIGHT > 0.65 && MAX_WAVE_HEIGHT < 0.9,
+    MAX_WAVE_HEIGHT > 1.2 && MAX_WAVE_HEIGHT < 1.6,
     `${MAX_WAVE_HEIGHT}`,
   );
+  const gains = WAVES.map((w, i) => w.amplitude / BASE_WAVES[i].amplitude);
+  assert.ok(Math.min(...gains) >= 1.3 && Math.max(...gains) <= 1.9);
+  assert.ok(gains[0] > gains[gains.length - 1], "swell raised more than chop");
   const off = WAVES.map((w) => w.direction - WIND_DIRECTION);
   // Every wave comes from the wind's side of the sea, but not all from one heading.
   assert.ok(off.every((d) => Math.abs(d) < Math.PI / 2));

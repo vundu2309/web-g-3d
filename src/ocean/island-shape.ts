@@ -92,10 +92,10 @@ export const DRY_SAND = 11;
 /**
  * The terrain as it is drawn (island-visual.ts, and the swash sheet laid on it): the same as
  * `height` on land and a further `BED_DIP` m lower just off the sand. On the gentle shelf a
- * wave trough (the sea falls 0.4 m below its mean) would otherwise bare 6 m of seabed; the
- * dip keeps that to about 2 m. The sea is opaque, so nothing else shows the difference.
+ * wave trough (the sea falls 0.7 m below its mean now) would otherwise bare 10 m of seabed;
+ * the dip keeps that to about 2 m. The sea is opaque, so nothing else shows the difference.
  */
-export const BED_DIP = 0.35;
+export const BED_DIP = 0.65;
 export const drawnBed = (y: number) =>
   y >= 0 ? y : y - BED_DIP * (1 - Math.exp(y / 0.06));
 /** Where the hills start to rise behind the beach (m inland) and how far they take to arrive. */

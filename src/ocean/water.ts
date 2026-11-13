@@ -8,7 +8,13 @@ import { WAKE_MAX, glslWake } from "./wake.ts";
 import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Constants } from "@babylonjs/core/Engines/constants";
-import { WIND_DIRECTION, glslWaveHeight } from "./waves.ts";
+import { BED_DIP } from "./island-shape.ts";
+import {
+  BASE_WAVES,
+  MAX_WAVE_HEIGHT,
+  WIND_DIRECTION,
+  glslWaveHeight,
+} from "./waves.ts";
 import { RIPPLE_RANGE, RIPPLE_SIZE, ripplePixels } from "./ripples.ts";
 import { glslSkyModel } from "./sky-model.ts";
 import { glslReflection } from "./reflection-model.ts";
@@ -43,6 +49,13 @@ import {
 /** A unit vector turned `offset` radians from the wind, as a GLSL vec2. */
 const glslAxis = (offset: number) =>
   `vec2(${Math.cos(WIND_DIRECTION + offset).toFixed(6)}, ${Math.sin(WIND_DIRECTION + offset).toFixed(6)})`;
+/**
+ * How much taller the sea is than the base table the white caps and the thin-crest glow were tuned
+ * on (waves.ts): their thresholds are divided by it, so a taller sea has the same share of white
+ * caps instead of a milky sheet on every crest.
+ */
+const SEA_GAIN =
+  MAX_WAVE_HEIGHT / BASE_WAVES.reduce((s, w) => s + w.amplitude, 0);
 const COMMON = `
 precision highp float;
 uniform float time;
@@ -56,6 +69,21 @@ export interface BoatSpot {
   z: number;
   heading: number;
 }
+/**
+ * The water at a hull (see `hullWater` in the shader): the waterline is an ellipse-like outline
+ * `beam` wide amidships and drawn to a point at the bow; `scale` turns the outline's size into
+ * metres from the hull; the rings have this wavelength (m), spread `rate` wavelengths a
+ * second and tilt the water by `height` (m, so a slope of height x 2 pi / wavelength).
+ */
+export const HULL_WATER = {
+  halfLength: 3.9,
+  beam: 1.45,
+  shift: 0.2,
+  scale: 1.2,
+  wavelength: 2.1,
+  rate: 0.5,
+  height: 0.11,
+};
 /** Packs boats into the shader's vec4 array: x, z, heading, 1 for a boat and 0 for empty. */
 export function packBoats(boats: readonly BoatSpot[]): number[] {
   const out = new Array<number>(BOAT_MAX * 4).fill(0);
@@ -192,13 +220,50 @@ float boatShadow(vec2 p, vec3 sunDir) {
   }
   return dark;
 }
+// What a hull does to the water around it, whether the boat moves or not (the wake is for
+// moving boats): a collar of white water lapping against the planking, which breaks up as it
+// goes, and rings of ripple that spread from the hull and come in pulses, as the boat rocks.
+// Purely visual: the water is tilted and painted near each hull, the mesh the boats float on
+// is untouched. x is the white water, yz the slope the ripples add.
+vec3 hullWater(vec2 p, float t) {
+  float foam = 0.0;
+  vec2 slope = vec2(0.0);
+  for (int i = 0; i < ${BOAT_MAX}; i++) {
+    vec4 boat = boats[i];
+    vec2 d = p - boat.xy;
+    if (boat.w < 0.5 || dot(d, d) > 100.0) continue;
+    vec2 fwd = vec2(sin(boat.z), -cos(boat.z));
+    vec2 side = vec2(cos(boat.z), sin(boat.z));
+    float u = dot(d, fwd) + ${HULL_WATER.shift.toFixed(2)};
+    float v = dot(d, side);
+    // The waterline: wide amidships, drawn in to a point at the bow, a little narrower at the stern.
+    float hw = u > 0.0 ? mix(${HULL_WATER.beam.toFixed(2)}, 0.2, smoothstep(0.0, ${HULL_WATER.halfLength.toFixed(2)}, u)) : mix(${HULL_WATER.beam.toFixed(2)}, 1.0, smoothstep(0.0, ${HULL_WATER.halfLength.toFixed(2)}, -u));
+    float edge = max((length(vec2(v / hw, u / ${HULL_WATER.halfLength.toFixed(2)})) - 1.0) * ${HULL_WATER.scale.toFixed(2)}, 0.0);
+    // The collar: thin, ragged, never the same twice.
+    float lap = noise(p * 3.4 + vec2(t * 0.35, -t * 0.28));
+    // Wider and whiter where the bow parts the water and along the quarter, thinner at the stern.
+    float push = 1.0 + 0.9 * smoothstep(0.5, 3.4, u);
+    float collar = (1.0 - smoothstep(0.15, (0.8 + 1.4 * lap) * push, edge)) * (0.85 + 0.15 * lap);
+    // Rings: a slow pulse (the boat rocks), each ring spreading about a metre a second.
+    float pulse = 0.55 + 0.45 * sin(t * 0.9 + boat.x * 0.37 + boat.y * 0.23);
+    float k = 6.2832 / ${HULL_WATER.wavelength.toFixed(2)};
+    float phase = edge * k - 6.2832 * ${HULL_WATER.rate.toFixed(2)} * t;
+    float fade = exp(-edge / 3.2) * smoothstep(0.0, 0.5, edge) * (1.0 - smoothstep(5.0, 8.5, edge));
+    slope += normalize(d + 0.0001) * ${HULL_WATER.height.toFixed(3)} * k * cos(phase) * fade * pulse;
+    // The crests of the first rings catch a little foam.
+    float crest = smoothstep(0.55, 0.95, cos(phase)) * (1.0 - smoothstep(0.6, 5.0, edge)) * smoothstep(0.1, 0.5, edge) * (0.45 + 0.55 * pulse) * (0.5 + 0.5 * lap);
+    foam = max(foam, max(collar, crest * 0.8));
+  }
+  return vec3(foam, slope);
+}
 void main() {
   vec3 toCamera = cameraPosition - vWorld;
   float dist = length(toCamera);
   vec3 view = toCamera / dist;
   vec3 sunDir = normalize(sunDirection);
   // The exact slope of the waves, with the short ones faded out with distance.
-  vec2 slope = waveSlope(vWorld.xz, time, dist) + vWake.yz;
+  vec3 hull = hullWater(vWorld.xz, time);
+  vec2 slope = waveSlope(vWorld.xz, time, dist) + vWake.yz + hull.yz;
   // How choppy the sea is here: wide calm and rough patches drifting downwind, and faint
   // streaks along the wind (faded far away, where they would alias).
   vec2 q = vWorld.xz;
@@ -225,7 +290,11 @@ void main() {
   // How much water there is above the floor right here (m): the still-water depth plus the wave
   // under this pixel. Near the sand the waves matter, a crest laps over the sand (d below 0, no
   // depth in the still sea) and a trough bares it; further out only the still depth counts.
-  float bedY = d < 0.0 ? beachRise(-d) : -seabedDepth(d);
+  // The floor as it is drawn (island-shape.ts, drawnBed): just off the sand it dips ${BED_DIP} m below
+  // the shelf, so a trough of the taller sea does not bare it, and the white edge below is only
+  // painted where the water really is thin.
+  float shelfY = seabedDepth(d);
+  float bedY = d < 0.0 ? beachRise(-d) : -(shelfY + ${BED_DIP.toFixed(3)} * (1.0 - exp(-shelfY / 0.06)));
   float column = vHeight - bedY;
   float depth = mix(max(column, 0.0), seabedDepth(d), smoothstep(5.0, 14.0, d));
   float nearShore = 1.0 - smoothstep(48.0, 90.0, d);
@@ -341,7 +410,7 @@ void main() {
   // Light through the waves: crests seen against the sun glow green-blue (subsurface), and so
   // does the thin face of a breaker about to curl.
   float against = pow(clamp(dot(-view, normalize(vec3(sunDir.x, 0.0, sunDir.z))) * 0.5 + 0.5, 0.0, 1.0), 3.0);
-  float thin = smoothstep(0.0, 0.8, vHeight * 1.2 + length(slope) * 1.5);
+  float thin = smoothstep(0.0, 0.8, (vHeight * 1.2 + length(slope) * 1.5) / ${SEA_GAIN.toFixed(3)});
   body += toLinear(shallow) * vec3(0.3, 0.8, 0.7) * (against * thin * 0.4 + nearShore * (1.0 - broken) * smoothstep(0.1, 0.7, length(surfSlope)) * 0.25) * incident * 0.35;
   // In the shadow the water is lit by the sky alone, and the sky it mirrors is partly blocked by the hull.
   body *= 1.0 - 0.45 * shade;
@@ -356,7 +425,7 @@ void main() {
   color += sunColor() * SUN_RADIANCE * min(specular, 40.0) * sunlit;
   // Foam: white caps on steep crests and the surf, broken up into lace. It is a rough white
   // surface, so it takes the light that falls on it (sun and sky), not the mirror.
-  float cap = smoothstep(0.46, 0.92, vHeight * 0.9 + length(slope) * 0.9) * (1.0 - nearShore * 0.7);
+  float cap = smoothstep(0.46, 0.92, (vHeight * 0.9 + length(slope) * 0.9) / ${SEA_GAIN.toFixed(3)}) * (1.0 - nearShore * 0.7);
   if (cap > 0.0 || surfFoam > 0.0) {
     // The lace drifts toward the beach with the bores; fresh foam is nearly solid, old foam
     // keeps only the edges of the bubble cells (thin trails), far foam is a soft wash.
@@ -376,6 +445,11 @@ void main() {
     foam = clamp(max(foam, surf), 0.0, 1.0);
     vec3 foamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * max(nlSun, nl * 0.6) * 0.3 * sunlit);
     color = mix(color, foamColor, foam);
+  }
+  // The white water at the hulls (hullWater): a rough surface like the other foam.
+  if (hull.x > 0.01) {
+    vec3 hullFoamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * max(nlSun, nl * 0.6) * 0.3 * sunlit);
+    color = mix(color, hullFoamColor, hull.x * (1.0 - smoothstep(120.0, 260.0, dist)));
   }
   // Aerial perspective: far water takes the colour of the sky toward the horizon in its own
   // direction, so the fog and the sky meet without a seam.

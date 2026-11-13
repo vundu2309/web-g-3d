@@ -25,12 +25,20 @@
       import { createMarket } from "/src/ocean/market-visual.ts";
       import { SeaProps } from "/src/ocean/sea-props.ts";
       import { CHASE } from "/src/ocean/chase-camera.ts";
+      import { waveHeight } from "/src/ocean/waves.ts";
+      import { WakeField, sampleWake } from "/src/ocean/wake.ts";
+      import { WakeTrail } from "/src/ocean/wake-trail.ts";
+      import { WakeMesh } from "/src/ocean/wake-mesh.ts";
+      import { Quaternion, Axis } from "@babylonjs/core";
       import {
         loadIslandModels,
         placeIslandProps,
       } from "/src/ocean/island-models.ts";
       const q = new URLSearchParams(location.search);
-      const mode = q.get("m") || "chase";
+      // m=openchase / openlow: the same cameras with the boat 140 m further out, in open water.
+      const rawMode = q.get("m") || "chase";
+      const far = rawMode.startsWith("open") ? 140 : 0;
+      const mode = rawMode.replace(/^open/, "");
       const T = +(q.get("t") || 4);
       const idx = +(q.get("i") || 0);
       const ang = (+(q.get("a") || 0) * Math.PI) / 180;
@@ -83,8 +91,8 @@
       let camPos,
         target,
         boatAt = null;
-      if (mode === "chase" || mode === "low") {
-        const r = isl.radius * 1.08 + 7;
+      if (mode === "chase" || mode === "low" || mode === "hull") {
+        const r = isl.radius * 1.08 + 7 + far;
         const bx = isl.x + ox * r,
           bz = isl.z + oz * r;
         // Heading: along the coast, turned 35 degrees toward the island.
@@ -102,6 +110,13 @@
           bz + dz * CHASE.lookAhead,
         );
         boatAt = { bx, bz, h };
+        if (mode === "hull") {
+          // Beside the hull, 9 m off its starboard side, a little ahead of it, looking at the waterline.
+          const sx = Math.cos(h),
+            sz = Math.sin(h);
+          camPos = new Vector3(bx + sx * 9 + dx * 2, 3.4, bz + sz * 9 + dz * 2);
+          target = new Vector3(bx - dx * 0.5, 0.4, bz - dz * 0.5);
+        }
       } else if (mode === "beach") {
         const c = shape.coast(ang);
         const cx = isl.x + ox * (c + 6),
@@ -157,10 +172,49 @@
         camPos = new Vector3(30, 150, 210);
         target = new Vector3(40, 0, -30);
       }
+      // &sp=<m/s> makes the boat sail (default 0: it lies still). The boat floats on the waves and the
+      // wake, as in the game, the wake field and trail are played back for the 5 s before t, and the
+      // water gets the boat (shadow and whatever it does at the hull).
+      const speed = +(q.get("sp") || 0);
+      const boatList = [];
+      const wakeField = new WakeField();
+      const wakeTrail = new WakeTrail();
+      const wakeMesh = boatAt ? new WakeMesh(scene) : null;
+      let boat = null;
       if (boatAt) {
-        const boat = tpl.createInstance("b1");
-        boat.position.set(boatAt.bx, 0.3, boatAt.bz);
-        boat.rotation.y = -boatAt.h;
+        boat = tpl.createInstance("b1");
+        const fx = Math.sin(boatAt.h),
+          fz = -Math.cos(boatAt.h);
+        const rx = Math.cos(boatAt.h),
+          rz = Math.sin(boatAt.h);
+        const at = (s) => ({
+          x: boatAt.bx - fx * speed * (T - s),
+          z: boatAt.bz - fz * speed * (T - s),
+        });
+        boatAt.pose = (now) => {
+          const p = at(now);
+          const h = (x, z) =>
+            waveHeight(x, z, now) +
+            sampleWake(wakeField.data, x, z, now).height;
+          const bow = h(p.x + fx * 3.5, p.z + fz * 3.5);
+          const stern = h(p.x - fx * 3.5, p.z - fz * 3.5);
+          const star = h(p.x + rx * 1.4, p.z + rz * 1.4);
+          const port = h(p.x - rx * 1.4, p.z - rz * 1.4);
+          boat.position.set(p.x, (bow + stern + star + port) / 4, p.z);
+          boat.rotationQuaternion = Quaternion.RotationAxis(Axis.Y, -boatAt.h)
+            .multiply(
+              Quaternion.RotationAxis(Axis.X, Math.atan2(bow - stern, 7)),
+            )
+            .multiply(
+              Quaternion.RotationAxis(Axis.Z, Math.atan2(star - port, 2.8)),
+            );
+          return p;
+        };
+        for (let s = Math.max(0, T - 5); s < T; s += 0.05) {
+          const p = at(s);
+          wakeField.track("b", p.x, p.z, s);
+          wakeTrail.push(p.x, p.z, s);
+        }
       }
       const cam = new FreeCamera("cam", camPos, scene);
       cam.fov = 0.9;
@@ -170,7 +224,20 @@
       scene.activeCamera = cam;
       window.scene = scene;
       const tick = () => {
-        water.update(cam.position.x, cam.position.z, T);
+        if (boatAt) {
+          const p = boatAt.pose(T);
+          wakeField.track("b", p.x, p.z, T);
+          wakeTrail.push(p.x, p.z, T);
+          wakeMesh.update(wakeTrail, T);
+          boatList[0] = { x: p.x, z: p.z, heading: boatAt.h };
+        }
+        water.update(
+          cam.position.x,
+          cam.position.z,
+          T,
+          wakeField.data,
+          boatList,
+        );
         sky.update(cam.position.x, cam.position.y, cam.position.z, T);
         props.update(T);
         for (const e of extras) e.update?.(T);
