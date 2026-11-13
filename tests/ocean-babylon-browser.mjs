@@ -84,8 +84,10 @@ try {
   await page.waitForTimeout(1500);
   const cost = await page.evaluate(() => window.oceanScene.stats());
   assert.ok(cost.meshes >= 6, `meshes in view: ${cost.meshes}`);
+  // Raised from 150,000 for the Blender island props (about 170,000 measured): looks first,
+  // performance pass later by the user's choice.
   assert.ok(
-    cost.triangles > 5000 && cost.triangles < 150000,
+    cost.triangles > 5000 && cost.triangles < 200000,
     `triangles ${cost.triangles}`,
   );
   const picture = await page.screenshot();

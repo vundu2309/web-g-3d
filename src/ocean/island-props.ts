@@ -14,6 +14,8 @@ export interface PropContext {
   height: (x: number, z: number) => number;
   radius: number;
   peak: number;
+  /** Where driftwood was laid (centre and reach), for props placed later to stay off. */
+  taken?: { x: number; z: number; r: number }[];
 }
 
 export interface PropSummary {
@@ -174,6 +176,7 @@ export function addDriftwood(ctx: PropContext, count: number) {
     const yaw = ctx.rng() * Math.PI;
     const length = 0.7 + ctx.rng() * 1.1;
     const color = shade(pick(ctx.rng, WOOD), 0.12);
+    ctx.taken?.push({ x, z, r: length + 0.3 });
     ctx.geo.box(x, y + 0.07, z, length, 0.08, 0.1, color, yaw);
     if (ctx.rng() < 0.6)
       ctx.geo.box(
@@ -545,8 +548,11 @@ export function addHut(ctx: PropContext): Structure | undefined {
   return { x, z, angle };
 }
 
-/** A little wooden skiff pulled up on the sand. */
-export function addRowboat(ctx: PropContext, near?: Structure): boolean {
+/** A little wooden skiff pulled up on the sand; where it lies (angle is its yaw). */
+export function addRowboat(
+  ctx: PropContext,
+  near?: Structure,
+): Structure | undefined {
   const baseAngle = near ? near.angle + 0.34 : ctx.rng() * Math.PI * 2;
   for (let tries = 0; tries < 24; tries++) {
     const angle =
@@ -590,7 +596,7 @@ export function addRowboat(ctx: PropContext, near?: Structure): boolean {
       yaw + Math.PI / 4,
       0.05,
     );
-    return true;
+    return { x, z, angle: yaw };
   }
-  return false;
+  return undefined;
 }

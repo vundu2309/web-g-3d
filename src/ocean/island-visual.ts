@@ -18,6 +18,7 @@ import {
   addTrees,
   type PropSummary,
 } from "./island-props.ts";
+import type { KeepOut } from "./island-layout.ts";
 import { hex, meshFrom, mergeParts, paint } from "./mesh-parts.ts";
 import { PAL } from "./art/colors.ts";
 import { SIDES, cylinderMesh, sphereMesh } from "./art/shapes.ts";
@@ -32,9 +33,12 @@ export {
 } from "./island-shape.ts";
 
 /**
- * Procedural island: low-poly terrain with beach, grass and rock, plus palms, rocks,
- * bushes and an optional lighthouse, all merged into ONE vertex-coloured mesh.
- * Seeded, so every client builds the identical island.
+ * Procedural island: low-poly terrain with beach, grass and rock, bushes, grass, flowers, a
+ * boardwalk and an optional lighthouse merged into ONE vertex-coloured mesh. The palms, trees,
+ * boulders and hut that the Blender models replace (island-models.ts) are a second mesh,
+ * `fallback`, parented to the first, so they can be swapped out once the models load. A
+ * backdrop island keeps everything in one mesh. Seeded, so every client builds the identical
+ * island.
  */
 export interface IslandOptions {
   seed: number;
@@ -46,9 +50,21 @@ export interface IslandOptions {
 
 export interface IslandVisual {
   mesh: Mesh;
+  /**
+   * The procedural palms, trees, boulders and hut (a child of `mesh`), drawn until the models
+   * replace them (`placeIslandProps` disposes it and clears this). Undefined on a backdrop island.
+   */
+  fallback?: Mesh;
   /** Terrain height at island-local (x, z). */
   height(x: number, z: number): number;
-  /** Triangles in the island mesh, and what was placed on it. */
+  /** Distance from the centre to the waterline in a direction (radians). */
+  coast(angle: number): number;
+  seed: number;
+  radius: number;
+  peak: number;
+  /** Island-local places the model props stay off: boardwalk, rowboat, driftwood, lighthouse. */
+  keepOut: KeepOut[];
+  /** Triangles in the island (both meshes), and what was placed on it. */
   triangles: number;
   props: PropSummary;
 }
@@ -58,7 +74,7 @@ export function createIsland(
   { seed, radius, lighthouse = false, distant = false }: IslandOptions,
 ): IslandVisual {
   const rng = random(seed);
-  const { peak, height } = islandShape(seed, radius);
+  const { peak, height, coast } = islandShape(seed, radius);
 
   // Terrain grid with colours from height and slope. It reaches just past the underwater
   // apron (the coast is inside 0.99 of the radius, the apron levels off a few metres out);
@@ -127,6 +143,9 @@ export function createIsland(
   const parts: Mesh[] = [
     meshFrom("terrain", scene, positions, indices, colors),
   ];
+  // What the models replace goes to its own mesh (on a play island), in the same order and
+  // from the same random stream as always, so the rest of the island does not move.
+  const swappable: Mesh[] = distant ? parts : [];
 
   const place = (
     mesh: Mesh,
@@ -135,11 +154,12 @@ export function createIsland(
     y: number,
     z: number,
     scale: [number, number, number] = [1, 1, 1],
+    into: Mesh[] = parts,
   ) => {
     mesh.position.set(x, y, z);
     mesh.scaling.set(...scale);
     paint(mesh, hex(color));
-    parts.push(mesh);
+    into.push(mesh);
     return mesh;
   };
 
@@ -167,7 +187,7 @@ export function createIsland(
         const w = spin(p.x, p.z);
         return new Vector3(w.x, base + p.y, w.z);
       });
-    parts.push(
+    swappable.push(
       paint(
         MeshBuilder.CreateTube(
           "trunk",
@@ -203,7 +223,7 @@ export function createIsland(
       );
       frond.position.copyFrom(top);
       frond.rotation.y = (i / 8) * Math.PI * 2;
-      parts.push(frond);
+      swappable.push(frond);
     }
     for (let i = 0; i < 3; i++) {
       const nut = sphereMesh(scene, 0.3, SIDES.thin, "nut");
@@ -213,7 +233,7 @@ export function createIsland(
         top.z + Math.sin(i * 2.1) * 0.28,
       );
       paint(nut, hex(PAL.wood.deep));
-      parts.push(nut);
+      swappable.push(nut);
     }
   }
 
@@ -252,13 +272,18 @@ export function createIsland(
       Math.max(height(x, z), 0) + size * 0.25,
       z,
       [0.85 + rng() * 0.3, 0.7 + rng() * 0.3, 0.85 + rng() * 0.3],
+      swappable,
     );
     rockMesh.rotation.y = rng() * 6;
   }
   // The small things: grass, flowers, bushes, trees, shells, driftwood, boulders at the
   // shore, a boardwalk, a hut and a rowboat. One buffer, one mesh.
   const geo = new Geo();
-  const ctx = { geo, rng, height, radius, peak };
+  const taken: { x: number; z: number; r: number }[] = [];
+  const ctx = { geo, rng, height, radius, peak, taken };
+  const swapGeo = distant ? geo : new Geo();
+  const swapCtx = { ...ctx, geo: swapGeo };
+  const keepOut: KeepOut[] = [];
   // Bigger islands get more of everything, but only up to a phone-sized budget.
   const f = Math.min(1.25, radius / 18);
   const props: PropSummary = {
@@ -277,14 +302,30 @@ export function createIsland(
     props.grass = addGrass(ctx, Math.round(520 * f));
     props.flowers = addFlowers(ctx, Math.round(90 * f));
     props.bushes = addBushes(ctx, Math.round(26 * f));
-    props.trees = addTrees(ctx, Math.round(7 * f));
+    props.trees = addTrees(swapCtx, Math.round(7 * f));
     props.shells = addShells(ctx, Math.round(50 * f));
     props.driftwood = addDriftwood(ctx, Math.round(5 * f));
-    props.boulders = addBoulders(ctx, Math.round(6 * f));
+    props.boulders = addBoulders(swapCtx, Math.round(6 * f));
     const walk = addBoardwalk(ctx);
     props.boardwalk = !!walk;
-    props.hut = !!addHut(ctx);
-    props.boat = addRowboat(ctx, walk);
+    props.hut = !!addHut(swapCtx);
+    const boat = addRowboat(ctx, walk);
+    props.boat = !!boat;
+    if (walk) {
+      // The boardwalk starts at least half the radius out; keep the whole run clear.
+      const from = radius * 0.45;
+      keepOut.push({
+        ax: Math.cos(walk.angle) * from,
+        az: Math.sin(walk.angle) * from,
+        bx: walk.x,
+        bz: walk.z,
+        r: 1.5,
+      });
+    }
+    if (boat)
+      keepOut.push({ ax: boat.x, az: boat.z, bx: boat.x, bz: boat.z, r: 2 });
+    for (const { x, z, r } of taken)
+      keepOut.push({ ax: x, az: z, bx: x, bz: z, r });
   } else props.bushes = addBushes(ctx, Math.min(12, Math.round(4 * f)));
 
   if (lighthouse) {
@@ -311,6 +352,7 @@ export function createIsland(
       );
     }
     const base = foot - 0.1;
+    keepOut.push({ ax: bestX, az: bestZ, bx: bestX, bz: bestZ, r: 3 });
     for (let i = 0; i < 4; i++) {
       const bottomR = 1.5 - i * 0.14;
       place(
@@ -407,11 +449,29 @@ export function createIsland(
   mesh.convertToFlatShadedMesh();
   useSolid(mesh, "matte");
   mesh.freezeWorldMatrix();
+  let fallback: Mesh | undefined;
+  if (!distant) {
+    if (swapGeo.triangles > 0)
+      swappable.push(swapGeo.toMesh(scene, "props-fallback"));
+    if (swappable.length > 0) {
+      fallback = mergeParts("island-fallback", swappable);
+      fallback.convertToFlatShadedMesh();
+      useSolid(fallback, "matte");
+      fallback.parent = mesh;
+    }
+  }
 
   return {
     mesh,
+    fallback,
     height,
-    triangles: mesh.getTotalIndices() / 3,
+    coast,
+    seed,
+    radius,
+    peak,
+    keepOut,
+    triangles:
+      (mesh.getTotalIndices() + (fallback?.getTotalIndices() ?? 0)) / 3,
     props,
   };
 }

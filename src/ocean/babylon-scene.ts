@@ -20,7 +20,8 @@ import {
   createFishingLine,
 } from "./boat-visual.ts";
 import { createHavok } from "./havok.ts";
-import { createIsland } from "./island-visual.ts";
+import { createIsland, type IslandVisual } from "./island-visual.ts";
+import { loadIslandModels, placeIslandProps } from "./island-models.ts";
 import { islandSeed } from "./shore.ts";
 import { SeaProps } from "./sea-props.ts";
 import { WakeField, sampleWake } from "./wake.ts";
@@ -116,6 +117,8 @@ export class OceanScene {
   >();
   private gearInput: Omit<GearInput, "tip" | "time"> | undefined;
   private readonly canvas: HTMLCanvasElement;
+  /** Settles once the island models are in place (or failed and the fallback stays). */
+  private readonly islandProps: Promise<void>;
 
   static async create(host: HTMLElement, onLost: () => void) {
     const plugin = await createHavok();
@@ -172,7 +175,7 @@ export class OceanScene {
       template.isVisible = false;
       return template;
     });
-    islands.forEach((island, index) => {
+    const visuals = islands.map((island, index) => {
       const visual = createIsland(this.scene, {
         seed: islandSeed(index),
         radius: island.radius,
@@ -180,7 +183,9 @@ export class OceanScene {
       });
       visual.mesh.position.set(island.x, 0, island.z);
       visual.mesh.freezeWorldMatrix();
+      return visual;
     });
+    this.islandProps = this.placeIslandModels(visuals);
     // A fish market on the water off each island.
     this.markets = MARKETS.map((market) => createMarket(this.scene, market));
     this.seaProps = new SeaProps(this.scene);
@@ -291,8 +296,30 @@ export class OceanScene {
     this.trails.delete(id);
   }
 
-  /** Resolves once every mesh, material and shader has been compiled for the first frame. */
-  ready() {
+  /**
+   * The Blender palms, rocks and hut replace each island's procedural ones once loaded; until
+   * then (and for good if the load fails) the procedural ones are drawn.
+   */
+  private async placeIslandModels(visuals: IslandVisual[]) {
+    try {
+      const models = await loadIslandModels(this.scene);
+      if (this.scene.isDisposed) return;
+      for (const visual of visuals) placeIslandProps(visual, models, MARKETS);
+    } catch (error) {
+      if (!this.scene.isDisposed)
+        console.warn(
+          "Island models did not load; keeping the simple ones.",
+          error,
+        );
+    }
+  }
+
+  /**
+   * Resolves once the island models are placed (or have failed) and every mesh, material and
+   * shader has been compiled for the first frame.
+   */
+  async ready() {
+    await this.islandProps;
     return this.scene.whenReadyAsync();
   }
 

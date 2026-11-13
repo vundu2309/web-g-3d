@@ -1,5 +1,5 @@
 import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
-import type { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import { LoadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
@@ -12,8 +12,10 @@ import { useSolid } from "./art/materials.ts";
  * the shared solid look, painted by the per-vertex colours the pipeline baked from the game's
  * palette. The model is added to the scene under one root node you can place and parent.
  *
- * Blender faces -Y and the pipeline exports Y-up glTF, which the loader turns into the scene's
- * left-handed frame: the model's front ends up on -Z, like a boat's bow.
+ * The pipeline exports Y-up glTF and the sea's scene is right-handed (`useRightHandedSystem`), so
+ * the loader adds no flip: a Blender point (x, y, z) lands at (x, z, −y) in the model's own frame.
+ * Blender's +Y (the hut's door, tools/blender/props.py) is the model's −Z (checked in a render
+ * and by tests/props-models.test.mjs).
  */
 export interface LoadedModel {
   root: TransformNode;
@@ -54,3 +56,31 @@ export async function loadModel(
 
 /** Every mesh of the model, for callers that hide or move them as a whole. */
 export const meshesOf = (model: LoadedModel): AbstractMesh[] => model.meshes;
+
+/**
+ * Loads a static GLB (no animated pivots) as ONE mesh with an identity transform: the exporter
+ * writes one glTF primitive per palette colour, which Babylon would load as dozens of meshes, so
+ * they are merged (their node transforms baked in) and the empty root dropped. The result keeps
+ * the shared solid look and opaque vertex colours, and is ready to be instanced.
+ */
+export async function loadMergedModel(
+  scene: Scene,
+  file: string,
+): Promise<Mesh> {
+  const model = await loadModel(scene, file);
+  const merged = Mesh.MergeMeshes(
+    model.meshes,
+    true,
+    true,
+    undefined,
+    false,
+    false,
+  );
+  model.root.dispose();
+  if (!merged) throw new Error(`${file}: nothing to merge`);
+  merged.name = `model-${file.replace(/\.glb$/, "")}`;
+  merged.isPickable = false;
+  merged.hasVertexAlpha = false;
+  useSolid(merged, "satin");
+  return merged;
+}
