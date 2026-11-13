@@ -23,6 +23,7 @@ import {
   WATER_ABSORPTION,
   ZENITH,
 } from "./sea-style.ts";
+import { waterRingRadii } from "./water-extent.ts";
 import {
   COAST_SAMPLES,
   coastPixels,
@@ -367,13 +368,15 @@ export interface Water {
 }
 
 export function createWater(scene: Scene): Water {
-  // Dense near the camera, sparse far away, so waves stay smooth where they are seen.
-  const rings = 56;
+  // Dense near the camera, sparse far away, so waves stay smooth where they are seen; the far
+  // rings reach past the fog (water-extent.ts) so a high camera never sees the edge of the sea.
+  const radii = waterRingRadii();
+  const rings = radii.length;
   const slices = 96;
   const positions: number[] = [0, 0, 0];
   const indices: number[] = [];
   for (let ring = 1; ring <= rings; ring++) {
-    const radius = 4 * Math.pow(ring / rings, 2.2) * 120;
+    const radius = radii[ring - 1]!;
     for (let slice = 0; slice < slices; slice++) {
       const angle = (slice / slices) * Math.PI * 2;
       positions.push(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
