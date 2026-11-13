@@ -137,20 +137,32 @@ test("the coast texture stores the table exactly enough for the shader", () => {
   assert.doesNotMatch(glslShore(false), /coastMap/);
 });
 
-test("the sea floor rises to the beach the way the island's apron does, then shelves off", () => {
+test("the sea floor shelves off gently from the beach exactly as the island's terrain does", () => {
   assert.equal(seabedDepth(0), 0);
   assert.equal(seabedDepth(-3), 0, "no depth on land");
   for (let d = 0; d < 300; d += 1)
     assert.ok(seabedDepth(d + 1) >= seabedDepth(d), "deeper further out");
-  // The island's own apron, -1.7 (1 - e^(-d/4.5)), is the floor near the sand.
-  const shape = shoreShape(0);
-  for (const d of [0.5, 1, 2, 3, 4]) {
-    const r = shape.coast(1) + d;
-    const floor = -shape.height(Math.cos(1) * r, Math.sin(1) * r);
-    assert.ok(Math.abs(seabedDepth(d) - floor) < 0.06, `${d}: ${floor}`);
+  // The island's own shelf is the floor out to 20 m (the open sea's slope takes over from 22), deeper by 0.07 of the distance at the sand.
+  for (let index = 0; index < islands.length; index++) {
+    const shape = shoreShape(index);
+    for (const d of [0.5, 1, 2, 3, 4, 7, 10, 15, 20]) {
+      const r = shape.coast(1) + d;
+      const floor = -shape.height(Math.cos(1) * r, Math.sin(1) * r);
+      assert.ok(
+        Math.abs(seabedDepth(d) - floor) < 0.06,
+        `island ${index} ${d} m out: ${floor} vs ${seabedDepth(d)}`,
+      );
+    }
   }
-  // Turquoise shelf near the islands, open sea far away.
-  assert.ok(seabedDepth(20) < 8);
+  assert.ok(
+    Math.abs(seabedDepth(1) - 0.07) < 0.01,
+    "0.07 m per metre at the sand",
+  );
+  assert.ok(seabedDepth(10) > 0.6 && seabedDepth(10) < 0.9);
+  assert.ok(seabedDepth(25) > 1.8 && seabedDepth(25) < 2.3);
+  // Turquoise shelf near the islands (a few metres deep out to 30 m), open sea far away.
+  assert.ok(seabedDepth(30) < 5);
+  assert.ok(seabedDepth(60) > 12 && seabedDepth(60) < 20);
   assert.ok(seabedDepth(200) > 40);
 });
 
@@ -183,10 +195,11 @@ test("breakers move toward the beach and bunch up as the water gets shallow", ()
   assert.ok(UPRUSH < 0.4, "the rush up is quicker than the slide back");
 });
 
-test("the swash sheet drapes each beach from under the water to a few metres inland", async () => {
+test("the swash sheet drapes each beach from the shallows to eleven metres up the sand", async () => {
   const { swashSheet, SWASH_ANGLES, SWASH_ROWS, SWASH_LIFT } = await import(
     "../src/ocean/swash.ts"
   );
+  const { drawnBed } = await import("../src/ocean/island-shape.ts");
   for (let index = 0; index < islands.length; index++) {
     const island = islands[index];
     const shape = shoreShape(index);
@@ -200,17 +213,27 @@ test("the swash sheet drapes each beach from under the water to a few metres inl
     );
     for (let v = 0; v < count; v++) {
       const [x, y, z] = sheet.positions.slice(v * 3, v * 3 + 3);
-      const ground = shape.height(x - island.x, z - island.z);
+      // The sheet is draped on the terrain as it is drawn: every vertex floats the same
+      // hand's breadth above the ground under it, however far up the gentle beach it is.
+      const ground = drawnBed(shape.height(x - island.x, z - island.z));
       assert.ok(y >= ground - 1e-9, "never under the sand");
       assert.ok(y - Math.max(ground, -0.45) <= SWASH_LIFT + 1e-9, "lies on it");
       const row = SWASH_ROWS[v % SWASH_ROWS.length];
       assert.ok(
-        Math.abs(sheet.shore[v] - row) < 0.15,
+        Math.abs(sheet.shore[v] - row) < 0.15 + 0.03 * Math.abs(row),
         `row ${row}: ${sheet.shore[v]}`,
       );
     }
-    // From under the water to well up the beach.
-    assert.ok(SWASH_ROWS[0] > 0 && SWASH_ROWS.at(-1) < -4);
+    // From the shallows to far up the beach (the swash climbs 3 to 9 m), rows about a metre
+    // or two apart so the sheet follows the slope.
+    assert.ok(SWASH_ROWS[0] > 0 && SWASH_ROWS.at(-1) <= -10);
+    for (let r = 1; r < SWASH_ROWS.length; r++)
+      assert.ok(SWASH_ROWS[r - 1] - SWASH_ROWS[r] <= 1.7, "rows close enough");
+    assert.ok(
+      sheet.positions.length / 3 < 4000 * 1.3 &&
+        sheet.indices.length / 3 < 8000,
+      "a modest sheet",
+    );
   }
 });
 

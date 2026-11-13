@@ -76,18 +76,23 @@ function pier(parts: Parts) {
     parts.box([0.18, 0.2, 5.4], wood.trim, [x, DECK + 0.02, 0]);
   // The gangway to the island, with a rail of posts and rope; it ends GANGWAY_REACH from the
   // pier's centre, on the sand (market.ts places the pier so).
-  parts.box([1.8, 0.14, 8.4], wood.mid, [0, DECK - 0.04, GANGWAY_REACH - 4.2]);
-  for (let i = 0; i < 9; i++)
-    parts.box([1.8, 0.04, 0.05], wood.dark, [0, DECK + 0.04, 3.2 + i]);
+  const run = GANGWAY_REACH - 2.6;
+  parts.box([1.8, 0.14, run], wood.mid, [0, DECK - 0.04, 2.6 + run / 2]);
+  for (let z = 3.2; z < GANGWAY_REACH - 0.4; z++)
+    parts.box([1.8, 0.04, 0.05], wood.dark, [0, DECK + 0.04, z]);
   for (const x of [-0.9, 0.9])
-    for (let i = 0; i < 5; i++)
-      parts.box([0.1, 0.6, 0.1], wood.trim, [x, DECK + 0.32, 3.4 + i * 2]);
+    for (let z = 3.4; z < GANGWAY_REACH - 0.6; z += 2)
+      parts.box([0.1, 0.6, 0.1], wood.trim, [x, DECK + 0.32, z]);
   for (const x of [-0.9, 0.9])
-    parts.box([0.05, 0.05, 8.2], PAL.fit.rope, [
+    parts.box([0.05, 0.05, run - 0.2], PAL.fit.rope, [
       x,
       DECK + 0.58,
-      GANGWAY_REACH - 4.2,
+      2.6 + run / 2,
     ]);
+  // Piles under the long walkway, down into the sand of the shallows (they end under the sea).
+  for (let z = 5.6; z < GANGWAY_REACH - 3; z += 4)
+    for (const x of [-0.75, 0.75])
+      parts.box([0.2, 1.9, 0.2], wood.dark, [x, DECK - 1.0, z]);
   // Sea-side rail: posts and two rails, with a gap for the boats' side.
   for (const x of [-3.7, -2.4, -1.2, 0, 1.2, 2.4, 3.7])
     parts.box([0.13, 0.7, 0.13], wood.trim, [x, DECK + 0.42, -2.6]);

@@ -3,6 +3,12 @@ import assert from "node:assert/strict";
 import { NullEngine } from "@babylonjs/core/Engines/nullEngine";
 import { Scene } from "@babylonjs/core/scene";
 import {
+  BEACH_TOP,
+  DRY_SAND,
+  drawnBed,
+  shelfDepth,
+} from "../src/ocean/island-shape.ts";
+import {
   COAST_MAX,
   COAST_MIN,
   createIsland,
@@ -153,8 +159,8 @@ test("islands are low with gentle slopes, and their coast stays inside the boats
       `island ${i} is not a flat pancake: ${top}`,
     );
     assert.ok(Math.abs(top - shape.peak) < 0.2, `peak ${shape.peak} vs ${top}`);
-    // Gentle: no land steeper than about 32 degrees.
-    assert.ok(steepest < 0.65, `island ${i} slope ${steepest}`);
+    // Gentle: no land steeper than about 32 degrees (the hills, not the beach: see below).
+    assert.ok(steepest < 0.63, `island ${i} slope ${steepest}`);
     // The waterline: bays and headlands, all inside the ring boats collide with.
     let near = Infinity;
     let far = 0;
@@ -204,4 +210,59 @@ test("the lighthouse, hut, boardwalk and rowboat all find their place on the low
     assert.ok(props.boat, `island ${i} rowboat`);
     assert.ok(props.driftwood > 0, `island ${i} driftwood`);
   }
+});
+
+// The user found the old beach too short and steep for the surf to look real (a 25 degree slope,
+// full height within 5 m). The new one is long and gentle: these numbers pin it all round.
+test("the beach is long and gently shelving: slope, dry-sand width and the shelf off it", () => {
+  islands.forEach((island, i) => {
+    const { seed, radius } = optionsFor(i);
+    const shape = islandShape(seed, radius);
+    for (let k = 0; k < 48; k++) {
+      const a = (k / 48) * Math.PI * 2 + 0.01;
+      const coast = shape.coast(a);
+      // Height d metres inland of the waterline, negative off the beach.
+      const at = (d) =>
+        shape.height(Math.cos(a) * (coast - d), Math.sin(a) * (coast - d));
+      // Slope at the waterline: 0.07 to 0.10 (4 to 6 degrees), above and below the water.
+      const up = (at(1) - at(0.2)) / 0.8;
+      const down = (at(-0.2) - at(-1)) / 0.8;
+      assert.ok(up > 0.06 && up < 0.1, `island ${i} beach slope ${up}`);
+      assert.ok(down > 0.06 && down < 0.1, `island ${i} shelf slope ${down}`);
+      // It steepens slowly over the first 6 m, never flattens and never kinks.
+      let last = up;
+      for (let d = 1.5; d <= 6; d += 0.75) {
+        const here = (at(d + 0.4) - at(d - 0.4)) / 0.8;
+        assert.ok(here >= last - 0.004, `island ${i} slope eases at ${d} m`);
+        assert.ok(here < 0.16, `island ${i} slope ${here} at ${d} m`);
+        last = here;
+      }
+      // The dry sand: from the waterline to where the land reaches a metre, 10 to 16 m wide.
+      let width = 0;
+      while (width < coast && at(width) < 1.0) width += 0.05;
+      assert.ok(width >= 10 && width <= 16, `island ${i} dry sand ${width} m`);
+      assert.ok(Math.abs(width - DRY_SAND) < 2, "as wide as DRY_SAND says");
+      // And the grass takes over about there: the sand has risen to about BEACH_TOP.
+      assert.ok(at(DRY_SAND + 4) > 1.0 && at(DRY_SAND - 6) < 0.6);
+      assert.ok(BEACH_TOP >= 1 && BEACH_TOP <= 1.3);
+      // The shelf: about 0.07 of the distance, 0.75 m deep at 10 m and 2 m at 25 m out.
+      const off10 = -at(-10);
+      const off25 = -at(-25);
+      assert.ok(
+        off10 > 0.6 && off10 < 0.9,
+        `island ${i} depth at 10 m ${off10}`,
+      );
+      assert.ok(
+        off25 > 1.8 && off25 < 2.3,
+        `island ${i} depth at 25 m ${off25}`,
+      );
+      assert.ok(Math.abs(off10 - shelfDepth(10)) < 1e-9);
+    }
+  });
+  // What is drawn below the waterline dips a little more there (the troughs of the waves bare
+  // 2 m of it, not 6), and is the land itself above it.
+  assert.equal(drawnBed(0.5), 0.5);
+  assert.equal(drawnBed(0), 0);
+  assert.ok(drawnBed(-0.07) < -0.2 && drawnBed(-0.07) > -0.4);
+  assert.ok(drawnBed(-0.6) < -0.6 && drawnBed(-0.6) > -1);
 });

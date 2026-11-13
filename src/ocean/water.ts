@@ -222,15 +222,20 @@ void main() {
   vec3 field = shoreField(q);
   float d = field.x;
   vec2 toSea = field.yz;
-  float depth = seabedDepth(d);
-  float nearShore = 1.0 - smoothstep(30.0, 70.0, d);
+  // How much water there is above the floor right here (m): the still-water depth plus the wave
+  // under this pixel. Near the sand the waves matter, a crest laps over the sand (d below 0, no
+  // depth in the still sea) and a trough bares it; further out only the still depth counts.
+  float bedY = d < 0.0 ? beachRise(-d) : -seabedDepth(d);
+  float column = vHeight - bedY;
+  float depth = mix(max(column, 0.0), seabedDepth(d), smoothstep(5.0, 14.0, d));
+  float nearShore = 1.0 - smoothstep(48.0, 90.0, d);
   // Surf (purely visual, like the ripples: it tilts the normal and paints the foam, the mesh the
   // boats float on is untouched). The breakers run parallel to the beach whatever the swell
   // does offshore, as real waves bend in shallow water; each crest moves in, steepens, breaks a
   // few metres off the sand and runs on as a white bore.
   float age = 0.0;
   float broken = 0.0;
-  float breakAt = 6.0;
+  float breakAt = 12.0;
   float surfFoam = 0.0;
   float shelter = 1.0;
   vec2 surfSlope = vec2(0.0);
@@ -242,32 +247,43 @@ void main() {
     age = x * SURF_PERIOD;
     // The side that faces the wind takes the biggest surf; the lee still has some.
     shelter = 0.65 + 0.35 * smoothstep(-0.5, 0.7, -dot(toSea, WIND));
-    breakAt = 4.5 + 7.5 * shoreNoise(q * 0.043 + 3.1) * shelter;
-    broken = 1.0 - smoothstep(breakAt - 0.8, breakAt + 1.2, d);
-    float shoal = 1.0 - smoothstep(breakAt, 26.0, d);
-    // A breaker's profile across the beach: a long gentle back and a short steep face (x near 1).
-    float face = mix(0.5, 0.24, shoal);
+    // Each wave breaks at its own distance, 9 to 24 m out (a set breaks farther out than the
+    // lulls), so two or three lines are white at once. The crest at x = 1 belongs to both
+    // sides: the bore behind it (x near 0) is this wave's, the face before it (x near 1) is
+    // the next one's, so the break distance eases from one to the other along x.
+    float wave = floor(phase);
+    float breakHere = 9.0 + 15.0 * shoreNoise(q * 0.043 + 3.1 + wave * 5.3) * shelter;
+    float breakNext = 9.0 + 15.0 * shoreNoise(q * 0.043 + 3.1 + (wave + 1.0) * 5.3) * shelter;
+    breakAt = mix(breakHere, breakNext, smoothstep(0.55, 0.92, x));
+    broken = 1.0 - smoothstep(breakAt - 1.2, breakAt + 1.6, d);
+    float shoal = 1.0 - smoothstep(breakAt, 44.0, d);
+    // A breaker's profile across the beach: a long gentle back and a gentler face (x near 1):
+    // spilling breakers on a shelving beach are low and long, never a steep wall.
+    float face = mix(0.5, 0.34, shoal);
     // A skewed cosine: smooth at crest and trough (no crease in the shading), steep in front.
     float theta = x < 1.0 - face ? x / (1.0 - face) * 3.14159265 : 3.14159265 * (1.0 + (x - 1.0 + face) / face);
     float dhdx = -0.5 * sin(theta) * 3.14159265 / (x < 1.0 - face ? 1.0 - face : face);
     float dxdd = SURF_TRAVEL / (2.0 * sqrt(max(d, 0.6)) * SURF_PERIOD);
-    float amp = shelter * (0.015 + 0.42 * shoal * shoal) * mix(1.0, 0.45, broken * (1.0 - clamp(d / breakAt, 0.0, 1.0)));
+    float amp = shelter * (0.015 + 0.3 * shoal * shoal) * mix(1.0, 0.45, broken * (1.0 - clamp(d / breakAt, 0.0, 1.0)));
     // At the waterline the spent bore is a flat sheet: no tilt (it would mirror the sky there).
-    surfSlope = toSea * clamp(amp * dhdx * dxdd, -0.7, 0.7) * nearShore * smoothstep(0.0, 2.5, d);
+    surfSlope = toSea * clamp(amp * dhdx * dxdd, -0.7, 0.7) * nearShore * smoothstep(0.0, 3.5, d);
     // The open swell fades in the shallows as the breakers take over.
-    slope = slope * mix(1.0, 0.5, nearShore * (1.0 - smoothstep(0.0, 20.0, d))) + surfSlope;
+    slope = slope * mix(1.0, 0.5, nearShore * (1.0 - smoothstep(0.0, 34.0, d))) + surfSlope;
     // White water: the bore behind each broken crest (fresh, nearly solid), its lip, the spill
     // on a crest about to break, and the lacy trails it leaves behind as it moves on.
     // Every term is 1 at the crest from both sides, so the front of the white water has no seam.
-    float bore = broken * max(smoothstep(0.84, 1.0, x), exp(-x / 0.45));
-    float spill = (1.0 - broken) * (1.0 - smoothstep(breakAt, breakAt + 3.5, d)) * max(smoothstep(0.93, 1.0, x), exp(-x / 0.06)) * 0.55;
-    float trail = broken * exp(-x / 1.2) * 0.62;
+    float bore = broken * max(smoothstep(0.84, 1.0, x), exp(-x / 0.7));
+    float spill = (1.0 - broken) * sqrt(shoal) * max(smoothstep(0.93, 1.0, x), exp(-x / 0.06)) * 0.85;
+    float trail = broken * exp(-x / 1.7) * 0.62;
     // Some stretches of beach break harder than others.
     float vigour = (0.3 + 0.7 * smoothstep(0.2, 0.65, noise(q * 0.03 - 4.0))) * (0.6 + 0.4 * smoothstep(0.3, 0.6, noise(q * 0.16 + 2.0)));
-    surfFoam = clamp(max(max(bore, spill), trail), 0.0, 1.0) * shelter * vigour;
+    surfFoam = clamp(max(max(bore, trail) * vigour, spill * (0.6 + 0.4 * vigour)), 0.0, 1.0) * shelter;
     // At the waterline there is always a little white water from the last swash.
-    surfFoam = max(surfFoam, (1.0 - smoothstep(0.0, 1.0 + 1.4 * shoreNoise(q * 0.31), d)) * 0.7);
-    surfFoam *= nearShore;
+    surfFoam = max(surfFoam, (1.0 - smoothstep(0.0, 1.5 + 2.0 * shoreNoise(q * 0.31), max(d, 0.0))) * 0.7 * step(0.0, d));
+    // And where the water laps over the sand (or a trough bares it) its thin edge is white.
+    surfFoam = max(surfFoam, (1.0 - smoothstep(0.0, 0.07 + 0.1 * shoreNoise(q * 0.7 + time * 0.1), column)) * 0.9);
+    // No foam below a trace: the foam cells (the costly part) are only drawn where there is some.
+    surfFoam *= nearShore * smoothstep(0.0, 0.05, surfFoam);
   }
   vec3 n = normalize(vec3(-slope.x - detail.x, 1.0, -slope.y - detail.y));
   float nv = max(dot(n, view), 0.02);
@@ -298,7 +314,8 @@ void main() {
   float sunlit = 1.0 - 0.9 * shade;
   vec3 incident = skyIrradiance * 0.55 + sunColor() * SUN_RADIANCE * nl * 0.55 * sunlit;
   vec3 refracted = refract(-view, n, 0.75);
-  float path = depth * (1.0 + 1.0 / max(-refracted.y, 0.25));
+  // The water is a little murky (1.7 x the clear-water path), so the sand fades to turquoise.
+  float path = depth * 1.7 * (1.0 + 1.0 / max(-refracted.y, 0.25));
   vec3 transmit = exp(-absorb * path);
   // The sea floor where it can be seen: sand with ripples and darker weed patches, seen through
   // the surface (shifted by the refracted view), lit by caustics in the shallows.
@@ -310,14 +327,16 @@ void main() {
     float weed = smoothstep(0.62, 0.8, noise(b * 0.09 + 11.0)) * smoothstep(3.0, 8.0, depth);
     vec3 bed = toLinear(sand) * (0.92 + 0.22 * sandRipple);
     bed = mix(bed, toLinear(sand) * vec3(0.32, 0.42, 0.26), weed * 0.7);
-    float caustic = caustics(b * 1.2, time) * smoothstep(0.05, 0.9, depth) * (1.0 - smoothstep(2.5, 7.0, depth)) * (1.0 - smoothstep(12.0, 55.0, dist));
+    float causticWeight = smoothstep(0.05, 0.9, depth) * (1.0 - smoothstep(3.0, 8.0, depth)) * (1.0 - smoothstep(14.0, 70.0, dist));
+    // The web is only worth its cost where it can be seen.
+    float caustic = causticWeight > 0.002 ? caustics(b * 1.2, time) * causticWeight : 0.0;
     floorColor = bed * (incident * 0.42 + sunColor() * SUN_RADIANCE * nl * sunlit * caustic * 0.3);
   }
   // The water's own hue: deep blue offshore, drifting toward a greener teal in wide patches,
   // and turquoise over the sand shelf where the bottom reflects light back up.
   float hue = noise(q * 0.0045 + 5.0) * 0.6 + noise(q * 0.012 - time * 0.003) * 0.4;
   vec3 open = mix(toLinear(deep), toLinear(deepTeal), smoothstep(0.32, 0.72, hue));
-  vec3 scatterColor = mix(open, toLinear(shallow), (1.0 - smoothstep(3.0, 16.0, depth)) * 0.85);
+  vec3 scatterColor = mix(open, toLinear(shallow), (1.0 - smoothstep(3.0, 13.0, depth)) * 0.85);
   vec3 body = floorColor * transmit + scatterColor * incident * 0.4 * (1.0 - transmit);
   // Light through the waves: crests seen against the sun glow green-blue (subsurface), and so
   // does the thin face of a breaker about to curl.
@@ -353,7 +372,7 @@ void main() {
     float capLace = noise(vWorld.xz * 1.35 + vec2(time * 0.25, -time * 0.18)) * 0.65 + noise(vWorld.xz * 3.7 - time * 0.4) * 0.35;
     float foam = cap * smoothstep(0.38, 0.72, capLace) * 0.85;
     float need = 1.0 - surfFoam;
-    float surf = mix(smoothstep(need - 0.08, need + 0.08, lace) * min(1.0, surfFoam * 3.0), surfFoam * 0.85, laceFar);
+    float surf = max(mix(smoothstep(need - 0.08, need + 0.08, lace) * min(1.0, surfFoam * 3.0), surfFoam * 0.85, laceFar), surfFoam * 0.3);
     foam = clamp(max(foam, surf), 0.0, 1.0);
     vec3 foamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * max(nlSun, nl * 0.6) * 0.3 * sunlit);
     color = mix(color, foamColor, foam);

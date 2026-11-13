@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  GANGWAY_LANDING,
   GANGWAY_REACH,
   MARKETS,
   MARKET_BODY_RADIUS,
@@ -11,7 +12,7 @@ import {
 } from "../src/ocean/market.ts";
 import { BUOYS } from "../src/ocean/sea-layout.ts";
 import { NPC_LOOKS } from "../src/ocean/npc-look.ts";
-import { coastDistance } from "../src/ocean/shore.ts";
+import { coastDistance, shoreShape } from "../src/ocean/shore.ts";
 import { HARBOR, islandCollisionRadius, islands } from "../src/ocean/model.ts";
 
 test("every island has a market, named and inside the sea", () => {
@@ -33,17 +34,22 @@ test("a pier stands in the shallows with its gangway on the sand, clear of every
       from >= ring + MARKET_BODY_RADIUS,
       `${market.id} clear of the ring`,
     );
-    // The gangway points at the island and its end rests on the beach of the real coast,
-    // a little up the sand, while the deck stands in the water.
+    // The gangway points at the island and its end rests on the beach of the real coast, up
+    // the long gentle sand to where the beach has risen to the planks (the walkway is 0.8 m
+    // above the sea, its planks 0.69 to 0.83 m), while the deck stands in the water.
     const ux = (island.x - market.x) / from;
     const uz = (island.z - market.z) / from;
-    const end = coastDistance(
-      market.x + ux * GANGWAY_REACH,
-      market.z + uz * GANGWAY_REACH,
-    );
+    const ex = market.x + ux * GANGWAY_REACH;
+    const ez = market.z + uz * GANGWAY_REACH;
+    const end = coastDistance(ex, ez);
     assert.ok(
-      end < 0 && end > -1.5,
-      `${market.id} gangway lands on the sand: ${end}`,
+      end < -GANGWAY_LANDING + 0.8 && end > -GANGWAY_LANDING - 0.8,
+      `${market.id} gangway lands ${GANGWAY_LANDING} m up the sand: ${end}`,
+    );
+    const ground = shoreShape(index).height(ex - island.x, ez - island.z);
+    assert.ok(
+      ground > 0.55 && ground < 0.83,
+      `${market.id} gangway rests on the sand, not above it or through it: ${ground}`,
     );
     const deck = coastDistance(market.x + ux * 2.7, market.z + uz * 2.7);
     assert.ok(deck > 5, `${market.id} deck stands in the water: ${deck}`);

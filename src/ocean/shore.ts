@@ -1,6 +1,13 @@
 import { islands } from "./model.ts";
 import { BACKDROP } from "./sea-layout.ts";
-import { islandShape, type IslandShape } from "./island-shape.ts";
+import {
+  BEACH,
+  BEACH_TOP,
+  SHELF,
+  islandShape,
+  shelfDepth,
+  type IslandShape,
+} from "./island-shape.ts";
 
 /**
  * The shore field: where the sea meets each island's real, irregular coast. Pure maths (no
@@ -147,29 +154,28 @@ export const coastDistance = (x: number, z: number) =>
   shoreField(x, z, 0, islands.length).distance;
 
 /**
- * Depth of the sea floor (m) at `distance` metres off the coast: the island's own sandy
- * apron first (the same curve as islandShape below the waterline, −1.7 (1 − e^(−d/4.5))),
- * then a sand shelf to about 16 m at 45 m out and the open sea floor beyond (about 46 m).
+ * Depth of the sea floor (m) at `distance` metres off the coast: the island's own gently
+ * shelving sand first (`shelfDepth`, island-shape.ts: 0.75 m at 10 m out, 2 m at 25 m), then
+ * the shelf falls away to about 12 m at 45 m out and the open sea floor beyond (about 46 m).
  */
 export function seabedDepth(distance: number): number {
   const d = Math.max(0, distance);
-  const shelf = (a: number, b: number) => {
+  const step = (a: number, b: number) => {
     const t = Math.min(1, Math.max(0, (d - a) / (b - a)));
     return t * t * (3 - 2 * t);
   };
-  return (
-    1.7 * (1 - Math.exp(-d / 4.5)) + 14 * shelf(5, 45) + 30 * shelf(40, 160)
-  );
+  return shelfDepth(d) + 12 * step(22, 62) + 26 * step(50, 170);
 }
 
 // ----- Surf timing -----
 
-/** Seconds between two breakers reaching the beach. */
-export const SURF_PERIOD = 5;
+/** Seconds between two breakers reaching the beach (long and lazy on a gentle beach). */
+export const SURF_PERIOD = 6.5;
 /**
  * A breaker's travel time to the beach from `d` metres out is SURF_TRAVEL √d: waves slow
  * down in shallow water (c = √(g h) with h growing with d), so the lines bunch up near the
- * sand, about 1.6, 6, 14, 25 and 39 m out at one moment.
+ * sand, about 2.6, 10.6, 24 and 42 m out at one moment (a wavelength of 8 to 18 m where
+ * they break).
  */
 export const SURF_TRAVEL = 4;
 
@@ -189,7 +195,7 @@ export const UPRUSH = 0.27;
  * slide back that ends just below the waterline, where the next breaker arrives.
  */
 export function swashFront(f: number, reach: number): number {
-  const low = -0.6;
+  const low = -1;
   const shape =
     f < UPRUSH
       ? Math.sin((f / UPRUSH) * (Math.PI / 2))
@@ -300,7 +306,13 @@ float shoreNoise(vec2 p) {
 }
 float seabedDepth(float distance) {
   float d = max(distance, 0.0);
-  return 1.7 * (1.0 - exp(-d / 4.5)) + 14.0 * smoothstep(5.0, 45.0, d) + 30.0 * smoothstep(40.0, 160.0, d);
+  float raw = d * (${f(SHELF.slope)} + ${f(SHELF.curve)} * d);
+  return ${f(SHELF.cap)} * (1.0 - exp(-raw / ${f(SHELF.cap)})) + 12.0 * smoothstep(22.0, 62.0, d) + 26.0 * smoothstep(50.0, 170.0, d);
+}
+// The sand's height (m) d metres inland of the coast, as island-shape.ts's beachRise.
+float beachRise(float d) {
+  float raw = d * (${f(BEACH.slope)} + ${f(BEACH.curve)} * d);
+  return ${f(BEACH_TOP)} * (1.0 - exp(-raw / ${f(BEACH_TOP)}));
 }
 float surfPhase(float d, float jitter) {
   return (time + SURF_TRAVEL * sqrt(max(d, 0.0))) / SURF_PERIOD + jitter;
@@ -311,7 +323,7 @@ float surfJitter(vec2 p) {
   return shoreNoise(p * 0.021 + 7.3) * 0.55 + shoreNoise(p * 0.067 - 2.1) * 0.22;
 }
 float swashFront(float f, float reach) {
-  float low = -0.6;
+  float low = -1.0;
   float s = f < UPRUSH
     ? sin(f / UPRUSH * 1.5707963)
     : pow(max(cos((f - UPRUSH) / (1.0 - UPRUSH) * 1.5707963), 0.0), 1.4);

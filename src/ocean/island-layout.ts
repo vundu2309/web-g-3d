@@ -1,4 +1,4 @@
-import { random } from "./island-shape.ts";
+import { DRY_SAND, random } from "./island-shape.ts";
 
 /**
  * Where the Blender-made island props stand (public/models: palm-1..3, rock-1..3, hut; built by
@@ -141,18 +141,18 @@ const inland = (input: LayoutInput, x: number, z: number) =>
   input.coast(Math.atan2(z, x)) - Math.hypot(x, z);
 
 /**
- * The stilt hut: a fairly level spot a few metres behind the beach, its door turned out to sea
+ * The stilt hut: a fairly level spot behind the dry sand, its door turned out to sea
  * (away from the island's centre). The origin is set so every post reaches below the lowest
  * ground under it and the ladder stands on the ground at the door, and a spot is only taken if
  * the deck then clears all the ground under the floor.
  */
 export function placeHut(input: LayoutInput): HutSpot | undefined {
-  const { height, radius } = input;
+  const { height } = input;
   let best: (HutSpot & { score: number }) | undefined;
   for (let i = 0; i < 72; i++) {
     const angle = (i / 72) * Math.PI * 2;
     const coast = input.coast(angle);
-    for (let d = 4; d <= Math.min(12, radius * 0.4); d += 0.5) {
+    for (let d = DRY_SAND + 2.5; d <= DRY_SAND + 9; d += 0.5) {
       const r = coast - d;
       const x = Math.cos(angle) * r;
       const z = Math.sin(angle) * r;
@@ -180,7 +180,7 @@ export function placeHut(input: LayoutInput): HutSpot | undefined {
       );
       if (origin + HUT.deck < under + 0.1) continue;
       const spread = Math.max(...posts, ladder) - Math.min(...posts, ladder);
-      const score = spread + 0.08 * Math.abs(d - 6);
+      const score = spread + 0.08 * Math.abs(d - (DRY_SAND + 4));
       if (!best || score < best.score)
         best = {
           variant: 0,
@@ -200,8 +200,9 @@ export function placeHut(input: LayoutInput): HutSpot | undefined {
 }
 
 /**
- * Coconut palms: 8 to 16 by the island's size, on the grass and along the sand's edge behind the
- * beach, never in the water, on steep ground or on the boardwalk, hut, lighthouse or a gangway.
+ * Coconut palms: 8 to 16 by the island's size, on the grass and along the sand's upper edge
+ * behind the dry sand (never on the open beach: the ground under a trunk is at least 0.9 m
+ * high), never in the water, on steep ground or on the boardwalk, hut, lighthouse or a gangway.
  * The trunk's base is sunk below the lowest ground round it so it never floats on a slope.
  */
 export function placePalms(
@@ -217,13 +218,15 @@ export function placePalms(
     const coast = input.coast(angle);
     // Most stand along the sand's edge, the rest up the slopes.
     const d =
-      rng() < 0.6 ? 2.2 + rng() * 6 : 8 + rng() * Math.max(1, coast * 0.55);
+      rng() < 0.6
+        ? DRY_SAND - 1 + rng() * 6
+        : DRY_SAND + 2 + rng() * Math.max(1, coast * 0.45);
     const r = coast - d;
     if (r < radius * 0.12) continue;
     const x = Math.cos(angle) * r;
     const z = Math.sin(angle) * r;
     const y = height(x, z);
-    if (y < 0.7 || y > peak * 0.85) continue;
+    if (y < 0.9 || y > peak * 0.85) continue;
     if (slopeAt(height, x, z) > 0.42) continue;
     if (!clearOf(keepOut, x, z, 1.6)) continue;
     if (palms.some((p) => Math.hypot(p.x - x, p.z - z) < 3.2)) continue;
@@ -241,8 +244,8 @@ export function placePalms(
 }
 
 /**
- * Rocks in clusters on the beaches and up the slopes, a big one with smaller ones round it, plus
- * a few standing in the shallows just off the sand (always inside the ring boats collide with).
+ * Rocks in clusters on the beaches (anywhere on the sand, the low ones in the swash) and up the
+ * slopes, a big one with smaller ones round it, plus a few standing in the shallows off the sand (always inside the ring boats collide with).
  * Each is sunk a little into the ground under it.
  */
 export function placeRocks(
@@ -292,7 +295,7 @@ export function placeRocks(
     const angle = rng() * Math.PI * 2;
     const coast = input.coast(angle);
     const beach = c % 5 < 3;
-    const d = beach ? -0.6 + rng() * 3.8 : 7 + rng() * coast * 0.4;
+    const d = beach ? -0.8 + rng() * (DRY_SAND - 1) : 14 + rng() * coast * 0.35;
     const cx = Math.cos(angle) * (coast - d);
     const cz = Math.sin(angle) * (coast - d);
     if (!beach && slopeAt(height, cx, cz) > 0.6) continue;
@@ -320,7 +323,7 @@ export function placeRocks(
   const shallows = 2 + Math.floor(rng() * 3);
   for (let s = 0, tries = 0; s < shallows && tries < 60; tries++) {
     const angle = rng() * Math.PI * 2;
-    const r = input.coast(angle) + 0.8 + rng() * 2.4;
+    const r = input.coast(angle) + 1 + rng() * 4;
     const variant = rng() < 0.5 ? 0 : 1;
     if (
       tryRock(
@@ -337,10 +340,10 @@ export function placeRocks(
 }
 
 /**
- * Low leafy bushes on the grass and the sand's edge: 14 to 26 by the island's size, some in
+ * Low leafy bushes on the grass and the sand's upper edge: 14 to 26 by the island's size, some in
  * clusters of two or three small ones and some single bigger ones. They keep 1.2 m from every
  * keep-out area, 1.5 m from a palm, off the rocks, about a metre from each other, on ground at
- * least 0.6 m high and no steeper than 0.5, and each is sunk 0.1 x scale into the lowest ground
+ * least 0.8 m high and no steeper than 0.5, and each is sunk 0.1 x scale into the lowest ground
  * under it. They draw from a random stream of their own, so adding them moves nothing else.
  */
 export function placeBushes(
@@ -356,7 +359,7 @@ export function placeBushes(
   const tryBush = (x: number, z: number, scale: number) => {
     const variant = Math.floor(rng() * 3) % 3;
     const size = BUSH_RADIUS[variant]! * scale;
-    if (height(x, z) < 0.6 || slopeAt(height, x, z) > 0.5) return false;
+    if (height(x, z) < 0.8 || slopeAt(height, x, z) > 0.5) return false;
     // Not at the very edge of the land: all the ground under it is above the waterline.
     if (lowestUnder(height, x, z, size * 0.7) < 0.15) return false;
     if (!clearOf(keepOut, x, z, 1.2)) return false;
@@ -392,7 +395,9 @@ export function placeBushes(
     const coast = input.coast(angle);
     // Most along the sand's edge and the lower grass, the rest further up the slopes.
     const d =
-      rng() < 0.6 ? 1.8 + rng() * 7 : 6 + rng() * Math.max(1, coast * 0.5);
+      rng() < 0.6
+        ? DRY_SAND - 3 + rng() * 8
+        : 12 + rng() * Math.max(1, coast * 0.45);
     const r = coast - d;
     if (r < radius * 0.1) continue;
     const cx = Math.cos(angle) * r;

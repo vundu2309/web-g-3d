@@ -4,6 +4,7 @@ import type { Scene } from "@babylonjs/core/scene";
 import { loadMergedModel } from "./model-loader.ts";
 import { layoutIsland, type KeepOut, type Spot } from "./island-layout.ts";
 import type { IslandVisual } from "./island-visual.ts";
+import { GANGWAY_LANDING } from "./market.ts";
 
 /**
  * The Blender-made island props (public/models, built by tools/blender/props.py): three coconut
@@ -73,7 +74,7 @@ const placed = new WeakMap<IslandVisual, PlacedProps>();
 
 /**
  * Where a fish market's gangway lands on this island, as a keep-out capsule from the pier (in the
- * island's frame) to a few metres up the beach. `piers` are in world coordinates; piers far from
+ * island's frame) to where it rests on the sand, up the beach. `piers` are in world coordinates; piers far from
  * the island are ignored.
  */
 export function gangwayKeepOut(
@@ -86,7 +87,7 @@ export function gangwayKeepOut(
     const pz = pier.z - oz;
     if (Math.hypot(px, pz) > visual.radius * 1.08 + 20) return [];
     const angle = Math.atan2(pz, px);
-    const land = visual.coast(angle) - 3.5;
+    const land = visual.coast(angle) - (GANGWAY_LANDING + 1);
     return [
       {
         ax: px,

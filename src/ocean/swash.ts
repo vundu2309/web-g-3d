@@ -5,6 +5,7 @@ import { Effect } from "@babylonjs/core/Materials/effect";
 import { Constants } from "@babylonjs/core/Engines/constants";
 import type { Scene } from "@babylonjs/core/scene";
 import { islands } from "./model.ts";
+import { drawnBed } from "./island-shape.ts";
 import { glslSkyModel } from "./sky-model.ts";
 import {
   HORIZON,
@@ -26,18 +27,25 @@ import {
 /**
  * The swash: the last of each breaker running up the beach and sliding back. The sea's mesh
  * stops at the waterline (the land hides it), so a thin sheet is draped over each beach of
- * the play area, a few centimetres above the sand, from just under the water to a few metres
- * inland. Its shader draws a film of water whose front rushes up and slides back once a
+ * the play area, a few centimetres above the sand, from three metres out (where a trough bares the sand) to eleven metres
+ * inland (the swash climbs 3 to 9 m up the gentle beach). Its shader draws a film of water whose front rushes up and slides back once a
  * breaker (on the surf's own clock, shore.ts, so the white bores of the sea run on into it),
  * white foam at the front that thins into lace on the way back, and darker wet sand where the
  * water has just left. Purely visual: nothing floats on it.
  */
 
-/** Angles round each beach (about 0.7 to 0.9 m apart along the sand). */
+/** Angles round each beach (about 0.6 to 0.9 m apart along the sand). */
 export const SWASH_ANGLES = 256;
 /** Rows of the sheet across the beach, in metres from the coast (negative is inland). */
-export const SWASH_ROWS = [0.8, 0, -0.9, -1.9, -3.0, -4.4] as const;
-/** How high above the sand the sheet lies (m): just clear of the flat-shaded terrain. */
+export const SWASH_ROWS = [
+  3.5, 2, 1, 0, -0.9, -1.8, -2.8, -3.9, -5.1, -6.4, -7.8, -9.4, -11,
+] as const;
+/**
+ * How high above the sand the sheet lies (m): just clear of the flat-shaded terrain. The sheet
+ * is draped on the ground itself (every vertex stands this far above the terrain's height
+ * under it), so on the gentle beach, where the water's edge runs 12 m inland for the metre
+ * it climbs, it still floats a hand's breadth above the sand wherever it is.
+ */
 export const SWASH_LIFT = 0.07;
 
 export interface SwashSheet {
@@ -63,7 +71,11 @@ export function swashSheet(index: number): SwashSheet {
       const lz = Math.sin(angle) * (c + row);
       const x = island.x + lx;
       const z = island.z + lz;
-      positions.push(x, Math.max(shape.height(lx, lz), -0.45) + SWASH_LIFT, z);
+      positions.push(
+        x,
+        Math.max(drawnBed(shape.height(lx, lz)), -0.45) + SWASH_LIFT,
+        z,
+      );
       shore.push(shoreOf(index, x, z).distance);
     }
   }
@@ -115,23 +127,23 @@ void main() {
   float f = fract(phase);
   float cycle = floor(phase);
   // How far up each cycle runs varies along the beach and from one wave to the next.
-  float reach = 1.0 + 2.6 * shoreNoise(p * 0.11 + cycle * 7.31);
-  float lastReach = 1.0 + 2.6 * shoreNoise(p * 0.11 + (cycle - 1.0) * 7.31);
-  float front = swashFront(f, reach) + (shoreNoise(p * 0.9 + cycle * 3.1) - 0.5) * 0.5;
+  float reach = 3.0 + 6.0 * (shoreNoise(p * 0.07 + cycle * 7.31) * 0.65 + shoreNoise(p * 0.23 - cycle * 3.7) * 0.35);
+  float lastReach = 3.0 + 6.0 * (shoreNoise(p * 0.07 + (cycle - 1.0) * 7.31) * 0.65 + shoreNoise(p * 0.23 - (cycle - 1.0) * 3.7) * 0.35);
+  float front = swashFront(f, reach) + (shoreNoise(p * 0.6 + cycle * 3.1) - 0.5) * 1.2;
   float under = front - inland;
   bool rising = f < UPRUSH;
   // The film of water behind the front: thin and clear at the front, deeper behind.
   float film = smoothstep(-0.04, 0.12, under);
   // Foam: a white roll at the front on the way up; on the way back it is left behind as lace.
   float lace = shoreNoise(p * 3.1 + vec2(time * 0.2, 0.0)) * 0.5 + shoreNoise(p * 7.3 - time * 0.15) * 0.3 + shoreNoise(p * 15.0) * 0.2;
-  float roll = film * exp(-max(under, 0.0) / (rising ? 0.6 : 0.25)) * (rising ? 1.0 : 0.8);
+  float roll = film * exp(-max(under, 0.0) / (rising ? 0.45 + 0.1 * reach : 0.3)) * (rising ? 1.0 : 0.8);
   float left = film * (rising ? 0.0 : 0.55 * (1.0 - f) * (1.0 - f)) * smoothstep(0.6, 0.72, lace);
   float foam = clamp(max(roll * smoothstep(0.1, 0.35, lace + roll * 0.5), left), 0.0, 1.0);
   foam = mix(foam, roll * 0.6, smoothstep(30.0, 120.0, dist));
   // Wet sand below the highest reach of this wave (once it slides back) or the last one, drying.
   float peak = rising ? max(lastReach, front) : reach;
   float since = rising ? f + 1.0 - UPRUSH : f - UPRUSH;
-  float wet = max((1.0 - film) * smoothstep(peak + 0.2, peak - 0.3, inland) * (1.0 - 0.5 * since), smoothstep(-0.2, 0.4, vShore) * 0.8);
+  float wet = max((1.0 - film) * smoothstep(peak + 0.4, peak - 1.0, inland) * (1.0 - 0.5 * since), smoothstep(-0.2, 0.4, vShore) * 0.8);
   vec3 sunDir = normalize(sunDirection);
   vec3 skyIrradiance = mix(toLinear(horizon), toLinear(zenith), 0.6);
   float nl = max(sunDir.y, 0.0);
@@ -142,10 +154,10 @@ void main() {
   // Thin clear water over sand: the sand seen through a few centimetres of water (a touch of
   // turquoise as it deepens) and a little of the sky on its glassy surface.
   float filmDepth = clamp(under * 0.08, 0.0, 0.25);
-  vec3 filmColor = toLinear(sand) * incident * 0.22 * exp(-absorb * filmDepth * 6.0) + toLinear(shallow) * incident * 0.05 + skyIrradiance * 0.06;
+  vec3 filmColor = toLinear(sand) * incident * 0.2 * exp(-absorb * filmDepth * 6.0) + toLinear(shallow) * incident * 0.015 + skyIrradiance * 0.05;
   // Off the still-water line the sheet is under the sea except in a trough, where the sand it
   // uncovers should read as wet sand, not as a band of film: the film fades out there.
-  float filmAlpha = film * mix(0.2, 0.55, smoothstep(0.0, 1.8, under)) * (1.0 - smoothstep(-0.1, 0.6, vShore));
+  float filmAlpha = film * mix(0.2, 0.45, smoothstep(0.0, 1.8, under)) * (1.0 - smoothstep(-0.1, 0.6, vShore));
   layered = filmColor * filmAlpha + layered * (1.0 - filmAlpha);
   alpha = filmAlpha + alpha * (1.0 - filmAlpha);
   vec3 foamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * nl * 0.3);
@@ -153,6 +165,9 @@ void main() {
   alpha = foam + alpha * (1.0 - foam);
   vec3 color = layered / max(alpha, 1.0e-3);
   alpha *= 1.0 - smoothstep(180.0, 320.0, dist);
+  // The sheet ends a few metres out at sea: it fades out before its edge, so it never shows as
+  // a patch where a deep trough leaves it above the water.
+  alpha *= 1.0 - smoothstep(1.2, 3.3, vShore);
   gl_FragColor = vec4(toScreen(color), alpha);
 }`;
 

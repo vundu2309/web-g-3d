@@ -22,7 +22,7 @@ import {
   gangwayKeepOut,
   placeIslandProps,
 } from "../src/ocean/island-models.ts";
-import { random } from "../src/ocean/island-shape.ts";
+import { DRY_SAND, random } from "../src/ocean/island-shape.ts";
 import { MARKETS } from "../src/ocean/market.ts";
 import { islandSeed } from "../src/ocean/shore.ts";
 import { islands } from "../src/ocean/model.ts";
@@ -415,4 +415,38 @@ test("placing the models replaces the procedural props once, and goes with the i
   assert.ok(placed.instances.every((i) => i.isDisposed()));
   scene.dispose();
   engine.dispose();
+});
+
+test("on the long beach the palms, bushes and hut stand behind the dry sand; rocks may lie on it", () => {
+  const inland = (input, x, z) =>
+    input.coast(Math.atan2(z, x)) - Math.hypot(x, z);
+  for (const { input, layout } of built) {
+    // Palms: ground at least 0.9 m high, so no trunk stands in the middle of the open beach.
+    for (const p of layout.palms)
+      assert.ok(
+        inland(input, p.x, p.z) >= DRY_SAND - 3,
+        `palm ${inland(input, p.x, p.z)} m up the beach`,
+      );
+    for (const b of layout.bushes)
+      assert.ok(
+        inland(input, b.x, b.z) >= DRY_SAND - 5,
+        `bush ${inland(input, b.x, b.z)} m up the beach`,
+      );
+    // The hut: its door out to sea, its whole footprint behind the dry sand.
+    assert.ok(layout.hut, "a hut");
+    assert.ok(
+      inland(input, layout.hut.x, layout.hut.z) >= DRY_SAND + HUT.reach - 0.2,
+      `hut ${inland(input, layout.hut.x, layout.hut.z)} m up the beach`,
+    );
+    // Rocks lie right across the sand (the lowest in the swash) and a few stand in the shallows.
+    const spots = layout.rocks.map((r) => inland(input, r.x, r.z));
+    assert.ok(
+      spots.some((d) => d > 3 && d < DRY_SAND),
+      "a rock on the sand",
+    );
+    assert.ok(
+      spots.some((d) => d < 0),
+      "a rock in the shallows",
+    );
+  }
 });

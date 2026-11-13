@@ -33,10 +33,17 @@ export interface Vendor {
 export const MARKET_RANGE = 17;
 /** The solid part of a pier (m): boats bump into it like into an island. */
 export const MARKET_BODY_RADIUS = 3.4;
-/** How far the gangway reaches from the pier's centre toward the island (m; market-visual.ts). */
-export const GANGWAY_REACH = 11.1;
-/** The gangway's end rests this far up the beach (m inland of the real coast). */
-export const GANGWAY_LANDING = 0.8;
+/**
+ * How far the gangway reaches from the pier's centre toward the island (m; market-visual.ts):
+ * from the pier in the shallows over the surf and up the gentle beach to the sand.
+ */
+export const GANGWAY_REACH = 18.8;
+/**
+ * The gangway's end rests this far up the beach (m inland of the real coast): where the sand
+ * has risen to the planks (the walkway is 0.8 m above the sea, the beach reaches 0.7 m about
+ * 8.5 m inland, see island-shape.ts), so it lands on the sand and does not hang above it.
+ */
+export const GANGWAY_LANDING = 8.5;
 /** The pier's solid circle stays at least this far outside the island's collision ring (m). */
 const RING_GAP = 0.5;
 /**

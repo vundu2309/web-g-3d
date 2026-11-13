@@ -14,6 +14,8 @@ export interface PropContext {
   height: (x: number, z: number) => number;
   radius: number;
   peak: number;
+  /** Distance from the centre to the waterline in a direction (radians). */
+  coast: (angle: number) => number;
   /** Where driftwood was laid (centre and reach), for props placed later to stay off. */
   taken?: { x: number; z: number; r: number }[];
 }
@@ -138,7 +140,7 @@ export function addFlowers(ctx: PropContext, count: number) {
 }
 
 export function addShells(ctx: PropContext, count: number) {
-  const spots = scatter(ctx, count, 0.7, 1.02, (y) => y > 0.18 && y < 0.9);
+  const spots = scatter(ctx, count, 0.5, 1.02, (y) => y > 0.18 && y < 0.9);
   for (const { x, y, z } of spots) {
     if (ctx.rng() < 0.3) {
       // A starfish.
@@ -171,7 +173,7 @@ export function addShells(ctx: PropContext, count: number) {
 }
 
 export function addDriftwood(ctx: PropContext, count: number) {
-  const spots = scatter(ctx, count, 0.75, 1.0, (y) => y > 0.25 && y < 0.9);
+  const spots = scatter(ctx, count, 0.55, 1.0, (y) => y > 0.25 && y < 0.9);
   for (const { x, y, z } of spots) {
     const yaw = ctx.rng() * Math.PI;
     const length = 0.7 + ctx.rng() * 1.1;
@@ -557,7 +559,8 @@ export function addRowboat(
   for (let tries = 0; tries < 24; tries++) {
     const angle =
       baseAngle + (tries % 2 ? 1 : -1) * Math.floor(tries / 2) * 0.1;
-    const r = ctx.radius * (0.84 + 0.04 * (tries % 3));
+    // Pulled up the sand, 4 to 7 m above the waterline: the swash reaches it now and then.
+    const r = ctx.coast(angle) - (4 + 1.5 * (tries % 3));
     const x = Math.cos(angle) * r;
     const z = Math.sin(angle) * r;
     const y = ctx.height(x, z);

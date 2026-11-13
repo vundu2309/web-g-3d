@@ -23,7 +23,13 @@ import { hex, meshFrom, mergeParts, paint } from "./mesh-parts.ts";
 import { PAL } from "./art/colors.ts";
 import { SIDES, cylinderMesh, sphereMesh } from "./art/shapes.ts";
 import { useSolid } from "./art/materials.ts";
-import { islandShape, noise, random, smooth } from "./island-shape.ts";
+import {
+  drawnBed,
+  islandShape,
+  noise,
+  random,
+  smooth,
+} from "./island-shape.ts";
 
 export {
   COAST_MAX,
@@ -76,12 +82,12 @@ export function createIsland(
   const rng = random(seed);
   const { peak, height, coast } = islandShape(seed, radius);
 
-  // Terrain grid with colours from height and slope. It reaches just past the underwater
-  // apron (the coast is inside 0.99 of the radius, the apron levels off a few metres out);
-  // cells that lie wholly on the flat sea floor are left out.
+  // Terrain grid with colours from height and slope. It reaches out over the shallow shelf (the
+  // coast is inside 0.99 of the radius); the sea's surface hides everything deeper than the
+  // waves' troughs, so cells that lie wholly deeper than 0.9 m are left out.
   const extent = radius * 1.4;
   const segments = distant ? 28 : 76;
-  const floor = -1.6;
+  const floor = -0.9;
   const positions: number[] = [];
   const colors: number[] = [];
   const indices: number[] = [];
@@ -97,7 +103,7 @@ export function createIsland(
       const x = -extent + (ix / segments) * extent * 2;
       const z = -extent + (iz / segments) * extent * 2;
       const y = height(x, z);
-      positions.push(x, Math.max(y, floor), z);
+      positions.push(x, Math.max(drawnBed(y), floor), z);
       const slope = Math.hypot(
         height(x + 0.5, z) - height(x - 0.5, z),
         height(x, z + 0.5) - height(x, z - 0.5),
@@ -280,7 +286,7 @@ export function createIsland(
   // shore, a boardwalk, a hut and a rowboat. One buffer, one mesh.
   const geo = new Geo();
   const taken: { x: number; z: number; r: number }[] = [];
-  const ctx = { geo, rng, height, radius, peak, taken };
+  const ctx = { geo, rng, height, coast, radius, peak, taken };
   const swapGeo = distant ? geo : new Geo();
   const swapCtx = { ...ctx, geo: swapGeo };
   const keepOut: KeepOut[] = [];

@@ -63,6 +63,45 @@ export interface IslandShape {
 export const COAST_MIN = 0.85;
 export const COAST_MAX = 0.99;
 
+/**
+ * The beach and the shelf off it, one gently shelving profile shared by the terrain and the
+ * sea's seabed (shore.ts), so what is drawn under the water is what the land does.
+ *
+ * Underwater, `e` metres off the waterline, the floor is `shelfDepth(e)` deep: 0.07 of the
+ * distance at the sand (4 degrees), steepening slowly (0.75 m at 10 m, 2 m at 25 m and
+ * 2.2 m at 28 m out) and levelling off in the end (8 m at most, the open floor is the sea's
+ * own, shore.ts). On land, `d` metres inland, the sand rises as `beachRise(d)`: a slope of
+ * 0.07 at the waterline (4 degrees) that steepens a little, 1.0 m at about 13 m, easing off
+ * to `BEACH_TOP` where the grass takes over.
+ */
+export const BEACH_TOP = 1.2;
+/** The sand's numbers (also in the sea's shader, shore.ts): slope at the waterline, curve. */
+export const BEACH = { slope: 0.07, curve: 0.0062 } as const;
+/** The shelf's numbers (also written into the sea's shader, shore.ts): slope, curve, depth cap. */
+export const SHELF = { slope: 0.07, curve: 0.0008, cap: 8 } as const;
+export function shelfDepth(e: number): number {
+  const raw = e * (SHELF.slope + SHELF.curve * e);
+  return SHELF.cap * (1 - Math.exp(-raw / SHELF.cap));
+}
+export function beachRise(d: number): number {
+  const raw = d * (BEACH.slope + BEACH.curve * d);
+  return BEACH_TOP * (1 - Math.exp(-raw / BEACH_TOP));
+}
+/** About how wide the dry sand is (m): where the beach has risen to a metre and the grass begins. */
+export const DRY_SAND = 11;
+/**
+ * The terrain as it is drawn (island-visual.ts, and the swash sheet laid on it): the same as
+ * `height` on land and a further `BED_DIP` m lower just off the sand. On the gentle shelf a
+ * wave trough (the sea falls 0.4 m below its mean) would otherwise bare 6 m of seabed; the
+ * dip keeps that to about 2 m. The sea is opaque, so nothing else shows the difference.
+ */
+export const BED_DIP = 0.35;
+export const drawnBed = (y: number) =>
+  y >= 0 ? y : y - BED_DIP * (1 - Math.exp(y / 0.06));
+/** Where the hills start to rise behind the beach (m inland) and how far they take to arrive. */
+export const HILLS_FROM = 9;
+export const hillsReach = (radius: number) => Math.max(14, radius * 0.5);
+
 export function islandShape(seed: number, radius: number): IslandShape {
   const rng = random(seed ^ 0x51ed);
   // Bays and headlands: three slow harmonics round the coast and a faint crinkle.
@@ -108,9 +147,8 @@ export function islandShape(seed: number, radius: number): IslandShape {
   // The sand apron rises from the water and the hills fade in behind it.
   const parts = (x: number, z: number) => {
     const d = coast(Math.atan2(z, x)) - Math.hypot(x, z);
-    const shore =
-      d >= 0 ? 1.2 * (1 - Math.exp(-d / 2.6)) : -1.7 * (1 - Math.exp(d / 4.5));
-    const inland = smooth(0.8, radius * 0.32, d);
+    const shore = d >= 0 ? beachRise(d) : -shelfDepth(-d);
+    const inland = smooth(HILLS_FROM, HILLS_FROM + hillsReach(radius), d);
     return { shore, inland, relief: inland > 0 ? relief(x, z) : 0 };
   };
   // Scale the relief so the highest point of the land is exactly `peak`.
