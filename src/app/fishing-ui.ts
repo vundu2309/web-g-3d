@@ -17,6 +17,7 @@ import {
   type FishingEvent,
   type Inventory,
 } from "../ocean/fishing";
+import { FIZZLE_MS, castLook, pressAction } from "../ocean/cast-rules";
 import type { Pose } from "../ocean/model";
 import type { OceanScene } from "../ocean/babylon-scene";
 
@@ -127,6 +128,8 @@ export function createFishingUi(options: FishingUiOptions) {
   screen.append(power, badge, vignette, ring, hang);
   /** The landed fish still on the rod. */
   let held: Catch | undefined;
+  /** Until when the power bar stays up, red, after a throw that could not land (performance.now). */
+  let fizzleUntil = 0;
 
   const vibrate = (pattern: number | number[]) => {
     try {
@@ -154,8 +157,13 @@ export function createFishingUi(options: FishingUiOptions) {
     const scene = options.scene();
     switch (event.type) {
       case "fizzle":
+        // The lure would have landed on an island or outside the sea: the bar stays, red, for a
+        // moment (see cast-rules.ts) and the button shakes, so the throw is never just ignored.
+        fizzleUntil = performance.now() + FIZZLE_MS;
+        power.hidden = false;
+        power.classList.add("is-blocked", "is-fizzle");
         shake();
-        vibrate(25);
+        vibrate([30, 40, 30]);
         break;
       case "splash":
         scene?.gearRipple();
@@ -206,16 +214,33 @@ export function createFishingUi(options: FishingUiOptions) {
     button.classList.add("is-shake");
   }
 
+  /** Starts charging a throw and puts the power bar above the button. */
+  function charge(now: number) {
+    angler.startCharge(now);
+    fizzleUntil = 0;
+    power.classList.remove("is-blocked", "is-fizzle");
+    const at = button.getBoundingClientRect();
+    // The power bar sits just above the button, right-aligned with it.
+    place(power, new DOMRect(at.right - 220, at.top - 38, 220, 24));
+  }
+
   /** The player presses the button (or Space). */
   function press() {
-    if (!options.enabled()) return;
-    // A new throw keeps the fish still on the rod.
-    if (held) {
-      settle(true);
+    const now = performance.now();
+    const action = pressAction({
+      enabled: options.enabled(),
+      holdingFish: held !== undefined,
+      busy: angler.busy,
+      hasRod: !!options.scene()?.rodTip(),
+    });
+    if (action === "ignore") return;
+    // A new throw keeps the fish still on the rod, and is not lost: the same press charges it.
+    if (action === "keep" || action === "keep-and-charge") settle(true);
+    if (action === "keep-and-charge" || action === "charge") {
+      charge(now);
       return;
     }
-    const now = performance.now();
-    if (angler.busy) {
+    if (action === "pull") {
       // How far the fish is when it takes the hook: the boat to where the lure landed.
       const landing = angler.view(now).landing;
       const boat = options.boat();
@@ -225,13 +250,6 @@ export function createFishingUi(options: FishingUiOptions) {
           ? Math.hypot(boat.x - landing.x, boat.z - landing.z)
           : undefined,
       );
-      return;
-    }
-    if (options.scene()?.rodTip()) {
-      angler.startCharge(now);
-      const at = button.getBoundingClientRect();
-      // The power bar sits just above the button, right-aligned with it.
-      place(power, new DOMRect(at.right - 220, at.top - 38, 220, 24));
     }
   }
 
@@ -259,11 +277,9 @@ export function createFishingUi(options: FishingUiOptions) {
   /** Keyboard or assistive activation without a held press: a medium throw. */
   function click() {
     if (!options.enabled()) return;
-    if (held) {
-      settle(true);
-      return;
-    }
-    if (angler.busy) {
+    // A landed fish is kept and the throw goes on (as a press does).
+    if (held) settle(true);
+    else if (angler.busy) {
       press();
       // No held press to end it (a keyboard or assistive click): a short pull.
       if (angler.view(performance.now()).phase === "fighting")
@@ -285,6 +301,8 @@ export function createFishingUi(options: FishingUiOptions) {
   }
 
   function hideSignals() {
+    fizzleUntil = 0;
+    power.classList.remove("is-blocked", "is-fizzle");
     power.hidden = true;
     badge.hidden = true;
     ring.style.display = "none";
@@ -345,14 +363,17 @@ export function createFishingUi(options: FishingUiOptions) {
       delete button.dataset.distance;
     }
     button.classList.toggle("is-fighting", view.phase === "fighting");
-    // Power bar while charging.
-    power.hidden = view.phase !== "charging";
+    // Power bar while charging (and, red, for a moment after a throw that could not land).
+    const fizzling = performance.now() < fizzleUntil;
+    power.hidden = view.phase !== "charging" && !fizzling;
     if (view.phase === "charging") {
       fill.style.width = `${view.power * 100}%`;
+      const look = preview ? castLook(preview) : "open";
       const inSweet =
         view.power >= SWEET_POWER[0] && view.power <= SWEET_POWER[1];
-      power.classList.toggle("is-sweet", inSweet);
-    }
+      power.classList.toggle("is-sweet", inSweet && look !== "blocked");
+      power.classList.toggle("is-blocked", look === "blocked");
+    } else if (!fizzling) power.classList.remove("is-blocked", "is-fizzle");
     // A blinking "!" above where the line enters the water while a fish is nibbling: it is about to bite.
     const top = scene.entryTop();
     const nibbling = view.phase === "nibbling" && !!top;

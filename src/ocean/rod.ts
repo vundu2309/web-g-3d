@@ -12,7 +12,7 @@ export interface V3 {
 
 /** Where the rod is held and how it points at rest (boat axes: +X starboard, +Y up). */
 export const ROD_BASE: V3 = { x: 1.25, y: 1.35, z: 2.52 };
-export const ROD_LENGTH = 3.7;
+export const ROD_LENGTH = 4;
 /** Angle from the vertical, leaning out to starboard (rad). */
 export const ROD_LEAN = 0.95;
 

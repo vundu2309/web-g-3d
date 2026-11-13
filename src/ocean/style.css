@@ -556,6 +556,17 @@
 .fish-power.is-sweet .fish-power-fill {
   background: #2fb86a;
 }
+/* The throw would land on an island or outside the sea: the bar turns red while held, and stays
+   up (shaking) for a moment after letting go, so a throw that cannot land is never just ignored. */
+.fish-power.is-blocked {
+  border-color: #c9362b;
+}
+.fish-power.is-blocked .fish-power-fill {
+  background: #e9573f;
+}
+.fish-power.is-fizzle {
+  animation: fish-shake 0.35s;
+}
 .fish-power-sweet {
   position: absolute;
   top: 0;

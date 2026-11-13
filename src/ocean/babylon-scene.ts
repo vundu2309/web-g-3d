@@ -5,8 +5,9 @@ import { Color4 } from "@babylonjs/core/Maths/math.color";
 import { Matrix, Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Viewport } from "@babylonjs/core/Maths/math.viewport";
 import { Axis } from "@babylonjs/core/Maths/math.axis";
-import type { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
+import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import "@babylonjs/core/Meshes/instancedMesh";
 import {
   createBoatPhysics,
@@ -19,6 +20,7 @@ import {
   createBoatTemplate,
   createFishingLine,
 } from "./boat-visual.ts";
+import { dressBoat, loadBoatModels, type BoatModels } from "./boat-model.ts";
 import { createHavok } from "./havok.ts";
 import { createIsland, type IslandVisual } from "./island-visual.ts";
 import { loadIslandModels, placeIslandProps } from "./island-models.ts";
@@ -58,7 +60,11 @@ import { waveHeight } from "./waves.ts";
 Scene.MaxDeltaTime = 100;
 
 interface Craft {
-  mesh: InstancedMesh;
+  /** The boat's pose node: the sea or the physics places it; the hull, the rod and the line hang from it. */
+  mesh: TransformNode;
+  /** The hull's meshes (instances): the code-built boat until the model is loaded, then the model. */
+  look: AbstractMesh[];
+  palette: number;
   rod: RodVisual;
   label: HTMLElement;
   line?: Mesh;
@@ -85,6 +91,9 @@ export class OceanScene {
   private readonly water: Water;
   private readonly sky: Sky;
   private readonly templates: Mesh[];
+  /** The Blender boat, once loaded (until then, and if the load fails, the code-built one). */
+  private boatModels: BoatModels | undefined;
+  private readonly boatLoad: Promise<void>;
   private readonly fleet = new Map<string, Craft>();
   private readonly observer: ResizeObserver;
   private self:
@@ -191,6 +200,10 @@ export class OceanScene {
       visual.mesh.freezeWorldMatrix();
       return visual;
     });
+    // The fishing gear is built now, not at the first throw: building it (meshes, textures, shaders)
+    // while the button is held made the first throw of a visit hitch, and `ready()` compiles it.
+    this.gear = new FishingGear(this.scene);
+    this.boatLoad = this.loadBoats();
     this.islandProps = this.placeIslandModels(visuals);
     // A fish market on the water off each island.
     this.markets = MARKETS.map((market) => createMarket(this.scene, market));
@@ -201,26 +214,61 @@ export class OceanScene {
     this.engine.resize();
   }
 
-  private craft(uid: string, name: string, isSelf: boolean): Craft {
-    const mesh = this.templates[paletteIndex(uid)]!.createInstance(
-      `boat-${uid}`,
+  /** Loads the Blender boat and swaps it in for every boat drawn so far (and those that follow). */
+  private async loadBoats() {
+    try {
+      const models = await loadBoatModels(this.scene);
+      if (this.scene.isDisposed) return;
+      this.boatModels = models;
+      if (this.self) this.dress(this.self.craft);
+      for (const craft of this.fleet.values()) this.dress(craft);
+    } catch (error) {
+      console.warn(
+        "The boat model did not load; the boat built from code stays.",
+        error,
+      );
+    }
+  }
+
+  /** Gives a boat its hull: the model when it is loaded, else the code-built one. */
+  private dress(craft: Craft) {
+    for (const mesh of craft.look) mesh.dispose();
+    craft.look = this.boatModels
+      ? dressBoat(this.boatModels, craft.palette, craft.mesh, craft.mesh.name)
+      : this.codeBoat(craft);
+  }
+
+  private codeBoat(craft: Craft) {
+    const hull = this.templates[craft.palette]!.createInstance(
+      `${craft.mesh.name}-hull`,
     );
-    mesh.isPickable = false;
+    hull.parent = craft.mesh;
+    hull.isPickable = false;
+    return [hull];
+  }
+
+  private craft(uid: string, name: string, isSelf: boolean): Craft {
+    const mesh = new TransformNode(`boat-${uid}`, this.scene);
+    const palette = paletteIndex(uid);
     const label = document.createElement("span");
     label.className = "ocean-boat-label";
     label.textContent = isSelf ? "Bạn" : name;
     label.dataset.uid = uid;
     if (isSelf) label.classList.add("is-self");
     this.host.append(label);
-    return {
+    const craft: Craft = {
       mesh,
-      rod: new RodVisual(this.scene, mesh),
+      look: [],
+      palette,
+      rod: new RodVisual(this.scene, mesh, boatPalettes[palette]),
       label,
       x: 0,
       z: 0,
       heading: 0,
       seen: true,
     };
+    this.dress(craft);
+    return craft;
   }
 
   /** Creates the player's physics boat at the server-assigned start pose. */
@@ -265,7 +313,7 @@ export class OceanScene {
 
   /** Orients a boat on the sea surface from the wave slope under it. */
   private rest(
-    mesh: InstancedMesh,
+    mesh: TransformNode,
     x: number,
     z: number,
     heading: number,
@@ -343,7 +391,7 @@ export class OceanScene {
    * shader has been compiled for the first frame.
    */
   async ready() {
-    await Promise.all([this.islandProps, this.vendors]);
+    await Promise.all([this.islandProps, this.vendors, this.boatLoad]);
     return this.scene.whenReadyAsync();
   }
 

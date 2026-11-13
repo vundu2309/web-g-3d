@@ -128,21 +128,40 @@ try {
   assert.equal(await label(), "Thả câu");
   assert.equal(await page.locator(".fish-power").isHidden(), true);
 
-  // 1. Holding charges the throw: the bar fills, the label asks to let go.
-  const letGo = await holdAndThrow(900);
-  await page.waitForFunction(
-    () => !document.querySelector(".fish-power").hidden,
-  );
-  await page.waitForTimeout(400);
-  const early = await page.evaluate(
-    () =>
-      parseFloat(document.querySelector(".fish-power-fill").style.width) || 0,
-  );
-  await page.waitForTimeout(450);
-  const later = await page.evaluate(
-    () =>
-      parseFloat(document.querySelector(".fish-power-fill").style.width) || 0,
-  );
+  // 1. Holding charges the throw: the bar fills, the label asks to let go. A software-rendered frame
+  // can take longer than the whole 1.4 s charge (the first frames after loading do), and then the
+  // first look at the bar already shows it full: that says nothing about the bar, so the hold is
+  // tried again (after reeling the throw in) up to three times.
+  let letGo;
+  let early = 100;
+  let later = 100;
+  const bar = () =>
+    page.evaluate(
+      () =>
+        parseFloat(document.querySelector(".fish-power-fill").style.width) || 0,
+    );
+  for (let attempt = 0; attempt < 3 && !(early < later); attempt++) {
+    letGo = await holdAndThrow(900);
+    await page.waitForFunction(
+      () => !document.querySelector(".fish-power").hidden,
+    );
+    early = await bar();
+    await page.waitForTimeout(250);
+    later = await bar();
+    if (early < later) break;
+    await letGo();
+    await lineOut();
+    await tap(page, fish);
+    await page.waitForFunction(
+      () => window.published.at(-1)?.fishing === false,
+      null,
+      { timeout: 10000 },
+    );
+    await page.waitForFunction(
+      () =>
+        document.querySelector('[data-ocean="fish"]').dataset.phase === "idle",
+    );
+  }
   assert.ok(
     later > early,
     `the power bar fills while held (${early} -> ${later})`,

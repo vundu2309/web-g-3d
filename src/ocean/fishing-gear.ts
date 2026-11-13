@@ -13,9 +13,9 @@ import { Ribbon } from "./ribbon.ts";
 import { Rope, smoothRope } from "./rope.ts";
 import { waveHeight } from "./waves.ts";
 import { PAL } from "./art/colors.ts";
-import { SIDES, sphereMesh } from "./art/shapes.ts";
+import { Parts, SIDES } from "./art/shapes.ts";
 import { hex } from "./mesh-parts.ts";
-import { glowMaterial } from "./art/materials.ts";
+import { glowMaterial, solidMaterial } from "./art/materials.ts";
 
 /**
  * What the player sees of their own fishing: the throw preview, the line and the ripples
@@ -35,6 +35,7 @@ const ARRIVE_S = 0.45;
 /** How far below the rod tip a landed fish hangs by the mouth (m). */
 const HANG = 1.15;
 const WHITE = new Color3(1, 1, 1);
+const BLOCKED = hex(PAL.signal.blocked);
 const clamp = (value: number, low = 0, high = 1) =>
   Math.min(high, Math.max(low, value));
 const ease = (t: number) => t * t * (3 - 2 * t);
@@ -42,6 +43,93 @@ const lineColourFor = (tension: number) => {
   const c = lineColour(tension);
   return new Color3(c.r, c.g, c.b);
 };
+
+/**
+ * The lure: a plump little fish about half a metre long, orange on top with a cream belly,
+ * yellow fins and big eyes, built along +X (the nose, where the line is tied) in one mesh with
+ * its colours in the vertices. Lit, so it has a shape, and bright, so it is found on the water.
+ */
+function lureMesh(scene: Scene): Mesh {
+  const parts = new Parts(scene);
+  parts.sphere(1, PAL.rod.lure, [0, 0, 0], undefined, [0.6, 0.3, 0.28], 6);
+  parts.sphere(
+    1,
+    PAL.rod.belly,
+    [0.02, -0.075, 0],
+    undefined,
+    [0.5, 0.17, 0.25],
+    5,
+  );
+  // Tail: a flat fan whose point is on the body; a dorsal fin on the back.
+  parts.tube(
+    { top: 0, bottom: 0.36, height: 0.26, sides: SIDES.thin },
+    PAL.rod.accent,
+    [-0.43, 0, 0],
+    [0, 0, -Math.PI / 2],
+    [1, 1, 0.14],
+  );
+  parts.tube(
+    { top: 0, bottom: 0.2, height: 0.2, sides: SIDES.thin },
+    PAL.rod.accent,
+    [-0.02, 0.2, 0],
+    [0, 0, Math.PI],
+    [1, 1, 0.14],
+  );
+  // Eyes on both sides: a white ball with a dark dot.
+  for (const side of [-1, 1]) {
+    parts.sphere(
+      0.13,
+      PAL.paint.white,
+      [0.2, 0.05, side * 0.1],
+      undefined,
+      undefined,
+      4,
+    );
+    parts.sphere(
+      0.07,
+      PAL.fit.boots,
+      [0.235, 0.055, side * 0.145],
+      undefined,
+      undefined,
+      3,
+    );
+  }
+  // The eye the line is tied to, on the nose.
+  parts.box([0.07, 0.07, 0.03], PAL.metal.light, [0.36, 0.03, 0]);
+  const mesh = parts.merge("gear-lure");
+  mesh.material = solidMaterial(scene, "gloss");
+  mesh.useVertexColors = true;
+  mesh.isPickable = false;
+  mesh.isVisible = false;
+  return mesh;
+}
+
+/** The hook under the lure's belly: a steel shank with a curved end and a barb, a child of the lure. */
+function hookMesh(scene: Scene): Mesh {
+  const parts = new Parts(scene);
+  const steel = PAL.metal.light;
+  parts.tube(
+    { top: 0.035, bottom: 0.035, height: 0.26, sides: SIDES.thin },
+    steel,
+    [0.04, -0.28, 0],
+  );
+  parts.tube(
+    { top: 0.035, bottom: 0.035, height: 0.16, sides: SIDES.thin },
+    steel,
+    [0.1, -0.4, 0],
+    [0, 0, Math.PI / 2],
+  );
+  parts.tube(
+    { top: 0, bottom: 0.07, height: 0.12, sides: SIDES.thin },
+    steel,
+    [0.18, -0.33, 0],
+  );
+  const mesh = parts.merge("gear-hook");
+  mesh.material = solidMaterial(scene, "gloss");
+  mesh.useVertexColors = true;
+  mesh.isPickable = false;
+  return mesh;
+}
 
 export interface GearInput {
   view: FishingView;
@@ -89,6 +177,8 @@ export class FishingGear {
   private readonly ripples: { t: number; x: number; z: number }[] = [];
   private idleRipple = -9;
   private readonly lure: Mesh;
+  /** The hook under the lure: drawn only once the lure is in the water, where a fish can take it. */
+  private readonly hook: Mesh;
   /** A soft dark patch in the water under the hooked fish, so it can be found from afar. */
   private readonly shadow: Mesh;
   private readonly rope = new Rope(POINTS);
@@ -126,7 +216,7 @@ export class FishingGear {
     this.scene = scene;
     for (let i = 0; i < POINTS; i++) this.linePoints.push(new Vector3());
     for (let i = 0; i < 16; i++) this.arcPoints.push(new Vector3());
-    this.line = new Ribbon(scene, "gear-line", POINTS);
+    this.line = new Ribbon(scene, "gear-line", POINTS, hex(PAL.rod.halo));
     this.arc = MeshBuilder.CreateDashedLines(
       "gear-arc",
       {
@@ -162,13 +252,12 @@ export class FishingGear {
     const marker = makeRing("gear-marker");
     this.marker = marker.mesh;
     this.markerMaterial = marker.material;
-    // A small bright lure where the line ends; the fish takes its place in a fight.
-    this.lure = sphereMesh(scene, 0.14, SIDES.small, "gear-lure");
-    this.lure.material = glowMaterial(scene, "gear-lure-material", {
-      color: hex(PAL.rod.lure),
-    });
-    this.lure.isPickable = false;
-    this.lure.isVisible = false;
+    // A small, colourful fish-shaped lure where the line ends (nose to the rod); the hooked
+    // fish takes its place in a fight.
+    this.lure = lureMesh(scene);
+    this.hook = hookMesh(scene);
+    this.hook.parent = this.lure;
+    this.hook.isVisible = false;
     this.shadow = MeshBuilder.CreateDisc(
       "gear-shadow",
       { radius: 0.5, tessellation: 20 },
@@ -218,6 +307,7 @@ export class FishingGear {
     this.line.isVisible = on;
     if (!on) {
       this.lure.isVisible = false;
+      this.hook.isVisible = false;
       this.shadow.isVisible = false;
     }
   }
@@ -244,6 +334,10 @@ export class FishingGear {
     this.markerMaterial.alpha = 0;
     this.marker.isVisible = charging;
     if (charging && preview) {
+      // A throw that would land on an island or outside the sea shows in red, and its ring is drawn
+      // over the land (a second rendering group), where the sand would hide it.
+      this.arc.color = preview.water ? WHITE : BLOCKED;
+      this.marker.renderingGroupId = preview.water ? 0 : 1;
       this.drawArc(tip, preview.x, preview.z);
       this.marker.position.set(
         preview.x,
@@ -251,10 +345,12 @@ export class FishingGear {
         preview.z,
       );
       const pulse = 1 + 0.08 * Math.sin(time * 9);
-      this.marker.scaling.set(2.6 * pulse, 1, 2.6 * pulse);
+      // A ring that cannot land is bigger, so it is found on the sand from the chase camera.
+      const size = 2.6 * pulse * (preview.water ? 1 : 1.9);
+      this.marker.scaling.set(size, 1, size);
       this.markerMaterial.alpha = 0.95;
       this.markerMaterial.emissiveColor = !preview.water
-        ? hex(PAL.signal.blocked)
+        ? BLOCKED
         : preview.sweet
           ? hex(PAL.signal.sweet)
           : Color3.White();
@@ -512,6 +608,20 @@ export class FishingGear {
     this.entry.set(ex, ey, ez);
     this.lure.position.set(ex, ey + 0.2, ez);
     this.lure.isVisible = true;
+    // Far from the camera a half-metre lure is a speck: it grows with the distance, as the fish does.
+    const eye = this.eye();
+    this.lure.scaling.setAll(
+      clamp(Math.hypot(ex - eye.x, ez - eye.z) * 0.05, 1, 2.4),
+    );
+    this.hook.isVisible = !flying;
+    // The nose is tied to the line: it points at the rod, tipped up a little, and bobs.
+    const flat = Math.hypot(tip.x - ex, tip.z - ez) || 1;
+    this.lure.rotation.set(
+      0,
+      Math.atan2(-(tip.z - ez), tip.x - ex),
+      Math.max(0.3, Math.atan2(tip.y - ey, flat)) +
+        (flying ? 0 : 0.1 * Math.sin(time * 2.4)),
+    );
     // Where the line enters the water a slow ring keeps showing it, so the end of a long cast
     // is not a thin line stopping in mid-air.
     if (!flying && time - this.idleRipple > 1.0) {
@@ -614,6 +724,7 @@ export class FishingGear {
     const mouthY = surface + 0.25 + pose.lift * 0.6;
     this.entry.set(fx, mouthY, fz);
     this.lure.isVisible = false;
+    this.hook.isVisible = false;
     // The shadow lies on the water under the fish, about as long as the fish, a bit wider.
     this.shadow.isVisible = true;
     this.shadow.position.set(fx, surface + 0.06, fz);
@@ -734,6 +845,7 @@ export class FishingGear {
   dispose() {
     this.fish?.dispose();
     this.line.dispose();
+    this.hook.dispose();
     this.lure.dispose();
     this.shadow.dispose();
     this.arc.dispose();

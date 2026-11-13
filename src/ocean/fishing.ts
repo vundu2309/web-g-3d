@@ -560,7 +560,8 @@ export class Angler {
 
   power(now: number) {
     return this.phase === "charging"
-      ? Math.min(1, (now - this.chargeStart) / CHARGE_MS)
+      ? // A frame's own clock can be a little earlier than a press that happened during it.
+        Math.min(1, Math.max(0, (now - this.chargeStart) / CHARGE_MS))
       : 0;
   }
 

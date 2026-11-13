@@ -128,8 +128,22 @@ export const PAL = {
       scarfBlue: 0x4a86c5,
     },
   },
-  /** The rod and the lure. */
-  rod: { cork: 0xe3c38d, graphite: 0x6b4423, tip: 0xff7a2e, lure: 0xff7333 },
+  /**
+   * The rod and the lure. The blank's bands take the player's boat colours (BoatPalette.hull and
+   * .trim); these are the parts every rod shares: the cork handle and its butt cap, the reel
+   * (body and the knob of its crank), the bright tip, and the colourful lure (back, belly, fins).
+   */
+  rod: {
+    cork: 0xe3c38d,
+    cap: 0x4a3b32,
+    reel: 0xe5604d,
+    accent: 0xffd23f,
+    tip: 0xff7a2e,
+    lure: 0xff7333,
+    belly: 0xfff0d2,
+    /** The dark edge drawn behind the fishing line so it shows on bright water and foam. */
+    halo: 0x1b2a3c,
+  },
   /** The throw marker: no water and the sweet spot (otherwise white). */
   signal: { blocked: 0xff594d, sweet: 0x73ff99 },
 } as const;
