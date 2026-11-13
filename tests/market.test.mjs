@@ -9,6 +9,7 @@ import {
   seaObstacles,
 } from "../src/ocean/market.ts";
 import { BUOYS } from "../src/ocean/sea-layout.ts";
+import { NPC_LOOKS } from "../src/ocean/npc-look.ts";
 import { HARBOR, islandCollisionRadius, islands } from "../src/ocean/model.ts";
 
 test("every island has a market, named and inside the sea", () => {
@@ -81,15 +82,15 @@ test("the piers are solid for the boats, like the islands", () => {
   }
 });
 
-test("every market has its own vendor with a name, a greeting and a model", () => {
+test("every market has its own vendor with a name, a greeting and a look", () => {
   const names = new Set();
   for (const market of MARKETS) {
     const { vendor } = market;
     assert.ok(vendor.name.length > 1 && vendor.greeting.length > 10, market.id);
-    assert.match(vendor.model, /^people-\d\.glb$/, `${market.id} model`);
+    assert.ok(vendor.look in NPC_LOOKS, `${market.id}: look ${vendor.look}`);
     names.add(vendor.name);
   }
   assert.equal(names.size, MARKETS.length, "vendors are different people");
-  const looks = new Set(MARKETS.map((m) => m.vendor.model));
+  const looks = new Set(MARKETS.map((m) => m.vendor.look));
   assert.equal(looks.size, MARKETS.length, "and look different");
 });

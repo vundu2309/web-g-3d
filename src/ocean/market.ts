@@ -1,4 +1,5 @@
 import { HARBOR, SEA_BOUND, islandCollisionRadius, islands } from "./model.ts";
+import type { NpcLookId } from "./npc-look.ts";
 
 /**
  * The fish markets: a floating wooden pier with a stall on the side of each island that faces
@@ -21,8 +22,8 @@ export interface Market {
 /** The person behind a stall: a name, how they look and a line they say when the market opens. */
 export interface Vendor {
   name: string;
-  /** The person's model in public/models (built by tools/blender/people.py). */
-  model: string;
+  /** How the person looks: a figure of the sea's people (npc-look.ts, built in npc-visual.ts). */
+  look: NpcLookId;
   /** Said when the market opens. */
   greeting: string;
 }
@@ -57,17 +58,17 @@ const place = (
 export const MARKETS: readonly Market[] = [
   place(0, 0.25, "hai-dang", "Chợ Hải Đăng", {
     name: "Cô Lan",
-    model: "people-1.glb",
+    look: "lan",
     greeting: "Chào em! Cá hôm nay tươi lắm, để cô xem em câu được gì nào.",
   }),
   place(1, 0, "doi-xanh", "Chợ Đồi Xanh", {
     name: "Chú Tư",
-    model: "people-4.glb",
+    look: "tu",
     greeting: "Ê, về rồi đó hả? Đưa cá đây, chú trả giá tốt cho.",
   }),
   place(2, 0, "bai-co", "Chợ Bãi Cọ", {
     name: "Bà Sáu",
-    model: "people-5.glb",
+    look: "sau",
     greeting: "Trời ơi, con cá to quá! Lại đây bà cân cho.",
   }),
 ];

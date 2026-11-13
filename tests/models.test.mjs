@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, existsSync, readdirSync } from "node:fs";
-import { MARKETS } from "../src/ocean/market.ts";
+import { readFileSync, readdirSync } from "node:fs";
 import { PAL } from "../src/ocean/art/colors.ts";
 
 // The GLB models made by the Blender pipeline (tools/blender, public/models) must stay valid,
@@ -22,18 +21,11 @@ const PEOPLE = readdirSync(new URL("../public/models/", import.meta.url))
   .filter((file) => /^people-\d\.glb$/.test(file))
   .sort();
 
-test("all five people are built and every market's vendor is one of them", () => {
+test("all five people are built (kept for later; the market vendors are figures built in code)", () => {
   assert.deepEqual(
     PEOPLE,
     [1, 2, 3, 4, 5].map((n) => `people-${n}.glb`),
   );
-  for (const market of MARKETS)
-    assert.ok(
-      existsSync(
-        new URL(`../public/models/${market.vendor.model}`, import.meta.url),
-      ),
-      `${market.id}: public/models/${market.vendor.model}`,
-    );
 });
 
 test("every person has a body, a waving arm and baked colours, within budget", () => {
