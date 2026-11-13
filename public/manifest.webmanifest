@@ -1,8 +1,9 @@
 {
   "id": "./",
-  "name": "Phố Tỷ Phú",
-  "short_name": "Phố Tỷ Phú",
-  "description": "Thuyền đánh cá online cùng bạn bè, ưu tiên điện thoại.",
+  "name": "Ra khơi cùng bạn",
+  "short_name": "Ra khơi",
+  "description": "Game thuyền đánh cá online: lái thuyền, thả câu và bán cá trên một vùng biển chung cùng bạn bè. Chơi trên điện thoại xoay ngang.",
+  "categories": ["games"],
   "lang": "vi",
   "start_url": "./",
   "scope": "./",

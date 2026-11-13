@@ -14,6 +14,7 @@ import { RemoteTracks, ServerClock } from "../ocean/remote";
 import { stockTotal, type Inventory } from "../ocean/fishing";
 import { createFishingUi } from "./fishing-ui";
 import { createMarketUi } from "./market-ui";
+import { createUpdateSection } from "./settings-update";
 import {
   economyEnabled,
   supabaseEconomy,
@@ -442,7 +443,7 @@ export function startOcean(
       }
       list.append(li);
     }
-    body.append(section, list);
+    body.append(section, list, createUpdateSection({ beforeApply: persist }));
     const foot = document.createElement("footer");
     foot.className = "settings-foot";
     const leave = document.createElement("button");

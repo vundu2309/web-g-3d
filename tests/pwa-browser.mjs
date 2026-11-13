@@ -110,6 +110,19 @@ try {
     await navigator.serviceWorker.ready;
   });
   await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+  // The Settings screen shows which version runs: the worker answers with the first eight
+  // characters of its content hash.
+  const shellVersion = await page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        const channel = new MessageChannel();
+        channel.port1.onmessage = (event) => resolve(event.data.version);
+        navigator.serviceWorker.controller.postMessage({ type: "VERSION" }, [
+          channel.port2,
+        ]);
+      }),
+  );
+  assert.match(shellVersion, /^[0-9a-f]{8}$/);
   const manifestURL = await page
     .locator('link[rel="manifest"]')
     .getAttribute("href");
@@ -125,6 +138,10 @@ try {
     prefix,
   );
   assert.equal(manifest.display, "standalone");
+  // The app is called what the game is called, not the old Monopoly project.
+  assert.equal(manifest.name, "Ra khơi cùng bạn");
+  assert.equal(manifest.short_name, "Ra khơi");
+  assert.ok(!/Phố Tỷ Phú|Monopoly/i.test(JSON.stringify(manifest)));
   // Android draws its own bars (and keeps the camera cutout black) in standalone; asking for
   // fullscreen first lets the sea cover the whole screen. Browsers without display_override
   // (iOS) fall back to `display`.
@@ -154,7 +171,7 @@ try {
   await page.locator("[data-pwa-install]").click();
   await page
     .getByRole("dialog")
-    .getByRole("heading", { name: "Cài Phố Tỷ Phú" })
+    .getByRole("heading", { name: "Cài Ra khơi cùng bạn" })
     .waitFor();
   await page.screenshot({ path: "test-results/pwa/install-guide.png" });
   await page.getByRole("button", { name: "Đã hiểu", exact: true }).click();

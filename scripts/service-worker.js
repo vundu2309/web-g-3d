@@ -57,6 +57,11 @@ self.addEventListener("fetch", (event) => {
 
 // Older pages may still ask to apply a waiting worker; accept for compatibility.
 self.addEventListener("message", (event) => {
+  // The Settings screen shows which version is running.
+  if (event.data?.type === "VERSION" && event.ports[0]) {
+    event.ports[0].postMessage({ version: VERSION.slice(0, 8) });
+    return;
+  }
   if (event.data?.type !== "APPLY_UPDATE" || !event.ports[0]) return;
   event.ports[0].postMessage({ ok: true });
   event.waitUntil(self.skipWaiting());

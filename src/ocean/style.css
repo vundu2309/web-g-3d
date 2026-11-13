@@ -1494,3 +1494,46 @@ dialog.account-screen :is(input, textarea) {
   transform: translateY(2px);
   box-shadow: 0 2px 0 #153b80;
 }
+
+/* Settings: which version runs, and a button to look for a newer one. */
+.update-card {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 3px solid #153b8022;
+}
+.update-version {
+  font-family: ui-monospace, monospace;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+.update-note {
+  margin: 0 0 12px;
+  font-size: 15px;
+  line-height: 1.35;
+  color: #385b8d;
+}
+.settings-update {
+  min-width: 200px;
+  min-height: 48px;
+  background: #fff;
+  border: 3px solid #153b80;
+  border-radius: 18px;
+  box-shadow: 0 4px 0 #153b80;
+  color: #153b80;
+  font:
+    800 18px/1 "Baloo 2",
+    sans-serif;
+  padding: 10px 22px;
+  cursor: pointer;
+}
+.settings-update.is-ready {
+  background: #ffd35a;
+}
+.settings-update:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #153b80;
+}
+.settings-update:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

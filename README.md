@@ -1,4 +1,6 @@
-# Phố Tỷ Phú
+# Ra khơi cùng bạn
+
+_Tên cũ của dự án: Phố Tỷ Phú (game Monopoly, mã nguồn vẫn được giữ)._
 
 Game online nhập vai thuyền đánh cá, ưu tiên **điện thoại xoay ngang**. Mỗi tài khoản điều khiển một thuyền riêng trên **một map biển chung**.
 
@@ -41,7 +43,6 @@ Settings → Pages → Source: GitHub Actions. Workflow chạy kiểm tra trư�
 ## OpenWiki
 
 OpenWiki được pin trong devDependencies, không tải vào ứng dụng. `npm run wiki -- integrations list --project .` kiểm tra tích hợp; `npm run wiki:serve` mở trình đọc local; `npm run wiki:export` xuất vào `.openwiki-export/`. Wiki bắt đầu tại [openwiki/quickstart.md](openwiki/quickstart.md). Dùng lifecycle của skill `.agents/skills/openwiki` để cập nhật sau khi source ổn định; không sửa tay Claims/metadata/index. Không tự gọi paid provider hoặc chạy lịch AI trong CI.
-
 
 ## Hạ tầng mới
 

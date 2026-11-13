@@ -1,3 +1,42 @@
+import { checkForUpdate, type UpdateResult } from "./update-check";
+
+/** What the Settings screen can ask of the service worker once it is registered. */
+export interface ShellUpdates {
+  check(): Promise<UpdateResult>;
+  /** Loads the newer version now. Only ever called from a tap on "Cập nhật ngay". */
+  apply(): void;
+}
+let updates: ShellUpdates | undefined;
+/** The update controls, or undefined (development build, no service worker support). */
+export const shellUpdates = () => updates;
+
+/**
+ * The version of the worker running this page (the first characters of the content hash its
+ * build stamped on it), or undefined when no worker controls the page or it is an old one
+ * that does not answer.
+ */
+export function shellVersion(): Promise<string | undefined> {
+  const worker =
+    "serviceWorker" in navigator
+      ? navigator.serviceWorker.controller
+      : undefined;
+  if (!worker) return Promise.resolve(undefined);
+  return new Promise((resolve) => {
+    const channel = new MessageChannel();
+    const timer = setTimeout(() => {
+      channel.port1.close();
+      resolve(undefined);
+    }, 2000);
+    channel.port1.onmessage = (event: MessageEvent<{ version?: unknown }>) => {
+      clearTimeout(timer);
+      channel.port1.close();
+      const version = event.data?.version;
+      resolve(typeof version === "string" ? version : undefined);
+    };
+    worker.postMessage({ type: "VERSION" }, [channel.port2]);
+  });
+}
+
 /**
  * Scoped SW lifecycle. A new worker activates itself; the page reloads only when
  * `canReload()` says no game, form or dialog would be interrupted.
@@ -78,6 +117,15 @@ export function registerShell(
     .then((reg) => {
       if (disposed) return;
       registration = reg;
+      updates = {
+        check: () => checkForUpdate(reg, { pending: () => pendingReload }),
+        apply: () => {
+          // A downloaded version that has not taken over yet is activated first; the
+          // controllerchange handler then reloads because the player asked for it.
+          if (reg.waiting) void applyUpdate().catch(() => location.reload());
+          else location.reload();
+        },
+      };
       checkWaiting();
       reg.addEventListener(
         "updatefound",
@@ -111,6 +159,7 @@ export function registerShell(
   );
   return () => {
     disposed = true;
+    updates = undefined;
     abort.abort();
   };
 }

@@ -13,7 +13,7 @@ export function startPwa(root: HTMLElement): () => void {
   const dialog = document.createElement("dialog");
   dialog.className = "pwa-dialog";
   dialog.setAttribute("aria-labelledby", "pwa-title");
-  dialog.innerHTML = `<h2 id="pwa-title" tabindex="-1" autofocus>Cài Phố Tỷ Phú</h2><p>Thêm game vào màn hình chính để mở trong cửa sổ ứng dụng.</p><ol><li><strong>Android · Chrome</strong><p>Mở menu ⋮ → Cài đặt ứng dụng hoặc Thêm vào màn hình chính.</p></li><li><strong>iPhone / iPad · Safari</strong><p>Chọn Chia sẻ → Thêm vào Màn hình chính → Thêm.</p></li></ol><p class="pwa-hint">Nếu đang mở trong ứng dụng chat, hãy mở liên kết bằng Chrome hoặc Safari trước. Giao diện và HUD mẫu có thể mở lại sau khi đã tải; tài khoản và multiplayer vẫn cần mạng.</p><button class="button primary" type="button" data-pwa-close>Đã hiểu</button>`;
+  dialog.innerHTML = `<h2 id="pwa-title" tabindex="-1" autofocus>Cài Ra khơi cùng bạn</h2><p>Thêm game vào màn hình chính để mở trong cửa sổ ứng dụng.</p><ol><li><strong>Android · Chrome</strong><p>Mở menu ⋮ → Cài đặt ứng dụng hoặc Thêm vào màn hình chính.</p></li><li><strong>iPhone / iPad · Safari</strong><p>Chọn Chia sẻ → Thêm vào Màn hình chính → Thêm.</p></li></ol><p class="pwa-hint">Nếu đang mở trong ứng dụng chat, hãy mở liên kết bằng Chrome hoặc Safari trước. Màn hình chính mở lại được khi mất mạng; ra khơi, đăng nhập và chơi cùng bạn bè vẫn cần mạng.</p><button class="button primary" type="button" data-pwa-close>Đã hiểu</button>`;
   const update = document.createElement("aside");
   update.className = "pwa-update";
   update.setAttribute("role", "status");

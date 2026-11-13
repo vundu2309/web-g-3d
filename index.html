@@ -2,54 +2,122 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <meta name="theme-color" content="#4b3a8f" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Phố Tỷ Phú" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Ra khơi" />
+    <meta name="application-name" content="Ra khơi" />
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png" />
-    <meta name="description" content="Phố Tỷ Phú — Lái thuyền đánh cá, thả câu cùng bạn bè trên một vùng biển chung." />
-    <title>Phố Tỷ Phú — Chơi cùng bạn bè</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ffd35a'/%3E%3Cpath d='m5 15 11-9 11 9v13H5Z' fill='%23153b80'/%3E%3C/svg%3E" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="./icons/apple-touch-icon.png"
+    />
+    <meta
+      name="description"
+      content="Game thuyền đánh cá online: lái thuyền, thả câu và bán cá trên một vùng biển chung cùng bạn bè. Chơi trên điện thoại xoay ngang."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Ra khơi cùng bạn" />
+    <meta property="og:locale" content="vi_VN" />
+    <meta
+      property="og:title"
+      content="Ra khơi cùng bạn — Game thuyền câu cá online"
+    />
+    <meta
+      property="og:description"
+      content="Game thuyền đánh cá online: lái thuyền, thả câu và bán cá trên một vùng biển chung cùng bạn bè. Chơi trên điện thoại xoay ngang."
+    />
+    <title>Ra khơi cùng bạn — Game thuyền câu cá online</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ffd35a'/%3E%3Cpath d='m5 15 11-9 11 9v13H5Z' fill='%23153b80'/%3E%3C/svg%3E"
+    />
   </head>
   <body>
     <div class="paper-card card-left" aria-hidden="true"></div>
     <div class="paper-card card-right" aria-hidden="true"></div>
     <div id="app"></div>
-    <p id="announcement" class="announcement" role="status" aria-live="polite" aria-atomic="true"></p>
+    <p
+      id="announcement"
+      class="announcement"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    ></p>
     <script>
       /* Self-diagnosing start: if the game never draws, say why instead of staying blank. */
       (function () {
         var problems = [];
         function note(text) {
           text = String(text || "").slice(0, 140);
-          if (text && problems.indexOf(text) < 0 && problems.length < 4) problems.push(text);
+          if (text && problems.indexOf(text) < 0 && problems.length < 4)
+            problems.push(text);
         }
         window.addEventListener(
           "error",
           function (event) {
             var target = event.target;
-            note(event.message || (target && (target.src || target.href) ? "Không tải được: " + String(target.src || target.href).split("/").pop() : "Lỗi"));
+            note(
+              event.message ||
+                (target && (target.src || target.href)
+                  ? "Không tải được: " +
+                    String(target.src || target.href)
+                      .split("/")
+                      .pop()
+                  : "Lỗi"),
+            );
           },
           true,
         );
         window.addEventListener("unhandledrejection", function (event) {
-          note(event.reason && event.reason.message ? event.reason.message : event.reason);
+          note(
+            event.reason && event.reason.message
+              ? event.reason.message
+              : event.reason,
+          );
         });
         function clearShell() {
           var work = Promise.resolve();
-          if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations)
-            work = navigator.serviceWorker.getRegistrations().then(function (list) {
-              return Promise.all(list.map(function (item) { return item.unregister(); }));
-            });
+          if (
+            navigator.serviceWorker &&
+            navigator.serviceWorker.getRegistrations
+          )
+            work = navigator.serviceWorker
+              .getRegistrations()
+              .then(function (list) {
+                return Promise.all(
+                  list.map(function (item) {
+                    return item.unregister();
+                  }),
+                );
+              });
           if (window.caches)
             work = work.then(function () {
               return caches.keys().then(function (keys) {
-                return Promise.all(keys.filter(function (key) { return key.indexOf("photyphu-shell:") === 0; }).map(function (key) { return caches.delete(key); }));
+                return Promise.all(
+                  keys
+                    .filter(function (key) {
+                      return key.indexOf("photyphu-shell:") === 0;
+                    })
+                    .map(function (key) {
+                      return caches.delete(key);
+                    }),
+                );
               });
             });
-          return work.catch(function () {}).then(function () { location.reload(); });
+          return work
+            .catch(function () {})
+            .then(function () {
+              location.reload();
+            });
         }
         setTimeout(function () {
           var app = document.getElementById("app");
@@ -57,36 +125,61 @@
           var box = document.createElement("section");
           box.id = "boot-fallback";
           box.setAttribute("role", "alert");
-          box.style.cssText = "position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:#e1f0ff;color:#153b80;font:16px/1.5 system-ui,sans-serif;text-align:center;z-index:9";
+          box.style.cssText =
+            "position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:#e1f0ff;color:#153b80;font:16px/1.5 system-ui,sans-serif;text-align:center;z-index:9";
           var inner = document.createElement("div");
           inner.style.maxWidth = "440px";
           var title = document.createElement("h1");
           title.textContent = "Game chưa mở được";
           title.style.cssText = "font-size:24px;margin:0 0 8px";
           var text = document.createElement("p");
-          text.textContent = "Trình duyệt chưa dựng được game. Hãy thử tải lại. Nếu vẫn trống, xóa bộ nhớ đệm của game rồi mở lại.";
+          text.textContent =
+            "Trình duyệt chưa dựng được game. Hãy thử tải lại. Nếu vẫn trống, xóa bộ nhớ đệm của game rồi mở lại.";
           var detail = document.createElement("p");
-          var agent = (navigator.userAgent.match(/(Chrome|Firefox|Version)\/[\d.]+/) || [""])[0];
-          detail.textContent = (problems.length ? problems.join(" · ") : "Không có thông báo lỗi") + " — " + location.host + " " + agent;
-          detail.style.cssText = "font:12px/1.4 monospace;opacity:.75;word-break:break-word";
+          var agent = (navigator.userAgent.match(
+            /(Chrome|Firefox|Version)\/[\d.]+/,
+          ) || [""])[0];
+          detail.textContent =
+            (problems.length
+              ? problems.join(" · ")
+              : "Không có thông báo lỗi") +
+            " — " +
+            location.host +
+            " " +
+            agent;
+          detail.style.cssText =
+            "font:12px/1.4 monospace;opacity:.75;word-break:break-word";
           function button(label, primary, action) {
             var item = document.createElement("button");
             item.type = "button";
             item.textContent = label;
-            item.style.cssText = "min-height:48px;margin:6px;padding:0 20px;border:2px solid #153b80;border-radius:16px;font:700 16px system-ui,sans-serif;color:#153b80;background:" + (primary ? "#ffd35a" : "#fff");
+            item.style.cssText =
+              "min-height:48px;margin:6px;padding:0 20px;border:2px solid #153b80;border-radius:16px;font:700 16px system-ui,sans-serif;color:#153b80;background:" +
+              (primary ? "#ffd35a" : "#fff");
             item.addEventListener("click", action);
             return item;
           }
-          inner.append(title, text, button("Tải lại", true, function () { location.reload(); }), button("Xóa bộ nhớ đệm và tải lại", false, clearShell), detail);
+          inner.append(
+            title,
+            text,
+            button("Tải lại", true, function () {
+              location.reload();
+            }),
+            button("Xóa bộ nhớ đệm và tải lại", false, clearShell),
+            detail,
+          );
           box.append(inner);
           document.body.append(box);
           new MutationObserver(function (_, observer) {
-            if (app.childElementCount) { box.remove(); observer.disconnect(); }
+            if (app.childElementCount) {
+              box.remove();
+              observer.disconnect();
+            }
           }).observe(app, { childList: true });
         }, 8000);
       })();
     </script>
-    <noscript>Bật JavaScript để mở Phố Tỷ Phú.</noscript>
+    <noscript>Bật JavaScript để mở Ra khơi cùng bạn.</noscript>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
