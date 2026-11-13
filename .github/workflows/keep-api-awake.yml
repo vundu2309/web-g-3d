@@ -1,0 +1,43 @@
+name: Keep the API awake
+
+# The Render API runs on a free instance that sleeps after about 15 minutes without traffic,
+# which drops every Socket.IO connection and the in-memory sea state. This pings /health every
+# 5 minutes (GitHub's shortest schedule). Runs are often delayed by a few minutes and GitHub
+# disables scheduled workflows after 60 days without repository activity, so this is best
+# effort, not a guarantee. A paid instance that never sleeps is the reliable fix.
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: keep-api-awake
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    # Forks do not need to wake somebody else's server.
+    if: github.repository == 'vundu2309/web-g-3d'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      # Set the repository variable API_HEALTH_URL to override (Settings > Secrets and
+      # variables > Actions > Variables). The default is the public API URL in .env.example.
+      API_HEALTH_URL: ${{ vars.API_HEALTH_URL || 'https://web-g-3d-api.onrender.com/health' }}
+    steps:
+      - name: Ping /health
+        run: |
+          # A cold start can take 30 to 60 s, so wait up to 90 s for an answer. Any HTTP
+          # answer means the instance is awake; only no answer at all fails the run.
+          code=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+            --max-time 90 --retry 2 --retry-delay 5 --retry-all-errors "$API_HEALTH_URL") || {
+            echo "::error::No answer from the API at $API_HEALTH_URL"
+            exit 1
+          }
+          echo "GET /health -> $code"
+          if [ "$code" != "200" ]; then
+            echo "::warning::The API is awake but /health answered $code (503 means it is still connecting to the database)."
+          fi
