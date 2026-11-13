@@ -47,6 +47,7 @@ import { FOG_DENSITY, HORIZON } from "./sea-style.ts";
 import { createSeaLights } from "./art/lighting.ts";
 import { edgeIndicator, separateLabels } from "./indicator.ts";
 import { ScaleGovernor } from "./render-scale.ts";
+import { createSeaReflection } from "./reflection.ts";
 import { createSky, type Sky } from "./sky.ts";
 import { createWater, type Water } from "./water.ts";
 import { waveHeight } from "./waves.ts";
@@ -170,6 +171,8 @@ export class OceanScene {
     createSeaLights(this.scene);
     this.water = createWater(this.scene);
     this.sky = createSky(this.scene);
+    // The sea mirrors the islands, markets and boats too (a predicate over the whole scene).
+    createSeaReflection(this.scene, this.water, this.sky);
     this.templates = boatPalettes.map((palette, i) => {
       const template = createBoatTemplate(this.scene, palette, `boat-${i}`);
       template.isVisible = false;

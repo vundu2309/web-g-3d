@@ -2,7 +2,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
 import { Effect } from "@babylonjs/core/Materials/effect";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Scene } from "@babylonjs/core/scene";
 import { WAKE_MAX, glslWake } from "./wake.ts";
 import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture";
@@ -11,6 +11,8 @@ import { Constants } from "@babylonjs/core/Engines/constants";
 import { WIND_DIRECTION, glslWaveHeight } from "./waves.ts";
 import { RIPPLE_RANGE, RIPPLE_SIZE, ripplePixels } from "./ripples.ts";
 import { glslSkyModel } from "./sky-model.ts";
+import { glslReflection } from "./reflection-model.ts";
+import type { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
 import { createSwash } from "./swash.ts";
 import {
   DEEP_TEAL,
@@ -34,8 +36,9 @@ import {
 
 /**
  * The sea: a camera-following grid displaced by the same wave function the
- * physics floats on. Reflection is the analytic sky (no extra render pass), which
- * keeps the cost near a plain mesh on phones.
+ * physics floats on. It mirrors the scene through a planar reflection pass
+ * (reflection.ts: islands, props, markets, boats and the sky, wobbled by the waves and blurred
+ * by the roughness); when that texture is missing it mirrors the analytic sky alone, as before.
  */
 /** A unit vector turned `offset` radians from the wind, as a GLSL vec2. */
 const glslAxis = (offset: number) =>
@@ -97,11 +100,15 @@ uniform vec3 sand;
 uniform float fogDensity;
 uniform vec4 boats[${BOAT_MAX}];
 uniform sampler2D rippleMap;
+uniform sampler2D reflectionMap;
+uniform vec2 reflectionSize;
+uniform mat4 viewProjection;
 varying vec3 vWorld;
 varying float vHeight;
 varying vec4 vWake;
 ${glslSkyModel()}
 ${glslShore(true)}
+${glslReflection()}
 // Absorption of clear sea water per metre (red goes first, then green): turquoise shallows.
 const vec3 absorb = vec3(${WATER_ABSORPTION.map((v) => v.toFixed(4)).join(", ")});
 // A hash without sin(): cheaper on phone GPUs.
@@ -271,10 +278,16 @@ void main() {
   // Schlick's Fresnel for water (F0 about 0.02), tamed at grazing angles on a rough sea.
   float f0 = 0.02;
   float fresnel = f0 + (max(1.0 - rough, f0) - f0) * pow(1.0 - nv, 5.0);
-  // What the sea mirrors: the same sky the dome draws (the sun itself is added below with GGX).
+  // What the sea mirrors: the same sky the dome draws (the sun itself is added below with GGX),
+  // and over it the scene's own reflection (islands, palms, markets, boats): the picture the
+  // mirrored camera drew (reflection.ts), looked up at this pixel's screen position, moved by the
+  // slope of the waves and blurred by the roughness. Where the picture has nothing (no texture,
+  // the edge of the screen, behind the camera) the analytic sky is the mirror, as it always was.
   vec3 reflected = reflect(-view, n);
   reflected.y = abs(reflected.y);
   vec3 mirror = skyRadiance(reflected, false);
+  vec4 scene = reflectionAt(vec3(vWorld.x, 0.0, vWorld.z), vec3(reflected.x, -reflected.y, reflected.z), dist, rough);
+  mirror = mix(mirror, scene.rgb, scene.a);
   // ----- The water's own colour -----
   // Light that goes in and comes back: Beer-Lambert absorption over the path down to the floor
   // and back up (red is eaten first, then green), the sandy bottom showing through the shallows
@@ -357,6 +370,8 @@ export interface Water {
   mesh: Mesh;
   /** The swash sheets on the beaches (swash.ts), on the same clock as the surf. */
   swash: Mesh[];
+  /** Gives the water its planar reflection (reflection.ts); undefined goes back to the sky alone. */
+  setReflection(texture: BaseTexture | undefined): void;
   /** Keeps the grid centred under the camera and advances the wave clock. */
   update(
     cameraX: number,
@@ -423,8 +438,10 @@ export function createWater(scene: Scene): Water {
         "shoreIslands",
         "wake",
         "boats",
+        "viewProjection",
+        "reflectionSize",
       ],
-      samplers: ["rippleMap", "coastMap"],
+      samplers: ["rippleMap", "coastMap", "reflectionMap"],
     },
   );
   material.backFaceCulling = false;
@@ -467,16 +484,42 @@ export function createWater(scene: Scene): Water {
   coasts.wrapV = Texture.CLAMP_ADDRESSMODE;
   material.setTexture("coastMap", coasts);
   material.setArray4("shoreIslands", shoreUniform());
+  // Until the mirror exists (or for good if it cannot): a 1 x 1 transparent picture, which makes
+  // the shader fall back to the analytic sky everywhere.
+  const noReflection = new RawTexture(
+    new Uint8Array(4),
+    1,
+    1,
+    Constants.TEXTUREFORMAT_RGBA,
+    scene,
+    false,
+    false,
+    Texture.NEAREST_SAMPLINGMODE,
+  );
+  let reflection: BaseTexture | undefined;
+  material.setTexture("reflectionMap", noReflection);
+  material.setVector2("reflectionSize", new Vector2(1, 1));
   mesh.material = material;
   const swash = createSwash(scene);
   const anchor = new Vector3();
   return {
     mesh,
     swash: swash.meshes,
+    setReflection(texture) {
+      reflection = texture;
+      material.setTexture("reflectionMap", texture ?? noReflection);
+    },
     update(cameraX, cameraZ, time, wake, boats) {
       swash.update(time);
       if (boats) material.setArray4("boats", packBoats(boats));
       material.setFloat("time", time);
+      if (reflection) {
+        const size = reflection.getSize();
+        material.setVector2(
+          "reflectionSize",
+          new Vector2(size.width, size.height),
+        );
+      }
       if (wake) material.setArray4("wake", wake as number[]);
       anchor.set(cameraX, 0, cameraZ);
       material.setVector3("anchor", anchor);

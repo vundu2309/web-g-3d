@@ -23,6 +23,7 @@ uniform vec3 horizon;
 uniform vec3 zenith;
 uniform vec3 sunDirection;
 uniform float time;
+uniform float sunDisc;
 ${glslSkyModel()}
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(vec2 p) {
@@ -37,7 +38,7 @@ float fbm(vec2 p) {
 }
 void main() {
   vec3 d = normalize(vDir);
-  vec3 color = skyRadiance(d, true);
+  vec3 color = skyRadiance(d, sunDisc > 0.5);
   // Clouds: thick ones are bright where the sun lights them and grey-blue in their own shade,
   // with a silver edge where they are thin and the sun shines through.
   vec2 plane = d.xz / (d.y + 0.2) * 1.4 + vec2(time * 0.012, time * 0.004);
@@ -57,6 +58,8 @@ void main() {
 
 export interface Sky {
   mesh: Mesh;
+  /** The sun disc is drawn, or not (the sea's mirror leaves it out: the water adds its own glitter). */
+  showSun(on: boolean): void;
   update(cameraX: number, cameraY: number, cameraZ: number, time: number): void;
 }
 
@@ -78,6 +81,7 @@ export function createSky(scene: Scene): Sky {
         "zenith",
         "sunDirection",
         "time",
+        "sunDisc",
       ],
     },
   );
@@ -86,6 +90,7 @@ export function createSky(scene: Scene): Sky {
   material.setColor3("horizon", HORIZON);
   material.setColor3("zenith", ZENITH);
   material.setVector3("sunDirection", SUN_DIRECTION);
+  material.setFloat("sunDisc", 1);
   mesh.material = material;
   mesh.infiniteDistance = true;
   mesh.renderingGroupId = 0;
@@ -93,6 +98,9 @@ export function createSky(scene: Scene): Sky {
   mesh.alwaysSelectAsActiveMesh = true;
   return {
     mesh,
+    showSun(on) {
+      material.setFloat("sunDisc", on ? 1 : 0);
+    },
     update(cameraX, cameraY, cameraZ, time) {
       mesh.position.set(cameraX, cameraY, cameraZ);
       material.setFloat("time", time);
