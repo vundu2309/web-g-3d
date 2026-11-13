@@ -116,9 +116,7 @@ export class SeaProps {
       });
       visual.mesh.position.set(island.x, 0, island.z);
       visual.mesh.freezeWorldMatrix();
-      visual.foam?.position.set(island.x, 0.08, island.z);
       this.extra.push(visual.mesh);
-      if (visual.foam) this.extra.push(visual.foam);
     });
     this.update(0);
   }

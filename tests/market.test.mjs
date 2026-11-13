@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  GANGWAY_REACH,
   MARKETS,
   MARKET_BODY_RADIUS,
   MARKET_RANGE,
@@ -10,6 +11,7 @@ import {
 } from "../src/ocean/market.ts";
 import { BUOYS } from "../src/ocean/sea-layout.ts";
 import { NPC_LOOKS } from "../src/ocean/npc-look.ts";
+import { coastDistance } from "../src/ocean/shore.ts";
 import { HARBOR, islandCollisionRadius, islands } from "../src/ocean/model.ts";
 
 test("every island has a market, named and inside the sea", () => {
@@ -21,16 +23,32 @@ test("every island has a market, named and inside the sea", () => {
   }
 });
 
-test("a pier sits in open water just off its island, never inside any island", () => {
+test("a pier stands in the shallows with its gangway on the sand, clear of every island's ring", () => {
   MARKETS.forEach((market, index) => {
     const island = islands[index];
     const from = Math.hypot(market.x - island.x, market.z - island.z);
-    const shore = islandCollisionRadius(island);
+    const ring = islandCollisionRadius(island);
+    // Its solid circle never reaches into the ring boats collide with.
     assert.ok(
-      from > shore + MARKET_BODY_RADIUS + 3,
-      `${market.id} clear of its shore`,
+      from >= ring + MARKET_BODY_RADIUS,
+      `${market.id} clear of the ring`,
     );
-    assert.ok(from < shore + 15, `${market.id} close to its island`);
+    // The gangway points at the island and its end rests on the beach of the real coast,
+    // a little up the sand, while the deck stands in the water.
+    const ux = (island.x - market.x) / from;
+    const uz = (island.z - market.z) / from;
+    const end = coastDistance(
+      market.x + ux * GANGWAY_REACH,
+      market.z + uz * GANGWAY_REACH,
+    );
+    assert.ok(
+      end < 0 && end > -1.5,
+      `${market.id} gangway lands on the sand: ${end}`,
+    );
+    const deck = coastDistance(market.x + ux * 2.7, market.z + uz * 2.7);
+    assert.ok(deck > 5, `${market.id} deck stands in the water: ${deck}`);
+    // In the shallows next to the beach, a few metres closer than the old ring + 9 m.
+    assert.ok(from < ring + 9 - 2, `${market.id} close to its beach`);
     for (const other of islands)
       assert.ok(
         Math.hypot(market.x - other.x, market.z - other.z) >

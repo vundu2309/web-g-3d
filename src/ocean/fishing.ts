@@ -1,5 +1,6 @@
 import type { CreatureKind, Look } from "./creatures.ts";
 import { SEA_BOUND, islandCollisionRadius, islands } from "./model.ts";
+import { coastDistance } from "./shore.ts";
 import {
   Fight,
   type FightMood,
@@ -315,16 +316,16 @@ export function drawnLength(species: { lengthCm: number }, kg: number): number {
 const byId = new Map(SPECIES.map((species) => [species.id, species]));
 export const speciesById = (id: string) => byId.get(id);
 
-/** Where in the sea a cast lands decides which fish are there. */
-export const SHORE_RANGE = 28;
-export const DEEP_RANGE = 125;
+/**
+ * Where in the sea a cast lands decides which fish are there: within SHORE_RANGE metres of a
+ * beach is the shore, beyond DEEP_RANGE of every beach the deep sea. Measured from the real,
+ * irregular coast (shore.ts); the ranges were 28 and 125 m from the island's radius circle,
+ * which lies about 2.5 m beyond the sand on average, so the zones keep their size.
+ */
+export const SHORE_RANGE = 30;
+export const DEEP_RANGE = 128;
 export function zoneAt(x: number, z: number): Zone {
-  let nearest = Infinity;
-  for (const island of islands)
-    nearest = Math.min(
-      nearest,
-      Math.hypot(x - island.x, z - island.z) - island.radius,
-    );
+  const nearest = coastDistance(x, z);
   return nearest < SHORE_RANGE
     ? "shore"
     : nearest > DEEP_RANGE

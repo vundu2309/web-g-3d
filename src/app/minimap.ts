@@ -93,13 +93,14 @@ export function createMinimap(canvas: HTMLCanvasElement) {
     };
     islandsOnMap(px).forEach((island, index) => {
       const at = { x: island.x, y: island.y };
-      trace(c, coastPoints(at, island.radius, index, 1.32));
+      // The real coast (scale 1 is the waterline), the turquoise shelf beyond it.
+      trace(c, coastPoints(at, island.radius, index, 1.4));
       c.fillStyle = "rgba(190,240,240,0.55)";
       c.fill();
-      trace(c, coastPoints(at, island.radius, index, 1.05));
+      trace(c, coastPoints(at, island.radius, index, 1));
       c.fillStyle = "#f2dca2";
       c.fill();
-      trace(c, coastPoints(at, island.radius, index, 0.82));
+      trace(c, coastPoints(at, island.radius, index, 0.84));
       c.fillStyle = "#6fb85f";
       c.fill();
       trace(
@@ -107,13 +108,13 @@ export function createMinimap(canvas: HTMLCanvasElement) {
         coastPoints(
           { x: at.x + unit * 0.4, y: at.y - unit * 0.4 },
           island.radius,
-          index + 3,
+          index,
           0.42,
         ),
       );
       c.fillStyle = "#4f9a4e";
       c.fill();
-      trace(c, coastPoints(at, island.radius, index, 1.05));
+      trace(c, coastPoints(at, island.radius, index, 1));
       c.strokeStyle = INK;
       c.lineWidth = Math.max(1, unit * 0.7);
       c.lineJoin = "round";

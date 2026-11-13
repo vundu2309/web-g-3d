@@ -22,7 +22,11 @@ import {
   speciesById,
   stockTotal,
   zoneAt,
+  SHORE_RANGE,
+  DEEP_RANGE,
 } from "../src/ocean/fishing.ts";
+import { islands } from "../src/ocean/model.ts";
+import { shoreShape } from "../src/ocean/shore.ts";
 
 // A small seeded generator so distributions are tested without flakiness.
 const seeded = (seed) => () => {
@@ -58,6 +62,32 @@ test("zones follow the distance to the nearest island shore", () => {
   assert.equal(zoneAt(-136, -65), "open");
   assert.equal(zoneAt(-170, 150), "deep");
   assert.equal(zoneAt(0, 22), "open", "the harbor is open water");
+  // Measured from the real, irregular coast: the zone edges follow its bays and headlands,
+  // SHORE_RANGE and DEEP_RANGE metres out along the shore's normal, all round every island.
+  for (let index = 0; index < islands.length; index++)
+    for (let a = 0; a < Math.PI * 2; a += 0.21) {
+      const island = islands[index];
+      const coast = shoreShape(index).coast(a);
+      const at = (metres) => {
+        const r = coast + metres;
+        return zoneAt(island.x + Math.cos(a) * r, island.z + Math.sin(a) * r);
+      };
+      assert.equal(
+        at(1),
+        "shore",
+        `island ${index} at ${a}: just off the sand`,
+      );
+      assert.equal(at(SHORE_RANGE - 1), "shore");
+      const outside = at(SHORE_RANGE + 1);
+      assert.notEqual(
+        outside,
+        "shore",
+        `island ${index} at ${a}: past the shore band`,
+      );
+    }
+  // The old ranges were measured from the radius circle, about 2.5 m beyond the sand.
+  assert.equal(SHORE_RANGE, 30);
+  assert.equal(DEEP_RANGE, 128);
 });
 
 test("what you catch depends on where, small fish are common and big ones rare, the sweet spot helps", () => {

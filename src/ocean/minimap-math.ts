@@ -1,4 +1,5 @@
 import { SEA_BOUND, islands } from "./model.ts";
+import { coastAt, shoreTable } from "./shore.ts";
 
 /**
  * The minimap's geometry: the whole sea on a small square, north at the top (heading 0 is
@@ -62,17 +63,12 @@ export function islandsOnMap(size: number) {
 }
 
 /**
- * How far an island's shore is from its centre at `angle`, as a multiple of its radius:
- * a gentle, repeatable wobble (so the map shows bays and points rather than a circle).
- * Each island has its own wobble.
+ * How far island `index`'s shore is from its centre at `angle`, as a multiple of its radius:
+ * the real coast the 3D island is built on (shore.ts, from islandShape), so the map shows the
+ * same bays and headlands as the sea.
  */
 export function coastFactor(index: number, angle: number): number {
-  return (
-    1 +
-    0.1 * Math.sin(3 * angle + index * 1.7) +
-    0.06 * Math.sin(5 * angle + index * 2.9) +
-    0.03 * Math.sin(9 * angle + index)
-  );
+  return coastAt(shoreTable(index), angle).fraction;
 }
 
 /** The shore of an island as `count` points around it, scaled by `scale` (1 = the shore). */

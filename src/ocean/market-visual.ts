@@ -5,7 +5,7 @@ import type { Scene } from "@babylonjs/core/scene";
 import { PAL } from "./art/colors.ts";
 import { glowMaterial, useSolid } from "./art/materials.ts";
 import { Parts, SIDES } from "./art/shapes.ts";
-import type { Market } from "./market.ts";
+import { GANGWAY_REACH, type Market } from "./market.ts";
 import { createVendor } from "./market-vendor.ts";
 
 /**
@@ -74,15 +74,20 @@ function pier(parts: Parts) {
     parts.box([7.6, 0.2, 0.18], wood.trim, [0, DECK + 0.02, z]);
   for (const x of [-3.8, 3.8])
     parts.box([0.18, 0.2, 5.4], wood.trim, [x, DECK + 0.02, 0]);
-  // The gangway to the island, with a rail of posts and rope.
-  parts.box([1.8, 0.14, 8.4], wood.mid, [0, DECK - 0.04, 6.9]);
+  // The gangway to the island, with a rail of posts and rope; it ends GANGWAY_REACH from the
+  // pier's centre, on the sand (market.ts places the pier so).
+  parts.box([1.8, 0.14, 8.4], wood.mid, [0, DECK - 0.04, GANGWAY_REACH - 4.2]);
   for (let i = 0; i < 9; i++)
     parts.box([1.8, 0.04, 0.05], wood.dark, [0, DECK + 0.04, 3.2 + i]);
   for (const x of [-0.9, 0.9])
     for (let i = 0; i < 5; i++)
       parts.box([0.1, 0.6, 0.1], wood.trim, [x, DECK + 0.32, 3.4 + i * 2]);
   for (const x of [-0.9, 0.9])
-    parts.box([0.05, 0.05, 8.2], PAL.fit.rope, [x, DECK + 0.58, 6.9]);
+    parts.box([0.05, 0.05, 8.2], PAL.fit.rope, [
+      x,
+      DECK + 0.58,
+      GANGWAY_REACH - 4.2,
+    ]);
   // Sea-side rail: posts and two rails, with a gap for the boats' side.
   for (const x of [-3.7, -2.4, -1.2, 0, 1.2, 2.4, 3.7])
     parts.box([0.13, 0.7, 0.13], wood.trim, [x, DECK + 0.42, -2.6]);

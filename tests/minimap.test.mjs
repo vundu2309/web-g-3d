@@ -74,10 +74,22 @@ test("an island's shore wobbles around a circle and stays a closed ring of its o
   const { coastFactor, coastPoints } = await import(
     "../src/ocean/minimap-math.ts"
   );
+  const { islandShape } = await import("../src/ocean/island-shape.ts");
+  const { islandSeed } = await import("../src/ocean/shore.ts");
+  const { islands } = await import("../src/ocean/model.ts");
   for (let a = 0; a < Math.PI * 2; a += 0.1) {
     const f = coastFactor(0, a);
     assert.ok(f > 0.75 && f < 1.25, `factor ${f} stays near 1`);
   }
+  // The map's coast is the real one the 3D island is built on, not a made-up wobble.
+  islands.forEach((island, index) => {
+    const shape = islandShape(islandSeed(index), island.radius);
+    for (let a = 0; a < Math.PI * 2; a += 0.05)
+      assert.ok(
+        Math.abs(coastFactor(index, a) * island.radius - shape.coast(a)) < 0.02,
+        `island ${index} at ${a}`,
+      );
+  });
   const points = coastPoints({ x: 50, y: 50 }, 10, 1, 1);
   assert.equal(points.length, 48);
   assert.notDeepEqual(points, coastPoints({ x: 50, y: 50 }, 10, 2, 1));

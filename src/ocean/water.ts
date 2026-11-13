@@ -4,7 +4,6 @@ import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
 import { Effect } from "@babylonjs/core/Materials/effect";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Scene } from "@babylonjs/core/scene";
-import { islands } from "./model.ts";
 import { WAKE_MAX, glslWake } from "./wake.ts";
 import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
@@ -12,14 +11,25 @@ import { Constants } from "@babylonjs/core/Engines/constants";
 import { WIND_DIRECTION, glslWaveHeight } from "./waves.ts";
 import { RIPPLE_RANGE, RIPPLE_SIZE, ripplePixels } from "./ripples.ts";
 import { glslSkyModel } from "./sky-model.ts";
+import { createSwash } from "./swash.ts";
 import {
+  DEEP_TEAL,
   DEEP_WATER,
   FOG_DENSITY,
   HORIZON,
+  SEA_FLOOR,
   SHALLOW_WATER,
   SUN_DIRECTION,
+  WATER_ABSORPTION,
   ZENITH,
 } from "./sea-style.ts";
+import {
+  COAST_SAMPLES,
+  coastPixels,
+  coastRows,
+  glslShore,
+  shoreUniform,
+} from "./shore.ts";
 
 /**
  * The sea: a camera-following grid displaced by the same wave function the
@@ -81,14 +91,18 @@ uniform vec3 horizon;
 uniform vec3 zenith;
 uniform vec3 deep;
 uniform vec3 shallow;
+uniform vec3 deepTeal;
+uniform vec3 sand;
 uniform float fogDensity;
-uniform vec4 islands[${islands.length}];
 uniform vec4 boats[${BOAT_MAX}];
 uniform sampler2D rippleMap;
 varying vec3 vWorld;
 varying float vHeight;
 varying vec4 vWake;
 ${glslSkyModel()}
+${glslShore(true)}
+// Absorption of clear sea water per metre (red goes first, then green): turquoise shallows.
+const vec3 absorb = vec3(${WATER_ABSORPTION.map((v) => v.toFixed(4)).join(", ")});
 // A hash without sin(): cheaper on phone GPUs.
 float hash(vec2 p) {
   p = fract(p * vec2(0.1031, 0.1030));
@@ -101,6 +115,32 @@ float noise(vec2 p) {
   return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
 }
 const vec2 WIND = ${glslAxis(0)};
+// Moving cells (Worley): the distances to the nearest and second-nearest of a jittered grid of
+// points that each circle slowly. Their difference is small along the cell walls.
+vec2 foamCells(vec2 p, float t) {
+  vec2 cell = floor(p), f = fract(p);
+  float d1 = 8.0, d2 = 8.0;
+  for (int j = -1; j <= 1; j++)
+    for (int i = -1; i <= 1; i++) {
+      vec2 o = vec2(float(i), float(j));
+      vec2 h = vec2(hash(cell + o), hash(cell + o + 19.19));
+      vec2 r = o + 0.5 + 0.4 * sin(t * (0.5 + h * 0.7) + h * 6.2831853) - f;
+      float dd = dot(r, r);
+      if (dd < d1) { d2 = d1; d1 = dd; } else if (dd < d2) d2 = dd;
+    }
+  return vec2(sqrt(d1), sqrt(d2));
+}
+// Caustics: light focused by the waves into a bright moving web on the sea floor. Two layers
+// of cell walls at different sizes and speeds, multiplied where they cross.
+float caustics(vec2 p, float t) {
+  // Warped by a slow noise so the web is made of wavy threads, not straight-edged cells.
+  p += vec2(noise(p * 0.35 + t * 0.12), noise(p * 0.35 + 5.2 - t * 0.1)) * 1.6;
+  vec2 a = foamCells(p * 0.7 + vec2(t * 0.05, 0.0), t * 0.9);
+  vec2 b = foamCells(p * 1.05 + vec2(0.0, -t * 0.04) + 3.7, t * 1.1);
+  float wa = 1.0 - smoothstep(0.0, 0.12, a.y - a.x);
+  float wb = 1.0 - smoothstep(0.0, 0.14, b.y - b.x);
+  return wa * 0.35 + wb * 0.25 + wa * wb * 1.2;
+}
 // One layer of the ripple map (ripples.ts): the map's +u axis turned to \`axis\` in the world,
 // one tile every \`tile\` metres, drifting, and its ripples moved along their own directions by
 // the phase. Returns the slope in the world, one standard deviation being about 1 / RANGE.
@@ -169,6 +209,58 @@ void main() {
       detail += rippleLayer(q, ${glslAxis(-0.5)}, 2.3, vec2(0.05, -0.02) * time, -time * 2.3) * 0.04 * rippleNear;
     detail *= mix(0.15, 1.5, choppy);
   }
+  // ----- The shore -----
+  // The real coast (shore.ts): metres to the nearest beach and the beach's outward normal.
+  vec3 field = shoreField(q);
+  float d = field.x;
+  vec2 toSea = field.yz;
+  float depth = seabedDepth(d);
+  float nearShore = 1.0 - smoothstep(30.0, 70.0, d);
+  // Surf (purely visual, like the ripples: it tilts the normal and paints the foam, the mesh the
+  // boats float on is untouched). The breakers run parallel to the beach whatever the swell
+  // does offshore, as real waves bend in shallow water; each crest moves in, steepens, breaks a
+  // few metres off the sand and runs on as a white bore.
+  float age = 0.0;
+  float broken = 0.0;
+  float breakAt = 6.0;
+  float surfFoam = 0.0;
+  float shelter = 1.0;
+  vec2 surfSlope = vec2(0.0);
+  if (nearShore > 0.0) {
+    // The crest lines are ragged at small scale too, so their fronts are never ruled lines.
+    float jitter = surfJitter(q) + (noise(q * 0.42 + 9.0) - 0.5) * 0.07;
+    float phase = surfPhase(d, jitter);
+    float x = fract(phase);
+    age = x * SURF_PERIOD;
+    // The side that faces the wind takes the biggest surf; the lee still has some.
+    shelter = 0.65 + 0.35 * smoothstep(-0.5, 0.7, -dot(toSea, WIND));
+    breakAt = 4.5 + 7.5 * shoreNoise(q * 0.043 + 3.1) * shelter;
+    broken = 1.0 - smoothstep(breakAt - 0.8, breakAt + 1.2, d);
+    float shoal = 1.0 - smoothstep(breakAt, 26.0, d);
+    // A breaker's profile across the beach: a long gentle back and a short steep face (x near 1).
+    float face = mix(0.5, 0.24, shoal);
+    // A skewed cosine: smooth at crest and trough (no crease in the shading), steep in front.
+    float theta = x < 1.0 - face ? x / (1.0 - face) * 3.14159265 : 3.14159265 * (1.0 + (x - 1.0 + face) / face);
+    float dhdx = -0.5 * sin(theta) * 3.14159265 / (x < 1.0 - face ? 1.0 - face : face);
+    float dxdd = SURF_TRAVEL / (2.0 * sqrt(max(d, 0.6)) * SURF_PERIOD);
+    float amp = shelter * (0.015 + 0.42 * shoal * shoal) * mix(1.0, 0.45, broken * (1.0 - clamp(d / breakAt, 0.0, 1.0)));
+    // At the waterline the spent bore is a flat sheet: no tilt (it would mirror the sky there).
+    surfSlope = toSea * clamp(amp * dhdx * dxdd, -0.7, 0.7) * nearShore * smoothstep(0.0, 2.5, d);
+    // The open swell fades in the shallows as the breakers take over.
+    slope = slope * mix(1.0, 0.5, nearShore * (1.0 - smoothstep(0.0, 20.0, d))) + surfSlope;
+    // White water: the bore behind each broken crest (fresh, nearly solid), its lip, the spill
+    // on a crest about to break, and the lacy trails it leaves behind as it moves on.
+    // Every term is 1 at the crest from both sides, so the front of the white water has no seam.
+    float bore = broken * max(smoothstep(0.84, 1.0, x), exp(-x / 0.45));
+    float spill = (1.0 - broken) * (1.0 - smoothstep(breakAt, breakAt + 3.5, d)) * max(smoothstep(0.93, 1.0, x), exp(-x / 0.06)) * 0.55;
+    float trail = broken * exp(-x / 1.2) * 0.62;
+    // Some stretches of beach break harder than others.
+    float vigour = (0.3 + 0.7 * smoothstep(0.2, 0.65, noise(q * 0.03 - 4.0))) * (0.6 + 0.4 * smoothstep(0.3, 0.6, noise(q * 0.16 + 2.0)));
+    surfFoam = clamp(max(max(bore, spill), trail), 0.0, 1.0) * shelter * vigour;
+    // At the waterline there is always a little white water from the last swash.
+    surfFoam = max(surfFoam, (1.0 - smoothstep(0.0, 1.0 + 1.4 * shoreNoise(q * 0.31), d)) * 0.7);
+    surfFoam *= nearShore;
+  }
   vec3 n = normalize(vec3(-slope.x - detail.x, 1.0, -slope.y - detail.y));
   float nv = max(dot(n, view), 0.02);
   // Roughness: the waves too small to draw make the sea rougher the farther it is.
@@ -182,28 +274,42 @@ void main() {
   vec3 reflected = reflect(-view, n);
   reflected.y = abs(reflected.y);
   vec3 mirror = skyRadiance(reflected, false);
-  // Shore and depth: how far this water is from the nearest beach, and how deep it is there.
-  float shore = 1.0e3;
-  for (int i = 0; i < ${islands.length}; i++)
-    shore = min(shore, distance(vWorld.xz, islands[i].xy) - islands[i].z);
-  float near = 1.0 - smoothstep(0.0, 26.0, shore);
-  float depth = mix(40.0, 0.4, near);
-  // Light that goes in and comes back: Beer-Lambert absorption (red is eaten first, then green),
-  // the bottom showing through the shallows, and scattering from the water itself.
-  vec3 absorb = vec3(0.52, 0.10, 0.045);
-  vec3 transmit = exp(-absorb * depth * 2.0);
+  // ----- The water's own colour -----
+  // Light that goes in and comes back: Beer-Lambert absorption over the path down to the floor
+  // and back up (red is eaten first, then green), the sandy bottom showing through the shallows
+  // with caustics dancing on it, and the light scattered by the water itself.
   vec3 skyIrradiance = mix(toLinear(horizon), toLinear(zenith), 0.6);
   float nl = max(dot(vec3(0.0, 1.0, 0.0), sunDir), 0.0);
   float shade = boatShadow(vWorld.xz, sunDir);
   float sunlit = 1.0 - 0.9 * shade;
   vec3 incident = skyIrradiance * 0.55 + sunColor() * SUN_RADIANCE * nl * 0.55 * sunlit;
-  vec3 scatterColor = toLinear(deep) * 1.2 + toLinear(shallow) * 0.25;
-  vec3 bottom = vec3(0.78, 0.68, 0.46) * incident * 0.35;
-  vec3 body = (bottom * transmit + scatterColor * incident * (1.0 - transmit * 0.8)) * 0.55;
-  // Light through the waves: crests seen against the sun glow green-blue (subsurface).
+  vec3 refracted = refract(-view, n, 0.75);
+  float path = depth * (1.0 + 1.0 / max(-refracted.y, 0.25));
+  vec3 transmit = exp(-absorb * path);
+  // The sea floor where it can be seen: sand with ripples and darker weed patches, seen through
+  // the surface (shifted by the refracted view), lit by caustics in the shallows.
+  vec3 floorColor = vec3(0.0);
+  float seeFloor = transmit.g;
+  if (seeFloor > 0.004) {
+    vec2 b = q + refracted.xz / max(-refracted.y, 0.3) * depth;
+    float sandRipple = noise(vec2(dot(b, toSea) * 1.7, dot(b, vec2(-toSea.y, toSea.x)) * 0.25)) - 0.5;
+    float weed = smoothstep(0.62, 0.8, noise(b * 0.09 + 11.0)) * smoothstep(3.0, 8.0, depth);
+    vec3 bed = toLinear(sand) * (0.92 + 0.22 * sandRipple);
+    bed = mix(bed, toLinear(sand) * vec3(0.32, 0.42, 0.26), weed * 0.7);
+    float caustic = caustics(b * 1.2, time) * smoothstep(0.05, 0.9, depth) * (1.0 - smoothstep(2.5, 7.0, depth)) * (1.0 - smoothstep(12.0, 55.0, dist));
+    floorColor = bed * (incident * 0.42 + sunColor() * SUN_RADIANCE * nl * sunlit * caustic * 0.3);
+  }
+  // The water's own hue: deep blue offshore, drifting toward a greener teal in wide patches,
+  // and turquoise over the sand shelf where the bottom reflects light back up.
+  float hue = noise(q * 0.0045 + 5.0) * 0.6 + noise(q * 0.012 - time * 0.003) * 0.4;
+  vec3 open = mix(toLinear(deep), toLinear(deepTeal), smoothstep(0.32, 0.72, hue));
+  vec3 scatterColor = mix(open, toLinear(shallow), (1.0 - smoothstep(3.0, 16.0, depth)) * 0.85);
+  vec3 body = floorColor * transmit + scatterColor * incident * 0.4 * (1.0 - transmit);
+  // Light through the waves: crests seen against the sun glow green-blue (subsurface), and so
+  // does the thin face of a breaker about to curl.
   float against = pow(clamp(dot(-view, normalize(vec3(sunDir.x, 0.0, sunDir.z))) * 0.5 + 0.5, 0.0, 1.0), 3.0);
   float thin = smoothstep(0.0, 0.8, vHeight * 1.2 + length(slope) * 1.5);
-  body += vec3(0.02, 0.32, 0.26) * against * thin * incident * 0.35;
+  body += toLinear(shallow) * vec3(0.3, 0.8, 0.7) * (against * thin * 0.4 + nearShore * (1.0 - broken) * smoothstep(0.1, 0.7, length(surfSlope)) * 0.25) * incident * 0.35;
   // In the shadow the water is lit by the sky alone, and the sky it mirrors is partly blocked by the hull.
   body *= 1.0 - 0.45 * shade;
   vec3 color = body * (1.0 - fresnel) + mirror * (fresnel * (1.0 - 0.3 * shade));
@@ -215,17 +321,27 @@ void main() {
   float fSun = f0 + (1.0 - f0) * pow(1.0 - vh, 5.0);
   float specular = distributionGGX(nh, max(alpha, 0.0009)) * visibilitySmith(nlSun, nv, max(alpha, 0.03)) * fSun * nlSun;
   color += sunColor() * SUN_RADIANCE * min(specular, 40.0) * sunlit;
-  // Foam: white caps on steep crests, broken up by noise, and a surf line at the beach. It is a
-  // rough white surface, so it takes the light that falls on it (sun and sky), not the mirror.
-  float cap = smoothstep(0.46, 0.92, vHeight * 0.9 + length(slope) * 0.9);
-  if (cap > 0.0 || shore < 10.0) {
-    float lace = noise(vWorld.xz * 1.35 + vec2(time * 0.25, -time * 0.18)) * 0.65 + noise(vWorld.xz * 3.7 - time * 0.4) * 0.35;
-    float foam = cap * smoothstep(0.38, 0.72, lace);
-    float edge = shore + sin(time * 0.9 + vWorld.x * 0.2) * 0.9 + (lace - 0.5) * 2.4;
-    float surf = (1.0 - smoothstep(0.4, 3.4, edge)) * smoothstep(-1.2, 0.2, edge);
-    float trail = (1.0 - smoothstep(2.8, 6.0, edge)) * smoothstep(2.2, 3.0, edge) * smoothstep(0.55, 0.8, lace) * 0.55;
-    foam = clamp(max(foam * 0.85, max(surf, trail)), 0.0, 1.0);
-    vec3 foamColor = vec3(0.92, 0.95, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * nlSun * 0.3 * sunlit);
+  // Foam: white caps on steep crests and the surf, broken up into lace. It is a rough white
+  // surface, so it takes the light that falls on it (sun and sky), not the mirror.
+  float cap = smoothstep(0.46, 0.92, vHeight * 0.9 + length(slope) * 0.9) * (1.0 - nearShore * 0.7);
+  if (cap > 0.0 || surfFoam > 0.0) {
+    // The lace drifts toward the beach with the bores; fresh foam is nearly solid, old foam
+    // keeps only the edges of the bubble cells (thin trails), far foam is a soft wash.
+    vec2 drift = q + toSea * time * 0.55;
+    // Bubbles: round holes at the cell centres, the foam between them stays as soft walls.
+    // The coordinates are warped, so the bubbles are uneven in size and shape.
+    vec2 warp = drift + vec2(noise(drift * 0.5 + 3.0), noise(drift * 0.5 - 6.0)) * 1.4;
+    vec2 cells = foamCells(warp * 1.1, time * 0.7);
+    float walls = smoothstep(0.04, 0.38 + 0.25 * noise(drift * 0.8), cells.x);
+    float blot = noise(warp * 0.5) * 0.45 + noise(warp * 1.4 + 7.0) * 0.35 + noise(q * 3.6 - time * 0.3) * 0.2;
+    float lace = blot * 0.62 + walls * 0.38;
+    float laceFar = smoothstep(25.0, 140.0, dist);
+    float capLace = noise(vWorld.xz * 1.35 + vec2(time * 0.25, -time * 0.18)) * 0.65 + noise(vWorld.xz * 3.7 - time * 0.4) * 0.35;
+    float foam = cap * smoothstep(0.38, 0.72, capLace) * 0.85;
+    float need = 1.0 - surfFoam;
+    float surf = mix(smoothstep(need - 0.08, need + 0.08, lace) * min(1.0, surfFoam * 3.0), surfFoam * 0.85, laceFar);
+    foam = clamp(max(foam, surf), 0.0, 1.0);
+    vec3 foamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * max(nlSun, nl * 0.6) * 0.3 * sunlit);
     color = mix(color, foamColor, foam);
   }
   // Aerial perspective: far water takes the colour of the sky toward the horizon in its own
@@ -238,6 +354,8 @@ void main() {
 
 export interface Water {
   mesh: Mesh;
+  /** The swash sheets on the beaches (swash.ts), on the same clock as the surf. */
+  swash: Mesh[];
   /** Keeps the grid centred under the camera and advances the wave clock. */
   update(
     cameraX: number,
@@ -296,12 +414,14 @@ export function createWater(scene: Scene): Water {
         "zenith",
         "deep",
         "shallow",
+        "deepTeal",
+        "sand",
         "fogDensity",
-        "islands",
+        "shoreIslands",
         "wake",
         "boats",
       ],
-      samplers: ["rippleMap"],
+      samplers: ["rippleMap", "coastMap"],
     },
   );
   material.backFaceCulling = false;
@@ -310,6 +430,8 @@ export function createWater(scene: Scene): Water {
   material.setColor3("zenith", ZENITH);
   material.setColor3("deep", DEEP_WATER);
   material.setColor3("shallow", SHALLOW_WATER);
+  material.setColor3("deepTeal", DEEP_TEAL);
+  material.setColor3("sand", SEA_FLOOR);
   material.setFloat("fogDensity", FOG_DENSITY);
   material.setArray4("wake", new Array(WAKE_MAX * 4).fill(0));
   material.setArray4("boats", new Array(BOAT_MAX * 4).fill(0));
@@ -327,15 +449,29 @@ export function createWater(scene: Scene): Water {
   ripples.wrapV = Texture.WRAP_ADDRESSMODE;
   ripples.anisotropicFilteringLevel = 4;
   material.setTexture("rippleMap", ripples);
-  material.setArray4(
-    "islands",
-    islands.flatMap((island) => [island.x, island.z, island.radius, 0]),
+  // The coasts of every island (shore.ts), read exactly: no filtering, no mipmaps.
+  const coasts = new RawTexture(
+    coastPixels(),
+    COAST_SAMPLES,
+    coastRows(),
+    Constants.TEXTUREFORMAT_RGBA,
+    scene,
+    false,
+    false,
+    Texture.NEAREST_SAMPLINGMODE,
   );
+  coasts.wrapU = Texture.WRAP_ADDRESSMODE;
+  coasts.wrapV = Texture.CLAMP_ADDRESSMODE;
+  material.setTexture("coastMap", coasts);
+  material.setArray4("shoreIslands", shoreUniform());
   mesh.material = material;
+  const swash = createSwash(scene);
   const anchor = new Vector3();
   return {
     mesh,
+    swash: swash.meshes,
     update(cameraX, cameraZ, time, wake, boats) {
+      swash.update(time);
       if (boats) material.setArray4("boats", packBoats(boats));
       material.setFloat("time", time);
       if (wake) material.setArray4("wake", wake as number[]);

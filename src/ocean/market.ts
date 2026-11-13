@@ -1,5 +1,6 @@
 import { HARBOR, SEA_BOUND, islandCollisionRadius, islands } from "./model.ts";
 import type { NpcLookId } from "./npc-look.ts";
+import { shoreShape } from "./shore.ts";
 
 /**
  * The fish markets: a floating wooden pier with a stall on the side of each island that faces
@@ -28,9 +29,21 @@ export interface Vendor {
   greeting: string;
 }
 
-/** How far outside an island's shoreline collision circle the pier's centre lies (m). */
-const OFFSHORE = 9;
-/** Pier centre from the island centre: the collision circle plus the offshore gap. */
+/** A boat this close to a pier (m, from its centre) can open the market. */
+export const MARKET_RANGE = 17;
+/** The solid part of a pier (m): boats bump into it like into an island. */
+export const MARKET_BODY_RADIUS = 3.4;
+/** How far the gangway reaches from the pier's centre toward the island (m; market-visual.ts). */
+export const GANGWAY_REACH = 11.1;
+/** The gangway's end rests this far up the beach (m inland of the real coast). */
+export const GANGWAY_LANDING = 0.8;
+/** The pier's solid circle stays at least this far outside the island's collision ring (m). */
+const RING_GAP = 0.5;
+/**
+ * Pier centre from the island centre: the pier stands in the shallows with its gangway landing
+ * on the sand of the real coast (shore.ts) in that direction, but never so close that its solid
+ * circle reaches into the ring boats collide with round the island.
+ */
 const place = (
   index: number,
   turn: number,
@@ -40,7 +53,11 @@ const place = (
 ): Market => {
   const island = islands[index]!;
   const toHarbor = Math.atan2(HARBOR.z - island.z, HARBOR.x - island.x) + turn;
-  const reach = islandCollisionRadius(island) + OFFSHORE;
+  const coast = shoreShape(index).coast(toHarbor);
+  const reach = Math.max(
+    coast + GANGWAY_REACH - GANGWAY_LANDING,
+    islandCollisionRadius(island) + MARKET_BODY_RADIUS + RING_GAP,
+  );
   const x = island.x + Math.cos(toHarbor) * reach;
   const z = island.z + Math.sin(toHarbor) * reach;
   // Faces away from the island, out to sea.
@@ -72,11 +89,6 @@ export const MARKETS: readonly Market[] = [
     greeting: "Trời ơi, con cá to quá! Lại đây bà cân cho.",
   }),
 ];
-
-/** A boat this close to a pier (m, from its centre) can open the market. */
-export const MARKET_RANGE = 17;
-/** The solid part of a pier (m): boats bump into it like into an island. */
-export const MARKET_BODY_RADIUS = 3.4;
 
 /** The market a boat at (x, z) can open, if any (the nearest one in range). */
 export function marketAt(x: number, z: number): Market | undefined {

@@ -27,7 +27,7 @@ import {
 const build = (options) => {
   const engine = new NullEngine();
   const scene = new Scene(engine);
-  const island = createIsland(scene, { ...options, foam: false });
+  const island = createIsland(scene, options);
   const result = {
     triangles: island.triangles,
     props: island.props,

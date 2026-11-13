@@ -21,6 +21,7 @@ import {
 } from "./boat-visual.ts";
 import { createHavok } from "./havok.ts";
 import { createIsland } from "./island-visual.ts";
+import { islandSeed } from "./shore.ts";
 import { SeaProps } from "./sea-props.ts";
 import { WakeField, sampleWake } from "./wake.ts";
 import { OrbitCamera } from "./orbit-camera.ts";
@@ -173,13 +174,12 @@ export class OceanScene {
     });
     islands.forEach((island, index) => {
       const visual = createIsland(this.scene, {
-        seed: 11 + index * 7,
+        seed: islandSeed(index),
         radius: island.radius,
         lighthouse: index === 0,
       });
       visual.mesh.position.set(island.x, 0, island.z);
       visual.mesh.freezeWorldMatrix();
-      visual.foam?.position.set(island.x, 0.08, island.z);
     });
     // A fish market on the water off each island.
     this.markets = MARKETS.map((market) => createMarket(this.scene, market));

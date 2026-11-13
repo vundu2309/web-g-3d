@@ -69,7 +69,7 @@ test("the water shader takes its ripples from two layers of the map, modulated b
     "utf8",
   );
   assert.match(src, /uniform sampler2D rippleMap;/);
-  assert.match(src, /samplers: \["rippleMap"\]/);
+  assert.match(src, /samplers: \["rippleMap"/);
   const layers =
     src.match(/rippleLayer\(q, \$\{glslAxis\((-?[\d.]+)\)\}, ([\d.]+),/g) ?? [];
   assert.equal(layers.length, 2, "two ripple layers");
