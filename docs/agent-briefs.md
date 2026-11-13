@@ -1,14 +1,15 @@
 # Working with sub-agents on the sea visuals
 
-How the sea overhaul of November 2026 (decision [0011](decisions/0011-sea-visual-overhaul.md)) was divided among sub-agents, kept here so a later session can repeat it. The agent files are in `.claude/agents/`; the screenshot tool is `tools/render-harness/`.
+How the sea overhaul of November 2026 (decision [0011](decisions/0011-sea-visual-overhaul.md)) was divided among sub-agents, kept here so a later session can repeat it. The agent files are in `.claude/agents/`; the screenshot tool is `tools/render-harness/`; the stages, gates and roles are in [agent-workflow.md](agent-workflow.md), and each change has a record in [work/](work/README.md).
 
 ## The agents
 
-| Agent                | Model                        | Use it for                                                                                                                                                                           |
-| -------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `sea-visual-builder` | inherits the session's model | A visual change in game code: water shader, islands, prop placement, camera, NPC figures. Renders before/after images with the harness and runs every check.                         |
-| `blender-structure`  | Opus                         | The first stage of a Blender model: the main structure, complex or procedural details, hard Geometry Nodes functions, as a re-runnable script in a new scene of the running Blender. |
-| `blender-refine`     | Sonnet                       | The second stage: tune parameters, set palette materials and preview lighting, make seeded variants, check budgets, export the GLBs. It does not redesign the shape.                 |
+| Agent                 | Model                        | Use it for                                                                                                                                                                           |
+| --------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `sea-visual-builder`  | inherits the session's model | A visual change in game code: water shader, islands, prop placement, camera, NPC figures. Renders before/after images with the harness and runs every check.                         |
+| `blender-structure`   | Opus                         | The first stage of a Blender model: the main structure, complex or procedural details, hard Geometry Nodes functions, as a re-runnable script in a new scene of the running Blender. |
+| `blender-refine`      | Sonnet                       | The second stage: tune parameters, set palette materials and preview lighting, make seeded variants, check budgets, export the GLBs. It does not redesign the shape.                 |
+| `sea-visual-reviewer` | inherits, read-only          | Reviews a finished change: the diff against the brief and the rules, reruns the checks, opens the before/after images, lists findings. It never edits, commits or pushes.            |
 
 Typical flow for a new prop: `blender-structure` builds it, `blender-refine` tunes and exports it, then `sea-visual-builder` places it in the islands (as `island-layout.ts` and `island-models.ts` do for palms, rocks, bushes and the hut). The lead (the main session) reviews every report: reruns the checks, looks at the images, commits and, after the user approves the images, pushes.
 
