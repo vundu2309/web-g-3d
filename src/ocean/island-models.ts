@@ -7,10 +7,10 @@ import type { IslandVisual } from "./island-visual.ts";
 
 /**
  * The Blender-made island props (public/models, built by tools/blender/props.py): three coconut
- * palms, three rocks and the stilt hut, loaded ONCE per scene and drawn as instances.
+ * palms, three rocks, three bushes and the stilt hut, loaded ONCE per scene and drawn as instances.
  *
  * Contract: `createIsland` is synchronous and always builds the procedural palms, broadleaf trees,
- * boulders and hut in a mesh of their own (`IslandVisual.fallback`), so an island is complete
+ * boulders, bushes and hut in a mesh of their own (`IslandVisual.fallback`), so an island is complete
  * without the models (headless tests, a failed or slow load). When `loadIslandModels` resolves,
  * `placeIslandProps` disposes that fallback mesh and puts instances of the models in its place,
  * parented to the island mesh (disposed with it, or with the scene). Calling it twice for one
@@ -19,6 +19,7 @@ import type { IslandVisual } from "./island-visual.ts";
 export interface IslandModels {
   palms: readonly Mesh[];
   rocks: readonly Mesh[];
+  bushes: readonly Mesh[];
   hut: Mesh;
 }
 
@@ -29,10 +30,13 @@ const FILES = [
   "rock-1.glb",
   "rock-2.glb",
   "rock-3.glb",
+  "bush-1.glb",
+  "bush-2.glb",
+  "bush-3.glb",
   "hut.glb",
 ] as const;
 
-/** Loads the seven models, each merged into one hidden source mesh. All or none. */
+/** Loads the ten models, each merged into one hidden source mesh. All or none. */
 export async function loadIslandModels(scene: Scene): Promise<IslandModels> {
   const results = await Promise.allSettled(
     FILES.map((file) => loadMergedModel(scene, file)),
@@ -52,13 +56,15 @@ export async function loadIslandModels(scene: Scene): Promise<IslandModels> {
   return {
     palms: meshes.slice(0, 3),
     rocks: meshes.slice(3, 6),
-    hut: meshes[6]!,
+    bushes: meshes.slice(6, 9),
+    hut: meshes[9]!,
   };
 }
 
 export interface PlacedProps {
   palms: number;
   rocks: number;
+  bushes: number;
   hut: boolean;
   instances: InstancedMesh[];
 }
@@ -94,7 +100,7 @@ export function gangwayKeepOut(
 }
 
 /**
- * Replaces an island's procedural palms, trees, boulders and hut with instances of the models.
+ * Replaces an island's procedural palms, trees, boulders, bushes and hut with instances of the models.
  * Returns what was placed (the same object on a second call).
  */
 export function placeIslandProps(
@@ -132,10 +138,14 @@ export function placeIslandProps(
   layout.rocks.forEach((spot, i) =>
     add(models.rocks[spot.variant]!, spot, `rock-${i}`),
   );
+  layout.bushes.forEach((spot, i) =>
+    add(models.bushes[spot.variant]!, spot, `bush-${i}`),
+  );
   if (layout.hut) add(models.hut, layout.hut, "hut");
   const result: PlacedProps = {
     palms: layout.palms.length,
     rocks: layout.rocks.length,
+    bushes: layout.bushes.length,
     hut: !!layout.hut,
     instances,
   };

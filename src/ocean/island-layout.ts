@@ -50,6 +50,7 @@ export interface LayoutInput {
 export interface IslandLayout {
   palms: Spot[];
   rocks: Spot[];
+  bushes: Spot[];
   hut?: HutSpot;
 }
 
@@ -86,6 +87,8 @@ export const HUT = {
 export const ROCK_RADIUS = [1.25, 0.8, 1.8] as const;
 /** How far beyond the island radius boats collide (model.ts islandCollisionRadius). */
 const RING = 1.08;
+/** Half the widest span of each bush model at scale 1 (m; checked against the GLBs by the tests). */
+export const BUSH_RADIUS = [0.75, 0.96, 0.58] as const;
 
 const slopeAt = (
   height: LayoutInput["height"],
@@ -333,7 +336,88 @@ export function placeRocks(
   return rocks;
 }
 
-/** The whole layout: the hut first, then palms round it, then rocks round both. Seeded. */
+/**
+ * Low leafy bushes on the grass and the sand's edge: 14 to 26 by the island's size, some in
+ * clusters of two or three small ones and some single bigger ones. They keep 1.2 m from every
+ * keep-out area, 1.5 m from a palm, off the rocks, about a metre from each other, on ground at
+ * least 0.6 m high and no steeper than 0.5, and each is sunk 0.1 x scale into the lowest ground
+ * under it. They draw from a random stream of their own, so adding them moves nothing else.
+ */
+export function placeBushes(
+  input: LayoutInput,
+  rng: () => number,
+  keepOut: readonly KeepOut[],
+  palms: readonly Spot[],
+  rocks: readonly Spot[],
+): Spot[] {
+  const { height, radius } = input;
+  const count = Math.round(Math.min(26, Math.max(14, radius * 0.6)));
+  const bushes: Spot[] = [];
+  const tryBush = (x: number, z: number, scale: number) => {
+    const variant = Math.floor(rng() * 3) % 3;
+    const size = BUSH_RADIUS[variant]! * scale;
+    if (height(x, z) < 0.6 || slopeAt(height, x, z) > 0.5) return false;
+    // Not at the very edge of the land: all the ground under it is above the waterline.
+    if (lowestUnder(height, x, z, size * 0.7) < 0.15) return false;
+    if (!clearOf(keepOut, x, z, 1.2)) return false;
+    if (palms.some((p) => Math.hypot(p.x - x, p.z - z) < 1.5)) return false;
+    if (
+      rocks.some(
+        (o) =>
+          Math.hypot(o.x - x, o.z - z) <
+          ROCK_RADIUS[o.variant]! * o.scale * 0.8 + size * 0.7,
+      )
+    )
+      return false;
+    if (
+      bushes.some(
+        (o) =>
+          Math.hypot(o.x - x, o.z - z) <
+          Math.max(1, 0.6 * (size + BUSH_RADIUS[o.variant]! * o.scale)),
+      )
+    )
+      return false;
+    bushes.push({
+      variant,
+      x,
+      y: lowestUnder(height, x, z, size * 0.6) - 0.1 * scale,
+      z,
+      yaw: rng() * Math.PI * 2,
+      scale,
+    });
+    return true;
+  };
+  for (let tries = 0; bushes.length < count && tries < count * 60; tries++) {
+    const angle = rng() * Math.PI * 2;
+    const coast = input.coast(angle);
+    // Most along the sand's edge and the lower grass, the rest further up the slopes.
+    const d =
+      rng() < 0.6 ? 1.8 + rng() * 7 : 6 + rng() * Math.max(1, coast * 0.5);
+    const r = coast - d;
+    if (r < radius * 0.1) continue;
+    const cx = Math.cos(angle) * r;
+    const cz = Math.sin(angle) * r;
+    if (rng() < 0.45) {
+      // A cluster of two or three small ones.
+      const n = 2 + Math.floor(rng() * 2);
+      for (let i = 0; i < n && bushes.length < count; i++) {
+        const a = rng() * Math.PI * 2;
+        const away = i === 0 ? 0 : 0.8 + rng() * 0.7;
+        tryBush(
+          cx + Math.cos(a) * away,
+          cz + Math.sin(a) * away,
+          0.8 + rng() * 0.35,
+        );
+      }
+    } else tryBush(cx, cz, 1.1 + rng() * 0.5);
+  }
+  return bushes;
+}
+
+/**
+ * The whole layout: the hut first, then palms round it, then rocks round both, then the bushes
+ * (on a stream of their own). Seeded.
+ */
 export function layoutIsland(input: LayoutInput): IslandLayout {
   const rng = random(input.seed ^ 0x2f6b);
   const hut = placeHut(input);
@@ -342,7 +426,14 @@ export function layoutIsland(input: LayoutInput): IslandLayout {
     keepOut.push({ ax: hut.x, az: hut.z, bx: hut.x, bz: hut.z, r: HUT.reach });
   const palms = placePalms(input, rng, keepOut);
   const rocks = placeRocks(input, rng, keepOut, palms);
-  return { palms, rocks, hut };
+  const bushes = placeBushes(
+    input,
+    random(input.seed ^ 0x5b17),
+    keepOut,
+    palms,
+    rocks,
+  );
+  return { palms, rocks, bushes, hut };
 }
 
 /** True where (x, z) is more than `margin` inland of the coast (for tests and callers). */

@@ -301,7 +301,7 @@ export function createIsland(
   if (!distant) {
     props.grass = addGrass(ctx, Math.round(520 * f));
     props.flowers = addFlowers(ctx, Math.round(90 * f));
-    props.bushes = addBushes(ctx, Math.round(26 * f));
+    props.bushes = addBushes(swapCtx, Math.round(26 * f));
     props.trees = addTrees(swapCtx, Math.round(7 * f));
     props.shells = addShells(ctx, Math.round(50 * f));
     props.driftwood = addDriftwood(ctx, Math.round(5 * f));

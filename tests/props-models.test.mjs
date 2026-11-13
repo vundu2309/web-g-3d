@@ -7,17 +7,22 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import "@babylonjs/core/Meshes/instancedMesh";
 import { createIsland } from "../src/ocean/island-visual.ts";
 import {
+  BUSH_RADIUS,
   HUT,
   ROCK_RADIUS,
   clearance,
   layoutIsland,
   lowestUnder,
+  placeHut,
+  placePalms,
+  placeRocks,
   turn,
 } from "../src/ocean/island-layout.ts";
 import {
   gangwayKeepOut,
   placeIslandProps,
 } from "../src/ocean/island-models.ts";
+import { random } from "../src/ocean/island-shape.ts";
 import { MARKETS } from "../src/ocean/market.ts";
 import { islandSeed } from "../src/ocean/shore.ts";
 import { islands } from "../src/ocean/model.ts";
@@ -64,10 +69,11 @@ function measure(file) {
 const MODELS = {
   palm: { files: ["palm-1", "palm-2", "palm-3"], budget: 1100 },
   rock: { files: ["rock-1", "rock-2", "rock-3"], budget: 400 },
+  bush: { files: ["bush-1", "bush-2", "bush-3"], budget: 500 },
   hut: { files: ["hut"], budget: 600 },
 };
 
-test("the seven island props are valid GLBs with vertex colours, within budget", () => {
+test("the ten island props are valid GLBs with vertex colours, within budget", () => {
   for (const [kind, { files, budget }] of Object.entries(MODELS))
     for (const name of files) {
       const { triangles, min, max } = measure(`${name}.glb`);
@@ -81,6 +87,12 @@ test("the seven island props are valid GLBs with vertex colours, within budget",
       }
       if (kind === "rock")
         assert.ok(max[1] - min[1] < 2.5, `${name} height ${max[1] - min[1]}`);
+      if (kind === "bush") {
+        assert.ok(max[1] > 0.5 && max[1] < 1.4, `${name} height ${max[1]}`);
+        assert.ok(min[1] > -0.01 && min[1] < 0.25, `${name} base ${min[1]}`);
+        const width = Math.max(max[0] - min[0], max[2] - min[2]);
+        assert.ok(width > 0.9 && width < 2.1, `${name} width ${width}`);
+      }
       if (kind === "hut") {
         // Above its ground level (the ladder's foot); the posts reach postDepth below it.
         assert.ok(max[1] > 3 && max[1] < 6, `hut height ${max[1]}`);
@@ -96,6 +108,17 @@ test("the rock footprints used for placement match the models", () => {
     assert.ok(
       Math.abs(half - ROCK_RADIUS[i]) / ROCK_RADIUS[i] < 0.25,
       `${name}: half width ${half} vs ${ROCK_RADIUS[i]}`,
+    );
+  });
+});
+
+test("the bush footprints used for placement match the models", () => {
+  ["bush-1", "bush-2", "bush-3"].forEach((name, i) => {
+    const { min, max } = measure(`${name}.glb`);
+    const half = Math.max(max[0] - min[0], max[2] - min[2]) / 2;
+    assert.ok(
+      Math.abs(half - BUSH_RADIUS[i]) / BUSH_RADIUS[i] < 0.15,
+      `${name}: half width ${half} vs ${BUSH_RADIUS[i]}`,
     );
   });
 });
@@ -219,6 +242,89 @@ test("rocks sit in the ground on the beach, the slopes and the shallows, inside 
   }
 });
 
+test("bushes sit in the grass and the sand's edge, clear of structures, palms, rocks and each other", () => {
+  for (const { island, input, layout } of built) {
+    const { bushes, palms, rocks } = layout;
+    assert.ok(
+      bushes.length >= 14 && bushes.length <= 26,
+      `${bushes.length} bushes on radius ${island.radius}`,
+    );
+    assert.ok(new Set(bushes.map((b) => b.variant)).size > 1, "mixed variants");
+    assert.ok(
+      bushes.some((b) => b.scale < 1.15) && bushes.some((b) => b.scale > 1.3),
+      "small and big bushes",
+    );
+    for (const b of bushes) {
+      assert.ok(
+        input.height(b.x, b.z) >= 0.6,
+        `bush in the water ${b.x},${b.z}`,
+      );
+      assert.ok(slope(input.height, b.x, b.z) <= 0.5, "bush on steep ground");
+      assert.ok(b.scale >= 0.8 && b.scale <= 1.6, `scale ${b.scale}`);
+      assert.ok(
+        Math.hypot(b.x, b.z) < island.radius,
+        "bush inside the island's radius",
+      );
+      for (const k of input.keepOut)
+        assert.ok(clearance(k, b.x, b.z) >= 1.2, "bush on a structure");
+      if (layout.hut)
+        assert.ok(
+          Math.hypot(b.x - layout.hut.x, b.z - layout.hut.z) >= HUT.reach + 1.2,
+          "bush in the hut",
+        );
+      for (const p of palms)
+        assert.ok(Math.hypot(p.x - b.x, p.z - b.z) >= 1.5, "bush on a palm");
+      for (const r of rocks)
+        assert.ok(
+          Math.hypot(r.x - b.x, r.z - b.z) >
+            ROCK_RADIUS[r.variant] * r.scale * 0.8,
+          "bush on a rock",
+        );
+      assert.ok(
+        Math.abs(
+          b.y -
+            (lowestUnder(
+              input.height,
+              b.x,
+              b.z,
+              BUSH_RADIUS[b.variant] * b.scale * 0.6,
+            ) -
+              0.1 * b.scale),
+        ) < 1e-9,
+        "base sunk 0.1 x scale into the lowest ground",
+      );
+      assert.ok(b.y < input.height(b.x, b.z), "sunk into the ground");
+    }
+    for (let i = 0; i < bushes.length; i++)
+      for (let j = i + 1; j < bushes.length; j++)
+        assert.ok(
+          Math.hypot(bushes[i].x - bushes[j].x, bushes[i].z - bushes[j].z) >=
+            1 - 1e-9,
+          "bushes about a metre apart at least",
+        );
+  }
+});
+
+test("the bushes use a stream of their own: palms and rocks come out as they do without them", () => {
+  for (const { input, layout } of built) {
+    const rng = random(input.seed ^ 0x2f6b);
+    const hut = placeHut(input);
+    const keepOut = [...input.keepOut];
+    if (hut)
+      keepOut.push({
+        ax: hut.x,
+        az: hut.z,
+        bx: hut.x,
+        bz: hut.z,
+        r: HUT.reach,
+      });
+    const palms = placePalms(input, rng, keepOut);
+    assert.deepEqual(layout.palms, palms);
+    assert.deepEqual(layout.rocks, placeRocks(input, rng, keepOut, palms));
+    assert.deepEqual(layout.hut, hut);
+  }
+});
+
 test("the hut faces the sea, its posts reach the ground and its deck clears it", () => {
   for (const { input, layout } of built) {
     const { hut } = layout;
@@ -253,6 +359,10 @@ test("the layout is the same for everyone and differs between islands", () => {
     layoutIsland({ ...built[0].input, seed: 999 }).palms,
     built[0].layout.palms,
   );
+  assert.notDeepEqual(
+    layoutIsland({ ...built[0].input, seed: 999 }).bushes,
+    built[0].layout.bushes,
+  );
 });
 
 test("placing the models replaces the procedural props once, and goes with the island", () => {
@@ -280,6 +390,7 @@ test("placing the models replaces the procedural props once, and goes with the i
   const models = {
     palms: [box("p1", 6), box("p2", 6), box("p3", 6)],
     rocks: [box("r1", 1), box("r2", 1), box("r3", 1)],
+    bushes: [box("b1", 0.7), box("b2", 1), box("b3", 0.6)],
     hut: box("hut", 5),
   };
   const placed = placeIslandProps(visual, models, MARKETS);
@@ -287,9 +398,10 @@ test("placing the models replaces the procedural props once, and goes with the i
   assert.equal(visual.fallback, undefined);
   assert.equal(
     placed.instances.length,
-    placed.palms + placed.rocks + (placed.hut ? 1 : 0),
+    placed.palms + placed.rocks + placed.bushes + (placed.hut ? 1 : 0),
   );
   assert.ok(placed.palms >= 8 && placed.rocks > 0 && placed.hut);
+  assert.ok(placed.bushes >= 14, `${placed.bushes} bushes`);
   assert.ok(placed.instances.every((i) => i.parent === visual.mesh));
   // A palm's base is where the layout put it (the box's bottom is at its origin).
   const palm = placed.instances.find((i) => i.name.startsWith("palm"));

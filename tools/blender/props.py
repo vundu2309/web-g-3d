@@ -1,4 +1,4 @@
-"""Island props for the sea game: palms, rocks and a stilt hut, built from the game's palette.
+"""Island props for the sea game: palms, rocks, bushes and a stilt hut, built from the game's palette.
 
 They are stylised low-poly pieces (a bent, ringed palm trunk and arching fronds with a fold down the
 middle, faceted rocks with moss on top, a stilt hut with a stepped thatch roof), made with bmesh,
@@ -11,7 +11,7 @@ Blender (so the user's own scene is untouched), which is how it is driven throug
     import importlib, props; importlib.reload(props)
     props.build_scene("Props"); props.render("/tmp/props.png")
 
-`props.export_glb(dir)` writes one GLB per asset for the game (palm-1..3, rock-1..3, hut).
+`props.export_glb(dir)` writes one GLB per asset for the game (palm-1..3, rock-1..3, bush-1..3, hut).
 """
 import math, os, random
 import bpy, bmesh
@@ -205,6 +205,48 @@ def rock(collection, seed, size=1.0, flat=0.62, name=None):
 
 
 # ------------------------------------------------------------------------------------------------
+# Bushes
+# ------------------------------------------------------------------------------------------------
+def bush(collection, seed, size=1.0, flowers=False, name=None):
+    """A low, leafy bush: fifteen or so small lumpy leaf clumps heaped into a dome, lighter on top."""
+    rng = random.Random(seed)
+    m = Mesh(name or f"bush-{seed}")
+    bm = m.bm
+    leaves = P["leaves"]
+    spread = 0.62 * size
+    tops = []
+    for i in range(rng.randint(14, 18)):
+        a = rng.uniform(0, math.tau)
+        reach = spread * math.sqrt(rng.uniform(0.0, 1.0))
+        dome = math.sqrt(max(0.0, 1.0 - (reach / spread) ** 2))
+        s = rng.uniform(0.2, 0.34) * size * (1.15 - 0.4 * reach / spread)
+        centre = Vector((math.cos(a) * reach, math.sin(a) * reach, 0.12 * size + spread * 0.9 * dome * rng.uniform(0.55, 1.0)))
+        off = Vector((rng.uniform(-9, 9), rng.uniform(-9, 9), rng.uniform(-9, 9)))
+        ico = bmesh.ops.create_icosphere(bm, subdivisions=1, radius=1.0)
+        for v in ico["verts"]:
+            n = v.co.normalized()
+            d = 1.0 + 0.25 * noise.noise(n * 1.7 + off)
+            v.co = Vector((n.x * d * s * rng.uniform(0.95, 1.2), n.y * d * s, n.z * d * s * 0.8)) + centre
+            if v.co.z < 0.0:
+                v.co.z = 0.0
+        base = leaves[rng.randrange(len(leaves))]
+        for f in {f for v in ico["verts"] for f in v.link_faces}:
+            lit = max(0.0, f.normal.z)
+            col = mix_hex(mix_hex(base, leaves[0], 0.45 * (1.0 - centre.z / (spread + 0.2))), 0xa5d670, lit * 0.42)
+            f.material_index = m.slot(col)
+        tops.append(centre + Vector((0, 0, s * 0.75)))
+    if flowers:
+        for t in rng.sample(tops, k=min(len(tops), 6)):
+            c = bmesh.ops.create_icosphere(bm, subdivisions=1, radius=0.085 * size)
+            bmesh.ops.translate(bm, verts=c["verts"], vec=t + Vector((rng.uniform(-0.08, 0.08), rng.uniform(-0.08, 0.08), 0.02)))
+            col = P["flowers"][rng.randrange(len(P["flowers"]))]
+            for f in {f for v in c["verts"] for f in v.link_faces}:
+                f.material_index = m.slot(col)
+    # Smooth shading blends the clumps into one soft mass; the colours stay per face.
+    return m.object(collection, smooth=True)
+
+
+# ------------------------------------------------------------------------------------------------
 # Stilt hut with a stepped thatch roof
 # ------------------------------------------------------------------------------------------------
 def box(m, cx, cy, cz, hx, hy, hz, hexint, taper=1.0):
@@ -309,6 +351,10 @@ def build_scene(scene_name="Props"):
         o = rock(col, seed, size=size, flat=flat, name=f"rock-{i + 1}")
         o.location = (-2.0 + i * 2.6, -4.2, 0.25 * size)
         made[o.name] = o
+    for i, (seed, size, flowers) in enumerate([(31, 1.0, False), (47, 1.3, True), (59, 0.8, False)]):
+        o = bush(col, seed, size=size, flowers=flowers, name=f"bush-{i + 1}")
+        o.location = (-2.0 + i * 3.0, -8.2, 0)
+        made[o.name] = o
     o = hut(col)
     o.location = (6.5, 2.0, 0)
     o.rotation_euler = (0, 0, math.pi - 0.5)
@@ -361,7 +407,7 @@ def export_glb(out_dir):
     scene = bpy.data.scenes["Props"]
     bpy.context.window.scene = scene
     done = []
-    for name in ("palm-1", "palm-2", "palm-3", "rock-1", "rock-2", "rock-3", "hut"):
+    for name in ("palm-1", "palm-2", "palm-3", "rock-1", "rock-2", "rock-3", "bush-1", "bush-2", "bush-3", "hut"):
         o = scene.objects[name]
         loc = o.location.copy()
         rot = o.rotation_euler.copy()
