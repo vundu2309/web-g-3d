@@ -15,7 +15,7 @@ Giao diện home/HUD có thể mở lại offline sau khi cache shell hoàn tấ
 ## Ownership
 
 - `public/manifest.webmanifest`: id/start_url/scope tương đối `./`, phù hợp project Pages `/web-g-3d/`, standalone, theme và icon any/maskable.
-- `public/icons/`: icon SVG authored theo house/dice hiện có, PNG192/512, maskable512 và apple-touch180. Maskable dùng padding để artwork nằm trong safe zone.
+- `public/icons/`: icon SVG authored theo thuyền câu của game (thân cam, cabin kem, nền vàng, viền xanh navy; thay ngôi nhà và xúc xắc của dự án Monopoly cũ), PNG192/512, maskable512 và apple-touch180. Maskable dùng padding để artwork nằm trong safe zone.
 - `index.html`: manifest/apple-touch links, metadata app iOS và theme color.
 - `src/platform/pwa.ts`: đăng ký SW chỉ ở production, theo dõi waiting worker và kiểm tra update khi quay lại foreground.
 - `src/app/pwa.ts`: capture install prompt, hướng dẫn thủ công, nhận appinstalled/standalone, thông báo update. Controller sở hữu dialog, observer/listeners và dispose khi HMR; không tự gọi native prompt khi người dùng chưa bấm.
