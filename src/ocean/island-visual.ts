@@ -79,6 +79,101 @@ function smooth(a: number, b: number, x: number) {
   return t * t * (3 - 2 * t);
 }
 
+/**
+ * The land itself: a low green island (like Lý Sơn or Cô Tô) rather than a cone. Two or
+ * three overlapping low hills along a ridge make a gently rounded top about a fifth of the
+ * radius high; a sandy apron rises from the water a few metres in; the coast has bays and
+ * headlands and always stays between 0.85 and 0.99 of the radius, inside the ring boats
+ * collide with (`islandCollisionRadius`, 1.08), so no boat sails through land and the
+ * piers off each island keep their place. Seeded and pure: every client gets the same.
+ */
+export interface IslandShape {
+  /** The highest point of the land, in metres. */
+  peak: number;
+  /** Terrain height at island-local (x, z); the sea is at 0. */
+  height(x: number, z: number): number;
+  /** Distance from the centre to the waterline in the direction `angle` (radians). */
+  coast(angle: number): number;
+}
+
+export const COAST_MIN = 0.85;
+export const COAST_MAX = 0.99;
+
+export function islandShape(seed: number, radius: number): IslandShape {
+  const rng = random(seed ^ 0x51ed);
+  // Bays and headlands: three slow harmonics round the coast and a faint crinkle.
+  const harmonics = [
+    { k: 2, amp: 0.03 },
+    { k: 3, amp: 0.022 },
+    { k: 5, amp: 0.012 },
+  ].map((h) => ({ ...h, phase: rng() * Math.PI * 2 }));
+  const coast = (angle: number) => {
+    let f = 0.92;
+    for (const { k, amp, phase } of harmonics)
+      f += amp * Math.sin(k * angle + phase);
+    f +=
+      0.016 *
+      (noise(Math.cos(angle) * 3 + 9, Math.sin(angle) * 3 + 9, seed + 21) -
+        0.5);
+    return radius * Math.min(COAST_MAX, Math.max(COAST_MIN, f));
+  };
+  // Two or three low hills along a ridge through the island.
+  const ridge = rng() * Math.PI;
+  const count = rng() < 0.6 ? 3 : 2;
+  const along = count === 3 ? [-0.4, 0, 0.36] : [-0.26, 0.3];
+  const hills = along.map((t) => {
+    const a = (t + (rng() - 0.5) * 0.12) * radius;
+    const b = (rng() - 0.5) * 0.16 * radius;
+    return {
+      x: Math.cos(ridge) * a - Math.sin(ridge) * b,
+      z: Math.sin(ridge) * a + Math.cos(ridge) * b,
+      h: 0.6 + rng() * 0.4,
+      s2: 2 * (radius * (0.3 + rng() * 0.1)) ** 2,
+    };
+  });
+  const peak = radius * (0.2 + rng() * 0.04);
+  const base = 0.9;
+  // Inland relief in relative units: the hills plus slow undulations.
+  const relief = (x: number, z: number) => {
+    let sum = 0.12 * fbm(x * 0.05 + 3, z * 0.05, seed);
+    for (const hill of hills)
+      sum +=
+        hill.h * Math.exp(-((x - hill.x) ** 2 + (z - hill.z) ** 2) / hill.s2);
+    return sum;
+  };
+  // The sand apron rises from the water and the hills fade in behind it.
+  const parts = (x: number, z: number) => {
+    const d = coast(Math.atan2(z, x)) - Math.hypot(x, z);
+    const shore =
+      d >= 0 ? 1.2 * (1 - Math.exp(-d / 2.6)) : -1.7 * (1 - Math.exp(d / 4.5));
+    const inland = smooth(0.8, radius * 0.32, d);
+    return { shore, inland, relief: inland > 0 ? relief(x, z) : 0 };
+  };
+  // Scale the relief so the highest point of the land is exactly `peak`.
+  const samples: { a: number; b: number }[] = [];
+  for (let i = 0; i <= 40; i++)
+    for (let j = 0; j <= 40; j++) {
+      const p = parts(((i / 40) * 2 - 1) * radius, ((j / 40) * 2 - 1) * radius);
+      samples.push({
+        a: p.shore + p.inland * base,
+        b: p.inland * p.relief,
+      });
+    }
+  let low = 0;
+  let high = peak * 4;
+  for (let k = 0; k < 30; k++) {
+    const mid = (low + high) / 2;
+    if (samples.some(({ a, b }) => a + mid * b > peak)) high = mid;
+    else low = mid;
+  }
+  const scale = low;
+  const height = (x: number, z: number) => {
+    const p = parts(x, z);
+    return p.shore + p.inland * (base + scale * p.relief);
+  };
+  return { peak, height, coast };
+}
+
 export interface IslandVisual {
   mesh: Mesh;
   foam: Mesh | undefined;
@@ -124,29 +219,14 @@ export function createIsland(
   }: IslandOptions,
 ): IslandVisual {
   const rng = random(seed);
-  const peak = radius * (0.38 + rng() * 0.18);
-  const height = (x: number, z: number) => {
-    const angle = Math.atan2(z, x);
-    const wobble =
-      1 +
-      0.2 *
-        (noise(Math.cos(angle) * 2 + 5, Math.sin(angle) * 2 + 5, seed) - 0.5);
-    const r = Math.hypot(x, z) / (radius * 1.12 * wobble);
-    const hill =
-      Math.pow(Math.max(0, 1 - r * r), 1.35) *
-      peak *
-      (0.75 + 0.5 * fbm(x * 0.06, z * 0.06, seed));
-    const shelf = -1.6 * smooth(0.82, 1.28, r);
-    return (
-      hill * smooth(0, 0.22, 1 - r + 0.18) +
-      shelf +
-      (r < 1 ? 0.55 : 0) * (1 - smooth(0.7, 1, r))
-    );
-  };
+  const { peak, height } = islandShape(seed, radius);
 
-  // Terrain grid with colours from height and slope.
-  const extent = radius * 1.5;
-  const segments = distant ? 24 : 56;
+  // Terrain grid with colours from height and slope. It reaches just past the underwater
+  // apron (the coast is inside 0.99 of the radius, the apron levels off a few metres out);
+  // cells that lie wholly on the flat sea floor are left out.
+  const extent = radius * 1.4;
+  const segments = distant ? 28 : 76;
+  const floor = -1.6;
   const positions: number[] = [];
   const colors: number[] = [];
   const indices: number[] = [];
@@ -162,32 +242,47 @@ export function createIsland(
       const x = -extent + (ix / segments) * extent * 2;
       const z = -extent + (iz / segments) * extent * 2;
       const y = height(x, z);
-      positions.push(x, Math.max(y, -1.6), z);
-      const slope = Math.hypot(height(x + 1, z) - y, height(x, z + 1) - y);
-      // Patches of dry grass, and ripples in the sand, from a slow noise.
+      positions.push(x, Math.max(y, floor), z);
+      const slope = Math.hypot(
+        height(x + 0.5, z) - height(x - 0.5, z),
+        height(x, z + 0.5) - height(x, z - 0.5),
+      );
+      // Patches of dry grass, ripples in the sand and a few rocky outcrops, from slow noise.
       const patch = noise(x * 0.09 + 20, z * 0.09, seed + 3);
       const ripple = noise(x * 0.7, z * 0.7, seed + 5) - 0.5;
+      const outcrop = noise(x * 0.13 + 40, z * 0.13, seed + 9);
       let c: Color3;
       if (y < 0.15) c = wet;
       else if (y < 0.5) c = Color3.Lerp(wet, sand, (y - 0.15) / 0.35);
-      else if (y < 1.9)
-        c = Color3.Lerp(sand, wet, 0.1 + 0.25 * Math.max(0, ripple + 0.2));
-      else if (slope > 1.25 || y > peak * 0.9)
-        // Cliff and summit rock in bands, like layers.
-        c = Math.floor(y * 1.8 + patch * 2) % 2 ? rock : rockDark;
       else {
-        c = Color3.Lerp(grassLow, grassHigh, Math.min(1, y / (peak * 0.7)));
-        c = Color3.Lerp(c, dry, smooth(0.58, 0.76, patch) * 0.7);
+        const beach = Color3.Lerp(
+          sand,
+          wet,
+          0.1 + 0.25 * Math.max(0, ripple + 0.2),
+        );
+        let green = Color3.Lerp(
+          grassLow,
+          grassHigh,
+          Math.min(1, (y - 1) / (peak * 0.8)),
+        );
+        green = Color3.Lerp(green, dry, smooth(0.58, 0.76, patch) * 0.7);
+        if (y > 2.2 && (slope > 0.75 || outcrop > 0.8))
+          // Rock outcrops in bands, like layers.
+          green = Math.floor(y * 1.8 + patch * 2) % 2 ? rock : rockDark;
+        // Sand fades into grass behind the beach, unevenly.
+        c = Color3.Lerp(beach, green, smooth(0.95, 1.45, y + ripple * 0.5));
       }
       const jitter = (rng() - 0.5) * 0.05;
       colors.push(c.r + jitter, c.g + jitter, c.b + jitter, 1);
     }
+  const deep = (i: number) => positions[i * 3 + 1]! <= floor;
   for (let iz = 0; iz < segments; iz++)
     for (let ix = 0; ix < segments; ix++) {
       const a = iz * (segments + 1) + ix;
       const b = a + 1;
       const c = a + segments + 1;
       const d = c + 1;
+      if (deep(a) && deep(b) && deep(c) && deep(d)) continue;
       indices.push(a, b, c, b, d, c);
     }
   const parts: Mesh[] = [
@@ -354,20 +449,29 @@ export function createIsland(
   } else props.bushes = addBushes(ctx, Math.min(12, Math.round(4 * f)));
 
   if (lighthouse) {
+    // On the highest point of the land (a 0.5 m search over the middle of the island).
     let bestX = 0;
     let bestZ = 0;
     let best = -Infinity;
-    for (let i = 0; i < 80; i++) {
-      const x = (rng() - 0.5) * radius;
-      const z = (rng() - 0.5) * radius;
-      const y = height(x, z);
-      if (y > best) {
-        best = y;
-        bestX = x;
-        bestZ = z;
+    for (let x = -radius * 0.7; x <= radius * 0.7; x += 0.5)
+      for (let z = -radius * 0.7; z <= radius * 0.7; z += 0.5) {
+        const y = height(x, z);
+        if (y > best) {
+          best = y;
+          bestX = x;
+          bestZ = z;
+        }
       }
+    // Sunk to the lowest ground under its foot, so no side floats.
+    let foot = best;
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      foot = Math.min(
+        foot,
+        height(bestX + Math.cos(a) * 1.5, bestZ + Math.sin(a) * 1.5),
+      );
     }
-    const base = best - 0.1;
+    const base = foot - 0.1;
     for (let i = 0; i < 4; i++) {
       const bottomR = 1.5 - i * 0.14;
       place(

@@ -2,7 +2,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { NullEngine } from "@babylonjs/core/Engines/nullEngine";
 import { Scene } from "@babylonjs/core/scene";
-import { createIsland } from "../src/ocean/island-visual.ts";
+import {
+  COAST_MAX,
+  COAST_MIN,
+  createIsland,
+  islandShape,
+} from "../src/ocean/island-visual.ts";
 import { Geo } from "../src/ocean/geo.ts";
 import {
   BACKDROP,
@@ -11,7 +16,11 @@ import {
   clearOfIslands,
   gullPose,
 } from "../src/ocean/sea-layout.ts";
-import { SEA_BOUND, islands } from "../src/ocean/model.ts";
+import {
+  SEA_BOUND,
+  islandCollisionRadius,
+  islands,
+} from "../src/ocean/model.ts";
 
 // Headless (no canvas): the islands are built by the same code the game runs, so the
 // detail and the triangle budget can be checked without a GPU.
@@ -107,4 +116,92 @@ test("buoys are clear of every island and of the harbor, gulls stay up, backdrop
       Math.max(Math.abs(far.x), Math.abs(far.z)) - far.radius > SEA_BOUND + 40,
       `backdrop at ${far.x},${far.z} is beyond the sea wall`,
     );
+});
+
+// The islands are low and green with a gentle ridge (the user found the old cones fake):
+// these numbers pin that shape for every island in the sea.
+test("islands are low with gentle slopes, and their coast stays inside the boats' ring", () => {
+  const profiles = [];
+  islands.forEach((island, i) => {
+    const { seed, radius } = optionsFor(i);
+    const shape = islandShape(seed, radius);
+    let top = -Infinity;
+    let steepest = 0;
+    const profile = [];
+    for (let x = -radius * 1.1; x <= radius * 1.1; x += 0.5)
+      for (let z = -radius * 1.1; z <= radius * 1.1; z += 0.5) {
+        const y = shape.height(x, z);
+        top = Math.max(top, y);
+        if (y > 0.2)
+          steepest = Math.max(
+            steepest,
+            Math.hypot(
+              shape.height(x + 0.5, z) - shape.height(x - 0.5, z),
+              shape.height(x, z + 0.5) - shape.height(x, z - 0.5),
+            ),
+          );
+      }
+    for (let k = 0; k < 8; k++)
+      profile.push(
+        shape.height(Math.cos(k) * radius * 0.4, Math.sin(k) * radius * 0.4),
+      );
+    profiles.push(profile);
+    // Low: a fifth of the radius, never the old 0.38 to 0.56 cone.
+    assert.ok(top <= radius * 0.26, `island ${i} top ${top}`);
+    assert.ok(
+      top >= radius * 0.14,
+      `island ${i} is not a flat pancake: ${top}`,
+    );
+    assert.ok(Math.abs(top - shape.peak) < 0.2, `peak ${shape.peak} vs ${top}`);
+    // Gentle: no land steeper than about 32 degrees.
+    assert.ok(steepest < 0.65, `island ${i} slope ${steepest}`);
+    // The waterline: bays and headlands, all inside the ring boats collide with.
+    let near = Infinity;
+    let far = 0;
+    for (let k = 0; k < 720; k++) {
+      const a = (k / 720) * Math.PI * 2;
+      let coast = 0;
+      for (let r = 0; r < radius * 1.3; r += 0.05)
+        if (shape.height(Math.cos(a) * r, Math.sin(a) * r) > 0) coast = r;
+      assert.ok(
+        Math.abs(coast - shape.coast(a)) < 0.1,
+        `island ${i} coast at ${a}: ${coast} vs ${shape.coast(a)}`,
+      );
+      near = Math.min(near, coast);
+      far = Math.max(far, coast);
+    }
+    assert.ok(near >= radius * (COAST_MIN - 0.01), `island ${i} near ${near}`);
+    assert.ok(far <= radius * COAST_MAX, `island ${i} far ${far}`);
+    assert.ok(far < islandCollisionRadius(island) - radius * 0.08);
+    assert.ok(far - near > radius * 0.05, `island ${i} coast is not a circle`);
+    // Same seed, same island.
+    const again = islandShape(seed, radius);
+    for (let k = 0; k < 20; k++)
+      assert.equal(
+        again.height(k * 1.7 - 15, k * 1.3 - 12),
+        shape.height(k * 1.7 - 15, k * 1.3 - 12),
+      );
+  });
+  // Each island has its own ridge.
+  for (let a = 0; a < profiles.length; a++)
+    for (let b = a + 1; b < profiles.length; b++)
+      assert.ok(
+        profiles[a].some(
+          (y, k) =>
+            Math.abs(
+              y / optionsFor(a).radius - profiles[b][k] / optionsFor(b).radius,
+            ) > 0.02,
+        ),
+        `islands ${a} and ${b} differ`,
+      );
+});
+
+test("the lighthouse, hut, boardwalk and rowboat all find their place on the low islands", () => {
+  for (let i = 0; i < islands.length; i++) {
+    const { props } = build(optionsFor(i));
+    assert.ok(props.boardwalk, `island ${i} boardwalk`);
+    assert.ok(props.hut, `island ${i} hut`);
+    assert.ok(props.boat, `island ${i} rowboat`);
+    assert.ok(props.driftwood > 0, `island ${i} driftwood`);
+  }
 });
