@@ -250,14 +250,19 @@ vec3 hullWater(vec2 p, float t) {
     // Wider and whiter where the bow parts the water and along the quarter, thinner at the stern.
     float push = 1.0 + 0.9 * smoothstep(0.5, 3.4, u);
     float collar = (1.0 - smoothstep(0.15, (0.8 + 1.4 * lap) * push, edge)) * (0.85 + 0.15 * lap);
-    // Rings: a slow pulse (the boat rocks), each ring spreading about a metre a second.
+    // Rings: a slow pulse (the boat rocks), each ring spreading about a metre a second. The rings
+    // are never perfect ellipses: the distance they are measured from is warped by slow noise,
+    // so neighbouring rings drift apart and together, and their foam breaks into patches.
     float pulse = 0.55 + 0.45 * sin(t * 0.9 + boat.x * 0.37 + boat.y * 0.23);
     float k = 6.2832 / ${HULL_WATER.wavelength.toFixed(2)};
-    float phase = edge * k - 6.2832 * ${HULL_WATER.rate.toFixed(2)} * t;
+    float warp = (noise(p * 0.55 + vec2(t * 0.08, -t * 0.06)) - 0.5) * 2.2 + (noise(p * 1.7 - vec2(t * 0.15, t * 0.1)) - 0.5) * 0.8;
+    float warped = edge + warp * smoothstep(0.2, 1.6, edge);
+    float phase = warped * k - 6.2832 * ${HULL_WATER.rate.toFixed(2)} * t;
     float fade = exp(-edge / 3.2) * smoothstep(0.0, 0.5, edge) * (1.0 - smoothstep(5.0, 8.5, edge));
     slope += normalize(d + 0.0001) * ${HULL_WATER.height.toFixed(3)} * k * cos(phase) * fade * pulse;
-    // The crests of the first rings catch a little foam.
-    float crest = smoothstep(0.55, 0.95, cos(phase)) * (1.0 - smoothstep(0.6, 5.0, edge)) * smoothstep(0.1, 0.5, edge) * (0.45 + 0.55 * pulse) * (0.5 + 0.5 * lap);
+    // The crests of the first rings catch a little foam, in broken patches that thin out quickly.
+    float broken = smoothstep(0.42, 0.72, noise(p * 1.25 + vec2(t * 0.22, -t * 0.17)) * 0.65 + noise(p * 3.3 - vec2(t * 0.3, t * 0.2)) * 0.35);
+    float crest = smoothstep(0.55, 0.95, cos(phase)) * (1.0 - smoothstep(0.4, 3.4, edge)) * smoothstep(0.1, 0.5, edge) * (0.45 + 0.55 * pulse) * (0.35 + 0.65 * lap) * broken;
     foam = max(foam, max(collar, crest * 0.8));
   }
   return vec3(foam, slope);
