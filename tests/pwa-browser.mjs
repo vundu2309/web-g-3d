@@ -125,6 +125,10 @@ try {
     prefix,
   );
   assert.equal(manifest.display, "standalone");
+  // Android draws its own bars (and keeps the camera cutout black) in standalone; asking for
+  // fullscreen first lets the sea cover the whole screen. Browsers without display_override
+  // (iOS) fall back to `display`.
+  assert.deepEqual(manifest.display_override, ["fullscreen", "standalone"]);
   assert.equal(manifest.id, "./");
   for (const icon of manifest.icons) {
     const data = await (
