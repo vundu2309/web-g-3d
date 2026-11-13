@@ -1,6 +1,6 @@
 # 0010. Server-side economy (coins)
 
-Date: 2026-11-12. Status: accepted by the user (2026-11-12); live database not yet changed.
+Date: 2026-11-12. Status: accepted by the user (2026-11-12); applied to the live database and switched on in production on 2026-11-13.
 
 ## Context
 
@@ -14,7 +14,7 @@ with places to sell on the islands (see docs/ocean.md "Markets").
 - Coins ("xu") live in the Supabase PostgreSQL database, one wallet per account. Tables are
   private (`economy_private`, RLS on, no grants); the app reaches them only through three
   authenticated RPCs: `economy_state`, `economy_record_catch`, `economy_sell`
-  (supabase/pending/20261112090000_economy.sql). They check `auth.uid()` themselves.
+  (supabase/migrations/20261113032223_economy.sql). They check `auth.uid()` themselves.
 - The database is the authority on money: it prices every sale itself from its own price table
   (`economy_private.fish_prices`), which `src/ocean/economy.ts` mirrors and
   `tests/economy.test.mjs` keeps equal. A client cannot name a price, set a balance or sell a
@@ -37,7 +37,7 @@ fishing and a minute of cheating within the limits pay about the same order.
 
 ## Consequences
 
-- The migration file waits in `supabase/pending/`, NOT in `supabase/migrations/`, so merging it to `main` cannot apply it anywhere (the Supabase GitHub integration only reads `migrations/`). To apply it, after the user confirms: `git mv supabase/pending/20261112090000_economy.sql supabase/migrations/` (and apply it with the Supabase tools), then set `VITE_ECONOMY=on` on Vercel to show the market.
+- The migration was applied to the live Supabase project on 2026-11-13 with the Supabase tools (recorded as version `20261113032223`, so the file in `supabase/migrations/` carries that version and the GitHub integration does not apply it twice), and `VITE_ECONOMY=on` was set on Vercel production. Checked afterwards: 20 price rows, RLS on all three tables, no table privileges for `anon` or `authenticated`, the three RPCs executable by `authenticated` only.
 - Applying the migration to the live project changes production: it is done only after the user
   confirms, never from a test run. `tests/economy-postgres.sh` runs the SQL scenarios in a
   disposable PostgreSQL with Auth fixtures (it needs a superuser connection to a throwaway

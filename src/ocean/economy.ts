@@ -3,7 +3,7 @@ import { SPECIES, type Species } from "./fishing.ts";
 /**
  * The money of the sea, as plain maths with no rendering and no network: what a fish is
  * worth. The prices are written once here and once as seed rows of the database (see
- * supabase/pending/..._economy.sql); tests/economy.test.mjs reads that file and fails if
+ * supabase/migrations/..._economy.sql); tests/economy.test.mjs reads that file and fails if
  * the two ever disagree, because the DATABASE is the authority: it prices every sale
  * itself, whatever a client says.
  *

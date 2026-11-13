@@ -183,7 +183,7 @@ The fishing line is a flat strip about two pixels wide on a phone at any distanc
 
 ### Coins (server economy, step 1: the database)
 
-Coins ("xu") are earned by selling fish and kept on the server: wallets, a ledger of unsold caught fish and a price table in PostgreSQL, reached only through three authenticated RPCs (`economy_state`, `economy_record_catch`, `economy_sell`). The decision, its limits (a catch is still a client report) and the plan are in [decision 0010](decisions/0010-server-economy.md). `src/ocean/economy.ts` holds the same price rules as the database (`priceOf`: base price from rarity and species weight, 0.6 to 1.5 times by the fish's weight) and `tests/economy.test.mjs` fails if the migration's price table differs. `tests/economy-postgres.sh` runs the SQL scenarios (not signed in, private tables, prices, catch rules, selling, another player's fish, the 200-fish cap) against a disposable PostgreSQL. The migration file is in `supabase/pending/` (not `supabase/migrations/`) and is NOT applied to the live Supabase project; see the decision for how it moves.
+Coins ("xu") are earned by selling fish and kept on the server: wallets, a ledger of unsold caught fish and a price table in PostgreSQL, reached only through three authenticated RPCs (`economy_state`, `economy_record_catch`, `economy_sell`). The decision, its limits (a catch is still a client report) and the plan are in [decision 0010](decisions/0010-server-economy.md). `src/ocean/economy.ts` holds the same price rules as the database (`priceOf`: base price from rarity and species weight, 0.6 to 1.5 times by the fish's weight) and `tests/economy.test.mjs` fails if the migration's price table differs. `tests/economy-postgres.sh` runs the SQL scenarios (not signed in, private tables, prices, catch rules, selling, another player's fish, the 200-fish cap) against a disposable PostgreSQL. The migration is `supabase/migrations/20261113032223_economy.sql`; it was applied to the live Supabase project and `VITE_ECONOMY=on` set on Vercel production on 2026-11-13 (see the decision).
 
 ### Hub art drawn on a canvas
 
@@ -212,7 +212,7 @@ Decided to postpone, in the order we would take them:
 1. **NPC boats on the sea.** A few boats sailing between islands or lying at anchor so the sea is not empty when few players are online. Plan: simulate them on the API as ordinary boat states (the client already draws boats, wakes, shadows and labels), with a distinct NPC label so they are never presented as real players (AGENTS.md). Sea state is ephemeral on one Render instance, so NPCs live there too. Waypoints must avoid `seaObstacles()`.
 2. **NPC quests.** Fishermen or vendors who ask for a catch ("three mackerel", "a fish over 5 kg") and pay coins. Blocked by server-authoritative fishing: catches are still reported by the client, so a quest reward could be cheated. Do it only after the server decides catches.
 
-Other known gaps: the upgrade shop (rod, line, bait, boat colour), applying `supabase/pending/…economy.sql` and turning `VITE_ECONOMY` on (needs the owner's go-ahead), shadows cast by islands and markets, and real-phone performance checks.
+Other known gaps: the upgrade shop (rod, line, bait, boat colour), shadows cast by islands and markets, and real-phone performance checks.
 
 ## Settings hub
 
