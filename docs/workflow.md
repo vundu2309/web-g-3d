@@ -4,17 +4,17 @@ Use Node 24 (`.node-version`), npm 11 and the existing checkout. `npm ci` instal
 
 ## Checks
 
-| Command | What it verifies |
-| --- | --- |
-| `npm run lint` | TypeScript rules and hub/platform import boundaries |
-| `npm run format:check` | Authored executable formatting |
-| `npm run test:unit` | Room transitions plus diagnostic timing, safe errors and bounded history |
-| `npm run build` | Strict TypeScript and production asset generation |
+| Command                | What it verifies                                                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `npm run lint`         | TypeScript rules and hub/platform import boundaries                                                                      |
+| `npm run format:check` | Authored executable formatting                                                                                           |
+| `npm run test:unit`    | Room transitions plus diagnostic timing, safe errors and bounded history                                                 |
+| `npm run build`        | Strict TypeScript and production asset generation                                                                        |
 | `npm run test:browser` | Owned dev/preview servers; create/join/errors, two preview clients, reload, ready/start/close, mobile layout, Auth error |
-| `npm run test:rules` | Firestore rules plus real Auth/Firestore emulator browser accounts, profiles and directory; needs Java 21 |
-| `npm run check` | Lint, format, unit, build, browser and rules tests |
+| `npm run test:rules`   | Firestore rules plus real Auth/Firestore emulator browser accounts, profiles and directory; needs Java 21                |
+| `npm run check`        | Lint, format, unit, build, browser and rules tests                                                                       |
 
-**CI scope:** the GitHub workflow runs only `npm run lint`, `npm run format:check` and `npm run typecheck` (plus `npm run build` when publishing Pages). Unit, browser, Firestore-rules, API/Socket.IO and Supabase tests are no longer run in CI by decision of the project owner; the scripts remain available to run locally.
+**CI scope:** the GitHub workflow runs `npm run lint`, `npm run format:check`, `npm run typecheck` and `npm run test:unit` (plus `npm run build` when publishing Pages). The unit suite was added on 2026-11-13 at the project owner's request, reversing the earlier decision to run only lint, format and typecheck (it had missed an empty `tools/blender/palette.json` that failed a unit test for days); to undo it, remove the "Unit tests" step of `.github/workflows/pages.yml`. Browser, Firestore-rules, API/Socket.IO and Supabase tests are still not run in CI; the scripts remain available to run locally (the browser tests need Chrome and are slow under software WebGL).
 
 Browser tests use `CHROMIUM_PATH`, system `/usr/bin/chromium`, or the Playwright-managed browser. Install the managed browser with `npx --no-install playwright-core install --with-deps chromium` if needed. The runner starts servers on free ports and owns their cleanup. Failure output and screenshots belong under ignored `test-results/`; tests must not leave a user-owned server running or use live Firebase writes. The auth browser scenario starts on a dedicated DEV-only emulator configuration and aborts any production Firebase request.
 

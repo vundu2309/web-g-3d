@@ -52,6 +52,8 @@ jobs:
         run: npm run format:check
       - name: Typecheck
         run: npm run typecheck
+      - name: Unit tests
+        run: npm run test:unit
       - name: Build Pages artifact
         if: steps.publication.outputs.publish == 'true'
         run: npm run build
