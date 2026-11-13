@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+  <body style="margin: 0; background: #000">
+    <canvas
+      id="c"
+      width="1500"
+      height="700"
+      style="width: 1500px; height: 700px"
+    ></canvas>
+    <script type="module">
+      // Render harness for the sea game: the real water, sky, the three islands with their Blender props
+      // (placed by the game's own placeIslandProps), markets, sea props, one boat and the reflection pass.
+      // ?m=chase|low|beach|surf|top|hut|grove|high|wide  &i=<island 0..2>  &a=<angle in degrees>  &t=<seconds>
+      // &refl=0 skips the reflection pass (faster); &models=0 keeps the procedural props. See README.md.
+      import { Engine, Scene, Vector3, FreeCamera } from "@babylonjs/core";
+      import { createSeaLights } from "/src/ocean/art/lighting.ts";
+      import { createWater } from "/src/ocean/water.ts";
+      import { createSky } from "/src/ocean/sky.ts";
+      import { createSeaReflection } from "/src/ocean/reflection.ts";
+      import { createIsland, islandShape } from "/src/ocean/island-visual.ts";
+      import { createBoatTemplate } from "/src/ocean/boat-visual.ts";
+      import { boatPalettes } from "/src/ocean/palette.ts";
+      import { islands } from "/src/ocean/model.ts";
+      import { MARKETS } from "/src/ocean/market.ts";
+      import { createMarket } from "/src/ocean/market-visual.ts";
+      import { SeaProps } from "/src/ocean/sea-props.ts";
+      import { CHASE } from "/src/ocean/chase-camera.ts";
+      import {
+        loadIslandModels,
+        placeIslandProps,
+      } from "/src/ocean/island-models.ts";
+      const q = new URLSearchParams(location.search);
+      const mode = q.get("m") || "chase";
+      const T = +(q.get("t") || 4);
+      const idx = +(q.get("i") || 0);
+      const ang = (+(q.get("a") || 0) * Math.PI) / 180;
+      const engine = new Engine(document.getElementById("c"), true, {
+        preserveDrawingBuffer: true,
+      });
+      const scene = new Scene(engine);
+      scene.useRightHandedSystem = true;
+      createSeaLights(scene);
+      const water = createWater(scene);
+      const sky = createSky(scene);
+      if (q.get("refl") !== "0") createSeaReflection(scene, water, sky);
+      const extras = [];
+      const visuals = islands.map((island, i) => {
+        const v = createIsland(scene, {
+          seed: 11 + i * 7,
+          radius: island.radius,
+          lighthouse: i === 0,
+        });
+        v.mesh.position.set(island.x, 0, island.z);
+        v.mesh.freezeWorldMatrix();
+        return v;
+      });
+      const placedAll = [];
+      if (q.get("models") !== "0") {
+        const models = await loadIslandModels(scene);
+        visuals.forEach((v, i) => {
+          const p = placeIslandProps(v, models, MARKETS);
+          placedAll.push(p);
+          console.log(
+            "island",
+            i,
+            "palms",
+            p.palms,
+            "rocks",
+            p.rocks,
+            "hut",
+            p.hut,
+          );
+        });
+      }
+      MARKETS.forEach((m) => createMarket(scene, m));
+      const props = new SeaProps(scene);
+      const tpl = createBoatTemplate(scene, boatPalettes[1], "b");
+      tpl.isVisible = false;
+      const isl = islands[idx];
+      const shape = islandShape(11 + idx * 7, isl.radius);
+      const ox = Math.cos(ang),
+        oz = Math.sin(ang);
+      let camPos,
+        target,
+        boatAt = null;
+      if (mode === "chase" || mode === "low") {
+        const r = isl.radius * 1.08 + 7;
+        const bx = isl.x + ox * r,
+          bz = isl.z + oz * r;
+        // Heading: along the coast, turned 35 degrees toward the island.
+        const tx = -oz,
+          tz = ox; // tangent
+        const dx = tx * Math.cos(0.6) - ox * Math.sin(0.6),
+          dz = tz * Math.cos(0.6) - oz * Math.sin(0.6);
+        const h = Math.atan2(dx, -dz);
+        const back = mode === "low" ? CHASE.fishingBack : CHASE.back;
+        const height = mode === "low" ? CHASE.fishingHeight : CHASE.height;
+        camPos = new Vector3(bx - dx * back, height, bz - dz * back);
+        target = new Vector3(
+          bx + dx * CHASE.lookAhead,
+          2.2,
+          bz + dz * CHASE.lookAhead,
+        );
+        boatAt = { bx, bz, h };
+      } else if (mode === "beach") {
+        const c = shape.coast(ang);
+        const cx = isl.x + ox * (c + 6),
+          cz = isl.z + oz * (c + 6);
+        camPos = new Vector3(cx, 1.9, cz);
+        const a2 = ang + 0.35;
+        const c2 = shape.coast(a2);
+        target = new Vector3(
+          isl.x + Math.cos(a2) * (c2 + 1),
+          0.2,
+          isl.z + Math.sin(a2) * (c2 + 1),
+        );
+      } else if (mode === "surf") {
+        const c = shape.coast(ang);
+        camPos = new Vector3(isl.x + ox * (c + 30), 4.5, isl.z + oz * (c + 30));
+        target = new Vector3(
+          isl.x + ox * (c + 2) - oz * 28,
+          0,
+          isl.z + oz * (c + 2) + ox * 28,
+        );
+      } else if (mode === "top") {
+        const c = shape.coast(ang);
+        camPos = new Vector3(isl.x + ox * (c + 22), 16, isl.z + oz * (c + 22));
+        target = new Vector3(isl.x + ox * (c - 2), 0, isl.z + oz * (c - 2));
+      } else if (mode === "hut" || mode === "grove") {
+        const p = placedAll[idx];
+        const pick =
+          mode === "hut"
+            ? p.instances.find((m) => m.name === "hut")
+            : p.instances
+                .filter((m) => m.name.startsWith("palm"))
+                .sort(
+                  (a, b) =>
+                    Math.hypot(b.position.x, b.position.z) -
+                    Math.hypot(a.position.x, a.position.z),
+                )[0];
+        const lx = pick.position.x,
+          lz = pick.position.z;
+        const a0 = Math.atan2(lz, lx) + ang;
+        const c = shape.coast(a0);
+        const out = mode === "hut" ? c + 9 : c + 2.5;
+        camPos = new Vector3(
+          isl.x + Math.cos(a0) * out,
+          mode === "hut" ? 3.2 : 1.7,
+          isl.z + Math.sin(a0) * out,
+        );
+        target = new Vector3(
+          isl.x + lx,
+          pick.position.y + (mode === "hut" ? 1.8 : 3.5),
+          isl.z + lz,
+        );
+      } else {
+        camPos = new Vector3(30, 150, 210);
+        target = new Vector3(40, 0, -30);
+      }
+      if (boatAt) {
+        const boat = tpl.createInstance("b1");
+        boat.position.set(boatAt.bx, 0.3, boatAt.bz);
+        boat.rotation.y = -boatAt.h;
+      }
+      const cam = new FreeCamera("cam", camPos, scene);
+      cam.fov = 0.9;
+      cam.minZ = 0.5;
+      cam.maxZ = 3200;
+      cam.setTarget(target);
+      scene.activeCamera = cam;
+      window.scene = scene;
+      const tick = () => {
+        water.update(cam.position.x, cam.position.z, T);
+        sky.update(cam.position.x, cam.position.y, cam.position.z, T);
+        props.update(T);
+        for (const e of extras) e.update?.(T);
+      };
+      tick();
+      scene.executeWhenReady(() => {
+        tick();
+        scene.render();
+        setTimeout(() => {
+          tick();
+          scene.render();
+          window.__done = { mode };
+        }, 800);
+      });
+    </script>
+  </body>
+</html>
