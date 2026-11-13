@@ -197,8 +197,17 @@ float visibilitySmith(float nl, float nv, float a) {
   return 0.25 / ((nl * (1.0 - k) + k) * (nv * (1.0 - k) + k));
 }
 // The shadow of the boats on the water: the sun is low, so each hull throws a long shadow
-// downwind. A boat is three slices (hull, cabin, mast) each at its own height, and the shadow
-// of a slice is the slice shifted along the sun's ground direction by height / tan(elevation).
+// downwind. A boat is three parts (hull, wheelhouse, mast), each swept through its own range of
+// heights, and the shadow of a height is the part's footprint shifted along the sun's ground
+// direction by height / tan(elevation). Sweeping (not three single slices) keeps the shadow in
+// one piece: it runs on from the hull to the wheelhouse and the mast instead of leaving a
+// dark patch lying apart from the boat.
+float shadowSlice(vec2 d, vec2 away, vec2 fwd, vec2 side, float h, float halfLength, float halfWidth, float shift) {
+  vec2 q = d - away * h - fwd * shift;
+  float u = dot(q, fwd) / halfLength;
+  float v = dot(q, side) / halfWidth;
+  return 1.0 - smoothstep(0.55, 1.05, length(vec2(u, v)));
+}
 float boatShadow(vec2 p, vec3 sunDir) {
   vec2 away = -sunDir.xz / max(sunDir.y, 0.15);
   float dark = 0.0;
@@ -207,16 +216,13 @@ float boatShadow(vec2 p, vec3 sunDir) {
     if (boat.w < 0.5 || distance(p, boat.xy) > 22.0) continue;
     vec2 fwd = vec2(sin(boat.z), -cos(boat.z));
     vec2 side = vec2(cos(boat.z), sin(boat.z));
-    for (int k = 0; k < 3; k++) {
-      float h = k == 0 ? 0.5 : (k == 1 ? 1.7 : 3.4);
-      float halfLength = k == 0 ? 4.0 : (k == 1 ? 2.0 : 0.45);
-      float halfWidth = k == 0 ? 1.8 : (k == 1 ? 1.3 : 0.4);
-      float shift = k == 1 ? 1.4 : 0.0;
-      vec2 d = p - boat.xy - away * h - fwd * shift;
-      float u = dot(d, fwd) / halfLength;
-      float v = dot(d, side) / halfWidth;
-      dark = max(dark, 1.0 - smoothstep(0.55, 1.05, length(vec2(u, v))));
-    }
+    vec2 d = p - boat.xy;
+    // The hull, from the waterline to the gunwale.
+    for (int k = 0; k < 4; k++) dark = max(dark, shadowSlice(d, away, fwd, side, float(k) * 0.57, 3.9, 1.5, 0.0));
+    // The wheelhouse, forward of amidships, from the deck to the top of its roof.
+    for (int k = 0; k < 4; k++) dark = max(dark, shadowSlice(d, away, fwd, side, 0.8 + float(k) * 0.47, 0.95, 0.85, 1.0));
+    // The mast and lantern: thin, so a faint stripe that joins the roof's shadow.
+    for (int k = 0; k < 10; k++) dark = max(dark, 0.8 * shadowSlice(d, away, fwd, side, 2.2 + float(k) * 0.18, 0.5, 0.45, 0.7));
   }
   return dark;
 }

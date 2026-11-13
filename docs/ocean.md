@@ -225,7 +225,7 @@ The player's boat, and every other player's, is `public/models/boat.glb` (built 
 
 ### Boat shadows on the water
 
-`water.ts` darkens the sea in the shadow of every boat (yours first, then the fleet, up to `BOAT_MAX` = 12). There is no shadow map: each boat is three slices (hull, cabin, mast), each projected onto the water along the sun's ground direction by `height / tan(elevation)`, so the low sun throws a long shadow away from it (`SUN_DIRECTION` in `sea-style.ts`). In shadow the water loses the sun's share of its light (body, glitter, foam) and a little of the mirrored sky. Boats do not shadow islands or each other's decks, and islands/markets cast no shadow on the sea.
+`water.ts` darkens the sea in the shadow of every boat (yours first, then the fleet, up to `BOAT_MAX` = 12). There is no shadow map: each boat is three parts (hull, wheelhouse, mast) swept through their heights (4, 4 and 10 samples; a single slice per part left the wheelhouse and mast shadows lying apart from the boat as a detached dark patch), each footprint shifted along the sun's ground direction by `height / tan(elevation)`, so the low sun throws a long shadow away from it that stays in one piece with the hull (`SUN_DIRECTION` in `sea-style.ts`). In shadow the water loses the sun's share of its light (body, glitter, foam) and a little of the mirrored sky. Boats do not shadow islands or each other's decks, and islands/markets cast no shadow on the sea.
 
 ## Market vendors: the three cats
 
