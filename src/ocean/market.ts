@@ -1,5 +1,5 @@
 import { HARBOR, SEA_BOUND, islandCollisionRadius, islands } from "./model.ts";
-import type { NpcLookId } from "./npc-look.ts";
+import type { CatId } from "./cat-pose.ts";
 import { shoreShape } from "./shore.ts";
 
 /**
@@ -23,8 +23,8 @@ export interface Market {
 /** The person behind a stall: a name, how they look and a line they say when the market opens. */
 export interface Vendor {
   name: string;
-  /** How the person looks: a figure of the sea's people (npc-look.ts, built in npc-visual.ts). */
-  look: NpcLookId;
+  /** Which cat it is (cat-pose.ts, public/models/cat-<look>.glb): lan, tu or sau. */
+  look: CatId;
   /** Said when the market opens. */
   greeting: string;
 }

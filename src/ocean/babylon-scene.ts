@@ -37,6 +37,8 @@ import {
 } from "./chase-camera.ts";
 import { MARKETS, seaObstacles } from "./market.ts";
 import { createMarket } from "./market-visual.ts";
+import { loadCats } from "./cats.ts";
+import { placeVendors } from "./market-vendor.ts";
 import { WakeMesh } from "./wake-mesh.ts";
 import { WakeTrail } from "./wake-trail.ts";
 import { islands, type Boat, type Pose } from "./model.ts";
@@ -120,6 +122,7 @@ export class OceanScene {
   private readonly canvas: HTMLCanvasElement;
   /** Settles once the island models are in place (or failed and the fallback stays). */
   private readonly islandProps: Promise<void>;
+  private readonly vendors: Promise<void>;
 
   static async create(host: HTMLElement, onLost: () => void) {
     const plugin = await createHavok();
@@ -191,6 +194,7 @@ export class OceanScene {
     this.islandProps = this.placeIslandModels(visuals);
     // A fish market on the water off each island.
     this.markets = MARKETS.map((market) => createMarket(this.scene, market));
+    this.vendors = this.placeVendorCats();
     this.seaProps = new SeaProps(this.scene);
     this.observer = new ResizeObserver(() => this.engine.resize());
     this.observer.observe(host);
@@ -317,12 +321,29 @@ export class OceanScene {
     }
   }
 
+  /** The cat vendors appear on the piers once loaded; a failed load leaves the stalls empty. */
+  private async placeVendorCats() {
+    try {
+      const cats = await loadCats(this.scene);
+      if (this.scene.isDisposed) return;
+      placeVendors(
+        this.scene,
+        MARKETS.map((market, i) => ({ market, mesh: this.markets[i]! })),
+        cats,
+        () => this.clock,
+      );
+    } catch (error) {
+      if (!this.scene.isDisposed)
+        console.warn("Vendor cats did not load; the stalls stay empty.", error);
+    }
+  }
+
   /**
-   * Resolves once the island models are placed (or have failed) and every mesh, material and
+   * Resolves once the island models and the vendors are placed (or have failed) and every mesh, material and
    * shader has been compiled for the first frame.
    */
   async ready() {
-    await this.islandProps;
+    await Promise.all([this.islandProps, this.vendors]);
     return this.scene.whenReadyAsync();
   }
 

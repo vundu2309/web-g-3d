@@ -11,7 +11,7 @@ import {
   seaObstacles,
 } from "../src/ocean/market.ts";
 import { BUOYS } from "../src/ocean/sea-layout.ts";
-import { NPC_LOOKS } from "../src/ocean/npc-look.ts";
+import { CAT_IDS } from "../src/ocean/cat-pose.ts";
 import { coastDistance, shoreShape } from "../src/ocean/shore.ts";
 import { HARBOR, islandCollisionRadius, islands } from "../src/ocean/model.ts";
 
@@ -111,7 +111,10 @@ test("every market has its own vendor with a name, a greeting and a look", () =>
   for (const market of MARKETS) {
     const { vendor } = market;
     assert.ok(vendor.name.length > 1 && vendor.greeting.length > 10, market.id);
-    assert.ok(vendor.look in NPC_LOOKS, `${market.id}: look ${vendor.look}`);
+    assert.ok(
+      CAT_IDS.includes(vendor.look),
+      `${market.id}: look ${vendor.look}`,
+    );
     names.add(vendor.name);
   }
   assert.equal(names.size, MARKETS.length, "vendors are different people");

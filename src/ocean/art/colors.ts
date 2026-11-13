@@ -67,7 +67,7 @@ export const PAL = {
   /** The fisherman on the boat. */
   crew: { coat: 0xffc83d, trousers: 0x2f5d8a, skin: 0xf2b98f, hat: 0xe9c46a },
   /**
-   * The people of the sea (the market vendors and later NPCs, built in Blender: tools/blender/people.py):
+   * The people and cats of the sea (built in Blender: tools/blender/people.py, vendors.py; the game reads no role from here directly):
    * skin tones, hair, the face and each look's clothes, by role.
    */
   people: {

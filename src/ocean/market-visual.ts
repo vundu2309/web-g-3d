@@ -6,7 +6,6 @@ import { PAL } from "./art/colors.ts";
 import { glowMaterial, useSolid } from "./art/materials.ts";
 import { Parts, SIDES } from "./art/shapes.ts";
 import { GANGWAY_REACH, type Market } from "./market.ts";
-import { createVendor } from "./market-vendor.ts";
 
 /**
  * One fish market: a floating wooden pier on rope-wrapped pylons with a stall under a
@@ -385,7 +384,7 @@ export function createMarket(scene: Scene, market: Market): Mesh {
   mesh.rotation.y = -market.facing;
   mesh.isPickable = false;
   mesh.freezeWorldMatrix();
-  // The vendor is a child of the (frozen) pier, so it follows it but is free to animate.
-  createVendor(scene, mesh, market.vendor, market.x * 0.37);
+  // The vendor (a cat, placed once its model has loaded: market-vendor.ts) is a child of this
+  // frozen pier, so it follows it but is free to animate.
   return mesh;
 }

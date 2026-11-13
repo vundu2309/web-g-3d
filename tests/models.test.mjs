@@ -21,7 +21,7 @@ const PEOPLE = readdirSync(new URL("../public/models/", import.meta.url))
   .filter((file) => /^people-\d\.glb$/.test(file))
   .sort();
 
-test("all five people are built (kept for later; the market vendors are figures built in code)", () => {
+test("all five people are built (kept for later; the market vendors are the cats, tests/cats.test.mjs)", () => {
   assert.deepEqual(
     PEOPLE,
     [1, 2, 3, 4, 5].map((n) => `people-${n}.glb`),

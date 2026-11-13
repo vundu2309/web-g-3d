@@ -1,6 +1,7 @@
 import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { Matrix } from "@babylonjs/core/Maths/math.vector";
 import type { Scene } from "@babylonjs/core/scene";
 import { LoadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
 import "@babylonjs/loaders/glTF";
@@ -83,4 +84,61 @@ export async function loadMergedModel(
   merged.hasVertexAlpha = false;
   useSolid(merged, "satin");
   return merged;
+}
+
+/** A model whose named parts each have a pivot node of their own (see `loadPartsModel`). */
+export interface PartsModel<Name extends string> {
+  /** The model's single root, at the feet; place and parent this. */
+  root: TransformNode;
+  /** The pivot of every part: rotate it about its own origin. Its one mesh hangs from it. */
+  parts: Record<Name, TransformNode>;
+  meshes: Mesh[];
+}
+
+/**
+ * Loads a GLB whose root has the named parts as children and keeps each part separate, so it can
+ * be animated (`loadMergedModel` would melt everything into one mesh). Each part's primitives are
+ * merged into ONE mesh (the exporter writes one per palette colour) with the shared solid look,
+ * hung from a pivot node placed where the part's own node was (the neck, a shoulder, the base of
+ * the tail); a part whose node sits at the root's origin pivots there. The loaded file's own
+ * nodes are removed. The root must be at the origin with no rotation or scale (checked by
+ * tests/cats.test.mjs for the cat files), because the parts are merged in the root's frame.
+ */
+export async function loadPartsModel<const Name extends string>(
+  scene: Scene,
+  file: string,
+  partNames: readonly Name[],
+): Promise<PartsModel<Name>> {
+  const model = await loadModel(scene, file);
+  model.root.computeWorldMatrix(true);
+  const parts = {} as Record<Name, TransformNode>;
+  const meshes: Mesh[] = [];
+  const stray: TransformNode[] = [];
+  for (const name of partNames) {
+    const node: TransformNode | undefined = model.node(name);
+    if (!node) throw new Error(`${file}: no node "${name}"`);
+    node.computeWorldMatrix(true);
+    const pivotAt = node.getAbsolutePosition().clone();
+    const mine = model.meshes.filter(
+      (mesh) => mesh === node || mesh.isDescendantOf(node),
+    );
+    const merged = Mesh.MergeMeshes(mine, true, true, undefined, false, false);
+    if (!merged) throw new Error(`${file}: "${name}" has no geometry`);
+    merged.bakeTransformIntoVertices(
+      Matrix.Translation(-pivotAt.x, -pivotAt.y, -pivotAt.z),
+    );
+    merged.name = `${file.replace(/\.glb$/, "")}-${name}`;
+    merged.isPickable = false;
+    merged.hasVertexAlpha = false;
+    useSolid(merged, "satin");
+    const pivot = new TransformNode(`${merged.name}-pivot`, scene);
+    pivot.parent = model.root;
+    pivot.position.copyFrom(pivotAt);
+    merged.parent = pivot;
+    parts[name] = pivot;
+    meshes.push(merged);
+    if (node !== merged) stray.push(node);
+  }
+  for (const node of stray) if (!node.isDisposed()) node.dispose();
+  return { root: model.root, parts, meshes };
 }

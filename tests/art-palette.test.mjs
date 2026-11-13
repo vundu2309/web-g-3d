@@ -11,8 +11,6 @@ const MIGRATED = [
   "sea-props.ts",
   "island-visual.ts",
   "island-props.ts",
-  "npc-look.ts",
-  "npc-visual.ts",
 ];
 
 test("migrated visual files take their colours from the shared palette", () => {
