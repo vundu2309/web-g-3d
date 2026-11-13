@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:1aa8ab642d52b5c019ef797108b34d5af4db113b1a6019a44c0090df5b2b4228",
+  "pageVersion": "sha256:0987b5a99f94a9c83b4774eecc0dd9b60e9a7601232546a8fd218b2ddce87736",
   "claims": [
     {
       "id": "claim_c48c88a21cf14dd39b37deb5ae6894ff",
@@ -82,11 +82,11 @@
       "evidence": [
         {
           "resource": "repo://src/app/account.ts",
-          "version": "repo-file-v1:sha256:80ebf6fbfb12a1c63af5007757794864f62388b5d7da30ce3fe7ee93b9a4196a"
+          "version": "repo-file-v1:sha256:682335fb3498baf604e5dc72cf0d54655c8c1f1add21bbcc146dee0fc9e1de7a"
         },
         {
           "resource": "repo://src/app/harbor.ts",
-          "version": "repo-file-v1:sha256:f9d7106eb9fb6dda543e91cbc8b269a3a5ea8053937bbcab9e6c969507ea0d7b"
+          "version": "repo-file-v1:sha256:e090d518b3ab0d84ff12391e82f434199083e73a5a79eb5830585b6750bf1023"
         },
         {
           "resource": "repo://src/app/start.ts",
@@ -94,7 +94,7 @@
         },
         {
           "resource": "repo://src/platform/account.ts",
-          "version": "repo-file-v1:sha256:2bd4606ed01adc0e26ac114920c4fb26b2d8e33f6f136fb243ffda18a0e69326"
+          "version": "repo-file-v1:sha256:945e8bc5e1e4c277c7ce711d7fd2460e9456156bccb9a2dfd1c3856408a43c8b"
         }
       ]
     },
@@ -190,15 +190,15 @@
       "evidence": [
         {
           "resource": "repo://docs/pwa.md",
-          "version": "repo-file-v1:sha256:94f5f14aeba412fa133ac77cb77100f64fe15cd67af505246e12eb123ce3f2c5"
+          "version": "repo-file-v1:sha256:db7aefaf701449c62888b6b335bc14227265e1647503b9183785a04eb77a0661"
         },
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:b9c2d6cf994f74faf891777761423a6c0317219bc207754c6e9c940a88c4802a"
+          "version": "repo-file-v1:sha256:d5f989349a224315e3933d02356feabbd1148247c99435103e9ac4f37f774ffb"
         },
         {
           "resource": "repo://tests/pwa-browser.mjs",
-          "version": "repo-file-v1:sha256:21a43103c558e9a3e50c6a1762ee97976d6057fadb4092e3d38b11f9dab720f0"
+          "version": "repo-file-v1:sha256:0e3e51cf3cacf7117316fe25c40d8d247f71865a39e68c8c8422cba22fd097c5"
         }
       ]
     },
@@ -208,7 +208,7 @@
       "evidence": [
         {
           "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:3d97f3e2897d6ac6f747ee4407ebadbfbb006eb9bd7c43feffdde08093dcb078"
+          "version": "repo-file-v1:sha256:0494f441f7e6ae2adeec70853b8248f0e5eb4409287bb76ce51307a5c7b43d8a"
         },
         {
           "resource": "repo://src/game-ui/render.ts",
@@ -220,37 +220,11 @@
         },
         {
           "resource": "repo://src/style.css",
-          "version": "repo-file-v1:sha256:29adbe8187225cdda496f42146faad0716f43d3b174a04656cf982a8fd4bef51"
+          "version": "repo-file-v1:sha256:e8bd4e646b9a542bd0fae5337e4b1797cff5527fb464466b632074829144003c"
         },
         {
           "resource": "repo://tests/safe-area-browser.mjs",
           "version": "repo-file-v1:sha256:ee8ae0f23f771c78acb7811493d39647007951a6f456b2c4247c89cd019bd0d1"
-        }
-      ]
-    },
-    {
-      "id": "claim_bcf54bf16b674d22b11dcbb375e2b0af",
-      "statement": "Waiting PWA updates never auto-reload; Cập nhật ngay requires confirmation and the requesting client to be the only window in scope before skipWaiting. Only that requester reloads on controllerchange; another window blocks apply with a visible message. Closing all clients still permits natural activation.",
-      "evidence": [
-        {
-          "resource": "repo://docs/pwa.md",
-          "version": "repo-file-v1:sha256:94f5f14aeba412fa133ac77cb77100f64fe15cd67af505246e12eb123ce3f2c5"
-        },
-        {
-          "resource": "repo://scripts/service-worker.js",
-          "version": "repo-file-v1:sha256:d47b180a9d42cb7ef5d6f7ed467a853dfc9b50ac40b13574b71be2f147c37c08"
-        },
-        {
-          "resource": "repo://src/app/pwa.ts",
-          "version": "repo-file-v1:sha256:6cd71a674089cb42a1def4bd1ef26d804d5a24a2f98c91257708b8f18a9807f8"
-        },
-        {
-          "resource": "repo://src/platform/pwa.ts",
-          "version": "repo-file-v1:sha256:881b0887e386fd110f2512de2245d2ebfc55e2b95a2bfc223ce8c2a357f3490a"
-        },
-        {
-          "resource": "repo://tests/pwa-browser.mjs",
-          "version": "repo-file-v1:sha256:21a43103c558e9a3e50c6a1762ee97976d6057fadb4092e3d38b11f9dab720f0"
         }
       ]
     },
@@ -286,27 +260,23 @@
     },
     {
       "id": "claim_273beb55a48e47138186554369628fd4",
-      "statement": "Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.",
+      "statement": "Runtime Supabase opt-in có facade Auth Email/Password, trạng thái chờ xác nhận email và màn đặt mật khẩu mới; phòng gửi HTTP mutations kèm Bearer access token, nhận Socket.IO snapshots và dùng khóa sessionStorage tách theo provider; kiểm thử Docker cô lập trong scripts/test-supabase.mjs dùng GoTrue, PostgREST và PostgreSQL thật với hai browser context.",
       "evidence": [
         {
-          "resource": "repo://docs/infrastructure.md",
-          "version": "repo-file-v1:sha256:2930e8c98fbe4d8b486d0330429f00a5e2c0d345d19fdc327ac9dde0dde3248b"
-        },
-        {
           "resource": "repo://scripts/test-supabase.mjs",
-          "version": "repo-file-v1:sha256:4bac1add7aba87dfdae34ea0049fc7d6f88e69f4561a4c5fef27156ca884d0dd"
+          "version": "repo-file-v1:sha256:b4066a39a2403ae2231ec3e182fdd8d81015c798e3f9b21dba847a9498bd8812"
         },
         {
           "resource": "repo://src/app/password-recovery.ts",
           "version": "repo-file-v1:sha256:15c9444965ddf4b70c816ed92ea9ec83327acca78350f9fae5ce50773bdf66fc"
         },
         {
-          "resource": "repo://src/platform/account.ts",
-          "version": "repo-file-v1:sha256:2bd4606ed01adc0e26ac114920c4fb26b2d8e33f6f136fb243ffda18a0e69326"
+          "resource": "repo://src/app/start.ts#L49-L49",
+          "version": "repo-lines-v1:sha256:53922c0bdad10780a9bf88f599b0d776f47183dc93df4e0e67bf0f4b2a7acaac:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTM5MjJjMGJkYWQxMDc4MGE5YmY4OGY1OTliMGQ3NzZmNDcxODNkYzkzZGY0ZTBlNjdiZjBmNGIyYTdhY2FhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTM5MjJjMGJkYWQxMDc4MGE5YmY4OGY1OTliMGQ3NzZmNDcxODNkYzkzZGY0ZTBlNjdiZjBmNGIyYTdhY2FhYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzcyOGRlNGRhYTI0MzFhYWY3YjM3MjhhYjY2NWQ3NDAxNDg5NWM1NTEyOTI2MDllOTRiOGZlYjFiNjEzZGQ0YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjgwNDVkMWFkMWIyMzgwNTdhMDc3N2E3MTBmNzhhYWIxN2E5YzA4YzFiMWI2YzgwNzkzM2FiYzIxZDMzYWE2YSJ9"
         },
         {
-          "resource": "repo://src/platform/api.ts",
-          "version": "repo-file-v1:sha256:f69dd765e5c662d27e4ac7ae48cfe9021ae09b42fd72c1ea9492cad2d5fa71ca"
+          "resource": "repo://src/platform/api.ts#L27-L27",
+          "version": "repo-lines-v1:sha256:6ebf9fddadc301a999b593dc87a9d8852698a5ee13a987ef524a2f5876fdb9c6:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViZjlmZGRhZGMzMDFhOTk5YjU5M2RjODdhOWQ4ODUyNjk4YTVlZTEzYTk4N2VmNTI0YTJmNTg3NmZkYjljNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViZjlmZGRhZGMzMDFhOTk5YjU5M2RjODdhOWQ4ODUyNjk4YTVlZTEzYTk4N2VmNTI0YTJmNTg3NmZkYjljNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjdhY2Q4NzE5Y2RlMTg2NTU1YTE5YjhjM2M2NWVlNjk0NzdlNWRhODkxNzkyYWFmNDE5NWI0OGM3MmNmYTIzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmUwZDZhNzdhZmNmNTIzNTNlY2Q2NjhiODI1Y2M4NThhMmZkODRmMTZkYjQ1MmUzZmQ3ZmUzOTQwMDBlYjczMyJ9"
         }
       ]
     },
@@ -316,7 +286,7 @@
       "evidence": [
         {
           "resource": "repo://docs/ocean.md",
-          "version": "repo-file-v1:sha256:c5f2fdc2d379bdf583cc2af60ad005ddf905bf9511a9f447a5abf7bdd40db326"
+          "version": "repo-file-v1:sha256:86e7c3b7e211db494559f76f09a3b1d7bdfc235488f74c7d4f00fd4f6796750c"
         },
         {
           "resource": "repo://src/main.ts",
@@ -326,7 +296,7 @@
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.3",
-    "at": "2026-11-05T03:59:28.286Z"
+    "by": "openwiki/0.8.0",
+    "at": "2026-11-13T03:02:54.827Z"
   }
 }

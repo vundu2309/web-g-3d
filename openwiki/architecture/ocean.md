@@ -1,8 +1,10 @@
 ---
-type: architecture
-title: Biển đánh cá online dùng chung
-description: Một thuyền mỗi tài khoản, vào thẳng biển qua Auth hiện có, hai adapter online và giới hạn phiên tạm thời.
-tags: [ocean, gameplay, multiplayer, auth, socketio, firebase]
+type: "Tham khảo"
+title: "Biển đánh cá chung: tổng quan và ranh giới"
+openwiki_generated: true
+verified:
+  - by: openwiki/0.8.0
+    at: 2026-11-13T03:02:54.827Z
 sources:
   - id: openwiki-source-18fc7b64e66932d83fa70cfc
     resource: repo://docs/ocean.md
@@ -18,10 +20,10 @@ sources:
     resource: repo://src/app/ocean.ts
   - id: openwiki-source-d4189bbeecb62806cb297b5a
     resource: repo://src/main.ts
+  - id: openwiki-source-69220ba068a830c8d6971aab
+    resource: repo://src/ocean/babylon-scene.ts
   - id: openwiki-source-415ab528c104eb4374a5e47b
     resource: repo://src/ocean/model.ts
-  - id: openwiki-source-c4772bad9ebddbcdb376b988
-    resource: repo://src/ocean/scene.ts
   - id: openwiki-source-d9571426a00d5a5ac9f9c54c
     resource: repo://src/platform/ocean-firebase.ts
   - id: openwiki-source-da299de568c1622268f94e39
@@ -30,38 +32,60 @@ sources:
     resource: repo://tests/ocean-browser.mjs
   - id: openwiki-source-739950034b62004a0096c757
     resource: repo://tests/ocean-socket.test.mjs
-  - id: openwiki-source-c8244a27b2e0d506bb9d0910
-    resource: repo://tests/ocean.test.mjs
-generated: { by: "codex", at: "2026-11-05T03:32:21.077Z" }
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-05T03:59:28.286Z
+generated: { by: "claude-code", at: "2026-11-13T03:02:54.827Z" }
 ---
 
-# Biển đánh cá online dùng chung
 
-## Luồng và quyền sở hữu
+# Biển đánh cá chung: tổng quan và ranh giới
 
-`src/main.ts` mặc định mở `src/app/harbor.ts`. Bấm **Vào game**, đăng nhập/đăng ký bằng dialog hiện có nếu cần, rồi vào thẳng biển. Mỗi tài khoản điều khiển một thuyền riêng trên một map chung; không tạo/join phòng, mã mời, host hay readiness. `?view=ocean` khôi phục lối vào sau reload. Auth và password recovery chọn provider đã cấu hình. Hub Monopoly cũ ở `?view=monopoly-hub`; HUD/bàn preview vẫn ở `?view=game`, code/resource được bảo toàn.
+## Phạm vi
 
-`src/app/ocean.ts` sở hữu input, vòng animation, HUD/dialog và cleanup. `src/ocean/model.ts` định nghĩa pose, spawn ổn định theo UID, góc chuẩn hóa, di chuyển giới hạn và tránh đảo; payload từ mạng được kiểm tra trước render. `src/ocean/scene.ts` giữ một renderer Three.js, thuyền/đảo thủ tục, shader mặt biển, camera theo thuyền và label qua textContent. Không thêm engine hay framework.
+[Hợp đồng biển](../../docs/ocean.md) và [quyết định 0007](../../docs/decisions/0007-shared-fishing-sea.md) đã chốt: mỗi người chơi là một thuyền riêng trên một biển chung; không có phòng, lời mời, sảnh chờ hay sẵn sàng. Người chơi vào từ nút "Ra khơi" của hub, đăng nhập bằng dialog hiện có rồi vào biển ngay. `?view=ocean` mở lại luồng này sau khi tải lại; rời về hub sẽ rời biển.
 
-## Điều khiển và câu cá
+Biển là route mặc định của `src/main.ts`: không có `view`, hoặc `view=ocean`, đều vào [hub](hub.md) qua `startHarbor`. Hai route Monopoly cũ (`?view=monopoly-hub`, `?view=game`) được giữ nguyên.
 
-WASD/phím mũi tên hoặc pad cảm ứng điều khiển tiến/lùi/rẽ. Thả câu dừng thuyền; chờ tín hiệu cá cắn rồi bấm kéo trong 2,5 giây. Thu sớm hoặc bỏ lỡ không có cá. Kho cá chỉ tính trong chuyến hiện tại, reset khi rời/reload; chưa là inventory lưu lâu, tiền, giao dịch hay phần thưởng có thẩm quyền. Người khác thấy trạng thái đang câu. HUD dùng một vùng safe area, target ít nhất 44px và reduced motion; ảnh browser không thay kiểm tra điện thoại thật.
+## Ownership
 
-## Đồng bộ theo provider
+| File | Trách nhiệm |
+| --- | --- |
+| `src/app/harbor.ts` | Hub "Ra khơi", theo dõi tài khoản, vào và thoát biển |
+| `src/app/ocean.ts` | Điều khiển, HUD, hộp thoại, vòng đời và dọn dẹp; nối câu cá, chợ và kết nối lại |
+| `src/ocean/model.ts` | Spawn xác định theo UID, giới hạn di chuyển, va đảo, kiểm tra payload từ xa |
+| `src/ocean/babylon-scene.ts` | Scene Babylon.js: một engine, thuyền người chơi có Havok, camera đuổi theo, thuyền khác và nhãn |
+| `src/ocean/havok.ts`, `boat-physics.ts` | Nạp WASM Havok và thân thuyền vật lý ([quyết định 0008](../../docs/decisions/0008-babylon-havok-boat-physics.md)) |
+| `src/ocean/water.ts`, `sky.ts`, `waves.ts`, `island-visual.ts`, `boat-visual.ts` | Nước, bầu trời, sóng và mô hình thủ tục |
+| `src/platform/ocean.ts` | Chọn adapter: `ocean-socket.ts` khi dùng Supabase, `ocean-firebase.ts` khi không |
+| `src/ocean/save.ts` | Lưu vị trí và kho cá trên thiết bị theo UID |
 
-`src/platform/ocean.ts` chọn cùng provider với Auth. Cấu hình Supabase dùng `ocean-socket.ts` và `server/ocean.mjs`: server xác thực lại command, lấy UID từ phiên, giới hạn pose/payload/rate, tối đa 100 thuyền và chỉ gửi `ocean:state` cho socket đã vào kênh. Một UID chỉ có một phiên; tab mới thay tab cũ; disconnect chỉ xóa đúng phiên đang sở hữu.
+`src/hub` không thuộc biển. Adapter platform không import app.
 
-Biển Socket.IO nằm trong RAM của **một API process/instance**, reset khi deploy/restart. Không có schema Supabase mới hoặc polling. Không scale nhiều instance trước khi có world state/broadcast chung. PostgreSQL LISTEN/NOTIFY của phòng Monopoly vẫn giữ nguyên và không đồng bộ thế giới biển này.
+## Vòng đời
 
-Cấu hình Firebase dùng `ocean-firebase.ts`, collection `monopolyHub/v1/oceanBoats`, document theo UID, transaction và session lease. Query theo updatedAt giảm dần, limit 100. Rules chỉ cho own-UID ghi schema hợp lệ với server timestamp; user đã đăng nhập đọc danh sách giới hạn. Chuyển động tối đa một lần ghi/giây, heartbeat 10 giây khi tab hiện, thuyền từ xa quá 30 giây không cập nhật bị ẩn. Transaction không xếp hàng chuyển động offline. Mất mạng/lỗi hiển thị và yêu cầu về hub vào lại, không tự thay bằng demo.
+1. Hub gọi `requirePlayer` (Auth hiện có). Khi đăng nhập xong, hub import `src/app/ocean.ts` và bật màn loading ba bước: đồ họa, kết nối, vào biển.
+2. `connectOcean` mở adapter. Với Socket.IO, client gửi `ocean:command` `join`; với Firestore, client ghi tài liệu thuyền rồi theo dõi danh sách.
+3. Vị trí thuyền được khôi phục từ `save.ts`; nếu vị trí cũ không hợp lệ hoặc nằm trên đảo, thuyền về bến.
+4. Người chơi điều khiển bằng cần lái, bật câu cá và bán cá ở chợ gần pier (xem [câu cá](ocean-fishing.md), [kinh tế](ocean-economy.md)).
+5. Rời biển hoặc tải lại trang: trạng thái được lưu trên thiết bị. Khi mất kết nối giữa chừng, `connectionLost` tự kết nối lại; chỉ dừng khi phiên bị từ chối thật.
 
-## Kiểm chứng và triển khai
+## Dữ liệu và persistence
 
-`tests/ocean.test.mjs` kiểm tra di chuyển, biên/đảo, 1.000 góc spawn và payload lỗi. `tests/ocean-socket.test.mjs` dùng Socket.IO client thật kiểm tra hai thuyền, push, UID, pose lỗi, thay phiên và không rò snapshot cho socket chưa vào biển. `tests/ocean-browser.mjs` dùng hai tài khoản Auth/Firestore emulator thực để kiểm tra vào trực tiếp, chuyển động xuất hiện ở trình duyệt khác, câu cá, layout, reload, duplicate session, rời và offline. Chặn request Firebase production.
+- Vị trí thuyền và kho cá: localStorage, khóa `photyphu:sea:v1:<uid>`, không đồng bộ giữa thiết bị.
+- Trạng thái đang chơi trên server: chỉ có danh sách thuyền trong RAM của một API instance (Socket.IO) hoặc tài liệu Firestore (adapter Firebase). Không có lưu trữ kinh tế hay vị trí ở PostgreSQL.
+- Số dư xu và sổ cá chưa bán nằm trên server chỉ khi migration `supabase/pending/20261112090000_economy.sql` được áp dụng và `VITE_ECONOMY=on`. Chưa áp dụng thì không có chợ.
 
-`npm run test:supabase` giữ kiểm tra account/phòng/recovery bằng GoTrue/PostgREST/PostgreSQL/SMTP local và thêm hai browser vào biển, đồng bộ vị trí và rời game. `npm run check` chạy hồi quy Monopoly, browser dev/production, PWA, rules và API. Rules Firebase và API Render cần triển khai riêng; frontend build hoặc test local không tự chứng minh online production/hai điện thoại thật.
+## Giới hạn
 
-Nguồn hợp đồng: [docs/ocean.md](../../docs/ocean.md), [quyết định](../../docs/decisions/0007-shared-fishing-sea.md), [hạ tầng](infrastructure-transition.md).
+- Socket.IO sea state nằm trong bộ nhớ của **một** instance API và mất khi deploy. Không scale ngang cho tới khi có trạng thái mô phỏng dùng chung. Chi tiết nằm ở [realtime biển](ocean-realtime.md).
+- Câu cá và cắn cá do client quyết định; server chỉ giới hạn tốc độ và khoảng giá trị trong kinh tế.
+- Mô hình thuyền và người bán đến từ pipeline Blender (`public/models/people-*.glb`, xem [pipeline tài nguyên](../operations/art-pipeline.md)).
+- Ảnh trong `docs/design/sea-creatures-*.png` là concept, không phải bằng chứng render.
+
+## Kiểm chứng
+
+- Unit: `tests/ocean.test.mjs`, `tests/ocean-socket.test.mjs` (Socket.IO thật, giao thức 2), `tests/fishing.test.mjs`, `tests/fight.test.mjs`, `tests/boat-physics.test.mjs`, `tests/creatures.test.mjs`, `tests/economy.test.mjs`, `tests/market.test.mjs`.
+- Trình duyệt: `tests/ocean-*-browser.mjs` (loading, resume, input, fishing, market, multiplayer, Babylon) chạy qua `scripts/test-browser.mjs`; `tests/ocean-browser.mjs` dùng Firebase emulator.
+- Full-stack Supabase: `scripts/test-supabase.mjs` có kiểm tra biển chung.
+
+Kiểm chứng local không thay thế việc triển khai API và rules thật, cũng không thay thế kiểm tra trên điện thoại thật. Mục tiêu hiệu năng trên thiết bị yếu vẫn chưa được đo.
+
+Xem thêm [hub](hub.md), [chuyển đổi hạ tầng](infrastructure-transition.md) và [phát triển và kiểm tra](../operations/development.md).

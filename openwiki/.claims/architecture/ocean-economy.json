@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:1e7460c6041b3b830d085b88c5aec642620f936bae4267721dbf33a9541acfed",
+  "claims": [
+    {
+      "id": "claim_dca7b3e7d3d246959f29439befc8c150",
+      "statement": "Kinh tế biển lưu ví và sổ cá trên server trong schema economy_private; client chỉ gọi ba RPC công khai economy_state, economy_record_catch và economy_sell, còn bảng và hàm nội bộ bị thu hồi quyền từ public, anon và authenticated.",
+      "evidence": [
+        {
+          "resource": "repo://src/platform/economy.ts#L41-L68",
+          "version": "repo-lines-v1:sha256:0a3db8fca7ae6719078d73231b62f111671d915aaf2b278bc3de0e6da71f1de5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwOWM1MWIyMWNkM2ZiNDJlOTY1NDE0Y2I5YmQ0Mjc0Yjg5OTY3YzAxMmJiMWJjNDY4N2E2NDdhZDFhYTQ1NTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNTgwZTk2NGY4M2E0NzNmNDNkNDQzODQ2Mjk0OWQ2OGI1NjAwZmRhNzg3ZjE2Mzc0NWQwMGRlODljYmYzNmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://supabase/pending/20261112090000_economy.sql#L155-L173",
+          "version": "repo-lines-v1:sha256:927c87bd6f992b03fa36a7a73e18ec047aa4d1fae9cb7b8d95a4c9cd2a4d1151:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUzMTU3ZDhjODE2NDY1MGI1NDVlNWMyYTMwNjFmNjNmODE4MWM1OGIyNWJhOTE3ODdiOGFmNGJjMzgwNmYwMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5ZGY2NTM0YWFiMGQwMTA0MjNlNzcxZWY1ZDU1ODQzYWM5N2IyNThkMmJmMjY1ZmEyMTFiNmI4MjYyNDYxZmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg3MjlhMDE1ZGU4ZTI4YzFjNmJhNTcwMzIyYzI1MTMzOWQzOGQxM2Q4ZDc0YWFlZjVjMGE4OTY3NzUwNzYzNjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://supabase/pending/20261112090000_economy.sql#L8-L9",
+          "version": "repo-lines-v1:sha256:b666ee046295f5cf3b0abb0a90bf3c462ea13deb4733f9a60010846b0525dd47:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzY2NDM5NGY2ZDU4OWQ1MDQxZmNmYmZiYjY0MmVlOGRhODhkYmNmZTlkODUyNzg2M2MyYTFjMWY0M2Y4ZjY2MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGY0YTJlYjhlOTgwODE2NzNjOTczNTA4ZjE2ZTY4N2NmMzk0NGZmYmUwMmMyZmQ1ZDE0OTE0ZTlmNmNhN2Q2YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjI1M2RkZjk0YjQzOWU0MWFlMjJlODlkMjEzYWRlZDc3OGJkMTc4OTQ2OGM2ZGRlOTEzZGJhMTA5MTMzNzZmZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmY0ZDg4MjIyMTc1YTA0ZDVhYWFjYjQzNGI4MzYwY2U3NGJjYzg1YzUwNzQwNTVkMjM5NTk5ZjdkYjIwNDRmYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_0edf52089f1141e89ba3beb9001f466f",
+      "statement": "Server xác định danh tính người gọi bằng auth.uid(), từ chối khi chưa đăng nhập và tự tính giá bán từ bảng economy_private.fish_prices, nên client không gửi giá hoặc số dư được chấp nhận.",
+      "evidence": [
+        {
+          "resource": "repo://docs/decisions/0010-server-economy.md",
+          "version": "repo-file-v1:sha256:b7e4aa9001096c6a309888617841e5ef6a07d0eaa63f24784e287d051373d6f3"
+        },
+        {
+          "resource": "repo://supabase/pending/20261112090000_economy.sql#L119-L153",
+          "version": "repo-lines-v1:sha256:10542f1cc25a6995800916f9924807f65a1068456c83c6f6aed41a8292e27c90:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJjN2U2NGJmNDQ1NmU0YTIwOThlZTU1OWY4MjgzZWU0MGM2MWU4OTdhMjk2MjA0M2QyMzRiMGFmZmU2NzU2YmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiYmQzODk0ODBlNWVlM2Q3ZWQ1ZjQwMzFmNWM2ODg3MzhhNjgzNjZkZDk1MzNhZTcwZjAwYzQ3YzdkNGE0NjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg0ODdhYjcwZWRiMzBjZmYxY2E0ZGQxODI2OTVmYTUyOTc1MzYwYzYwZWY4MzkwZDc2NjczMzA5MTYwMWE1YWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0YjNhZWEwMjkzZmE2MDFhYmE3ZmMyNzZkNTNiNGM5MjcyYmY0MGVkNTRmYTY0NjAzNmE2NjUyM2QwNTdlOGYifQ"
+        },
+        {
+          "resource": "repo://supabase/pending/20261112090000_economy.sql#L67-L74",
+          "version": "repo-lines-v1:sha256:2fee0268bf9ac6737f49926ec8c8c7abbb000bbafad4654f9fc3c67942dfa4a4:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWE1NTdmYTY4NWM5NTAwY2E4NDFjYTgwN2NjZjMzYjZhNzY5NjJiZDI5OGJkNzAyZTFlNzYwNWU5NWI5MjZhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjk3OGIxNWFiZWIyNThkZTAzY2M5YzYwMmYyMmRhNzUwNzA4ZGNjNTAyNTM1ODg0YTlkZGZkYTgyZjM3ZjEyMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjE2ZDAzMDYyMjBhNGEzYjg0OGM1OGZhYTc4YTEwYjFmOWZlYjhmYjY2Zjk0OTg5ZjAxYzYyZWNhNzc2MjFkMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_bb05f44c4244427d8f79ff9d882edf57",
+      "statement": "record_catch từ chối loài không có trong bảng giá, cân nặng ngoài khoảng của loài, lần bắt cách dưới 6 giây và sổ có từ 200 con trở lên; các lỗi tương ứng được ánh xạ thành fast, full, invalid và closed phía client.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/economy.ts#L49-L57",
+          "version": "repo-lines-v1:sha256:cc3759a58958be8074c951d4e30ec3e5530d72646e114f8e0cb804950e3d7044:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjkwMTFhZjJmYzVmMGI1ZGFjYWY2Njc2YTI0MDQ3ODZhNmFhYWMzNzhhOTMwMTFiZmFkMzVkNzY2Nzc1MmNjZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDAyYTcwOTRjNTYwODA3MGNlMWJlZDNlMWRkNGJiOTk0ZjBiMTg4MDcyMWQzM2ExNGY3OTUwODA5NjQ3YjZmOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjUwYzc3OWNhOTEyZjZmNzdmMGYxNjk0Zjk5ODJmNjA0ZDJhMzdiNmY4MjJlMTRkZWJkYWRlYzM5ZGU4OWE1YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmYwNDI4YmJhZmRiNTc3M2ZkMzg0MzIxZjFjMTYzOTc0YjllOWY3MzZmNjFmNTg2NmVkOWViMjA5MGNhYTZhMCJ9"
+        },
+        {
+          "resource": "repo://src/platform/economy.ts#L16-L37",
+          "version": "repo-lines-v1:sha256:72a10f0469776463fc653671b971b1581941f269875aafe24d57d39b7a2ce2a5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4ZGMxYjQ3MWY3NDZlMTVmODYyODc2ZWE0OWFiZTk2YmRmYTMxNDY0MDU3YzJmYjcwM2NjM2U0ZTU5NWEwZmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1MjcyN2JjYWE2MmNiOGY2MzdjNjUxMTU2MjY3MDZjMjUwODczZGY2MTc2OTQxMmNlNzVmNTZiZWM3Nzk0YzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiNTgwZTk2NGY4M2E0NzNmNDNkNDQzODQ2Mjk0OWQ2OGI1NjAwZmRhNzg3ZjE2Mzc0NWQwMGRlODljYmYzNmEifQ"
+        },
+        {
+          "resource": "repo://supabase/pending/20261112090000_economy.sql#L90-L118",
+          "version": "repo-lines-v1:sha256:155fb8d90a3bca97282ce08f67a97dc0229153af354a6dc8329354e5216b586e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyYTM0OGM3MzkxODIyOWM1NGQ1Mzg1MDg0MDA4MDdhZmNiMjYwMDljYjdlOTk2ODM0ZTY1MWE1OTk1NmU1YmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0YTkwZThjMTY3M2JjYmRlMTMxNzQyZjFjMDFlZGQzYzVhMDJlMmYxYjE3MGJkY2ZhMTE1YzIyYzY2ZWZkOTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2MzJlYzdlMTZhMGUxMTZmMGYwZDg0N2U0MjdiMTQ2MTAxZGVmYjU3YTQ2YzVjZWUwZWI0M2Q1MWM1MzNlODIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmMjhlMTBiYWZmZDM1MDllNWFkMmVkMjFkYWQ1MjIyMzFlM2JlNDIyZTg0MTJkMGY1NTljMDk5MmE0NTdlM2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ecdf9997dbfe4d03989127e3a4f06020",
+      "statement": "Kinh tế chỉ bật khi backend là Supabase và VITE_ECONOMY=on; app/ocean.ts chỉ nối supabaseEconomy vào chợ khi điều kiện này đúng, còn nếu không chợ không có economy.",
+      "evidence": [
+        {
+          "resource": "repo://src/app/ocean.ts#L224-L228",
+          "version": "repo-lines-v1:sha256:90fa73fbce19ee8d0dacb8a24035df45c98baf7187c7ca8931114a26c125738e:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmZkZThmNGM0MzhjY2JkNDRhYTdmZmZmZWYwMWU4ODk4NzI3OGIyNjkzYWJmOGYzZTQ2NGY1NDhiYjQxNzExMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTU0NmQ4NTM2NjI5NWFhYzM5OTY0YzFkOTM3YzQyYzMxMDkxNjA1ZTFlNWJiODdiNDQ2NDllZmE2M2QyM2NhYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjk4NDU2M2I5NzdlMDFjNjdhN2RmZTc4ZDA1MWRkMDcyNGM1NDlkMmRlMmZmMjEwYzlhNmY2ZjU5Nzg1ZjE5YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWUzODljYmQxNzgyZWM2ZDU4ZmUyZDJhNjNmYTcxMDMwMzc2NjkzYTczM2I2MTI1Y2Y4NDE1ZjY4NzNlYjViMSJ9"
+        },
+        {
+          "resource": "repo://src/platform/economy.ts#L13-L15",
+          "version": "repo-lines-v1:sha256:952727bcaa62cb8f637c65115626706c250873df61769412ce75f56bec7794c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2FkYTliYjFiNmRhZDEzZjIyZTg2OGU3YmE2NDY0MzQ3MDZjYmQ3NGU3MDAyOWFkZjA2MTIxYmYxOTAzNDI2MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGIwODg2Y2NiN2EzMzdlNzA1NWM1M2RiNzFhMDgyYjAxNWZjOGRjOWU5MjJiNGY3NzMxMDliZDAyNWE2MGJhNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDExNjk3NThhODU2MGJiMWRkZGE4N2Y0ZjE3ZTU1NmM2ZmUxZDc3OTgzYWZkNjdkNDdlOTNjYjhjM2MyN2E5OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDRkNmM3YzQzYzA3YzYxOWJhYzQ1MjZlMjU4NjZjNDYzN2IxYjQzMDY0ZDM5MTJjNTVhZTVkMThhNTFmOWM2OCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_76058588ca7944e7b166658e473c462a",
+      "statement": "Việc câu cá được mô phỏng trên thiết bị nên mỗi lần bắt là báo cáo của client; các giới hạn server chỉ giới hạn mức thu nhập có thể gian lận, không ngăn client đã sửa tạo cá trong giới hạn.",
+      "evidence": [
+        {
+          "resource": "repo://docs/decisions/0010-server-economy.md",
+          "version": "repo-file-v1:sha256:b7e4aa9001096c6a309888617841e5ef6a07d0eaa63f24784e287d051373d6f3"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.8.0",
+    "at": "2026-11-13T03:02:54.827Z"
+  }
+}

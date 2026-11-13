@@ -1,30 +1,26 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:dd34d3614dc79f7b58cde97d488d3f6d30a2dbab002f466fbdaf76fc1e8e06f3",
+  "pageVersion": "sha256:f074124e4e6924b50520d9e05732fa80182f7de5d6206c1455e2edb96c19a9a4",
   "claims": [
     {
       "id": "claim_cb9f461bae9f49ba941f3364da33567f",
-      "statement": "Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.",
+      "statement": "Runtime Supabase là opt-in: facade Auth có xác nhận email và đặt mật khẩu mới; phòng dùng HTTP mutations kèm Bearer access token và Socket.IO snapshots; Firebase/Pages giữ làm fallback; kiểm thử Docker cô lập trong scripts/test-supabase.mjs chạy GoTrue, PostgREST và PostgreSQL thật.",
       "evidence": [
         {
-          "resource": "repo://docs/infrastructure.md",
-          "version": "repo-file-v1:sha256:2930e8c98fbe4d8b486d0330429f00a5e2c0d345d19fdc327ac9dde0dde3248b"
-        },
-        {
           "resource": "repo://scripts/test-supabase.mjs",
-          "version": "repo-file-v1:sha256:4bac1add7aba87dfdae34ea0049fc7d6f88e69f4561a4c5fef27156ca884d0dd"
+          "version": "repo-file-v1:sha256:b4066a39a2403ae2231ec3e182fdd8d81015c798e3f9b21dba847a9498bd8812"
         },
         {
           "resource": "repo://src/app/password-recovery.ts",
           "version": "repo-file-v1:sha256:15c9444965ddf4b70c816ed92ea9ec83327acca78350f9fae5ce50773bdf66fc"
         },
         {
-          "resource": "repo://src/platform/account.ts",
-          "version": "repo-file-v1:sha256:2bd4606ed01adc0e26ac114920c4fb26b2d8e33f6f136fb243ffda18a0e69326"
+          "resource": "repo://src/app/start.ts#L49-L49",
+          "version": "repo-lines-v1:sha256:53922c0bdad10780a9bf88f599b0d776f47183dc93df4e0e67bf0f4b2a7acaac:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTM5MjJjMGJkYWQxMDc4MGE5YmY4OGY1OTliMGQ3NzZmNDcxODNkYzkzZGY0ZTBlNjdiZjBmNGIyYTdhY2FhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTM5MjJjMGJkYWQxMDc4MGE5YmY4OGY1OTliMGQ3NzZmNDcxODNkYzkzZGY0ZTBlNjdiZjBmNGIyYTdhY2FhYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzcyOGRlNGRhYTI0MzFhYWY3YjM3MjhhYjY2NWQ3NDAxNDg5NWM1NTEyOTI2MDllOTRiOGZlYjFiNjEzZGQ0YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjgwNDVkMWFkMWIyMzgwNTdhMDc3N2E3MTBmNzhhYWIxN2E5YzA4YzFiMWI2YzgwNzkzM2FiYzIxZDMzYWE2YSJ9"
         },
         {
-          "resource": "repo://src/platform/api.ts",
-          "version": "repo-file-v1:sha256:f69dd765e5c662d27e4ac7ae48cfe9021ae09b42fd72c1ea9492cad2d5fa71ca"
+          "resource": "repo://src/platform/api.ts#L27-L27",
+          "version": "repo-lines-v1:sha256:6ebf9fddadc301a999b593dc87a9d8852698a5ee13a987ef524a2f5876fdb9c6:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViZjlmZGRhZGMzMDFhOTk5YjU5M2RjODdhOWQ4ODUyNjk4YTVlZTEzYTk4N2VmNTI0YTJmNTg3NmZkYjljNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViZjlmZGRhZGMzMDFhOTk5YjU5M2RjODdhOWQ4ODUyNjk4YTVlZTEzYTk4N2VmNTI0YTJmNTg3NmZkYjljNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjdhY2Q4NzE5Y2RlMTg2NTU1YTE5YjhjM2M2NWVlNjk0NzdlNWRhODkxNzkyYWFmNDE5NWI0OGM3MmNmYTIzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmUwZDZhNzdhZmNmNTIzNTNlY2Q2NjhiODI1Y2M4NThhMmZkODRmMTZkYjQ1MmUzZmQ3ZmUzOTQwMDBlYjczMyJ9"
         }
       ]
     },
@@ -34,11 +30,11 @@
       "evidence": [
         {
           "resource": "repo://docs/ocean.md",
-          "version": "repo-file-v1:sha256:c5f2fdc2d379bdf583cc2af60ad005ddf905bf9511a9f447a5abf7bdd40db326"
+          "version": "repo-file-v1:sha256:86e7c3b7e211db494559f76f09a3b1d7bdfc235488f74c7d4f00fd4f6796750c"
         },
         {
           "resource": "repo://server/ocean.mjs",
-          "version": "repo-file-v1:sha256:f38e894877c94979ff0429083fcb0bad3f30e918979d5f671c33566fe738ce7b"
+          "version": "repo-file-v1:sha256:aecc62f2d11d7abc4757c68456666b1b138b6155cf19fdf250b2121adf035bbe"
         },
         {
           "resource": "repo://src/platform/ocean.ts",
@@ -48,7 +44,7 @@
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.3",
-    "at": "2026-11-05T03:59:28.286Z"
+    "by": "openwiki/0.8.0",
+    "at": "2026-11-13T03:02:54.827Z"
   }
 }

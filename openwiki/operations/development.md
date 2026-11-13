@@ -29,16 +29,12 @@ sources:
     resource: repo://docs/game/shared-session-design.md
   - id: openwiki-source-63e8f904736888c1397b0a2b
     resource: repo://docs/game/ui-implementation.md
-  - id: openwiki-source-b26fdac5f2b9ba8a19fdd0f6
-    resource: repo://docs/infrastructure.md
   - id: openwiki-source-701123ef063b2b49fc5126ba
     resource: repo://docs/pwa.md
   - id: openwiki-source-cc7175a0c3a0d5f1359efcc1
     resource: repo://docs/workflow.md
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
     resource: repo://package.json
-  - id: openwiki-source-e40960a4e3d6b8d6193113c1
-    resource: repo://scripts/service-worker.js
   - id: openwiki-source-3515d68bed1b916f693296ec
     resource: repo://scripts/test-browser.mjs
   - id: openwiki-source-4c36e1d79dd002cc49e886f0
@@ -47,8 +43,8 @@ sources:
     resource: repo://scripts/test-supabase.mjs
   - id: openwiki-source-32d34de3adc601eacf7364ad
     resource: repo://src/app/password-recovery.ts
-  - id: openwiki-source-fdc97d585e693e9f422ad7ae
-    resource: repo://src/app/pwa.ts
+  - id: openwiki-source-fc82ffca2def259f088b8cf9
+    resource: repo://src/app/start.ts
   - id: openwiki-source-49557827443d53e9eeae17f4
     resource: repo://src/board/layout.ts
   - id: openwiki-source-1475654f7d7ee4e91ea6389a
@@ -63,12 +59,8 @@ sources:
     resource: repo://src/game-ui/render.ts
   - id: openwiki-source-a09d1fc6a11ce8c081c67432
     resource: repo://src/game-ui/style.css
-  - id: openwiki-source-a516dc77b4f57ace3d032e8c
-    resource: repo://src/platform/account.ts
   - id: openwiki-source-2a80fab523f1197e079cba62
     resource: repo://src/platform/api.ts
-  - id: openwiki-source-77110d1e1f1125ab5211f920
-    resource: repo://src/platform/pwa.ts
   - id: openwiki-source-554339f52225d7d8edff3ed0
     resource: repo://src/style.css
   - id: openwiki-source-d6f301bba4bff3a816376dbe
@@ -85,16 +77,18 @@ sources:
     resource: repo://tests/hub-browser.mjs
   - id: openwiki-source-9fce44ed27844f7179f12e69
     resource: repo://tests/ocean-browser.mjs
+  - id: openwiki-source-739950034b62004a0096c757
+    resource: repo://tests/ocean-socket.test.mjs
   - id: openwiki-source-a875da0e301868b8784bbae3
     resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-be28d8122fde564d35ddd891
     resource: repo://tests/rules.test.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-05T03:32:21.077Z" }
+generated: { by: "claude-code", at: "2026-11-13T03:02:54.827Z" }
 verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-05T03:59:28.286Z
+  - by: openwiki/0.8.0
+    at: 2026-11-13T03:02:54.827Z
 ---
 
 # Phát triển mobile, kiểm tra và publish
@@ -107,13 +101,13 @@ Browser helper ưu tiên `CHROMIUM_PATH`, Chromium hệ thống, rồi Playwrigh
 
 ## Kiểm chứng hub
 
-`npm run check` gồm lint, format, unit, typecheck/build, browser, Firestore rules và API/Socket.IO tests. Các bài phòng cũ mở rõ `?view=monopoly-hub`; game mặc định là biển chung. Runner browser mở dev/preview ở cổng trống rồi đóng đúng server do mình tạo. Test chủ yếu bắt đầu từ điện thoại ngang: tạo/tham gia, mã sai/phòng không tồn tại, hai tab, escape tên, reload, ready/unready, bắt đầu/đóng phòng và Auth lỗi có kiểm soát. Nó kiểm tra thêm 667×375, 844×390, 932×430, portrait 390×844 và desktop 1440×900; ảnh nằm dưới `test-results/` được ignore.
+`npm run check` gồm lint, format, unit, typecheck/build, browser, rules và API/Socket.IO tests. Các bài phòng cũ mở rõ `?view=monopoly-hub`; game mặc định là biển chung. Runner browser mở dev/preview ở cổng trống rồi đóng đúng server do mình tạo. Test chủ yếu bắt đầu từ điện thoại ngang: tạo/tham gia, mã sai/phòng không tồn tại, hai tab, escape tên, reload, ready/unready, bắt đầu/đóng phòng và Auth lỗi có kiểm soát. Nó kiểm tra thêm 667×375, 844×390, 932×430, portrait 390×844 và desktop 1440×900; ảnh nằm dưới `test-results/` được ignore.
 
 `npm run test:rules` dùng bộ tải chính thức Firebase để lấy JAR và kiểm tra size/checksum rồi mở Java emulator ở loopback/cổng trống. Rules tests dùng SDK với danh tính giả chỉ hợp lệ cho emulator; không ghi database thật. Các trường hợp gồm đổi host/capacity, thêm quá chỗ, xóa người khác, ghi status trực tiếp để vượt readiness, quyền host-only và hai transaction tranh chỗ cuối. Runner tránh lỗi proxy localhost của CLI/Node WebSocket SDK, vẫn giữ proxy/CA cho tải remote.
 
 `tests/auth-browser.mjs` được runner rules chạy với Auth/Firestore emulators và Vite DEV-only. Hai browser contexts dùng Firebase SDK thật để đăng ký, lưu own profiles, tạo/tìm/tham gia phòng có tên, đăng xuất/đăng nhập sai/đúng và khôi phục phiên. Test chặn production requests.
 
-Test xanh không chứng minh keyboard Safari, FPS hay trải nghiệm điện thoại thật. [Theme](../../docs/design/theme.md) yêu cầu kiểm tra ảnh render thực, vùng chạm 44px và safe areas. Test biển mới tách riêng; Babylon/Havok cũ không được khôi phục.
+Test xanh không chứng minh keyboard Safari, FPS hay trải nghiệm điện thoại thật. [Theme](../../docs/design/theme.md) yêu cầu kiểm tra ảnh render thực, vùng chạm 44px và safe areas. Bộ test biển (Babylon.js và Havok) chạy qua các browser test `tests/ocean-*-browser.mjs`; kiểm chứng local không thay cho thiết bị thật.
 
 ## Publish Pages và Firebase
 
@@ -175,11 +169,7 @@ Test browser chạy thêm tests/pwa-browser.mjs trên build thật tại subpath
 
 ## Shared mobile safe area
 
-HUD foreground uses one `.game-safe` inset container with shared `--safe-*` tokens mapped to CSS env values; background remains full bleed. Cards size against container units, while landscape action/task regions scroll when height is constrained. Dialogs and the update notice also respect device insets. Do not double-apply insets on HUD children. Browser tests simulate asymmetric cutouts and home indicators over all24 states on dev/production; this is not physical-device verification.
-
-## Confirmed update action
-
-Waiting PWA updates never auto-reload; Cập nhật ngay requires confirmation and the requesting client to be the only window in scope before skipWaiting. Only that requester reloads on controllerchange; another window blocks apply with a visible message. Closing all clients still permits natural activation. Tests cover cancellation, two-window rejection, confirmed reload and notice disappearance. Old installed shells without this button must close all game tabs/windows once to load the new UI. No app removal or data clearing is needed.
+HUD foreground uses one `.game-safe` inset container with shared `--safe-*` tokens mapped to CSS env values; background remains full bleed. Cards size against container units, while landscape action/task regions scroll when height is constrained. Do not double-apply insets on HUD children. Browser tests simulate asymmetric cutouts and home indicators over all 24 states on dev/production; this is not physical-device verification.
 
 ## Local 3D board preview
 
@@ -187,19 +177,17 @@ The local ?view=game preview uses one Three.js renderer across HUD redraws, a sh
 
 ## Selected target, current production unchanged
 
-Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.
+Lựa chọn đích là Vercel, Render và Supabase; Pages/Firebase vẫn là bản dự phòng. Runtime Supabase là opt-in qua cấu hình public: facade Auth có xác nhận email và đặt mật khẩu mới, phòng dùng HTTP mutations kèm Bearer token và Socket.IO snapshots. Cutover frontend và kiểm chứng API trực tiếp chưa hoàn tất; chi tiết nằm ở [hạ tầng](../architecture/infrastructure-transition.md).
 
 
 ## Socket.IO và Supabase ở staging
-
-Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.
 
 Client nhận sự kiện qua WebSocket Socket.IO, không polling. Mỗi snapshot và mutation kiểm tra phiên đăng nhập/quyền PostgreSQL. Schema khóa hàng phòng cho join/start/leave; private tables không cấp quyền ghi trực tiếp. Database notification không chứa dữ liệu phòng. `npm run test:api` kiểm tra Auth, hai socket client và reconnect; `npm run test:postgres` kiểm tra quyền, cạnh tranh chỗ và thông báo sau commit trong database dùng một lần. Tham khảo [hướng dẫn hạ tầng](../../docs/infrastructure.md).
 
 
 ## Frontend Auth và kiểm thử full stack
 
-Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.
+Kiểm thử Docker cô lập (`scripts/test-supabase.mjs`) dùng GoTrue, PostgREST và PostgreSQL thật, SMTP sink và hai browser context để xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production.
 
 Cấu hình email redirect được giới hạn về origin Vercel đã duyệt qua VITE_AUTH_REDIRECT_URL; CA công khai của Supabase được pin cho listener trong khi giữ xác minh TLS/hostname. `npm run test:supabase` chạy stack dùng một lần và CI cũng gọi bài kiểm thử này. Kiểm thử local không tự chứng minh email thật đã đến hộp thư bên ngoài.
 

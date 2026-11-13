@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:dec94f87a94ca3a062531b4a414f98a804411a8edd6f9618e2ce5480733bd245",
+  "claims": [
+    {
+      "id": "claim_82600e8b7a3841069eec60b3a6516608",
+      "statement": "Pipeline Blender dựng người bán bằng script và xuất hai mesh mỗi người, vendor_body và arm_wave, với trục xoay ở vai phải; build.py đặt ngân sách 4800 tam giác cho thân và 500 cho tay.",
+      "evidence": [
+        {
+          "resource": "repo://tools/blender/build.py#L1-L30",
+          "version": "repo-lines-v1:sha256:cb402e7adec83c5a05ba7f1a046840d32c6350236242c3ec3b871b32286ff241:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjZjAxZjM1NWIwMzMwMTRmNWNkMjhkOGVlZmVlODIyYTJmYzU0ZmFkYmEzZWNhYTg2MjhjNTRmYTI3OWNmM2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5ZTk5ZGU1NmYyOTNjYjVhMGNkZTQ0NTRhZWE3MGI4ZDE5ODA1MjY0N2Q2ZjQ2ZWYyNDMzNjExMTExOThkNDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkNzdjYzg0M2Q0YWM1ZjhmMjFjMzY3ZWZlN2NjMTEzYmI4ZWQ4NWY4NmY3ODcxODJkYzZlNThjZTgwM2EyNTIifQ"
+        },
+        {
+          "resource": "repo://tools/blender/people.py#L1-L20",
+          "version": "repo-lines-v1:sha256:c8b53e49cd26a4730e0a22f623a388d47baaed33002f7a5295849f0fa756a3ad:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjOGI1NWI2MWQzZDM2NWEzNzFkODI2OGRjOTY0NTFkMzRlYWI1YjExYWI2ZWFkYjlmN2YzOGE1OTJjMDkwZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhMWI0YmFiODdjZmEyNmQzMWM3ZDQzMGM3MDc1YmMzYjM5ZTkxZTI1Nzc0Y2MwMWUzODkwOTI3NjdiNTUzZjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhNDRkZjMxMjg3ODM1ZmQ1M2M0OTIxMjYwYWRjN2U3ZmJiOGMyZWIwMmY5NDY1MDQxZjUzZjE5NzU1NTRhNjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c382292d84c34cd8813bc0348fa664bb",
+      "statement": "Palette Blender được sao chép từ src/ocean/art/colors.ts qua scripts/export-palette.mjs vào tools/blender/palette.json, không còn là bảng màu độc lập.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/export-palette.mjs",
+          "version": "repo-file-v1:sha256:daa6a3a8316f85809a136fe7800fc3a9980baf7461d0b8c1b09e8d5a066407f7"
+        },
+        {
+          "resource": "repo://tools/blender/palette.json",
+          "version": "repo-file-v1:sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "claim_8f3339de5a8a4e2e9fc0b2474d8ec6a3",
+      "statement": "tests/models.test.mjs kiểm tra mỗi GLB có header glTF phiên bản 2, có COLOR_0, nằm trong ngân sách tam giác của test và có nút arm_wave; và có người cho từng chợ trong MARKETS.",
+      "evidence": [
+        {
+          "resource": "repo://tests/models.test.mjs#L1-L60",
+          "version": "repo-lines-v1:sha256:2abe898872f686f96291b75e1e9ef2f8ae160a7f9eb59165863e3553d2ecc989:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5ODY1YmNjMGI5NTc5NmJjZDE1MjRiMzBkNzFiZmFhN2M5NTY3MDQ3YjA2Mjg2NWRiMmQ0OTA2MGU5MmUzMmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiY2E3OTMxYmI1NjQwZDRhMGQ4ODQ3NjM3M2I1ZDhmMDg0NDFlZjAzMWMwNjY5ZGI2NzdiNGZhMzhlYjM3MjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNhMDk1OTAxZjRmNWY0ZDViM2EyZWE3M2EwNDFhMTVlY2ZhNGUxNmQ3YzFhNTY3NDNhOThhODU5NzI3OGZkMjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4fe01776d4504e55beb07701e0425e4e",
+      "statement": "model-loader.ts nạp GLB bằng LoadAssetContainerAsync, bỏ vật liệu gốc và áp shared solid look với màu đỉnh; không nạp được thì người bán bị bỏ, quầy hàng vẫn chạy.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/market-vendor.ts#L1-L12",
+          "version": "repo-lines-v1:sha256:79e9638aaf8770a2ede9cd8ab370e3da5c06548a73d48a3a950fe8960ddc8d0e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkZGY3ZDE3ZjI1Y2EzYzdkMDgzNGE3YzIyNDhjMTZkMjBmNTA5MWNkZGRjZWI3MTIyNmFlN2YyYzcyNTkwNmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3MmE0MjkzODJiMmUxNDcxOGUwZTM3YjA1NzBhOGExNzAyOTkxZmNkODQ5OGNkODQwNjBhOGJmNGYwNTAxN2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlNzQ0MjlhZmI3MDc0YzU5M2RlZTFiZjc5Y2Y4NWY2YjJlZGU0OWFjZWE4NGFjZWEwOTczYTg1ODc3ODYwZmQifQ"
+        },
+        {
+          "resource": "repo://src/ocean/model-loader.ts#L1-L15",
+          "version": "repo-lines-v1:sha256:03d2c633c9de4b19c8b94d96e74b408b8c21edb6839263cbd21738f94b32b2c7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkY2M4ODQyZDQyMjJhZDJkYjAyZThiYjEwMzY0YWFjNThjY2IzOGU2N2IyZTBkZTNmNjc1MzkyMTg4Y2M0OGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExYzY3Mjg4OGFmZjM2MTAzMzdiYWU0MDM1OTljODFiYjIzN2MyYThmZjk3Y2Y5ZDUyMjFmYTMxNTAzODhiZTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwMzAyMTM4NzljYWViZGM0OGNkMTEzZjRjY2QzZWE0YjY4NTg1NGQ1YjAyYmZmOWNjMGJiNTUzYTRiZmZiNmIifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.8.0",
+    "at": "2026-11-13T03:02:54.827Z"
+  }
+}

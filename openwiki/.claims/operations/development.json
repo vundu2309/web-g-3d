@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:5a9d5f40afb5b8ea7e1643daf1174b1143dec46d700af23b71f4e34b4079b532",
+  "pageVersion": "sha256:dfb7fc25fcdefd649bc51233776cda27e5db0d6a4db2623cec91e565d553238a",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -8,15 +8,15 @@
       "evidence": [
         {
           "resource": "repo://.github/workflows/pages.yml",
-          "version": "repo-file-v1:sha256:97de11e72e0d596bb314db986af06d823dfab71a569415d6ef5f3839c459c5db"
+          "version": "repo-file-v1:sha256:d0b30ec9a56908081f81f5e36b71f20b8558fa6bd7bfa28a333ac23b72de3619"
         },
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:6b34fdd5ed6217e985e4b22fa8e26d93c58040b98ef93021b927abda2a1080ed"
+          "version": "repo-file-v1:sha256:1a5dd8be42823be9893210c1d57c4ee0ceb73cd7244ad20cf0a6d574ae092793"
         },
         {
           "resource": "repo://docs/workflow.md",
-          "version": "repo-file-v1:sha256:0f9ffa9e47d4b684ec07a5274d7f2a49d21259f82b97009f6a96d88b1567cf50"
+          "version": "repo-file-v1:sha256:a35cebd2d0ff10f305c84b023b4748365a17a937c73501fb4a0b7a9ef0f09a54"
         }
       ]
     },
@@ -42,15 +42,15 @@
     },
     {
       "id": "claim_7f0efb779d404f5c9e4682419541c353",
-      "statement": "npm run check ghép lint, format, unit, build, browser, Firestore rules/Auth/biển emulator và API/Socket.IO tests; runner dọn server/emulator mình sở hữu.",
+      "statement": "npm run check gồm lint, format, unit, build, browser, rules và API tests; scripts/test-browser.mjs đóng đúng các server Vite mà nó tạo trong khối finally.",
       "evidence": [
         {
-          "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:b9c2d6cf994f74faf891777761423a6c0317219bc207754c6e9c940a88c4802a"
+          "resource": "repo://package.json#L21-L22",
+          "version": "repo-lines-v1:sha256:98f69db2e9c02bbd803b8a07142e9650126ce751dd1c8fdaa21189fbb49a4f6f:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzVkOTU4ZDE3MWNkM2YwYWYzMzc5OTBhYjM0NDJmMGY2NjcwMjJkM2VhMTc1YzAxZGNjOGI2NGVjOTYzOTFjOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTI1YzIzZWZjMGFiZTM1N2UzYjYzNzE0ZDYzZjI1YjI5Y2Q2YTNiNzA0MWYxMmI3NmIzZWNjMzJjYjY3ZDczYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTk3ZGMwYWJiNjAzYjQ5MDM2NDcxM2E5MTg4NjJlMzQwZWNmYjY4MWYzMzRlYjhiZmI3ZTBmMWYyNGZjZWZjZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmU3MGZmMTA3NDFlYjJhMjc3MDY2MGRmYzZiYWFhNjE2NmJkNzg4ZjBmYjJkZTNhNTU2ZThjYjFmNDk0MDliYiJ9"
         },
         {
           "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:3d97f3e2897d6ac6f747ee4407ebadbfbb006eb9bd7c43feffdde08093dcb078"
+          "version": "repo-file-v1:sha256:0494f441f7e6ae2adeec70853b8248f0e5eb4409287bb76ce51307a5c7b43d8a"
         },
         {
           "resource": "repo://scripts/test-rules.mjs",
@@ -64,7 +64,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:6b34fdd5ed6217e985e4b22fa8e26d93c58040b98ef93021b927abda2a1080ed"
+          "version": "repo-file-v1:sha256:1a5dd8be42823be9893210c1d57c4ee0ceb73cd7244ad20cf0a6d574ae092793"
         }
       ]
     },
@@ -112,7 +112,7 @@
       "evidence": [
         {
           "resource": "repo://src/style.css",
-          "version": "repo-file-v1:sha256:29adbe8187225cdda496f42146faad0716f43d3b174a04656cf982a8fd4bef51"
+          "version": "repo-file-v1:sha256:e8bd4e646b9a542bd0fae5337e4b1797cff5527fb464466b632074829144003c"
         },
         {
           "resource": "repo://tests/auth-browser.mjs",
@@ -178,7 +178,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:6b34fdd5ed6217e985e4b22fa8e26d93c58040b98ef93021b927abda2a1080ed"
+          "version": "repo-file-v1:sha256:1a5dd8be42823be9893210c1d57c4ee0ceb73cd7244ad20cf0a6d574ae092793"
         },
         {
           "resource": "repo://docs/game/README.md",
@@ -200,7 +200,7 @@
       "evidence": [
         {
           "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:6b34fdd5ed6217e985e4b22fa8e26d93c58040b98ef93021b927abda2a1080ed"
+          "version": "repo-file-v1:sha256:1a5dd8be42823be9893210c1d57c4ee0ceb73cd7244ad20cf0a6d574ae092793"
         },
         {
           "resource": "repo://docs/game/shared-session-design.md",
@@ -214,11 +214,11 @@
       "evidence": [
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:b9c2d6cf994f74faf891777761423a6c0317219bc207754c6e9c940a88c4802a"
+          "version": "repo-file-v1:sha256:d5f989349a224315e3933d02356feabbd1148247c99435103e9ac4f37f774ffb"
         },
         {
           "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:3d97f3e2897d6ac6f747ee4407ebadbfbb006eb9bd7c43feffdde08093dcb078"
+          "version": "repo-file-v1:sha256:0494f441f7e6ae2adeec70853b8248f0e5eb4409287bb76ce51307a5c7b43d8a"
         },
         {
           "resource": "repo://tests/game-ui-browser.mjs",
@@ -232,15 +232,15 @@
       "evidence": [
         {
           "resource": "repo://docs/pwa.md",
-          "version": "repo-file-v1:sha256:94f5f14aeba412fa133ac77cb77100f64fe15cd67af505246e12eb123ce3f2c5"
+          "version": "repo-file-v1:sha256:db7aefaf701449c62888b6b335bc14227265e1647503b9183785a04eb77a0661"
         },
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:b9c2d6cf994f74faf891777761423a6c0317219bc207754c6e9c940a88c4802a"
+          "version": "repo-file-v1:sha256:d5f989349a224315e3933d02356feabbd1148247c99435103e9ac4f37f774ffb"
         },
         {
           "resource": "repo://tests/pwa-browser.mjs",
-          "version": "repo-file-v1:sha256:21a43103c558e9a3e50c6a1762ee97976d6057fadb4092e3d38b11f9dab720f0"
+          "version": "repo-file-v1:sha256:0e3e51cf3cacf7117316fe25c40d8d247f71865a39e68c8c8422cba22fd097c5"
         }
       ]
     },
@@ -250,7 +250,7 @@
       "evidence": [
         {
           "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:3d97f3e2897d6ac6f747ee4407ebadbfbb006eb9bd7c43feffdde08093dcb078"
+          "version": "repo-file-v1:sha256:0494f441f7e6ae2adeec70853b8248f0e5eb4409287bb76ce51307a5c7b43d8a"
         },
         {
           "resource": "repo://src/game-ui/render.ts",
@@ -262,37 +262,11 @@
         },
         {
           "resource": "repo://src/style.css",
-          "version": "repo-file-v1:sha256:29adbe8187225cdda496f42146faad0716f43d3b174a04656cf982a8fd4bef51"
+          "version": "repo-file-v1:sha256:e8bd4e646b9a542bd0fae5337e4b1797cff5527fb464466b632074829144003c"
         },
         {
           "resource": "repo://tests/safe-area-browser.mjs",
           "version": "repo-file-v1:sha256:ee8ae0f23f771c78acb7811493d39647007951a6f456b2c4247c89cd019bd0d1"
-        }
-      ]
-    },
-    {
-      "id": "claim_9dfdd1cc04ce44f5aa4e8f1a2d333890",
-      "statement": "Waiting PWA updates never auto-reload; Cập nhật ngay requires confirmation and the requesting client to be the only window in scope before skipWaiting. Only that requester reloads on controllerchange; another window blocks apply with a visible message. Closing all clients still permits natural activation.",
-      "evidence": [
-        {
-          "resource": "repo://docs/pwa.md",
-          "version": "repo-file-v1:sha256:94f5f14aeba412fa133ac77cb77100f64fe15cd67af505246e12eb123ce3f2c5"
-        },
-        {
-          "resource": "repo://scripts/service-worker.js",
-          "version": "repo-file-v1:sha256:d47b180a9d42cb7ef5d6f7ed467a853dfc9b50ac40b13574b71be2f147c37c08"
-        },
-        {
-          "resource": "repo://src/app/pwa.ts",
-          "version": "repo-file-v1:sha256:6cd71a674089cb42a1def4bd1ef26d804d5a24a2f98c91257708b8f18a9807f8"
-        },
-        {
-          "resource": "repo://src/platform/pwa.ts",
-          "version": "repo-file-v1:sha256:881b0887e386fd110f2512de2245d2ebfc55e2b95a2bfc223ce8c2a357f3490a"
-        },
-        {
-          "resource": "repo://tests/pwa-browser.mjs",
-          "version": "repo-file-v1:sha256:21a43103c558e9a3e50c6a1762ee97976d6057fadb4092e3d38b11f9dab720f0"
         }
       ]
     },
@@ -328,51 +302,47 @@
     },
     {
       "id": "claim_2e891357355740b6b8321e78f0f08219",
-      "statement": "Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.",
+      "statement": "Runtime Supabase opt-in có facade Auth gồm xác nhận email và đặt mật khẩu mới; phòng gửi HTTP mutations kèm Bearer token và nhận Socket.IO snapshots; Firebase/Pages giữ làm fallback; test Docker cô lập chạy GoTrue, PostgREST và PostgreSQL thật.",
       "evidence": [
         {
-          "resource": "repo://docs/infrastructure.md",
-          "version": "repo-file-v1:sha256:2930e8c98fbe4d8b486d0330429f00a5e2c0d345d19fdc327ac9dde0dde3248b"
-        },
-        {
           "resource": "repo://scripts/test-supabase.mjs",
-          "version": "repo-file-v1:sha256:4bac1add7aba87dfdae34ea0049fc7d6f88e69f4561a4c5fef27156ca884d0dd"
+          "version": "repo-file-v1:sha256:b4066a39a2403ae2231ec3e182fdd8d81015c798e3f9b21dba847a9498bd8812"
         },
         {
           "resource": "repo://src/app/password-recovery.ts",
           "version": "repo-file-v1:sha256:15c9444965ddf4b70c816ed92ea9ec83327acca78350f9fae5ce50773bdf66fc"
         },
         {
-          "resource": "repo://src/platform/account.ts",
-          "version": "repo-file-v1:sha256:2bd4606ed01adc0e26ac114920c4fb26b2d8e33f6f136fb243ffda18a0e69326"
+          "resource": "repo://src/app/start.ts#L49-L49",
+          "version": "repo-lines-v1:sha256:53922c0bdad10780a9bf88f599b0d776f47183dc93df4e0e67bf0f4b2a7acaac:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTM5MjJjMGJkYWQxMDc4MGE5YmY4OGY1OTliMGQ3NzZmNDcxODNkYzkzZGY0ZTBlNjdiZjBmNGIyYTdhY2FhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTM5MjJjMGJkYWQxMDc4MGE5YmY4OGY1OTliMGQ3NzZmNDcxODNkYzkzZGY0ZTBlNjdiZjBmNGIyYTdhY2FhYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzcyOGRlNGRhYTI0MzFhYWY3YjM3MjhhYjY2NWQ3NDAxNDg5NWM1NTEyOTI2MDllOTRiOGZlYjFiNjEzZGQ0YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjgwNDVkMWFkMWIyMzgwNTdhMDc3N2E3MTBmNzhhYWIxN2E5YzA4YzFiMWI2YzgwNzkzM2FiYzIxZDMzYWE2YSJ9"
         },
         {
-          "resource": "repo://src/platform/api.ts",
-          "version": "repo-file-v1:sha256:f69dd765e5c662d27e4ac7ae48cfe9021ae09b42fd72c1ea9492cad2d5fa71ca"
+          "resource": "repo://src/platform/api.ts#L27-L27",
+          "version": "repo-lines-v1:sha256:6ebf9fddadc301a999b593dc87a9d8852698a5ee13a987ef524a2f5876fdb9c6:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViZjlmZGRhZGMzMDFhOTk5YjU5M2RjODdhOWQ4ODUyNjk4YTVlZTEzYTk4N2VmNTI0YTJmNTg3NmZkYjljNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViZjlmZGRhZGMzMDFhOTk5YjU5M2RjODdhOWQ4ODUyNjk4YTVlZTEzYTk4N2VmNTI0YTJmNTg3NmZkYjljNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjdhY2Q4NzE5Y2RlMTg2NTU1YTE5YjhjM2M2NWVlNjk0NzdlNWRhODkxNzkyYWFmNDE5NWI0OGM3MmNmYTIzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmUwZDZhNzdhZmNmNTIzNTNlY2Q2NjhiODI1Y2M4NThhMmZkODRmMTZkYjQ1MmUzZmQ3ZmUzOTQwMDBlYjczMyJ9"
         }
       ]
     },
     {
       "id": "claim_78c6eb38c45146e69c61ddc69a04f7c0",
-      "statement": "Các hồi quy phòng mở route legacy rõ ràng; test biển kiểm tra motion/câu cá/duplicate/leave trên Firebase emulator và hai browser Supabase/Socket.IO local, không ghi fixture production.",
+      "statement": "Hồi quy biển gồm unit, Socket.IO thật, hai tài khoản Firebase emulator trong tests/ocean-browser.mjs và, qua scripts/test-supabase.mjs, hai browser vào biển qua Supabase local; không ghi fixture production.",
       "evidence": [
         {
           "resource": "repo://scripts/test-supabase.mjs",
-          "version": "repo-file-v1:sha256:4bac1add7aba87dfdae34ea0049fc7d6f88e69f4561a4c5fef27156ca884d0dd"
-        },
-        {
-          "resource": "repo://tests/hub-browser.mjs",
-          "version": "repo-file-v1:sha256:f959122a367f418af1470cc85a9ad9db98ac12bbe0cba3dce6f5fcb3efa45508"
+          "version": "repo-file-v1:sha256:b4066a39a2403ae2231ec3e182fdd8d81015c798e3f9b21dba847a9498bd8812"
         },
         {
           "resource": "repo://tests/ocean-browser.mjs",
-          "version": "repo-file-v1:sha256:72c61bca029fa3332546f2c58c255a9544f51e57567492235acaccc3834977ff"
+          "version": "repo-file-v1:sha256:126eea2d384732a9da0498e9855470579274cc3111fb582a6dc560840d9778a6"
+        },
+        {
+          "resource": "repo://tests/ocean-socket.test.mjs",
+          "version": "repo-file-v1:sha256:43d20fd869319838ccc2d882702c4d23ab9b9e2a681be07e2b81bc3d48144e13"
         }
       ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.3",
-    "at": "2026-11-05T03:59:28.286Z"
+    "by": "openwiki/0.8.0",
+    "at": "2026-11-13T03:02:54.827Z"
   }
 }

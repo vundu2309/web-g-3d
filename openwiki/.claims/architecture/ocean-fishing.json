@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:c32269806c0bbeff5a90908b47648e89afc91f9dce65c000377dd8a46a0c4f5d",
+  "claims": [
+    {
+      "id": "claim_03a139e079a247eeb4d84350a1873a5c",
+      "statement": "zoneAt phân vùng biển theo khoảng cách tới mép đảo gần nhất: dưới 28 m là shore, trên 125 m là deep, còn lại là open; mỗi loài có trọng số riêng theo vùng.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/fishing.ts#L319-L333",
+          "version": "repo-lines-v1:sha256:fbdf18f55804413afe532e8e8ebcd77279188c46d0258ebd65c5368f6591d5bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1Nzc1YWY1Mjc4ZThhOTc4M2QwYzk0YWM4YjhlZGMyYTE5YzRiMjc4ZWYzYzA0N2U3ZjA5MTRlZWZjODZiNWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzYzU5Mzk2ZGYwMzFlZWM0NzU1YjdjNzUyNGRkNzYxNjBkYmY1MDQwNWI1Y2ZlMTNiYjZlNmExMGU0OTdjN2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjNWZkYWMyZmZjNDQzMGRiZmMwYjc4Y2YzYWZkMmUwZTcwZTdiOGFlZWU0ZTA5MTY0MWZjYWE5NDY4NmFlOTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_61000c0f87d640e5bebd4fd89f4e8d12",
+      "statement": "rollFish chọn loài theo trọng số vùng nhân độ hiếm (100, 40, 10), nhân 1,8 cho loài độ hiếm 2 và 3 khi điểm câu ngọt, và rút cân nặng theo đường cong lũy thừa 2,4 nên cá nhỏ phổ biến hơn.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/fishing.ts#L340-L375",
+          "version": "repo-lines-v1:sha256:faa85419464f0fbf17ee2b7057ab226d15d2288966b2396448b9d665384a8494:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxMmU3MmQ4Mjk1MDRiZDNkM2Y5ZDZmNjNiY2ZmNTk0NmEzZjMzMTAzNmNhNTkwYzBlOTA1N2Q5ZDQ5N2NkMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2MDYzYTRkZDZhZDgwNTdlNWYyZTRiNDA0NTRiNjJiMjY2NjdmMzM1MzE0MmQyMjMzZTAzOThlZWU4ZGFiNTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU0MDExZTg4MjgwMGZmZmZlZDg1MjJkMTA2NjVkMzVmMzlkZjlmOTk2ZGYyMjJlOTE3ZGY1MzgzMGRkYmUwNWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b3e6413af79d4b308a08b18b99de20b1",
+      "statement": "Cuộc giằng co là máy trạng thái thuần với ba tâm trạng cá (bật sức, sung sức, đuối sức); cá đuối sức phục hồi sau khoảng nghỉ 3 giây, cá được kéo vào khi trong 0,6 m và tuột móc sau 70 giây.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/fight.ts#L1-L17",
+          "version": "repo-lines-v1:sha256:368146bba7d52763d3a9b542b7d2883b22e30008028aaf7b017469bc7ea6eafa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljZGE5NDM2NGFhYzQyOTJjMmE1Y2E2ZDMwZWJhNjFkMTJmZDlkNTQ2NTNhNWE3MDExMzhhNmRjZDQ3MjA3NDkifQ"
+        },
+        {
+          "resource": "repo://src/ocean/fight.ts#L102-L133",
+          "version": "repo-lines-v1:sha256:0a11510829c55c99b0035fe164670cbac9c35b8eb7cb28f9dcd01f905518411c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1NjkwODA1YzQyNWM4N2ViOWFmZjk4MjA2Nzc5MzliYzg5ZWE0NDM1MDQ1ZjhhNWE4Yzk4NGQ5ODI1ZjM5MGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5ZjBjMWFhZDBhMmViYTU3MDgzOTE2OWJkNDM3NmVmZjExN2MzOTA5YTRmZGVmZTUzYzdkODMzNzVjOTIwZjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNmMmY5MjcxNzliZTYzYTgyYjIyZDU5MjQxMWIyN2NhNTE0MjRkYjNiOTNiNmVhZjQwNmRkMWQxMjBkMzEzZjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NGQxNDlkZTI5YTY4NTUyODM2MjU4MTVlY2IwNmU2ZWY1NjVlNTJmYmUyN2Y0NmY5NjFiNjZiNjBhZDkxZWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b456b32c4863450fab1172772e95865f",
+      "statement": "Việc câu cá và cuộc giằng co chạy trên thiết bị; khi giữ cá, UI gọi onKeep và chuyển vào marketUi.recordCatch, nơi chỉ lỗi network mới đưa cá vào hàng đợi còn lỗi khác bỏ cá đó.",
+      "evidence": [
+        {
+          "resource": "repo://src/app/market-ui.ts#L265-L271",
+          "version": "repo-lines-v1:sha256:9fb62b194bccbf4dabb9d72d84c5210b26894379a4b3027e87c5e35f4f680115:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTk1M2U0MjFmYTVkMWJjYTc3NzAzMDQ1MGM5NWUxNDQ2MjEwOWRmMTI1ODYyYWRlYjM2MDcwMDI0OGE0ZGE2MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWYwY2RiOTcyYTdiZmI3ZWQyNDZmOWZmNjcyMzg1ZTU1ZjQ5NjhmYzExMDQzZGM1YjY4NGQ1MWRmYTMxZGJjYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2YxNGUxYjNjNWRhNjlmM2MwZDMzZTM5Y2ZkODI5YTlmZDJhNzkyMzg2NTcxNzEyYWQwM2JkYzYyZDU2M2UxZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjVkZjkyNjc4ZmU4MDZkNmUxM2UxYTU0OWJkMzI2M2Q3YzUxZDIyNzcyMWJkMmYzNmM1YjcyZGJiY2Y2YTM0ZiJ9"
+        },
+        {
+          "resource": "repo://src/app/ocean.ts#L221-L221",
+          "version": "repo-lines-v1:sha256:5bb6d4f4ff015d8604174f3823c436dfdc17bdf56528a102f503f43ed59e5a17:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWJiNmQ0ZjRmZjAxNWQ4NjA0MTc0ZjM4MjNjNDM2ZGZkYzE3YmRmNTY1MjhhMTAyZjUwM2Y0M2VkNTllNWExNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWJiNmQ0ZjRmZjAxNWQ4NjA0MTc0ZjM4MjNjNDM2ZGZkYzE3YmRmNTY1MjhhMTAyZjUwM2Y0M2VkNTllNWExNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTk2ZWQ2NjFiZWI4ZjczZGQ0ZDUwNGZlZTcyOTUzMTI0NjlhYjM4OGVmMzRkOTJmOGZmNWMzNzU3NTYxZWU1MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjBjMzMwYWMyODRlZWQ2N2ViN2NhMjA4MDE2ZmEyMzEwYzNmOGUyOTMxOTFmYjg2NWIyNzdhMzA4YmY4YzNhNiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2a7dc8659fc64f92bea026b17c03b811",
+      "statement": "createBoatPhysics áp phao nổi theo hàm sóng dùng chung, lực cản nước, đẩy và lái dưới dạng xung lực × dt trước mỗi bước Havok, và mũi thuyền hướng về -Z khớp mô hình di chuyển.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/boat-physics.ts#L1-L22",
+          "version": "repo-lines-v1:sha256:dc772a7517a1ab768e96e2f8072dd96ea72d7fe4c12e2f15bab52b612740fe0f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmYjgxODYyMGUyZGFiYjJjZWRlODllZTFiNzllYTM3ZmM2MjY5ODZhMTUyMGRlMWY4OTJjNGUxMjRhMjhmZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3MmE0MjkzODJiMmUxNDcxOGUwZTM3YjA1NzBhOGExNzAyOTkxZmNkODQ5OGNkODQwNjBhOGJmNGYwNTAxN2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjNmM1YTAyZTJiNTcwNDBiNjNjYjRjN2Q5ZTUyMWVlYTRmOThmM2VmZDMyMmI3MTJlYjZhYjFkOTZjZDA5NTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b03a3504a37944ba8593ac790dd6c311",
+      "statement": "save.ts lưu vị trí và kho cá trên thiết bị theo tài khoản; dữ liệu đọc lại được kiểm tra, vị trí không hợp lệ rơi về bến thay vì thả thuyền lên đảo.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/save.ts#L1-L40",
+          "version": "repo-lines-v1:sha256:fd91ad54fa8cce3e020aa5a3e079ec18fb602bd9674f267846bded4c6fa9e117:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM1YTA0ZGFlNmZiZTcyNmIyOTI3ZGNhMWRiYTNhNDkzMjc2YjZjY2JhMzZlNjVjNDcwMTliYjZiNDdkODE5OTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjMjJjNGFjZDdhY2JhODZmZjA1YThkNGFkMzYwZmE4MTY2Nzk0NDM0Zjc0YjMxMGJkNzczZWIxMDAzNjMxYmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1OWJjMzQ1YTA2MmQ5ZmU1MTBkYmQ3N2NkOTMzNjg1MWNmMzNmYjQwMDRmYzIwYzg3MTc1MzA1YTk4N2Q4ZjYifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.8.0",
+    "at": "2026-11-13T03:02:54.827Z"
+  }
+}

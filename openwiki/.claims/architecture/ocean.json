@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:1344ff891ca63b54c3293e039fd3f490eced768b394893564272d65e0e858678",
+  "pageVersion": "sha256:8a959f735e6ea269cb470b6311bd4b7aa8a0c813baf0adda29c245be34735ef6",
   "claims": [
     {
       "id": "claim_ec30a91cf1004a989cedfde496347504",
@@ -8,11 +8,11 @@
       "evidence": [
         {
           "resource": "repo://docs/ocean.md",
-          "version": "repo-file-v1:sha256:c5f2fdc2d379bdf583cc2af60ad005ddf905bf9511a9f447a5abf7bdd40db326"
+          "version": "repo-file-v1:sha256:86e7c3b7e211db494559f76f09a3b1d7bdfc235488f74c7d4f00fd4f6796750c"
         },
         {
           "resource": "repo://src/app/harbor.ts",
-          "version": "repo-file-v1:sha256:f9d7106eb9fb6dda543e91cbc8b269a3a5ea8053937bbcab9e6c969507ea0d7b"
+          "version": "repo-file-v1:sha256:e090d518b3ab0d84ff12391e82f434199083e73a5a79eb5830585b6750bf1023"
         },
         {
           "resource": "repo://src/main.ts",
@@ -22,101 +22,83 @@
     },
     {
       "id": "claim_e1aa9cb9d9814eb6a091f2401c01fe96",
-      "statement": "Di chuyển/spawn/payload thuần nằm ở ocean/model; scene dùng một renderer Three.js với mô hình thủ tục và label textContent; controller sở hữu input, HUD và cleanup.",
+      "statement": "Di chuyển, spawn và payload thuần nằm trong src/ocean/model.ts; scene là Babylon.js trong babylon-scene.ts, có thuyền Havok và thuyền khác dưới dạng instance; app/ocean.ts sở hữu input, HUD, dialog và cleanup.",
       "evidence": [
         {
-          "resource": "repo://src/app/ocean.ts",
-          "version": "repo-file-v1:sha256:d63591a8cbca80af732c44a1777535eca77f5020c5daab114f0e5c51a0d9a751"
+          "resource": "repo://src/app/ocean.ts#L62-L62",
+          "version": "repo-lines-v1:sha256:e77f9bc07d823850dcc16824dcde00f53fadcae021aa048b44342b3e0c4a0502:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTc3ZjliYzA3ZDgyMzg1MGRjYzE2ODI0ZGNkZTAwZjUzZmFkY2FlMDIxYWEwNDhiNDQzNDJiM2UwYzRhMDUwMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTc3ZjliYzA3ZDgyMzg1MGRjYzE2ODI0ZGNkZTAwZjUzZmFkY2FlMDIxYWEwNDhiNDQzNDJiM2UwYzRhMDUwMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzNiY2VjMWNiYjIyMTI0YjQ2NTMxNDZiMDY5YjM0Y2MzZjhjNWFkYmJmYWI5ZTYyZTUwMzQzNzY1OWI2MDI3NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmVjMGQ2YTc1N2MyZTc5ZDQzOWU2MTkyNTg0ZDRmMTYzOTAyZTJjNzJkZDA3MjI2ZDRlNWY0ZmViZTQwNTE5ZCJ9"
+        },
+        {
+          "resource": "repo://src/ocean/babylon-scene.ts",
+          "version": "repo-file-v1:sha256:63f58687a4fac6d3f37ef5a6c4d7a26ca0362abc1d707ca28c41087365a671e8"
         },
         {
           "resource": "repo://src/ocean/model.ts",
-          "version": "repo-file-v1:sha256:4ebddab3cee9710cad6ae9629cdc3d10af697c5444bf77084ec74c155522cc0e"
-        },
-        {
-          "resource": "repo://src/ocean/scene.ts",
-          "version": "repo-file-v1:sha256:5681e3e926ec7576d141f36bd85ee1eded263e5a26fc0e580f990af2674ec8da"
-        }
-      ]
-    },
-    {
-      "id": "claim_903ac3444c9d44ee99df905ec600a7a1",
-      "statement": "Câu cá là tác vụ chờ tín hiệu rồi kéo trong 2,5 giây, chỉ đếm cá chuyến hiện tại và chưa có inventory/kinh tế có thẩm quyền.",
-      "evidence": [
-        {
-          "resource": "repo://docs/ocean.md",
-          "version": "repo-file-v1:sha256:c5f2fdc2d379bdf583cc2af60ad005ddf905bf9511a9f447a5abf7bdd40db326"
-        },
-        {
-          "resource": "repo://src/app/ocean.ts",
-          "version": "repo-file-v1:sha256:d63591a8cbca80af732c44a1777535eca77f5020c5daab114f0e5c51a0d9a751"
+          "version": "repo-file-v1:sha256:70903a155fc9bae2a2b0fad19a54a4944c8d82c9dbc27b89ea860051f17ff815"
         }
       ]
     },
     {
       "id": "claim_a8e8348ba41440829898526eeed6950f",
-      "statement": "Adapter Supabase dùng server Socket.IO xác thực theo UID, một phiên mỗi UID, push chỉ tới người đã vào biển và thế giới RAM trên một instance; không có schema hoặc polling mới.",
+      "statement": "Adapter Supabase dùng Socket.IO với xác thực theo UID, một phiên mỗi UID (phiên mới thay phiên cũ), chỉ push tới socket đã vào biển và giữ thế giới trong RAM của một instance, không polling.",
       "evidence": [
         {
-          "resource": "repo://docs/ocean.md",
-          "version": "repo-file-v1:sha256:c5f2fdc2d379bdf583cc2af60ad005ddf905bf9511a9f447a5abf7bdd40db326"
+          "resource": "repo://server/ocean.mjs#L177-L183",
+          "version": "repo-lines-v1:sha256:39de8503d7d17e3a0b66a88e0ed107ecbe4e3a73c994f28536662e4c072a23a5:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDk1YjY3YzUwNWVlYzBmNzAyNDU3NzE3MDAzZDUzYjc0MjVlN2ZmMGUyZjQ0M2E1NzA5NGM3N2UwNjc4ZDQwYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODM2MTI2MWM2MzFjYWRlZWJhOTJlOGQyNzJlNTNmZDM3ODVkYmU2ZjEwNWM4ZjczMDVjOTc4ZTYxNzM1ZDhjZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGM0MzhjYWUwYjljMzljYTUzMzhiNzIwYzQwZmIzMjQ4NTYxNDNmODkyNWE0MjgwOGYyOTcxYmQyMjFjM2IzMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTMyNDQ2MDdmYjAzZjZjM2Y1MzA4NjY0YzdiNjY3YmE4Nzc3MDljY2ZjYzg0OTZjNWJlZTc1YmVkZTcxNDRlYyJ9"
         },
         {
-          "resource": "repo://server/ocean.mjs",
-          "version": "repo-file-v1:sha256:f38e894877c94979ff0429083fcb0bad3f30e918979d5f671c33566fe738ce7b"
+          "resource": "repo://server/ocean.mjs#L56-L90",
+          "version": "repo-lines-v1:sha256:2b431adc89698ddc34fa93a4b67fc8a243012292e45707ddf6800a49215ba17f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjZmU4OGMzNDlmZTNjMGZlYzAxMDBmZTY4YjdlOTM0MzAwMmNmMGUxYjM5ZTYxMGFiN2UzNWYyYzc3ZTIzYjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzNGYyN2JiNjlkZjJkMzcxZWJlOTUyOTczYzE4OWMxOWYwM2IwNGQxMjNkNGEwZThmNjAyODRkNWUwZjRhY2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkMjA5OTcwNWVkODUwOTUwOTQ1NTYyMmZjOWVjMWQ0MzNiOGZkNjBkMzJkM2NlOTY2NDJiNjU3MWJhYzY2Y2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzNTgyZjYxNDIwZGFjY2Q4YmExOTlkNDM1Y2VjNzZlZjczOGYxNDM4ZWJhNjk4ODUzMzM3Mjc3MjdhNTdlMTYifQ"
         },
         {
-          "resource": "repo://src/platform/ocean-socket.ts",
-          "version": "repo-file-v1:sha256:9c0bead07707f19d09bc9ead30d5755f335cd9184f71c0247873a461d440cf0a"
+          "resource": "repo://src/platform/ocean-socket.ts#L14-L30",
+          "version": "repo-lines-v1:sha256:2651210280f5c82f4bd6927ca023361cfe8b00ebc0792ce9c524a91cf8b8af0d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwMTVhMGViMjE2YTI1Mjk2OWE0M2FmYzY4YjE3MmEzZDIwYTY5YmJiZDQ0ODE2OWY4N2YxMTI3OTMzMTMyNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0YjMyMzQ4NjNlYzc1MWIwMDQxYzM0ODhlMTU1ZmQ1MTE1MzVkYjBiMzI4ZTYxZGI4ZDZjYTAwMzRmMzVkYzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwNWYzZGY1NTQ0MjRhMzFkNjgyNjk1NzhkMTNkMWI2NTg0ZDI3OTAxZWQ0YTMxMzJhMmVhMzliZmE2NmYwMjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkMWYxODA5MTNjZDk4ZDdlYTZkY2M4ZWE5NmIyOGFhZDZjNjhiNDI3NzZlYzMyZWQyNDBiOWJmYmM0YjE1ODgifQ"
         }
       ]
     },
     {
       "id": "claim_4285f5a57419497b8b99cfacdd94f8ad",
-      "statement": "Adapter Firebase dùng transaction/session lease own UID, query limit100, ghi tối đa 1Hz và heartbeat10giây, ẩn lease từ xa quá30giây, không xếp hàng motion offline.",
+      "statement": "Adapter Firestore ghi tài liệu thuyền của chính UID trong monopolyHub/v1/oceanBoats, giới hạn gửi tối đa một lần mỗi giây, truy vấn danh sách limit 100, và không xếp hàng motion khi offline; rules chỉ cho chủ tài khoản ghi.",
       "evidence": [
         {
-          "resource": "repo://firestore.rules",
-          "version": "repo-file-v1:sha256:41dfb9cf357448a1b89fcaecc1128761d2817f407eefebad6d473fa5c22afaab"
+          "resource": "repo://firestore.rules#L54-L60",
+          "version": "repo-lines-v1:sha256:e0a42da72a802e48c6664d14bccdab22afd917b0a3faaa0e2b271810abf3b1c2:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzI4MzJiOTFjZTRjMTIzOGM1NjMyNDMyYTJmMzVkYzVhODhkYjgxNjViZmFjMDViYjg3ZjEzNWFmMzg4ZDVlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjg0OWRiMGJmYThmYTQwN2U5ZGVmNWFlOTY1ZTQ3M2UyYWY3YWRjMmI3OTAzYmM0ZTkxYjVkNjgxMTk5YTdiMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWE5ZmEwYjE3MWQ1YTYxNWVlYWE3NjBiMTJkZTExYjM2ZjUxYWM5MmE1NDkzYzAxOGE4Y2RiYmU5Mjg0NWEzOSJ9"
         },
         {
-          "resource": "repo://src/app/ocean.ts",
-          "version": "repo-file-v1:sha256:d63591a8cbca80af732c44a1777535eca77f5020c5daab114f0e5c51a0d9a751"
+          "resource": "repo://src/platform/ocean-firebase.ts#L118-L118",
+          "version": "repo-lines-v1:sha256:86d938ce03be779fda1129d81d0e7b6a14852380c98f9f0ad9b0403996e44d41:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODZkOTM4Y2UwM2JlNzc5ZmRhMTEyOWQ4MWQwZTdiNmExNDg1MjM4MGM5OGY5ZjBhZDliMDQwMzk5NmU0NGQ0MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODZkOTM4Y2UwM2JlNzc5ZmRhMTEyOWQ4MWQwZTdiNmExNDg1MjM4MGM5OGY5ZjBhZDliMDQwMzk5NmU0NGQ0MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzMyMzcwNmMwNjFlN2I4NzYwMGFlZGE3NDI5MzU2MGYwNzI0OTM4NDExOTA2ZDIwYzFmMzEyNDJkNzEwYzVhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDFmNWJjMWNmMjYxYTg4ZmU5ODgyY2QyOTVlM2VhZmQ5YzE3MWZhMjRhZWM4NzkwOGU2Nzg2MWY3ODA5NjFkNyJ9"
         },
         {
-          "resource": "repo://src/platform/ocean-firebase.ts",
-          "version": "repo-file-v1:sha256:c684f76489929e7af3452a72c05d3f8488d1cbee3b1bbfcdc6ffd35aeed49e8e"
+          "resource": "repo://src/platform/ocean-firebase.ts#L17-L17",
+          "version": "repo-lines-v1:sha256:f39bcdd0634ae4e9552b61394c06494afdef905f7c7f3d5e096d091f9c269a86:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjM5YmNkZDA2MzRhZTRlOTU1MmI2MTM5NGMwNjQ5NGFmZGVmOTA1ZjdjN2YzZDVlMDk2ZDA5MWY5YzI2OWE4NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjM5YmNkZDA2MzRhZTRlOTU1MmI2MTM5NGMwNjQ5NGFmZGVmOTA1ZjdjN2YzZDVlMDk2ZDA5MWY5YzI2OWE4NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDA5YzFkM2Q1ZDJhZDdmMTQ2ZjA0MmJhODk4YWVkOWYxOGIwN2M3MjQwNTI0ODFkZTk0NTFmNjVhYzFhYjgyNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmVhMjliZWNkYTAxYzM4Y2RkNGIyM2RhNDU0ZDIwMjJkNzk0Yzc5ODdhMGI3ZWVmODM4NzY4N2ViMzAwZGE0NyJ9"
+        },
+        {
+          "resource": "repo://src/platform/ocean-firebase.ts#L87-L87",
+          "version": "repo-lines-v1:sha256:b2f91675b11df09a3f18eb1862a7d601178f2155d3df9e07a3d893122fac1a70:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjJmOTE2NzViMTFkZjA5YTNmMThlYjE4NjJhN2Q2MDExNzhmMjE1NWQzZGY5ZTA3YTNkODkzMTIyZmFjMWE3MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjJmOTE2NzViMTFkZjA5YTNmMThlYjE4NjJhN2Q2MDExNzhmMjE1NWQzZGY5ZTA3YTNkODkzMTIyZmFjMWE3MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjgzZDQ0NGE5ZDAxZjFhYzFhYzIyZDFmYzY1Mjc2NTRkNWFiMDQxZDg4ZTg2YWE0OWU1MzQxNDJhZGJmYmM1MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGQ0MGFjYTU4NzBiZTg2NjQ3YjhkNGRkOWFlOGFhYzExZTBkMThiM2VlYjg1YjgxN2Y1YTNkOWVmZDM1ZTkyZiJ9"
         }
       ]
     },
     {
       "id": "claim_a135cddee1ba44ada40b77f929048e15",
-      "statement": "Các suite unit, real Socket.IO, hai browser Firebase emulator và full-stack Supabase kiểm tra biển chung; kiểm chứng local không thay triển khai API/rules hoặc thiết bị thật.",
+      "statement": "Unit tests, Socket.IO thật, trình duyệt với Firebase emulator (tests/ocean-browser.mjs) và full-stack Supabase (scripts/test-supabase.mjs) kiểm tra biển chung; kiểm chứng local không thay thế triển khai API, rules hoặc thiết bị thật.",
       "evidence": [
         {
-          "resource": "repo://docs/ocean.md",
-          "version": "repo-file-v1:sha256:c5f2fdc2d379bdf583cc2af60ad005ddf905bf9511a9f447a5abf7bdd40db326"
-        },
-        {
           "resource": "repo://scripts/test-supabase.mjs",
-          "version": "repo-file-v1:sha256:4bac1add7aba87dfdae34ea0049fc7d6f88e69f4561a4c5fef27156ca884d0dd"
+          "version": "repo-file-v1:sha256:b4066a39a2403ae2231ec3e182fdd8d81015c798e3f9b21dba847a9498bd8812"
         },
         {
           "resource": "repo://tests/ocean-browser.mjs",
-          "version": "repo-file-v1:sha256:72c61bca029fa3332546f2c58c255a9544f51e57567492235acaccc3834977ff"
+          "version": "repo-file-v1:sha256:126eea2d384732a9da0498e9855470579274cc3111fb582a6dc560840d9778a6"
         },
         {
           "resource": "repo://tests/ocean-socket.test.mjs",
-          "version": "repo-file-v1:sha256:64116bad66b360ad32310af99c0fa858c0777194c5e185eff4e056ad7867549a"
-        },
-        {
-          "resource": "repo://tests/ocean.test.mjs",
-          "version": "repo-file-v1:sha256:4a2bc0cafded9bbc8eae4494c8615955668d55eae83cec8d4b1160272cf12130"
+          "version": "repo-file-v1:sha256:43d20fd869319838ccc2d882702c4d23ab9b9e2a681be07e2b81bc3d48144e13"
         }
       ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.3",
-    "at": "2026-11-05T03:59:28.286Z"
+    "by": "openwiki/0.8.0",
+    "at": "2026-11-13T03:02:54.827Z"
   }
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:28f90820c7efd8ee1b73a9f9137d053209e24f5c91dacfa765626ff1dc5d67f8",
+  "pageVersion": "sha256:d6d79967e9d3e03cc19aac4a5a02a5e4098cdb871f5d95a87e829468de8fd7fc",
   "claims": [
     {
       "id": "claim_7772453354ab4af78711c059117a2935",
@@ -8,7 +8,7 @@
       "evidence": [
         {
           "resource": "repo://docs/ocean.md",
-          "version": "repo-file-v1:sha256:c5f2fdc2d379bdf583cc2af60ad005ddf905bf9511a9f447a5abf7bdd40db326"
+          "version": "repo-file-v1:sha256:86e7c3b7e211db494559f76f09a3b1d7bdfc235488f74c7d4f00fd4f6796750c"
         },
         {
           "resource": "repo://src/app/play.ts",
@@ -44,7 +44,7 @@
       "evidence": [
         {
           "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:3d97f3e2897d6ac6f747ee4407ebadbfbb006eb9bd7c43feffdde08093dcb078"
+          "version": "repo-file-v1:sha256:0494f441f7e6ae2adeec70853b8248f0e5eb4409287bb76ce51307a5c7b43d8a"
         },
         {
           "resource": "repo://tests/game-ui-browser.mjs",
@@ -62,15 +62,15 @@
       "evidence": [
         {
           "resource": "repo://docs/pwa.md",
-          "version": "repo-file-v1:sha256:94f5f14aeba412fa133ac77cb77100f64fe15cd67af505246e12eb123ce3f2c5"
+          "version": "repo-file-v1:sha256:db7aefaf701449c62888b6b335bc14227265e1647503b9183785a04eb77a0661"
         },
         {
           "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:b9c2d6cf994f74faf891777761423a6c0317219bc207754c6e9c940a88c4802a"
+          "version": "repo-file-v1:sha256:d5f989349a224315e3933d02356feabbd1148247c99435103e9ac4f37f774ffb"
         },
         {
           "resource": "repo://tests/pwa-browser.mjs",
-          "version": "repo-file-v1:sha256:21a43103c558e9a3e50c6a1762ee97976d6057fadb4092e3d38b11f9dab720f0"
+          "version": "repo-file-v1:sha256:0e3e51cf3cacf7117316fe25c40d8d247f71865a39e68c8c8422cba22fd097c5"
         }
       ]
     },
@@ -80,7 +80,7 @@
       "evidence": [
         {
           "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:3d97f3e2897d6ac6f747ee4407ebadbfbb006eb9bd7c43feffdde08093dcb078"
+          "version": "repo-file-v1:sha256:0494f441f7e6ae2adeec70853b8248f0e5eb4409287bb76ce51307a5c7b43d8a"
         },
         {
           "resource": "repo://src/game-ui/render.ts",
@@ -92,37 +92,11 @@
         },
         {
           "resource": "repo://src/style.css",
-          "version": "repo-file-v1:sha256:29adbe8187225cdda496f42146faad0716f43d3b174a04656cf982a8fd4bef51"
+          "version": "repo-file-v1:sha256:e8bd4e646b9a542bd0fae5337e4b1797cff5527fb464466b632074829144003c"
         },
         {
           "resource": "repo://tests/safe-area-browser.mjs",
           "version": "repo-file-v1:sha256:ee8ae0f23f771c78acb7811493d39647007951a6f456b2c4247c89cd019bd0d1"
-        }
-      ]
-    },
-    {
-      "id": "claim_a3b9b6e2b1ef42febac0aacf5e86f2b7",
-      "statement": "Waiting PWA updates never auto-reload; Cập nhật ngay requires confirmation and the requesting client to be the only window in scope before skipWaiting. Only that requester reloads on controllerchange; another window blocks apply with a visible message. Closing all clients still permits natural activation.",
-      "evidence": [
-        {
-          "resource": "repo://docs/pwa.md",
-          "version": "repo-file-v1:sha256:94f5f14aeba412fa133ac77cb77100f64fe15cd67af505246e12eb123ce3f2c5"
-        },
-        {
-          "resource": "repo://scripts/service-worker.js",
-          "version": "repo-file-v1:sha256:d47b180a9d42cb7ef5d6f7ed467a853dfc9b50ac40b13574b71be2f147c37c08"
-        },
-        {
-          "resource": "repo://src/app/pwa.ts",
-          "version": "repo-file-v1:sha256:6cd71a674089cb42a1def4bd1ef26d804d5a24a2f98c91257708b8f18a9807f8"
-        },
-        {
-          "resource": "repo://src/platform/pwa.ts",
-          "version": "repo-file-v1:sha256:881b0887e386fd110f2512de2245d2ebfc55e2b95a2bfc223ce8c2a357f3490a"
-        },
-        {
-          "resource": "repo://tests/pwa-browser.mjs",
-          "version": "repo-file-v1:sha256:21a43103c558e9a3e50c6a1762ee97976d6057fadb4092e3d38b11f9dab720f0"
         }
       ]
     },
@@ -158,7 +132,7 @@
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.3",
-    "at": "2026-11-05T03:57:21.194Z"
+    "by": "openwiki/0.8.0",
+    "at": "2026-11-13T03:02:54.827Z"
   }
 }

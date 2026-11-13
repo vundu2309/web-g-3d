@@ -10,12 +10,6 @@ tags:
   - caching
   - mobile
 sources:
-  - id: openwiki-source-b26fdac5f2b9ba8a19fdd0f6
-    resource: repo://docs/infrastructure.md
-  - id: openwiki-source-18fc7b64e66932d83fa70cfc
-    resource: repo://docs/ocean.md
-  - id: openwiki-source-701123ef063b2b49fc5126ba
-    resource: repo://docs/pwa.md
   - id: openwiki-source-f8d10828394c4129061d5b0e
     resource: repo://index.html
   - id: openwiki-source-e21de4e070e82eb7a1025ce0
@@ -46,10 +40,6 @@ sources:
     resource: repo://src/game-ui/render.ts
   - id: openwiki-source-a09d1fc6a11ce8c081c67432
     resource: repo://src/game-ui/style.css
-  - id: openwiki-source-d4189bbeecb62806cb297b5a
-    resource: repo://src/main.ts
-  - id: openwiki-source-a516dc77b4f57ace3d032e8c
-    resource: repo://src/platform/account.ts
   - id: openwiki-source-2a80fab523f1197e079cba62
     resource: repo://src/platform/api.ts
   - id: openwiki-source-77110d1e1f1125ab5211f920
@@ -64,10 +54,10 @@ sources:
     resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-05T03:32:21.077Z" }
+generated: { by: "claude-code", at: "2026-11-13T03:02:54.827Z" }
 verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-05T03:59:28.286Z
+  - by: openwiki/0.8.0
+    at: 2026-11-13T03:02:54.827Z
 ---
 
 # PWA của Phố Tỷ Phú
@@ -88,7 +78,7 @@ Chỉ GET của allowlist tĩnh chính xác và navigation root/index trong scop
 
 ## Cập nhật không phá phiên
 
-Không tự skipWaiting hoặc ép reload. Nút Cập nhật ngay yêu cầu xác nhận tải lại và worker kiểm tra chỉ còn cửa sổ yêu cầu trong scope; nếu có tab khác thì từ chối. Chỉ requester reload khi controllerchange. Đóng toàn bộ client vẫn kích hoạt tự nhiên. Khi activation, dọn cache cũ cùng prefix/scope và claim clients. Không xóa localStorage/IndexedDB hay cache repo khác. Kiểm tra update khi foreground được throttle60giây; browser cũng quản lý update lifecycle. Precache lỗi xóa cache chưa đủ và không activate phiên bản hỏng.
+Worker mới tự `skipWaiting` sau khi precache xong; khi activation, worker dọn cache cũ cùng prefix/scope rồi claim clients. Precache lỗi thì xóa cache đang làm dở và không activate phiên bản hỏng. Trang chỉ tự tải lại khi ở màn chính (không có `view=`), không có dialog mở và không đang nhập form; trong `?view=ocean`, `?view=game` hoặc hub phòng cũ, trang không bị tải lại giữa phiên. Nút Cập nhật ngay chỉ hiện khi trình duyệt giữ một worker đang chờ, và yêu cầu xác nhận trước khi tải lại. Không xóa localStorage/IndexedDB hay cache repo khác. Kiểm tra update khi foreground được throttle 60 giây; browser cũng quản lý vòng đời update.
 
 ## Kiểm chứng
 
@@ -98,11 +88,7 @@ Xem [hướng dẫn authored](../../docs/pwa.md), [workflow](development.md), [H
 
 ## Shared mobile safe area
 
-HUD foreground uses one `.game-safe` inset container with shared `--safe-*` tokens mapped to CSS env values; background remains full bleed. Cards size against container units, while landscape action/task regions scroll when height is constrained. Dialogs and the update notice also respect device insets. Do not double-apply insets on HUD children. Browser tests simulate asymmetric cutouts and home indicators over all24 states on dev/production; this is not physical-device verification.
-
-## Confirmed update action
-
-Waiting PWA updates never auto-reload; Cập nhật ngay requires confirmation and the requesting client to be the only window in scope before skipWaiting. Only that requester reloads on controllerchange; another window blocks apply with a visible message. Closing all clients still permits natural activation. Tests cover cancellation, two-window rejection, confirmed reload and notice disappearance. Old installed shells without this button must close all game tabs/windows once to load the new UI. No app removal or data clearing is needed.
+HUD foreground uses one `.game-safe` inset container with shared `--safe-*` tokens mapped to CSS env values; background remains full bleed. Cards size against container units, while landscape action/task regions scroll when height is constrained. Do not double-apply insets on HUD children. Browser tests simulate asymmetric cutouts and home indicators over all 24 states on dev/production; this is not physical-device verification.
 
 ## Local 3D board preview
 
@@ -111,10 +97,10 @@ The local ?view=game preview uses one Three.js renderer across HUD redraws, a sh
 
 ## Frontend Auth và kiểm thử full stack
 
-Runtime Supabase opt-in đã hoàn tất facade Auth, trạng thái chờ xác nhận email và màn đặt mật khẩu mới. Phòng dùng HTTP mutations có xác thực và Socket.IO WebSocket snapshots, PostgreSQL LISTEN/NOTIFY sau commit, tải lại khi reconnect và sessionStorage riêng theo provider. Firebase/Pages được giữ làm fallback, tài khoản Supabase mới cần đăng ký lại. Kiểm thử Docker cô lập dùng GoTrue/PostgREST/PostgreSQL thật, SMTP sink và hai browser xác minh email signup/recovery, vòng đời phòng, đổi mật khẩu, từ chối mật khẩu cũ và persistence; không gửi email hay ghi fixture lên production. Cấu hình và kiểm chứng deployment được ghi riêng, không đồng nhất source với cutover.
+Runtime Supabase là opt-in: facade Auth có xác nhận email và đặt mật khẩu mới; phòng dùng HTTP mutations kèm Bearer token và Socket.IO snapshots; Firebase/Pages vẫn là fallback. Kiểm thử Docker cô lập (`scripts/test-supabase.mjs`) dùng GoTrue, PostgREST và PostgreSQL thật với hai browser context; không gửi email hay ghi fixture lên production.
 
 Cấu hình email redirect được giới hạn về origin Vercel đã duyệt qua VITE_AUTH_REDIRECT_URL; CA công khai của Supabase được pin cho listener trong khi giữ xác minh TLS/hostname. `npm run test:supabase` chạy stack dùng một lần và CI cũng gọi bài kiểm thử này. Kiểm thử local không tự chứng minh email thật đã đến hộp thư bên ngoài.
 
 ## Biển online và shell offline
 
-Home hiện mở [biển chung](../architecture/ocean.md) sau Auth theo provider; PWA vẫn dùng cùng installer và shell tĩnh. Khi mất mạng, biển báo lỗi và cho về hub, không biến thuyền mẫu thành người online. Không lưu cá/phiên multiplayer vào cache. Màn Monopoly local vẫn giữ tại `?view=game`; trạng thái API/triển khai được kiểm chứng riêng với cache frontend.
+Home hiện mở [biển chung](../architecture/ocean.md) sau Auth theo provider; PWA vẫn dùng cùng installer và shell tĩnh. Khi mất mạng, biển tự thử kết nối lại và báo lỗi nếu không được; không có thuyền mẫu. Không lưu cá/phiên multiplayer vào cache. Màn Monopoly local vẫn giữ tại `?view=game`; trạng thái API/triển khai được kiểm chứng riêng với cache frontend.

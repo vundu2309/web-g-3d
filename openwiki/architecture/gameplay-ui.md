@@ -1,14 +1,16 @@
 ---
 type: architecture
 title: HUD ván chơi và adapter preview
-description: Route UI 24 trạng thái, quyền hiển thị theo lượt và ranh giới với
-  backend Monopoly chưa triển khai.
+description: Route HUD Monopoly 24 trạng thái, quyền hiển thị theo lượt, ranh giới với bàn 3D cục bộ và backend Monopoly chưa triển khai; mô tả theo source hiện tại.
 tags:
   - gameplay
   - ui
   - mobile
   - preview
   - state
+verified:
+  - by: openwiki/0.8.0
+    at: 2026-11-13T03:02:54.827Z
 sources:
   - id: openwiki-source-63e8f904736888c1397b0a2b
     resource: repo://docs/game/ui-implementation.md
@@ -18,14 +20,10 @@ sources:
     resource: repo://docs/pwa.md
   - id: openwiki-source-5b54a58d1b51cd490b0e7162
     resource: repo://package.json
-  - id: openwiki-source-e40960a4e3d6b8d6193113c1
-    resource: repo://scripts/service-worker.js
   - id: openwiki-source-3515d68bed1b916f693296ec
     resource: repo://scripts/test-browser.mjs
   - id: openwiki-source-de5ab1ed905c7bd08fbdce6f
     resource: repo://src/app/play.ts
-  - id: openwiki-source-fdc97d585e693e9f422ad7ae
-    resource: repo://src/app/pwa.ts
   - id: openwiki-source-49557827443d53e9eeae17f4
     resource: repo://src/board/layout.ts
   - id: openwiki-source-1475654f7d7ee4e91ea6389a
@@ -42,8 +40,6 @@ sources:
     resource: repo://src/game-ui/style.css
   - id: openwiki-source-d4189bbeecb62806cb297b5a
     resource: repo://src/main.ts
-  - id: openwiki-source-77110d1e1f1125ab5211f920
-    resource: repo://src/platform/pwa.ts
   - id: openwiki-source-554339f52225d7d8edff3ed0
     resource: repo://src/style.css
   - id: openwiki-source-956a523ed721749c7e5f092a
@@ -58,58 +54,65 @@ sources:
     resource: repo://tests/pwa-browser.mjs
   - id: openwiki-source-489032183ad2ac8548be7b60
     resource: repo://tests/safe-area-browser.mjs
-generated: { by: "codex", at: "2026-11-05T03:32:21.077Z" }
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-05T03:57:21.194Z
+generated: { by: "claude-code", at: "2026-11-13T03:02:54.827Z" }
 ---
 
 # HUD ván chơi và adapter preview
 
 ## Route và phạm vi
 
-Game mặc định hiện là [biển chung](ocean.md), vào thẳng sau đăng nhập; Monopoly được bảo toàn tại `?view=game` và hub phòng cũ tại `?view=monopoly-hub`.
+`src/main.ts` chọn route theo query `view`: không có `view` hoặc `view=ocean` vào [biển đánh cá chung](ocean.md) qua harbor; `view=monopoly-hub` mở hub phòng cũ (`src/app/start.ts`); `view=game` lazy-load adapter preview `src/app/play.ts`. Route HUD chỉ dựng giao diện mẫu và bàn 3D cục bộ. `src/app/play.ts` khai báo rõ không import Firebase, không ghi cloud và không xử lý kinh tế; `tests/game-ui-browser.mjs` chặn các request tới `identitytoolkit`, `securetoken` và `firestore.googleapis.com` và fail nếu có request.
 
-Người dùng đã duyệt 24 trạng thái UI, yêu cầu trạng thái di chuyển không có text riêng. Trang chính và phòng đã bắt đầu có link mở `?view=game`; query `state=5` mở ví dụ đấu giá. Đây là preview với badge dữ liệu minh họa, không phải ván Firebase. Module chỉ lazy-load khi chọn route này, không gọi Auth/Firestore hoặc ghi tiền/tài sản vào cloud.
+Người dùng đã duyệt bộ 24 trạng thái UI. Trang chính và phòng đã bắt đầu có link mở `?view=game`; `state=5` mở ví dụ đấu giá. Badge và dialog ghi rõ đây là dữ liệu minh họa, chỉ thao tác trên máy này. Đây không phải ván Firebase.
 
 ## Ownership
 
-- `src/game-ui/model.ts`: catalog scenario, action ID, allowed guard và fixed bid steps.
-- `src/game-ui/render.ts`: template HUD/roster, deed và các surface tài sản/trade/thẻ/kết quả, escape text payload.
-- `src/game-ui/icons.ts`: SVG outline chung, không dùng ảnh gen làm control.
-- `src/game-ui/style.css`: landscape-phone layout, portrait fallback, reduced motion.
-- `src/app/play.ts`: adapter preview, DOM delegation, dialog chọn trạng thái, local feedback, offline/online, timer và cleanup.
+- `src/game-ui/model.ts`: catalog 24 scenario, action ID, guard quyền hiển thị và các bước giá cố định.
+- `src/game-ui/render.ts`: markup HUD, roster, thẻ tài sản, bề mặt trade/thẻ/kết quả; escape payload text.
+- `src/game-ui/icons.ts`: SVG outline dùng chung.
+- `src/game-ui/style.css`: layout landscape điện thoại, fallback portrait, reduced motion.
+- `src/game-ui/board-preview.ts`: fixture cho bàn 3D cục bộ.
+- `src/app/play.ts`: controller preview, delegation sự kiện DOM, dialog chọn trạng thái, phản hồi cục bộ, theo dõi online/offline, timer và cleanup.
 
-Catalog/guard phục vụ UI; chưa là state machine hoặc quyền bảo mật cho game thật. Backend tương lai phải cấp state, action hợp lệ và kiểm tra mọi command. Không chuyển local fixture dispatcher thành server hoặc kéo Firebase vào renderer.
+Guard trong `model.ts` là contract hiển thị, không phải bảo mật. Backend tương lai phải cấp state, kiểm tra từng command và trả outcome; không chuyển dispatcher cục bộ thành server hay đưa Firebase vào renderer.
 
 ## Contract hiển thị
 
-Roster căn giữa dưới không nền. Highlight vàng bám người đến lượt, nhãn Bạn độc lập với Cần phản hồi. Action nhỏ gọn giữa phải, icon16px/text14px một hàng, touch target44px. Thẻ tài sản giữ cấu trúc in gốc, khác typography HUD; đủ bảy rent rows, mặt sau riêng. Observer không có action/Tài sản; không có nút Lịch sử, vẫn thấy quyết định/thẻ/giá/offer chung. Respondent có đúng action tác vụ, không khởi tạo trade riêng ngoài lượt.
+Roster căn giữa dưới, không nền; highlight vàng bám người đến lượt. Nhãn "Bạn" là định danh cục bộ, còn "Cần phản hồi" độc lập với chủ lượt. Action nằm giữa phải, icon SVG 16px, chữ 14px, vùng bấm tối thiểu 44px.
 
-Auction tăng10/20/50 từ giá cao nhất, không nhập số. Trade điều chỉnh số mẫu bằng nút, không bàn phím. Trạng thái02 không heading/detail/action; schematic board và CSS dice chỉ làm nền preview, có board 3D cục bộ nhưng chưa có animation di chuyển quân có thẩm quyền. Kết quả dùng người cuối chưa phá sản, không thắng theo số dư sau timer.
+Ngoài lượt không có action, kể cả Tài sản; HUD không có nút Lịch sử. Observer vẫn thấy thẻ, người đang quyết định, giá/đề nghị và kết quả. Người phải phản hồi chỉ có đúng action của yêu cầu đó. Đấu giá tăng 10/20/50 từ giá cao nhất, không nhập số; trade điều chỉnh số mẫu bằng nút, không dùng bàn phím. Thẻ tài sản giữ cấu trúc thẻ in với đủ bảy dòng tiền thuê và mặt sau riêng.
+
+Trạng thái 02 không có heading, detail hoặc action di chuyển. Chuyển quân trên bàn 3D chỉ là minh họa, không quyết định luật. Kết thúc ván mẫu xếp người cuối chưa phá sản, không xếp theo số dư sau timer.
 
 ## Interactions và lifecycle
 
-Các flow UI cục bộ giúp review: roll chuyển moving rồi mua, buy/pay chuyển kết thúc lượt, bid chuyển observer, trade response chuyển chờ, quản lý công trình có feedback. Một số thao tác chỉ báo lựa chọn thay vì giả giao dịch thật. Chọn scenario reset fixture; query giữ ID qua reload nhưng tiền/tài sản mẫu chỉ ở RAM. Dialog và events do controller sở hữu, AbortController/timer cleanup khi dispose. Offline chuyển state23, online đi qua24 rồi trả trạng thái trước đó; không bảo đảm reconnect ván server.
+Các flow cục bộ để review: tung chuyển sang trạng thái di chuyển rồi mua; mua/thanh toán kết thúc lượt; bid chuyển observer; phản hồi trade chuyển sang chờ; quản lý công trình có phản hồi cục bộ. Một số thao tác chỉ báo lựa chọn thay vì giả lập giao dịch cloud.
+
+Chọn scenario reset fixture. Query `state` giữ ID qua reload, nhưng tiền và tài sản mẫu chỉ nằm trong RAM. Dialog, sự kiện và timer do controller sở hữu và được hủy khi dispose qua `AbortController`. Khi mất mạng, HUD hiện heading "Mất kết nối" với một action; khi có mạng lại, HUD trở về trạng thái trước đó. Không có reconnect ván server vì ván server chưa tồn tại.
 
 ## Kiểm chứng
 
-Unit tests kiểm tra observer/respondent permissions, fixed increments và moving không text. Browser tests chạy dev/production, cả24 scenario ở667×375,844×390,932×430, không overflow/đè roster, touch44px/icon nhỏ; kiểm tra flow, offline và reload. Preview tests chặn request Firebase production. Emulator tests của hub là suite riêng. Chưa có test engine, real-phone ergonomics hoặc production multiplayer gameplay.
+- `tests/game-ui.test.mjs` (unit): quyền observer/respondent, bước giá cố định, trạng thái 02 không có text hay action.
+- `tests/game-ui-browser.mjs`: chạy 24 scenario ở 667×375, 844×390 và 932×430, kiểm tra overflow, chồng lấn, kích thước action, flow mẫu, portrait, offline/online và reload; test fail nếu có request Firebase.
+- `scripts/test-browser.mjs` chạy các suite này trên dev server và production preview.
+- `tests/safe-area-browser.mjs`: mô phỏng cutout trái/phải và home indicator trên 24 trạng thái, dev và production.
 
-Xem [implementation contract](../../docs/game/ui-implementation.md), [hub](hub.md), [workflow](../operations/development.md).
+Các test này là bằng chứng trình duyệt mô phỏng. Chúng không chứng minh ergonomics hoặc hiệu năng trên điện thoại thật, cũng không chứng minh gameplay đa người.
 
 ## PWA và vòng đời shell
 
-Test browser chạy thêm tests/pwa-browser.mjs trên build thật tại subpath /web-g-3d/. Kiểm tra icon/manifest, handler cài và hướng dẫn, offline home/lazy HUD, API không cache, worker waiting không ép reload và cleanup khi client đóng. Xem [PWA](../operations/pwa.md); chưa thay test cài OS thực tế.
+`tests/pwa-browser.mjs` chạy trên build thật tại subpath `/web-g-3d/` (script `test:browser` trong `package.json`) và kiểm tra manifest/icon, handler cài đặt và hướng dẫn, offline home cùng lazy HUD, API không vào cache và update tự kích hoạt. Chi tiết nằm ở [PWA](../operations/pwa.md). Cài đặt trên Android/iOS vẫn cần kiểm chứng trên thiết bị thật.
+
+Cập nhật service worker được mô tả trong mục "Cập nhật không phá phiên" của trang PWA; mục này chỉ nêu phần liên quan HUD.
 
 ## Shared mobile safe area
 
-HUD foreground uses one `.game-safe` inset container with shared `--safe-*` tokens mapped to CSS env values; background remains full bleed. Cards size against container units, while landscape action/task regions scroll when height is constrained. Dialogs and the update notice also respect device insets. Do not double-apply insets on HUD children. Browser tests simulate asymmetric cutouts and home indicators over all24 states on dev/production; this is not physical-device verification.
+Phần HUD foreground dùng một container `.game-safe` và các token `--safe-*` ánh xạ sang `env(safe-area-inset-*)`; nền vẫn tràn màn hình. Thẻ co theo kích thước của container; vùng task và action ngang cuộn khi thiếu chiều cao. Không áp inset lần thứ hai lên từng phần tử con của HUD. Test mô phỏng inset, không phải bằng chứng trên thiết bị thật.
 
-## Confirmed update action
+## Bàn 3D cục bộ
 
-Waiting PWA updates never auto-reload; Cập nhật ngay requires confirmation and the requesting client to be the only window in scope before skipWaiting. Only that requester reloads on controllerchange; another window blocks apply with a visible message. Closing all clients still permits natural activation. Tests cover cancellation, two-window rejection, confirmed reload and notice disappearance. Old installed shells without this button must close all game tabs/windows once to load the new UI. No app removal or data clearing is needed.
+Bàn 3D trong `?view=game` là bản xem trước cục bộ dùng Three.js, dữ liệu lấy từ fixture `src/game-ui/board-preview.ts`. Nó không ghi Firestore, không gửi lệnh gameplay và không thay đổi quyền thao tác. Camera là công cụ xem, không phải action, nên observer cũng dùng được. Chi tiết hình học và camera nằm ở [bàn 3D và camera](board-3d.md).
 
-## Local 3D board preview
+## Giới hạn
 
-The local ?view=game preview uses one Three.js renderer across HUD redraws, a shared40-space grid with2.2-deep tiles, outward-readable labels and buildings on inner property stripes. Focus follows the active fixture token; Overview supports orbit/pan/zoom. WebGL fallback preserves a flat board. No authoritative economy or multiplayer gameplay is added. Tests/board-layout.test.mjs and tests/board-browser.mjs cover geometry and real WebGL camera/lifecycle/fallback behavior on dev/production. Mobile physical-device verification remains pending.
+Chưa có engine luật, ngân hàng, thẻ đầy đủ, xử lý đấu giá/trade nhiều máy, reconnect ván server hay đồng bộ đa người. Không trình bày các scene này là một ván hoàn chỉnh đúng luật. Xem [implementation contract](../../docs/game/ui-implementation.md), [hub](hub.md) và [workflow](../operations/development.md).
