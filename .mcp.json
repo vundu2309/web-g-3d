@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "openwiki": {
+      "command": "npx",
+      "args": ["--no-install", "openwiki", "mcp", "--host", "claude"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    }
+  }
+}

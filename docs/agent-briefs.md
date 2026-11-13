@@ -12,7 +12,7 @@ How the sea overhaul of November 2026 (decision [0011](decisions/0011-sea-visual
 
 Typical flow for a new prop: `blender-structure` builds it, `blender-refine` tunes and exports it, then `sea-visual-builder` places it in the islands (as `island-layout.ts` and `island-models.ts` do for palms, rocks, bushes and the hut). The lead (the main session) reviews every report: reruns the checks, looks at the images, commits and, after the user approves the images, pushes.
 
-Blender needs the Blender Lab MCP add-on running (Edit > Preferences > Get Extensions > Blender Lab > MCP, then start its server on port 9876). Without it the Blender agents cannot work; `sea-visual-builder` does not need it.
+Blender needs the Blender Lab MCP add-on running (set-up and the other MCP servers: [mcp.md](mcp.md)). Without it the Blender agents cannot work; `sea-visual-builder` does not need it.
 
 ## A brief for `sea-visual-builder`
 
