@@ -123,7 +123,10 @@ void main() {
   float inland = -vShore;
   float dist = distance(cameraPosition, vWorld);
   // This place's swash cycle: it starts when the breaker arrives at the waterline.
-  float phase = surfPhase(0.0, surfJitter(p));
+  float base = surfPhase(0.0, surfJitter(p));
+  // Each wave also arrives early or late in its own pattern along the sand, so successive
+  // waves do not break in the same places: the film runs up in separate tongues, not as one band.
+  float phase = base + (shoreNoise(p * 0.22 + floor(base) * 5.17) - 0.5) * 0.45;
   float f = fract(phase);
   float cycle = floor(phase);
   // How far up each cycle runs varies along the beach and from one wave to the next.

@@ -318,9 +318,9 @@ float surfPhase(float d, float jitter) {
   return (time + SURF_TRAVEL * sqrt(max(d, 0.0))) / SURF_PERIOD + jitter;
 }
 // The slow along-shore variation of the surf at p (cycles): lines arrive a little early
-// here and late there, so no break line is a perfect ring. Shared by the sea and the swash.
+// here and late there, so no break line is a perfect ring, and the third (a few metres wide) breaks a crest into separate tongues. Shared by the sea and the swash.
 float surfJitter(vec2 p) {
-  return shoreNoise(p * 0.021 + 7.3) * 0.55 + shoreNoise(p * 0.067 - 2.1) * 0.22;
+  return shoreNoise(p * 0.021 + 7.3) * 0.55 + shoreNoise(p * 0.067 - 2.1) * 0.22 + shoreNoise(p * 0.17 + 11.7) * 0.3;
 }
 float swashFront(float f, float reach) {
   float low = -1.0;
