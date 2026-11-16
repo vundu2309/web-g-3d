@@ -27,10 +27,14 @@ export const TRAIL_ACROSS = 3;
 export const START_TAPER = 0.5;
 /** How far behind the middle of the hull the wash starts (m). */
 export const STERN = 2.8;
-/** How far ahead of it the arms start (m): at the bow. */
-export const BOW = 1.5;
-/** How fast the arms spread sideways (m/s): the spread speed of a wave, as in wake.ts. */
-export const ARM_SPREAD = 4.6;
+/** How far ahead of the boat's position the arms start (m): the stem (as in bow-wave.ts). */
+export const BOW = 3.7;
+/** The half angle of a Kelvin wake: asin(1/3), 19.47 degrees, whatever the speed. */
+export const KELVIN_HALF_ANGLE = Math.asin(1 / 3);
+/** Metres an arm moves sideways for each metre the boat has sailed since it was laid. */
+export const ARM_SLOPE = Math.tan(KELVIN_HALF_ANGLE);
+/** How far from the keel the arms start, at the stem (m). */
+export const ARM_ROOT = 0.45;
 /** Metres of path in one tile of the foam texture. */
 export const FOAM_TILE = 5.5;
 
@@ -150,7 +154,18 @@ export const trailGeometry = (): TrailGeometry => {
 export const washAlpha = (age: number) =>
   smooth(0, 0.2, age) * Math.pow(1 - smooth(1.2, TRAIL_LIFE, age), 1.1);
 export const armAlpha = (age: number) =>
-  smooth(0.04, 0.35, age) * Math.pow(1 - smooth(0.4, TRAIL_LIFE, age), 1.3);
+  smooth(0.04, 0.3, age) * Math.pow(1 - smooth(1.0, TRAIL_LIFE, age), 1.2);
+
+/**
+ * How the white core behind the stern varies along the path (a pure function of the distance
+ * travelled, so it is fixed to the water): its width as a factor of the base width, and its
+ * opacity as a factor. Slow, unequal waves, so the core swells and pinches and thins out in
+ * patches instead of being a ruler-straight ribbon.
+ */
+export const coreWidth = (dist: number) =>
+  1 + 0.15 * Math.sin(dist * 0.9) + 0.09 * Math.sin(dist * 2.3 + 1.1);
+export const coreDensity = (dist: number) =>
+  0.86 + 0.14 * Math.sin(dist * 1.7 + 0.6) + 0.06 * Math.sin(dist * 4.1);
 
 /**
  * How much of an arm is left once the boat has turned `turned` radians since it was laid, and
@@ -202,23 +217,35 @@ export function layTrail(trail: WakeTrail, now: number, out: TrailGeometry) {
         cx = sample.x - fx * STERN;
         cz = sample.z - fz * STERN;
         const radius = sample.speed / Math.max(Math.abs(sample.yaw), 0.05);
-        half = washHalfWidth(age, radius);
-        alpha = clamp((sample.speed - 1.2) / 6) * washAlpha(age) * 0.85 * taper;
+        // The core swells and pinches along the path, never wider than the turn holds.
+        half = Math.min(
+          washHalfWidth(age, radius) * coreWidth(sample.dist),
+          Math.max(1.3, 0.7 * radius),
+        );
+        alpha =
+          clamp((sample.speed - 1.2) / 6) *
+          washAlpha(age) *
+          0.95 *
+          coreDensity(sample.dist) *
+          taper;
         v = sample.dist / FOAM_TILE;
         u0 = 0;
       } else {
         const side = strip === 1 ? -1 : 1;
-        // The arm runs back from the bow and spreads sideways as the wave does.
-        const shift = BOW - (BOW + STERN) * smooth(0, 0.5, age);
-        const lateral = 1.3 + ARM_SPREAD * age;
-        cx = sample.x + fx * shift + rx * side * lateral;
-        cz = sample.z + fz * shift + rz * side * lateral;
-        half = 0.4 + 0.45 * age;
+        // The arm leaves the stem and, for every metre the boat has sailed since, moves ARM_SLOPE
+        // metres to the side: a straight line at the Kelvin half angle behind a boat that keeps
+        // its course, and the path's own curve when it turns.
+        const sailed = newest.dist - sample.dist;
+        const lateral = ARM_ROOT + ARM_SLOPE * sailed;
+        cx = sample.x + fx * BOW + rx * side * lateral;
+        cz = sample.z + fz * BOW + rz * side * lateral;
+        // A band that thickens as the foam piles up along it.
+        half = 0.3 + 0.075 * sailed;
         const turned = wrapAngle(newest.heading - sample.heading);
         alpha =
-          clamp((sample.speed - 5) / 4) *
+          clamp((sample.speed - 4.5) / 3.5) *
           armAlpha(age) *
-          0.7 *
+          0.9 *
           taper *
           armKeep(turned, sample.yaw);
         v = sample.dist / FOAM_TILE + (side < 0 ? 0.31 : 0.67);

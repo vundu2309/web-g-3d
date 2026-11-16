@@ -19,6 +19,7 @@ import {
   type WakeTrail,
 } from "./wake-trail.ts";
 import { waveHeight } from "./waves.ts";
+import { BowWaveMesh } from "./bow-wave-mesh.ts";
 
 /**
  * Draws a boat's wake: the strips from wake-trail.ts as one small mesh on the sea, with a
@@ -118,6 +119,7 @@ const LIFT = 0.16;
 
 export class WakeMesh {
   private readonly mesh: Mesh;
+  private readonly bow: BowWaveMesh;
   private readonly scene: Scene;
   private readonly geometry = trailGeometry();
   private readonly positions: Float32Array;
@@ -150,10 +152,25 @@ export class WakeMesh {
     this.mesh.material = material(scene);
     this.mesh.isPickable = false;
     this.mesh.alwaysSelectAsActiveMesh = true;
+    this.bow = new BowWaveMesh(scene, material(scene));
   }
 
-  /** Lays the strips along the trail for time `now` (the scene clock, for the waves). */
-  update(trail: WakeTrail, now: number) {
+  /**
+   * Lays the strips along the trail for time `now` (the scene clock, for the waves), and the bow
+   * wave at the boat's current position `at` (the trail's newest point when it is not given; the
+   * trail only records every few hundredths of a second, so the game passes the live position
+   * and the crest does not stutter against the hull).
+   */
+  update(trail: WakeTrail, now: number, at?: { x: number; z: number }) {
+    const newest = trail.samples[trail.samples.length - 1];
+    if (newest)
+      this.bow.update(
+        at?.x ?? newest.x,
+        at?.z ?? newest.z,
+        newest.heading,
+        newest.speed,
+        now,
+      );
     layTrail(trail, now, this.geometry);
     const { xz, uv, alpha } = this.geometry;
     const count = alpha.length;
@@ -182,6 +199,7 @@ export class WakeMesh {
   }
 
   dispose() {
+    this.bow.dispose();
     this.mesh.dispose();
   }
 }
