@@ -21,12 +21,19 @@ export const REFLECT_TAPS = 9;
 /** Meshes that lie on or in the water and are never mirrored: the water itself and the white water. */
 const NEVER = new Set(["sea", "wake-foam", "gear-marker", "gear-shadow"]);
 const NEVER_PREFIX = ["swash-", "gear-ring-"];
+/** The material of the fish and the line while they are under the water (underwater.ts): they lie below y = 0. */
+export const UNDER_THE_SEA = "underwater-skin";
+
+/** Whether a mesh wearing this material is drawn in the mirror (not if it is under the sea). */
+export const reflectsMaterial = (material: string | undefined) =>
+  material !== UNDER_THE_SEA;
 
 /**
  * Whether a mesh belongs in the reflection. A predicate over the whole scene, not a list, so the
  * islands, props, markets and boats that appear later (other players) join it by themselves.
  */
-export function reflectsInWater(name: string): boolean {
+export function reflectsInWater(name: string, material?: string): boolean {
+  if (!reflectsMaterial(material)) return false;
   if (NEVER.has(name)) return false;
   for (const prefix of NEVER_PREFIX) if (name.startsWith(prefix)) return false;
   return true;

@@ -13,6 +13,8 @@ export interface Part {
   positions: number[];
   indices: number[];
   colors: number[];
+  /** Smooth normals when the part comes with them (the Blender models); else they are computed. */
+  normals?: number[];
 }
 export interface Creature {
   main: Part;

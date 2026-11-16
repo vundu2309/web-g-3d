@@ -1,5 +1,5 @@
 import { createHaptics } from "./haptics";
-import { fishThumb } from "./fish-thumb";
+import { showFishThumb } from "./fish-thumb";
 import {
   Angler,
   CHARGE_MS,
@@ -513,7 +513,7 @@ export function createFishingUi(options: FishingUiOptions) {
       const art = document.createElement("div");
       art.className = "fish-cell-art";
       const picture = document.createElement("img");
-      picture.src = fishThumb(species, 130);
+      showFishThumb(picture, species, 130);
       picture.alt = "";
       picture.draggable = false;
       art.append(picture);

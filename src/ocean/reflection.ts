@@ -43,7 +43,8 @@ export function createSeaReflection(
   }
   // Keeps what lies above y = 0 (the plane faces down: the mirrored camera is under the sea).
   mirror.mirrorPlane = new Plane(0, -1, 0, 0);
-  mirror.renderListPredicate = (mesh) => reflectsInWater(mesh.name);
+  // prettier-ignore
+  mirror.renderListPredicate = (mesh) => reflectsInWater(mesh.name, mesh.material?.name);
   // Nothing drawn means alpha 0: the water then falls back to the analytic sky there.
   mirror.clearColor = new Color4(0, 0, 0, 0);
   mirror.wrapU = Texture.CLAMP_ADDRESSMODE;

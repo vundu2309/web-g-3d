@@ -24,13 +24,15 @@ export function meshFrom(
   positions: number[],
   indices: number[],
   color: Color3 | number[],
+  /** Normals that come with the geometry; computed from the faces when omitted. */
+  given?: number[],
 ) {
   const data = new VertexData();
   data.positions = positions;
   data.indices = indices;
   const normals: number[] = [];
-  VertexData.ComputeNormals(positions, indices, normals);
-  data.normals = normals;
+  if (!given) VertexData.ComputeNormals(positions, indices, normals);
+  data.normals = given ?? normals;
   data.uvs = new Array((positions.length / 3) * 2).fill(0);
   if (Array.isArray(color)) data.colors = color;
   const mesh = new Mesh(name, scene);

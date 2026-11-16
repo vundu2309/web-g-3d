@@ -8,10 +8,20 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import type { Scene } from "@babylonjs/core/scene";
 import { drawnLength, speciesById, type FishingView } from "./fishing.ts";
 import { createCreature, type CreatureModel } from "./creature-kit.ts";
+import { hangPose } from "./creature-hang.ts";
 import { fishPose, lineColour, lineTremble } from "./fight-look.ts";
 import { Ribbon } from "./ribbon.ts";
 import { Rope, smoothRope } from "./rope.ts";
 import { waveHeight } from "./waves.ts";
+import { coastDistance, seabedDepth } from "./shore.ts";
+import {
+  disturbance,
+  shoal,
+  surfaceEntry,
+  swimDepth,
+  swimPose,
+} from "./underwater.ts";
+import { UnderLine, UnderwaterSkin } from "./underwater-material.ts";
 import { PAL } from "./art/colors.ts";
 import { Parts, SIDES } from "./art/shapes.ts";
 import { hex } from "./mesh-parts.ts";
@@ -166,6 +176,42 @@ function ringTexture(scene: Scene) {
   return texture;
 }
 
+/**
+ * A V of ripples: two arms that spread behind the apex at the right edge (the fish's nose) and
+ * fade away, with a soft boil at the apex. It lies on the water over a fish that swims close
+ * under the surface.
+ */
+function veeTexture(scene: Scene) {
+  const texture = new DynamicTexture(
+    "gear-vee",
+    { width: 256, height: 128 },
+    scene,
+    true,
+  );
+  const context = texture.getContext();
+  context.clearRect(0, 0, 256, 128);
+  for (const side of [-1, 1]) {
+    const gradient = context.createLinearGradient(236, 64, 12, 64);
+    gradient.addColorStop(0, "rgba(255,255,255,0.95)");
+    gradient.addColorStop(0.5, "rgba(255,255,255,0.5)");
+    gradient.addColorStop(1, "rgba(255,255,255,0)");
+    context.strokeStyle = gradient;
+    context.lineWidth = 12;
+    context.beginPath();
+    context.moveTo(236, 64);
+    context.lineTo(14, 64 + side * 56);
+    context.stroke();
+  }
+  const boil = context.createRadialGradient(228, 64, 2, 228, 64, 28);
+  boil.addColorStop(0, "rgba(255,255,255,0.85)");
+  boil.addColorStop(1, "rgba(255,255,255,0)");
+  context.fillStyle = boil;
+  context.fillRect(190, 26, 66, 76);
+  texture.update();
+  texture.hasAlpha = true;
+  return texture;
+}
+
 export class FishingGear {
   private readonly line: Ribbon;
   private readonly arc: LinesMesh;
@@ -174,13 +220,25 @@ export class FishingGear {
   private readonly markerMaterial: StandardMaterial;
   private readonly linePoints: Vector3[] = [];
   private readonly arcPoints: Vector3[] = [];
-  private readonly ripples: { t: number; x: number; z: number }[] = [];
+  private readonly ripples: {
+    t: number;
+    x: number;
+    z: number;
+    size: number;
+  }[] = [];
   private idleRipple = -9;
   private readonly lure: Mesh;
   /** The hook under the lure: drawn only once the lure is in the water, where a fish can take it. */
   private readonly hook: Mesh;
-  /** A soft dark patch in the water under the hooked fish, so it can be found from afar. */
-  private readonly shadow: Mesh;
+  /** How the hooked fish and the bit of line below the surface are drawn through the water (underwater.ts). */
+  private readonly skin: UnderwaterSkin;
+  private readonly lineSkin: UnderwaterSkin;
+  private readonly underLine: UnderLine;
+  /** The V of ripples (or a faint boil) over a fish that swims close under the surface. */
+  private readonly vee: Mesh;
+  private readonly veeMaterial: StandardMaterial;
+  /** Whether the fish now wears the underwater skin (else the shared satin one). */
+  private wearing = false;
   private readonly rope = new Rope(POINTS);
   private readonly smooth = new Float64Array(POINTS * 3);
   /** Where the line meets the water (or the fish's mouth), world. */
@@ -202,7 +260,11 @@ export class FishingGear {
   private fightX = 0;
   private fightZ = 0;
   private fightYaw = 0;
+  private fightDepth = 0;
   private fightSeeded = false;
+  /** The scratch points of the line above the water, and where it meets the sea. */
+  private readonly dive: Vector3[] = [];
+  private readonly mouth = new Vector3();
   private lastSplash = 0;
   private held:
     | { id: string; scale: number; since: number; from: Vector3 }
@@ -258,25 +320,35 @@ export class FishingGear {
     this.hook = hookMesh(scene);
     this.hook.parent = this.lure;
     this.hook.isVisible = false;
-    this.shadow = MeshBuilder.CreateDisc(
-      "gear-shadow",
-      { radius: 0.5, tessellation: 20 },
+    for (let i = 0; i < POINTS; i++) this.dive.push(new Vector3());
+    this.skin = new UnderwaterSkin(scene, 1);
+    this.lineSkin = new UnderwaterSkin(scene, 0, true);
+    this.underLine = new UnderLine(scene, "gear-under-line", this.lineSkin);
+    // The V: a flat sheet (named like the rings, so the sea's mirror leaves it out) with the
+    // apex at its +X end, laid along the way the fish swims.
+    this.vee = MeshBuilder.CreateGround(
+      "gear-ring-v",
+      { width: 1, height: 1 },
       scene,
     );
-    this.shadow.rotation.x = Math.PI / 2;
-    this.shadow.bakeCurrentTransformIntoVertices();
-    this.shadow.material = glowMaterial(scene, "gear-shadow-material", {
-      color: new Color3(0.01, 0.12, 0.2),
-      alpha: 0.38,
+    this.veeMaterial = glowMaterial(scene, "gear-ring-v-material", {
+      texture: veeTexture(scene),
+      alpha: 0,
     });
-    this.shadow.isPickable = false;
-    this.shadow.isVisible = false;
+    this.vee.material = this.veeMaterial;
+    this.vee.isPickable = false;
+    this.vee.isVisible = false;
     this.setVisible(false);
   }
 
-  /** A ring spreads from where the line enters the water (splash, nibble, bite). */
-  ripple() {
-    this.ripples.push({ t: this.clock, x: this.entry.x, z: this.entry.z });
+  /** A ring spreads from where the line enters the water (splash, nibble, bite); `size` 1 is the usual one. */
+  ripple(size = 1) {
+    this.ripples.push({
+      t: this.clock,
+      x: this.entry.x,
+      z: this.entry.z,
+      size,
+    });
     if (this.ripples.length > RINGS) this.ripples.shift();
   }
 
@@ -294,6 +366,7 @@ export class FishingGear {
   hide() {
     this.showFish(undefined);
     this.setVisible(false);
+    this.underOff();
     this.roped = false;
     this.arc.isVisible = false;
     this.marker.isVisible = false;
@@ -308,8 +381,14 @@ export class FishingGear {
     if (!on) {
       this.lure.isVisible = false;
       this.hook.isVisible = false;
-      this.shadow.isVisible = false;
+      this.underOff();
     }
+  }
+
+  /** The line below the surface and the V of ripples away. */
+  private underOff() {
+    this.underLine.isVisible = false;
+    this.vee.isVisible = false;
   }
 
   /** Where the camera is, for the line strip to face it. */
@@ -356,9 +435,11 @@ export class FishingGear {
           : Color3.White();
     }
     let ringsOn = false;
-    this.shadow.isVisible = false;
+    this.underOff();
     this.roped = false;
     if (!(view.phase === "fighting" && view.fight)) this.fightSeeded = false;
+    // The fish exists before it is drawn, so its first frame is not spent at the origin.
+    this.showFish(view.phase === "fighting" ? view.species : undefined);
     if (out && view.landing) {
       if (view.phase === "fighting" && view.fight)
         this.drawFight(view, tip, time, seconds);
@@ -368,7 +449,6 @@ export class FishingGear {
       this.pull.strength = 0;
       this.pull.shake = 0;
     }
-    this.showFish(view.phase === "fighting" ? view.species : undefined);
     this.drawRings(ringsOn ? view : undefined, time);
   }
 
@@ -377,6 +457,7 @@ export class FishingGear {
     if (id !== this.fishId) {
       this.fish?.dispose();
       this.fish = undefined;
+      this.wearing = false;
       this.fishId = id;
       const species = id ? speciesById(id) : undefined;
       if (species)
@@ -387,9 +468,26 @@ export class FishingGear {
           species.body,
           species.fin,
           species.look,
+          species.id,
         );
     }
     this.fish?.root.setEnabled(id !== undefined);
+  }
+
+  /** Dresses the fish in the underwater skin (or the shared satin one) and feeds the skin its frame. */
+  private wear(
+    on: boolean,
+    time: number,
+    surface: number,
+    cut: boolean,
+    fade = 1,
+    turquoise = 0,
+  ) {
+    if (!this.fish) return;
+    if (on) this.skin.update(time, surface, cut, fade, turquoise);
+    if (on === this.wearing) return;
+    this.wearing = on;
+    this.fish.setSkin(on ? this.skin.material : undefined);
   }
 
   /** The line is cut or the hook is empty: it whips back toward the rod for a moment. */
@@ -400,6 +498,7 @@ export class FishingGear {
     this.recoil = time;
     this.recoilFrom.copyFrom(this.entry);
     this.showFish(undefined);
+    this.underOff();
   }
 
   /** Whether the snapped line is still whipping back. */
@@ -410,6 +509,7 @@ export class FishingGear {
   /** Draws the loose end flying back to the rod tip. */
   updateRecoil(tip: { x: number; y: number; z: number }, time: number) {
     this.clock = time;
+    this.underOff();
     const u = clamp((time - this.recoil) / RECOIL_S);
     const e = ease(u);
     this.line.isVisible = true;
@@ -464,6 +564,7 @@ export class FishingGear {
     const held = this.held;
     if (!held) return;
     this.clock = time;
+    this.underOff();
     let u = 0;
     if (this.leaving) u = clamp((time - this.leaving.since) / LEAVE_S);
     if (u >= 1) {
@@ -484,7 +585,11 @@ export class FishingGear {
       (keep ? e * 4 : -e * e * 6) +
       Math.sin(a * Math.PI) * 0.9 * (1 - a);
     const scale = held.scale * (keep ? 1 - e : 1);
-    const hangY = mouthY - scale * 0.5;
+    // A fish hangs nose up by the mouth; an octopus by the top of its head (see creature-hang.ts).
+    const pose = this.fish
+      ? hangPose(this.fish.creature)
+      : { roll: Math.PI / 2, drop: 0.5 };
+    const hangY = mouthY - scale * pose.drop;
     if (this.fish) {
       const x = held.from.x + (mouthX - held.from.x) * a;
       const y =
@@ -494,8 +599,12 @@ export class FishingGear {
       this.fish.root.rotation.set(
         0,
         this.fishYaw + (time * 0.9 - this.fishYaw) * a,
-        this.fishRoll + (Math.PI / 2 + sway * 0.3 - this.fishRoll) * a,
+        this.fishRoll + (pose.roll + sway * 0.3 - this.fishRoll) * a,
       );
+      // A fish that comes out of the water, or is put back into it, is seen through the water
+      // while any of it is still low; once it is clear of the sea it is the shared satin one.
+      const level = waveHeight(x, z, time);
+      this.wear(y - scale * 0.6 < level, time, level, false);
       this.fish.root.scaling.setAll(Math.max(0.01, scale));
       if (this.fish.tail)
         this.fish.tail.rotation.y = Math.sin(time * 5) * 0.5 * (1 - u);
@@ -529,12 +638,14 @@ export class FishingGear {
     time: number,
     tip: Vector3Like,
     taut = 0,
+    end: Vector3Like = this.entry,
+    dives = false,
   ) {
     // Drawn smoothed, so a rope with hardly any slack does not look saw-toothed.
     const p = smoothRope(this.rope.positions, this.smooth);
     const n = this.rope.count;
-    const dx = this.entry.x - tip.x;
-    const dz = this.entry.z - tip.z;
+    const dx = end.x - tip.x;
+    const dz = end.z - tip.z;
     const span = Math.hypot(dx, dz) || 1;
     const px = -dz / span;
     const pz = dx / span;
@@ -545,18 +656,63 @@ export class FishingGear {
         : 0;
       // A taut line is straight: with tension the drawn line is pulled onto the chord
       // from the rod tip to the end (the rope itself can lag a fast-moving fish).
-      const cx = tip.x + (this.entry.x - tip.x) * s;
-      const cy = tip.y + (this.entry.y - tip.y) * s;
-      const cz = tip.z + (this.entry.z - tip.z) * s;
+      const cx = tip.x + (end.x - tip.x) * s;
+      const cy = tip.y + (end.y - tip.y) * s;
+      const cz = tip.z + (end.z - tip.z) * s;
       this.linePoints[i]!.set(
         p[i * 3]! + (cx - p[i * 3]!) * taut + px * wob,
         p[i * 3 + 1]! + (cy - p[i * 3 + 1]!) * taut,
         p[i * 3 + 2]! + (cz - p[i * 3 + 2]!) * taut + pz * wob,
       );
     }
-    this.line.draw(this.linePoints, this.eye());
+    if (dives) this.dives(time);
+    else this.line.draw(this.linePoints, this.eye());
     this.line.color = color;
     this.line.alpha = 0.95;
+  }
+
+  /**
+   * The line goes into the water: the part above the sea is the usual strip, ending where the line
+   * meets the sea (the entry, where the ripples start); the rest, down to the fish's mouth, is drawn
+   * through the water (underwater.ts) as a strip of its own.
+   */
+  private dives(time: number) {
+    const points = this.linePoints;
+    const n = points.length;
+    const eye = this.eye();
+    let k = -1;
+    for (let i = 1; i < n; i++) {
+      const q = points[i]!;
+      if (q.y < waveHeight(q.x, q.z, time)) {
+        k = i;
+        break;
+      }
+    }
+    if (k < 0) {
+      this.line.draw(points, eye);
+      return;
+    }
+    const hit = surfaceEntry(points[k - 1]!, points[k]!, (x, z) =>
+      waveHeight(x, z, time),
+    );
+    this.entry.set(hit.x, hit.y, hit.z);
+    // The part above the water, laid out again on as many points as the strip has.
+    const upper = k + 1;
+    for (let j = 0; j < n; j++) {
+      const u = (j / (n - 1)) * (upper - 1);
+      const i0 = Math.min(upper - 1, Math.floor(u));
+      const f = u - i0;
+      const from = i0 < k ? points[i0]! : this.entry;
+      const to = i0 + 1 < k ? points[i0 + 1]! : this.entry;
+      this.dive[j]!.set(
+        from.x + (to.x - from.x) * f,
+        from.y + (to.y - from.y) * f,
+        from.z + (to.z - from.z) * f,
+      );
+    }
+    this.line.draw(this.dive, eye);
+    this.underLine.draw(this.entry, points[n - 1]!, eye);
+    this.underLine.isVisible = true;
   }
 
   /** The line through the cast, the wait, a nibble and the bite (no float). */
@@ -653,15 +809,21 @@ export class FishingGear {
     tip: { x: number; y: number; z: number },
     length: number,
     seconds: number,
+    end: Vector3Like = this.entry,
   ) {
     if (!this.rope.positions[0] && !this.rope.positions[1])
-      this.rope.reset(tip, this.entry);
-    this.rope.step(seconds || 1 / 60, tip, this.entry, length, (x, z) =>
+      this.rope.reset(tip, end);
+    this.rope.step(seconds || 1 / 60, tip, end, length, (x, z) =>
       waveHeight(x, z, this.clock),
     );
   }
 
-  /** The fish on the line: the line tightens, the rod bends, the fish moves by mood. */
+  /**
+   * The fish on the line: the line tightens, the rod bends, the fish moves by mood. The fish
+   * fights UNDER the water (underwater.ts draws it through the sea): shallow and thrashing when it
+   * surges, deep and steady when strong, rolling near the surface when tired. The line dives into
+   * the sea at an entry, where the small ripples start, and goes on below to its mouth.
+   */
   private drawFight(
     view: FishingView,
     tip: { x: number; y: number; z: number },
@@ -678,30 +840,28 @@ export class FishingGear {
     const dz = (landing.z - tip.z) / span;
     const targetX = tip.x + dx * pose.distance - dz * pose.swing;
     const targetZ = tip.z + dz * pose.distance + dx * pose.swing;
-    // The fish swims to where it wants to be (no jumps between moods) and faces the way
-    // it is going: along its run, sideways when it thrashes across, toward the boat when
-    // it is hauled in.
+    // The fish swims to where it wants to be (no jumps between moods) with its nose where it
+    // pulls: away from the boat, turning toward the side it swings to (a dart in a surge).
     const follow = seconds > 0 ? 1 - Math.exp(-seconds * 8) : 1;
-    const away = fight.mood === "surge" ? 1 : -1;
-    let headX = dx * away;
-    let headZ = dz * away;
+    let headX = dx;
+    let headZ = dz;
     if (!this.fightSeeded) {
       this.fightSeeded = true;
       this.fightX = targetX;
       this.fightZ = targetZ;
       this.fightYaw = Math.atan2(-headZ, headX);
+      this.fightDepth = 0;
     } else if (seconds > 0) {
       const lastX = this.fightX;
       const lastZ = this.fightZ;
       this.fightX += (targetX - lastX) * follow;
       this.fightZ += (targetZ - lastZ) * follow;
-      const vx = (this.fightX - lastX) / seconds;
-      const vz = (this.fightZ - lastZ) / seconds;
-      const speed = Math.hypot(vx, vz);
-      // Heading follows the motion once it is moving; the line's axis otherwise.
-      const w = clamp(speed / 2);
-      headX = headX * (1 - w) + (vx / (speed || 1)) * w;
-      headZ = headZ * (1 - w) + (vz / (speed || 1)) * w;
+      const sideways =
+        (((this.fightX - lastX) * -dz + (this.fightZ - lastZ) * dx) / seconds) *
+        0.18;
+      const turn = clamp(sideways, -1.2, 1.2);
+      headX = dx - dz * turn;
+      headZ = dz + dx * turn;
     }
     const fx = this.fightX;
     const fz = this.fightZ;
@@ -720,64 +880,94 @@ export class FishingGear {
       baseLength,
       Math.min(baseLength * 3, viewDistance * 0.065, 2.2),
     );
-    // Its mouth is where the line ends, just above the water.
-    const mouthY = surface + 0.25 + pose.lift * 0.6;
-    this.entry.set(fx, mouthY, fz);
+    // How deep it swims: by mood, deep enough that the back is under the water, and inside the
+    // water over a shallow floor. It moves to its depth, it does not jump there.
+    const water = seabedDepth(coastDistance(fx, fz));
+    const turquoise = shoal(water);
+    const wanted = swimDepth({ mood: fight.mood, time, length, water });
+    this.fightDepth =
+      this.fightDepth === 0 || seconds <= 0
+        ? wanted
+        : this.fightDepth +
+          (wanted - this.fightDepth) * (1 - Math.exp(-seconds * 5));
+    const depth = this.fightDepth;
+    // Its mouth is where the line ends, down in the water.
+    const mouthY = surface - depth;
+    this.mouth.set(fx, mouthY, fz);
+    this.entry.copyFrom(this.mouth);
     this.lure.isVisible = false;
     this.hook.isVisible = false;
-    // The shadow lies on the water under the fish, about as long as the fish, a bit wider.
-    this.shadow.isVisible = true;
-    this.shadow.position.set(fx, surface + 0.06, fz);
-    this.shadow.scaling.set(length * 1.5, 1, length * 0.8);
     this.top.set(fx, surface + 2.2, fz);
-    const wanted = Math.atan2(-headZ + pose.yaw * 0.15, headX);
-    let turn = wanted - this.fightYaw;
-    turn = Math.atan2(Math.sin(turn), Math.cos(turn));
-    this.fightYaw += turn * (seconds > 0 ? 1 - Math.exp(-seconds * 6) : 1);
+    const wanted2 = Math.atan2(-headZ + pose.yaw * 0.15, headX);
+    let turnBy = wanted2 - this.fightYaw;
+    turnBy = Math.atan2(Math.sin(turnBy), Math.cos(turnBy));
+    this.fightYaw += turnBy * (seconds > 0 ? 1 - Math.exp(-seconds * 6) : 1);
     this.fightYaw = Math.atan2(
       Math.sin(this.fightYaw),
       Math.cos(this.fightYaw),
     );
-    const yaw = this.fightYaw;
-    this.shadow.rotation.y = yaw;
+    const swim = swimPose(fight.mood, time, pose.beat);
+    const yaw = this.fightYaw + swim.wiggle;
+    const fade = clamp(fight.elapsed / 0.5);
     if (this.fish) {
       const nx = Math.cos(yaw);
       const nz = -Math.sin(yaw);
       this.fishWhere.set(
         fx - nx * length * 0.45,
-        mouthY - 0.1 - length * 0.02,
+        mouthY - length * 0.02,
         fz - nz * length * 0.45,
       );
       this.fish.root.position.copyFrom(this.fishWhere);
       this.fishYaw = yaw;
-      this.fishRoll = pose.roll;
-      this.fish.root.rotation.set(pose.roll, yaw, 0);
+      this.fishRoll = swim.roll;
+      this.fish.root.rotation.set(swim.roll, yaw, swim.pitch);
       this.fish.root.scaling.setAll(length);
+      // The tail beats against the body's sway.
       if (this.fish.tail)
         this.fish.tail.rotation.y =
-          Math.sin(time * pose.beat * 2 * Math.PI) * 0.6;
+          Math.sin(time * pose.beat * 2 * Math.PI + 1.2) * 0.6;
+      this.wear(true, time, surface, true, fade, turquoise);
     }
-    // Ripples where the fish is: a trail in a run, a slow ring when it pulls steadily.
-    const every =
-      fight.mood === "surge" ? 0.1 : fight.mood === "strong" ? 0.55 : 1.4;
-    if (time - this.lastSplash > every) {
-      this.lastSplash = time;
-      this.ripple();
-    }
+    // The line: from the rod tip to the mouth, taut; it is cut at the sea where it goes in.
     const stretch = Math.hypot(fx - tip.x, mouthY - tip.y, fz - tip.z);
-    // A hooked fish that pulls keeps the line straight: no spare line at all. Only a tired
-    // fish lets a little go slack (3 % extra line would sag the middle by 2.5 m; 12 cm gives a clean arc of about a metre).
-    this.stepRope(tip, stretch + (fight.mood === "tired" ? 0.05 : 0), seconds);
+    this.stepRope(
+      tip,
+      stretch + (fight.mood === "tired" ? 0.05 : 0),
+      seconds,
+      this.mouth,
+    );
     this.roped = true;
+    const lineTint = lineColourFor(fight.tension);
+    this.lineSkin.update(time, surface, true, fade, turquoise);
+    this.lineSkin.tint(lineTint);
     this.drawRope(
-      lineColourFor(fight.tension),
+      lineTint,
       lineTremble(fight.tension),
       time,
       tip,
       // Straight while the fish pulls; a tired fish lets it curve a little.
       fight.mood === "tired" ? 0.85 : 1,
+      this.mouth,
+      true,
     );
     this.line.alpha = 1;
+    // Small ripples where the line goes in (a trail in a run: the line cuts the water as it moves),
+    // and over a fish close under the surface a V of ripples or a faint boil.
+    const every =
+      fight.mood === "surge" ? 0.2 : fight.mood === "strong" ? 0.7 : 1.5;
+    if (time - this.lastSplash > every) {
+      this.lastSplash = time;
+      this.ripple(0.32);
+    }
+    this.disturb(
+      disturbance(fight.mood, depth) * fade,
+      fx,
+      fz,
+      surface,
+      yaw,
+      length,
+      fight.mood,
+    );
     // How hard it pulls the rod: a run is hard, a tired fish hardly at all.
     const base =
       fight.mood === "surge" ? 0.75 : fight.mood === "strong" ? 0.4 : 0.12;
@@ -796,6 +986,32 @@ export class FishingGear {
     this.pull.x = direction.x;
     this.pull.y = direction.y;
     this.pull.z = direction.z;
+  }
+
+  /** The V of ripples over the fish's nose, as strong as `amount` (0 hides it). */
+  private disturb(
+    amount: number,
+    x: number,
+    z: number,
+    surface: number,
+    yaw: number,
+    length: number,
+    mood: string,
+  ) {
+    this.vee.isVisible = amount > 0.02;
+    if (!this.vee.isVisible) return;
+    // A surge cuts a long V, a tired fish only boils.
+    const size = length * (mood === "tired" ? 1.5 : 2.3);
+    const nx = Math.cos(yaw);
+    const nz = -Math.sin(yaw);
+    this.vee.position.set(
+      x - nx * size * 0.42,
+      surface + 0.22,
+      z - nz * size * 0.42,
+    );
+    this.vee.rotation.y = yaw;
+    this.vee.scaling.set(size, 1, size * 0.8);
+    this.veeMaterial.alpha = amount * 0.6;
   }
 
   private drawArc(
@@ -831,7 +1047,7 @@ export class FishingGear {
       mesh.isVisible = show;
       if (!show || !ripple) return;
       // Each ring stays where it was made, so a running fish leaves a trail of them.
-      const radius = 0.7 + ease(u) * 4.5;
+      const radius = (0.7 + ease(u) * 4.5) * ripple.size;
       mesh.position.set(
         ripple.x,
         waveHeight(ripple.x, ripple.z, time) + 0.18,
@@ -847,7 +1063,10 @@ export class FishingGear {
     this.line.dispose();
     this.hook.dispose();
     this.lure.dispose();
-    this.shadow.dispose();
+    this.skin.dispose();
+    this.lineSkin.dispose();
+    this.underLine.dispose();
+    this.vee.dispose();
     this.arc.dispose();
     for (const ring of this.rings) ring.dispose();
     this.marker.dispose();

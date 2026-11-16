@@ -7,7 +7,7 @@ import {
   type LedgerFish,
   type SoldFish,
 } from "../platform/economy";
-import { fishThumb } from "./fish-thumb";
+import { showFishThumb } from "./fish-thumb";
 
 /**
  * The fish market on the screen: a Bán button that appears when the boat is near a pier, and
@@ -197,7 +197,7 @@ export function createMarketUi(options: MarketUiOptions) {
       const cell = el("div", "fish-cell");
       const art = el("div", "fish-cell-art");
       const picture = document.createElement("img");
-      picture.src = fishThumb(species, 130);
+      showFishThumb(picture, species, 130);
       picture.alt = "";
       picture.draggable = false;
       art.append(picture);

@@ -273,6 +273,12 @@ const LOOKS: Partial<Record<CreatureKind, Look>> = {
   flat: { pattern: "spots", iris: "#2b3a4a" },
 };
 
+/** A species' look on top of its body plan's default (the plan's pattern, marking colour and iris). */
+export const lookOf = (kind: CreatureKind, look?: Look): Look => ({
+  ...LOOKS[kind],
+  ...look,
+});
+
 const fract = (v: number) => v - Math.floor(v);
 
 /** Paints the skin: dark back, pale belly and the species' markings. u: nose 0 to tail 1. */

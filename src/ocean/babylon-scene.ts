@@ -40,6 +40,7 @@ import {
 import { MARKETS, seaObstacles } from "./market.ts";
 import { createMarket } from "./market-visual.ts";
 import { loadCats } from "./cats.ts";
+import { preloadFishModels } from "./fish-models.ts";
 import { placeVendors } from "./market-vendor.ts";
 import { WakeMesh } from "./wake-mesh.ts";
 import { WakeTrail } from "./wake-trail.ts";
@@ -392,7 +393,10 @@ export class OceanScene {
    */
   async ready() {
     await Promise.all([this.islandProps, this.vendors, this.boatLoad]);
-    return this.scene.whenReadyAsync();
+    await this.scene.whenReadyAsync();
+    // The sea animals' files (about 1.4 MB) come after the first frame, never before it: a fish
+    // that bites sooner is drawn from code until its file has arrived (see creature-kit.ts).
+    void preloadFishModels();
   }
 
   /** The tip of the player's rod in the world (the line starts there; the rod bends). */
