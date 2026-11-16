@@ -15,7 +15,7 @@ import {
   WAVES,
   WIND_DIRECTION,
   MAX_WAVE_HEIGHT,
-  BASE_WAVES,
+  CALM_WAVE_HEIGHT,
   glslWaveHeight,
   waveGradient,
   waveHeight,
@@ -86,11 +86,18 @@ test("the shader wave function is generated from the same waves as the CPU one",
   const glsl = glslWaveHeight();
   assert.match(glsl, /float waveHeight\(vec2 p, float t\)/);
   assert.match(glsl, /vec2 waveSlope\(vec2 p, float t, float dist\)/);
-  // One sin per wave in the height and one per wave in the slope.
-  assert.equal((glsl.match(/sin\(/g) ?? []).length, 2 * WAVES.length);
+  // One sin per wave in the height and one in the slope, one more in each for a leaning wave,
+  // and two in the sea state.
+  const leaning = WAVES.filter((w) => w.lean > 0).length;
+  assert.equal(
+    (glsl.match(/sin\(/g) ?? []).length,
+    2 * WAVES.length + 2 * leaning + 2,
+  );
   // Bounded by the summed amplitudes, and it really moves in time.
   for (let i = 0; i < 200; i++)
-    assert.ok(Math.abs(waveHeight(i * 3.1, i * 1.7, i * 0.37)) <= 2.0);
+    assert.ok(
+      Math.abs(waveHeight(i * 3.1, i * 1.7, i * 0.37)) <= MAX_WAVE_HEIGHT,
+    );
   assert.notEqual(waveHeight(5, 5, 0), waveHeight(5, 5, 1.3));
 });
 
@@ -126,20 +133,18 @@ test("the sea has sharp crests and broad troughs, a zero mean, and an exact slop
   assert.ok(WAVES.every((w) => w.sharp >= 1));
 });
 
-test("the waves are a calm wind sea: a band of headings around the wind, swell to chop", () => {
-  assert.ok(WAVES.length >= 10, `${WAVES.length} waves`);
+test("the waves are a layered wind sea: swell, medium and chop around the wind", () => {
+  assert.ok(WAVES.length >= 10 && WAVES.length <= 12, `${WAVES.length} waves`);
   const lengths = WAVES.map((w) => w.length);
-  assert.ok(Math.min(...lengths) >= 2 && Math.max(...lengths) <= 62);
+  assert.ok(Math.min(...lengths) >= 2 && Math.max(...lengths) <= 100);
   assert.equal(new Set(lengths).size, WAVES.length, "no two the same length");
-  // A moderate sea: the summed amplitude is about 1.4 m (it was 0.8 m before the user asked for
-  // bigger waves), and the long swell is raised more than the short chop.
+  // The roughest sea sums to about 2.4 m, the calmest to about what the sea was before the
+  // layering (1.4 m).
   assert.ok(
-    MAX_WAVE_HEIGHT > 1.2 && MAX_WAVE_HEIGHT < 1.6,
+    MAX_WAVE_HEIGHT > 2.1 && MAX_WAVE_HEIGHT < 2.7,
     `${MAX_WAVE_HEIGHT}`,
   );
-  const gains = WAVES.map((w, i) => w.amplitude / BASE_WAVES[i].amplitude);
-  assert.ok(Math.min(...gains) >= 1.3 && Math.max(...gains) <= 1.9);
-  assert.ok(gains[0] > gains[gains.length - 1], "swell raised more than chop");
+  assert.ok(CALM_WAVE_HEIGHT <= 1.4, `${CALM_WAVE_HEIGHT}`);
   const off = WAVES.map((w) => w.direction - WIND_DIRECTION);
   // Every wave comes from the wind's side of the sea, but not all from one heading.
   assert.ok(off.every((d) => Math.abs(d) < Math.PI / 2));
@@ -516,7 +521,7 @@ test("turning stops when the key is let go, and the slide stops with it", () => 
   const extra = Math.abs(deg(wrapped(after.find((a) => a.t > 1.5).turned)));
   assert.ok(
     extra < 14,
-    `it turns ${extra.toFixed(0)} deg after the key is let go`,
+    `it turns ${extra.toFixed(1)} deg after the key is let go`,
   );
   const second = after.find((a) => a.t > 1);
   const next = after.find((a) => a.t > 1.05);

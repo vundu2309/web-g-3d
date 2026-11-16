@@ -9,12 +9,7 @@ import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Constants } from "@babylonjs/core/Engines/constants";
 import { BED_DIP } from "./island-shape.ts";
-import {
-  BASE_WAVES,
-  MAX_WAVE_HEIGHT,
-  WIND_DIRECTION,
-  glslWaveHeight,
-} from "./waves.ts";
+import { CALM_WAVE_HEIGHT, WIND_DIRECTION, glslWaveHeight } from "./waves.ts";
 import { RIPPLE_RANGE, RIPPLE_SIZE, ripplePixels } from "./ripples.ts";
 import { glslSkyModel } from "./sky-model.ts";
 import { glslReflection } from "./reflection-model.ts";
@@ -63,12 +58,13 @@ import {
 const glslAxis = (offset: number) =>
   `vec2(${Math.cos(WIND_DIRECTION + offset).toFixed(6)}, ${Math.sin(WIND_DIRECTION + offset).toFixed(6)})`;
 /**
- * How much taller the sea is than the base table the white caps and the thin-crest glow were tuned
- * on (waves.ts): their thresholds are divided by it, so a taller sea has the same share of white
- * caps instead of a milky sheet on every crest.
+ * How much taller the calmest sea is than the 0.825 m table the white caps and the thin-crest glow
+ * were tuned on (waves.ts), times 1.2: their thresholds are divided by it, so the calm sea has about
+ * the share of white caps it had and a rougher sea (the sea state, waves.ts) gets more caps.
  */
-const SEA_GAIN =
-  MAX_WAVE_HEIGHT / BASE_WAVES.reduce((s, w) => s + w.amplitude, 0);
+const SEA_GAIN = (CALM_WAVE_HEIGHT / 0.825) * 1.2;
+/** The share of the wave height the shore paint reads as water at the waterline (see `column`). */
+const SHORE_WAVE = 0.4;
 const COMMON = `
 precision highp float;
 uniform float time;
@@ -321,7 +317,11 @@ void main() {
   // painted where the water really is thin.
   float shelfY = seabedDepth(d);
   float bedY = d < 0.0 ? beachRise(-d) : -(shelfY + ${BED_DIP.toFixed(3)} * (1.0 - exp(-shelfY / 0.06)));
-  float column = vHeight - bedY;
+  // The tall open swell does not run up the beach: it takes the shoaling breakers' place in the
+  // last 34 m (the slope is faded the same way below), so only ${SHORE_WAVE} of the wave height is
+  // read as water over the sand at the waterline. Purely the paint; the mesh is as high as ever.
+  float shoreHeight = vHeight * mix(${SHORE_WAVE.toFixed(2)}, 1.0, smoothstep(2.0, 34.0, max(d, 0.0)));
+  float column = shoreHeight - bedY;
   float depth = mix(max(column, 0.0), seabedDepth(d), smoothstep(5.0, 14.0, d));
   float nearShore = 1.0 - smoothstep(48.0, 90.0, d);
   // Surf (purely visual, like the ripples: it tilts the normal and paints the foam, the mesh the
