@@ -91,7 +91,13 @@
       let camPos,
         target,
         boatAt = null;
-      if (mode === "chase" || mode === "low" || mode === "hull") {
+      if (
+        mode === "chase" ||
+        mode === "low" ||
+        mode === "hull" ||
+        mode === "wake" ||
+        mode === "bow"
+      ) {
         const r = isl.radius * 1.08 + 7 + far;
         const bx = isl.x + ox * r,
           bz = isl.z + oz * r;
@@ -110,6 +116,18 @@
           bz + dz * CHASE.lookAhead,
         );
         boatAt = { bx, bz, h };
+        if (mode === "wake") {
+          // From well behind and above, so the whole wake (the V and the foam core) is in view.
+          camPos = new Vector3(bx - dx * 30, 13, bz - dz * 30);
+          target = new Vector3(bx - dx * 8, 0, bz - dz * 8);
+        }
+        if (mode === "bow") {
+          // A low three-quarter view of the bow, from the starboard side, ahead of the boat.
+          const sx = Math.cos(h),
+            sz = Math.sin(h);
+          camPos = new Vector3(bx + sx * 7 + dx * 9, 2.6, bz + sz * 7 + dz * 9);
+          target = new Vector3(bx + dx * 3, 0.5, bz + dz * 3);
+        }
         if (mode === "hull") {
           // Beside the hull, 9 m off its starboard side, a little ahead of it, looking at the waterline.
           const sx = Math.cos(h),
@@ -228,7 +246,7 @@
           const p = boatAt.pose(T);
           wakeField.track("b", p.x, p.z, T);
           wakeTrail.push(p.x, p.z, T);
-          wakeMesh.update(wakeTrail, T);
+          wakeMesh.update(wakeTrail, T, p);
           boatList[0] = { x: p.x, z: p.z, heading: boatAt.h };
         }
         water.update(

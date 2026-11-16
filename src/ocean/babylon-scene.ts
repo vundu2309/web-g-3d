@@ -369,7 +369,7 @@ export class OceanScene {
       this.trails.set(id, entry);
     }
     entry.trail.push(x, z, this.clock);
-    entry.mesh.update(entry.trail, this.clock);
+    entry.mesh.update(entry.trail, this.clock, { x, z });
   }
 
   private forgetTrail(id: string) {
