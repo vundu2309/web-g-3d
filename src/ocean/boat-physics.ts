@@ -299,13 +299,14 @@ export function createBoatPhysics(
     // Rudder: a rotation about +Y lowers heading, so a right turn is a negative torque.
     const flow = clamp(Math.abs(along) / 5, 0, 1);
     const authority = (0.35 + 0.65 * flow) * wet;
-    // The water also damps the turning itself, so the heading rate follows the rudder within a
+    // The water also damps the turning itself (through the deep keel, so a crest that lifts the
+    // hull does not let the turn run on), so the heading rate follows the rudder within a
     // third of a second and stops with it (hull-handling.ts).
     body.getAngularVelocityToRef(velocity);
     spin.set(
       0,
       (-clamp(input.steer, -1, 1) * RUDDER * authority -
-        velocity.y * YAW_INERTIA * YAW_WATER_DAMPING * wet) *
+        velocity.y * YAW_INERTIA * YAW_WATER_DAMPING * keel) *
         dt,
       0,
     );
