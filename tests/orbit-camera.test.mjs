@@ -43,3 +43,20 @@ test("once the boat moves the view drifts slowly back to the default", () => {
   assert.equal(camera.pitch, 0);
   assert.equal(camera.away, false);
 });
+
+test("two fingers looking: the view stays held until the last one lifts", () => {
+  const camera = new OrbitCamera();
+  camera.drag(120, 40);
+  const before = [camera.yaw, camera.pitch];
+  camera.hold(true);
+  camera.hold(true);
+  camera.hold(false);
+  assert.equal(camera.holding, true, "one finger is still down");
+  for (let i = 0; i < 300; i++) camera.step(1 / 60, 8);
+  assert.deepEqual([camera.yaw, camera.pitch], before, "still held");
+  camera.hold(false);
+  assert.equal(camera.holding, false);
+  camera.hold(false);
+  camera.hold(true);
+  assert.equal(camera.holding, true, "an extra lift never counts below zero");
+});

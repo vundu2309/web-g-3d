@@ -10,6 +10,7 @@ import {
   enableSeaPhysics,
 } from "../src/ocean/boat-physics.ts";
 import { humpAt, planingAt } from "../src/ocean/boat-physics.ts";
+import { WakeField, sampleWake } from "../src/ocean/wake.ts";
 import {
   WAVES,
   WIND_DIRECTION,
@@ -34,14 +35,34 @@ before(async () => {
   havok = await HavokPhysics({ wasmBinary });
 });
 
-function world({ islands = [], start } = {}) {
+function world({ islands = [], start, extraHeight } = {}) {
   const engine = new NullEngine();
   const scene = new Scene(engine);
   enableSeaPhysics(scene, new HavokPlugin(false, havok));
   let clock = 0;
-  const boat = createBoatPhysics(scene, { islands, time: () => clock, start });
+  const boat = createBoatPhysics(scene, {
+    islands,
+    time: () => clock,
+    extraHeight: extraHeight && ((x, z, t) => extraHeight(x, z, t)),
+    start,
+  });
   return {
     boat,
+    /**
+     * Like a screen: frames of uneven length (what `nextDt` returns, in seconds), each one
+     * advancing physics by its own length, never more than the scene's 100 ms cap.
+     */
+    runFrames(seconds, control, nextDt, observe = () => {}) {
+      let wall = 0;
+      while (wall < seconds) {
+        const dt = nextDt();
+        Object.assign(boat.input, { steer: 0, throttle: 0 }, control(wall));
+        wall += dt;
+        clock = wall;
+        scene._advancePhysicsEngineStep(Math.min(1000 * dt, 100));
+        observe(boat.state(), wall, dt);
+      }
+    },
     run(seconds, control = () => ({}), observe = () => {}) {
       const steps = Math.round(seconds / DT);
       for (let i = 0; i < steps; i++) {
@@ -436,4 +457,187 @@ test("the hull leans into a turn at speed, the other way for the other turn, and
     left > straight + 4,
     `left turn leans in: ${left.toFixed(1)} vs ${straight.toFixed(1)} straight`,
   );
+});
+
+// The player's complaint (keyboard and mouse): the boat stalls, turns abruptly, slides off
+// its heading and wanders. The camera never touches the physics (checked in
+// ocean-babylon-browser); these pin what the hull itself does with steady, full-deflection
+// input: it goes where it points, turns smoothly, and stops turning when the key is let go.
+const course = (s) => Math.atan2(s.sideSpeed, Math.max(0.5, s.forwardSpeed));
+
+test("the boat goes where it points: a held full turn at cruise barely slides and keeps its speed", () => {
+  const straight = world();
+  let cruise = 0;
+  straight.run(
+    9,
+    () => ({ throttle: 1 }),
+    (s) => (cruise = s.forwardSpeed),
+  );
+  straight.dispose();
+  const w = world();
+  let slip = 0;
+  let slowest = Infinity;
+  let side = 0;
+  w.run(
+    9,
+    () => ({ throttle: 1, steer: 1 }),
+    (s, t) => {
+      if (t < 4) return;
+      slip = Math.max(slip, Math.abs(deg(course(s))));
+      slowest = Math.min(slowest, s.forwardSpeed);
+      side = Math.max(side, Math.abs(s.sideSpeed));
+    },
+  );
+  w.dispose();
+  assert.ok(
+    slip < 9,
+    `the course is within 9 deg of the heading (${slip.toFixed(1)} deg, sideways up to ${side.toFixed(1)} m/s)`,
+  );
+  assert.ok(
+    slowest > 0.85 * cruise,
+    `steering does not stall it: ${slowest.toFixed(1)} m/s against ${cruise.toFixed(1)} straight`,
+  );
+});
+
+test("turning stops when the key is let go, and the slide stops with it", () => {
+  const w = world();
+  const after = [];
+  let at;
+  w.run(
+    14,
+    (t) => ({ throttle: 0.7, steer: t < 8 ? 1 : 0 }),
+    (s, t) => {
+      if (t < 8) at = s.heading;
+      if (t >= 8) after.push({ t: t - 8, s, turned: s.heading - at });
+    },
+  );
+  w.dispose();
+  const wrapped = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+  const extra = Math.abs(deg(wrapped(after.find((a) => a.t > 1.5).turned)));
+  assert.ok(
+    extra < 14,
+    `it turns ${extra.toFixed(0)} deg after the key is let go`,
+  );
+  const second = after.find((a) => a.t > 1);
+  const next = after.find((a) => a.t > 1.05);
+  const rate =
+    Math.abs(wrapped(next.s.heading - second.s.heading)) / (next.t - second.t);
+  assert.ok(
+    rate < 0.06,
+    `a second later it has stopped turning (${rate.toFixed(3)} rad/s)`,
+  );
+  assert.ok(
+    Math.abs(second.s.sideSpeed) < 0.4,
+    `and it no longer slides (${second.s.sideSpeed.toFixed(2)} m/s across the hull)`,
+  );
+});
+
+test("a left-right wiggle at cruise does not send the boat sideways", () => {
+  const w = world();
+  let worst = 0;
+  w.run(
+    14,
+    (t) => ({ throttle: 1, steer: Math.floor(t / 1.5) % 2 ? -1 : 1 }),
+    (s, t) => {
+      if (t > 4) worst = Math.max(worst, Math.abs(deg(course(s))));
+    },
+  );
+  w.dispose();
+  assert.ok(
+    worst < 11,
+    `the course stays within ${worst.toFixed(1)} deg of the heading`,
+  );
+});
+
+test("uneven frames (a slow phone, a long frame while the mouse drags) give the same turn and slide", () => {
+  const regular = () => 1 / 60;
+  let seed = 11;
+  const random = () =>
+    (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  const uneven = () =>
+    random() < 0.2 ? 0.08 + random() * 0.02 : 0.016 + random() * 0.03;
+  const measure = (nextDt) => {
+    const w = world();
+    const rates = [];
+    let last;
+    let side = 0;
+    w.runFrames(
+      12,
+      () => ({ throttle: 1, steer: 1 }),
+      nextDt,
+      (s, t, dt) => {
+        if (last !== undefined && t > 5) {
+          rates.push(
+            Math.atan2(Math.sin(s.heading - last), Math.cos(s.heading - last)) /
+              dt,
+          );
+          side = Math.max(side, Math.abs(s.sideSpeed));
+        }
+        last = s.heading;
+      },
+    );
+    w.dispose();
+    const m = mean(rates);
+    return { m, sd: Math.sqrt(mean(rates.map((r) => (r - m) ** 2))), side };
+  };
+  const steady = measure(regular);
+  const rough = measure(uneven);
+  assert.ok(
+    Math.abs(rough.m - steady.m) < 0.04,
+    `same turn rate: ${rough.m.toFixed(3)} against ${steady.m.toFixed(3)} rad/s`,
+  );
+  assert.ok(
+    rough.sd < 0.1,
+    `a smooth turn, ${rough.sd.toFixed(3)} rad/s of spread`,
+  );
+  assert.ok(
+    Math.abs(rough.side - steady.side) < 0.5,
+    `same slide: ${rough.side.toFixed(2)} against ${steady.side.toFixed(2)} m/s`,
+  );
+});
+
+test("the boat's own wake does not turn or push its hull", () => {
+  const sail = (wake) => {
+    const field = new WakeField();
+    const w = world({
+      extraHeight: wake
+        ? (x, z, t) => sampleWake(field.data, x, z, t).height
+        : undefined,
+    });
+    let state;
+    w.run(
+      12,
+      () => ({ throttle: 0.4, steer: 0.6 }),
+      (s, t) => {
+        state = s;
+        field.track("self", s.x, s.z, t);
+      },
+    );
+    w.dispose();
+    return state;
+  };
+  const clean = sail(false);
+  const wet = sail(true);
+  assert.ok(Math.abs(clean.heading - wet.heading) < 0.05, "same heading");
+  assert.ok(Math.hypot(clean.x - wet.x, clean.z - wet.z) < 1, "same place");
+});
+
+test("a boat held in a full-lock turn is not shoved sideways by the waves", () => {
+  // Up and right held from rest: with the keel's grip falling with the wet fraction, each
+  // wave crest that lifted the hull gave a shove of about 12 m/s^2 (2.9 m/s across in a
+  // quarter of a second). The keel is deep and keeps most of its grip.
+  const w = world();
+  let sideMax = 0;
+  let along = 0;
+  w.run(
+    14,
+    () => ({ throttle: 1, steer: 1 }),
+    (s) => {
+      sideMax = Math.max(sideMax, Math.abs(s.sideSpeed));
+      along = s.forwardSpeed;
+    },
+  );
+  w.dispose();
+  assert.ok(sideMax < 1.8, `slide up to ${sideMax.toFixed(2)} m/s across`);
+  assert.ok(along > 10, `still cruises at ${along.toFixed(1)} m/s`);
 });

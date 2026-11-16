@@ -307,7 +307,7 @@ export class OceanScene {
       start: { x: pose.x, z: pose.z, heading: pose.heading },
     });
     const craft = this.craft(uid, name, true);
-    craft.mesh.parent = physics.mesh;
+    craft.mesh.parent = physics.view;
     craft.mesh.position.set(0, -0.25, 0);
     this.self = {
       physics,

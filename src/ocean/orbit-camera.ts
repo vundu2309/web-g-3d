@@ -30,15 +30,16 @@ export class OrbitCamera {
   yaw = 0;
   /** Tip up (positive) or down from the default (rad). */
   pitch = 0;
-  private held = false;
+  /** Fingers (or the mouse) down on the sea. */
+  private fingers = 0;
 
-  /** A finger is down on the sea: the view stays put while it is. */
+  /** A finger went down on the sea (true) or lifted (false): the view stays put while any is. */
   hold(on: boolean) {
-    this.held = on;
+    this.fingers = Math.max(0, this.fingers + (on ? 1 : -1));
   }
 
   get holding() {
-    return this.held;
+    return this.fingers > 0;
   }
 
   /** The finger moved by (dx, dy) pixels. Dragging right swings the camera to the boat's left, so the sea follows the finger. */
@@ -58,7 +59,7 @@ export class OrbitCamera {
 
   /** Eases back toward the default while the boat moves and no finger is down. */
   step(seconds: number, speed: number) {
-    if (this.held || Math.abs(speed) < ORBIT.movingSpeed) return;
+    if (this.holding || Math.abs(speed) < ORBIT.movingSpeed) return;
     const k = 1 - Math.exp(-ORBIT.returnRate * Math.max(0, seconds));
     this.yaw -= this.yaw * k;
     this.pitch -= this.pitch * k;

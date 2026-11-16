@@ -1,5 +1,6 @@
 import { Axis } from "@babylonjs/core/Maths/math.axis";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { PhysicsAggregate } from "@babylonjs/core/Physics/v2/physicsAggregate";
 import { PhysicsShapeType } from "@babylonjs/core/Physics/v2/IPhysicsEnginePlugin";
@@ -10,6 +11,15 @@ import "@babylonjs/core/Physics/joinedPhysicsEngineComponent";
 import "@babylonjs/core/Physics/v2/physicsEngineComponent";
 import { SEA_BOUND } from "./model.ts";
 import { waveHeight } from "./waves.ts";
+import {
+  BODY_ANGULAR_DAMPING,
+  KEEL_DRY_GRIP,
+  RUDDER,
+  YAW_INERTIA,
+  YAW_WATER_DAMPING,
+  blendFraction,
+  crossForce,
+} from "./hull-handling.ts";
 
 /**
  * Havok rigid-body boat. Havok integrates the body and resolves collisions; this
@@ -45,7 +55,14 @@ export interface BoatState {
 }
 export interface BoatPhysics {
   readonly input: BoatInput;
+  /** The hidden hull Havok moves. Its pose is the newest physics step, not what is drawn. */
   readonly mesh: Mesh;
+  /**
+   * What is drawn and followed: the hull's pose blended between its last two physics steps
+   * by the time left over (`blendFraction`), so a frame with no step and the next with two
+   * do not make the heading and the speed judder. Hang the boat's visuals from this.
+   */
+  readonly view: TransformNode;
   state(): BoatState;
   dispose(): void;
 }
@@ -74,7 +91,6 @@ export const TOP_SPEED = 12;
 const C_FORWARD = THRUST / (12 * 12);
 const C_SIDE = C_FORWARD * 13; // the keel resists sideslip far more than motion ahead
 const C_LINEAR = 60;
-const RUDDER = 2600;
 
 // Parting the water. The hull pushes a bow wave and, as it speeds up, climbs it ("the
 // hump", near HUMP_SPEED): the bow rises and the wave-making drag peaks. Past it the hull
@@ -140,8 +156,40 @@ export function createBoatPhysics(
     scene,
   );
   const body = aggregate.body;
+  // The pose to draw: the hull's last two physics steps, blended by the time left over.
+  const view = new TransformNode("boat-view", scene);
+  view.rotationQuaternion = Quaternion.Identity();
+  const before = {
+    position: mesh.position.clone(),
+    rotation: (mesh.rotationQuaternion ?? Quaternion.Identity()).clone(),
+  };
+  const latest = {
+    position: before.position.clone(),
+    rotation: before.rotation.clone(),
+  };
+  const place = () => {
+    const remainder = (scene as unknown as { _physicsTimeAccumulator?: number })
+      ._physicsTimeAccumulator;
+    const k = blendFraction(remainder ?? 0, physics.getSubTimeStep());
+    Vector3.LerpToRef(before.position, latest.position, k, view.position);
+    Quaternion.SlerpToRef(
+      before.rotation,
+      latest.rotation,
+      k,
+      view.rotationQuaternion!,
+    );
+    view.computeWorldMatrix(true);
+  };
+  const afterStep = () => {
+    before.position.copyFrom(latest.position);
+    before.rotation.copyFrom(latest.rotation);
+    latest.position.copyFrom(mesh.position);
+    latest.rotation.copyFrom(mesh.rotationQuaternion ?? before.rotation);
+  };
+  scene.onAfterPhysicsObservable.add(afterStep);
+  scene.onBeforeRenderObservable.add(place);
   body.setLinearDamping(0);
-  body.setAngularDamping(0.9);
+  body.setAngularDamping(BODY_ANGULAR_DAMPING);
 
   const colliders = options.islands.map((island, index) => {
     const post = MeshBuilder.CreateCylinder(
@@ -215,7 +263,9 @@ export function createBoatPhysics(
       -(C_FORWARD * (1 - PLANE_DRAG_CUT * planing) * speed + C_LINEAR) * along -
       // The bow wave: only forward, a hump of extra drag the hull has to climb.
       Math.sign(along) * WAVE_DRAG * hump;
-    const dragAcross = -(C_SIDE * Math.abs(across) + C_LINEAR) * across;
+    // The keel also grips in proportion to the slide (hull-handling.ts), so a moving hull goes
+    // where it points and a slide dies in a fraction of a second.
+    const dragAcross = crossForce(across, along, C_SIDE, C_LINEAR);
     const thrust =
       clamp(input.throttle, -1, 1) *
       (input.throttle >= 0 ? THRUST : THRUST * 0.45);
@@ -228,10 +278,13 @@ export function createBoatPhysics(
       1,
     );
     const push = (thrust + dragAlong) * wet;
+    // The keel is deep: it keeps most of its grip when a wave or the planing lift raises the
+    // hull (`wet` falls), so the boat does not slide sideways on every crest.
+    const keel = KEEL_DRY_GRIP + (1 - KEEL_DRY_GRIP) * wet;
     force.set(
-      (forward.x * push + side.x * dragAcross * wet) * dt,
+      (forward.x * push + side.x * dragAcross * keel) * dt,
       0,
-      (forward.z * push + side.z * dragAcross * wet) * dt,
+      (forward.z * push + side.z * dragAcross * keel) * dt,
     );
     body.applyImpulse(force, mesh.position);
     // The bow climbs its own wave (a lift at the bow) and the hull rides up on the water
@@ -246,7 +299,16 @@ export function createBoatPhysics(
     // Rudder: a rotation about +Y lowers heading, so a right turn is a negative torque.
     const flow = clamp(Math.abs(along) / 5, 0, 1);
     const authority = (0.35 + 0.65 * flow) * wet;
-    spin.set(0, -clamp(input.steer, -1, 1) * RUDDER * authority * dt, 0);
+    // The water also damps the turning itself, so the heading rate follows the rudder within a
+    // third of a second and stops with it (hull-handling.ts).
+    body.getAngularVelocityToRef(velocity);
+    spin.set(
+      0,
+      (-clamp(input.steer, -1, 1) * RUDDER * authority -
+        velocity.y * YAW_INERTIA * YAW_WATER_DAMPING * wet) *
+        dt,
+      0,
+    );
     body.applyAngularImpulse(spin);
     // Leaning into the turn: a roll about the keel that grows with speed and rudder.
     const lean =
@@ -271,22 +333,23 @@ export function createBoatPhysics(
   return {
     input,
     mesh,
+    view,
     state() {
-      mesh.computeWorldMatrix(true);
+      place();
       Vector3.TransformNormalToRef(
         Axis.Z.scale(-1),
-        mesh.getWorldMatrix(),
+        view.getWorldMatrix(),
         forward,
       );
-      const right = Vector3.TransformNormal(Axis.X, mesh.getWorldMatrix());
+      const right = Vector3.TransformNormal(Axis.X, view.getWorldMatrix());
       body.getLinearVelocityToRef(velocity);
       const flat = Math.hypot(forward.x, forward.z) || 1;
       const fx = forward.x / flat;
       const fz = forward.z / flat;
       return {
-        x: mesh.position.x,
-        y: mesh.position.y,
-        z: mesh.position.z,
+        x: view.position.x,
+        y: view.position.y,
+        z: view.position.z,
         heading: Math.atan2(fx, -fz),
         roll: Math.asin(clamp(right.y, -1, 1)),
         pitch: Math.asin(clamp(forward.y, -1, 1)),
@@ -296,6 +359,9 @@ export function createBoatPhysics(
     },
     dispose() {
       scene.onBeforePhysicsObservable.removeCallback(beforeStep);
+      scene.onAfterPhysicsObservable.removeCallback(afterStep);
+      scene.onBeforeRenderObservable.removeCallback(place);
+      view.dispose();
       aggregate.dispose();
       mesh.dispose();
       for (const collider of colliders) {

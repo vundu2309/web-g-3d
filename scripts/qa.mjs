@@ -19,6 +19,7 @@ const GROUPS = {
     "ocean-cast",
     "ocean-market",
     "ocean-input",
+    "ocean-steer",
     "ocean-stick",
   ],
 };

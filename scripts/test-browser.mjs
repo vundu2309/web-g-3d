@@ -32,6 +32,7 @@ try {
   const port = dev.httpServer.address().port;
   await run("tests/ocean-stick-browser.mjs", port);
   await run("tests/ocean-input-browser.mjs", port);
+  await run("tests/ocean-steer-browser.mjs", port);
   await run("tests/boot-fallback-browser.mjs", port);
   await run("tests/ocean-babylon-browser.mjs", port);
   await run("tests/harbor-browser.mjs", port);
