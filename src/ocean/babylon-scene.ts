@@ -53,6 +53,8 @@ import { createSeaLights } from "./art/lighting.ts";
 import { edgeIndicator, separateLabels } from "./indicator.ts";
 import { ScaleGovernor } from "./render-scale.ts";
 import { createSeaReflection } from "./reflection.ts";
+import { createClearWater, type ClearWater } from "./clear-water-pass.ts";
+import { ClearWaterGovernor } from "./clear-water.ts";
 import { createSky, type Sky } from "./sky.ts";
 import { createWater, type Water } from "./water.ts";
 import { waveHeight } from "./waves.ts";
@@ -79,6 +81,16 @@ interface Craft {
 const wrap = (angle: number) => Math.atan2(Math.sin(angle), Math.cos(angle));
 const blend = (dt: number, rate: number) => 1 - Math.exp(-dt * rate);
 const NORMALIZED = new Viewport(0, 0, 1, 1);
+/** `?clearwater=0` keeps the sea opaque (to compare, or on a device that cannot hold the layer). */
+const clearWaterRefused = () => {
+  try {
+    return (
+      new URLSearchParams(window.location.search).get("clearwater") === "0"
+    );
+  } catch {
+    return false;
+  }
+};
 
 /**
  * Babylon.js + Havok sea. The player's boat is a Havok body floating on the shared
@@ -119,6 +131,9 @@ export class OceanScene {
   /** 0..1: how far the camera has moved in for fishing. */
   private focus = 0;
   private readonly governor: ScaleGovernor;
+  /** The see-through sea (clear-water.ts): the layer of what lies under the water, and the switch that turns it off when frames are slow. */
+  private readonly clearWater: ClearWater | undefined;
+  private readonly clearGovernor: ClearWaterGovernor;
   private lost = false;
   private gear: FishingGear | undefined;
   private readonly seaProps: SeaProps;
@@ -186,6 +201,13 @@ export class OceanScene {
     this.sky = createSky(this.scene);
     // The sea mirrors the islands, markets and boats too (a predicate over the whole scene).
     createSeaReflection(this.scene, this.water, this.sky);
+    // The sea is see-through: hulls, piles, rocks, the fish and the line show through it. Slow
+    // frames switch it off again (the opaque sea), before the render scale is coarsened.
+    this.clearWater = createClearWater(this.scene, this.water);
+    this.clearGovernor = new ClearWaterGovernor(
+      this.clearWater !== undefined && !clearWaterRefused(),
+    );
+    this.clearWater?.setEnabled(this.clearGovernor.enabled);
     this.templates = boatPalettes.map((palette, i) => {
       const template = createBoatTemplate(this.scene, palette, `boat-${i}`);
       template.isVisible = false;
@@ -204,6 +226,9 @@ export class OceanScene {
     // The fishing gear is built now, not at the first throw: building it (meshes, textures, shaders)
     // while the button is held made the first throw of a visit hitch, and `ready()` compiles it.
     this.gear = new FishingGear(this.scene);
+    this.gear.setClearWater(
+      this.clearGovernor.enabled ? this.clearWater : undefined,
+    );
     this.boatLoad = this.loadBoats();
     this.islandProps = this.placeIslandModels(visuals);
     // A fish market on the water off each island.
@@ -394,6 +419,7 @@ export class OceanScene {
   async ready() {
     await Promise.all([this.islandProps, this.vendors, this.boatLoad]);
     await this.scene.whenReadyAsync();
+    await this.clearWater?.compile();
     // The sea animals' files (about 1.4 MB) come after the first frame, never before it: a fish
     // that bites sooner is drawn from code until its file has arrived (see creature-kit.ts).
     void preloadFishModels();
@@ -580,6 +606,7 @@ export class OceanScene {
       this.camera.position.z,
       this.clock,
     );
+    this.clearWater?.update(this.clock, this.camera.position);
     this.engine.beginFrame();
     this.scene.render();
     this.engine.endFrame();
@@ -785,8 +812,25 @@ export class OceanScene {
 
   /** Slow phones render fewer pixels instead of dropping frames, and recover when fast again. */
   private adapt(dt: number) {
-    const next = this.governor.sample(dt);
+    // The see-through sea is given up first (it is the newest cost and the look can be done
+    // without); the render scale is coarsened only after that.
+    const clear = this.clearGovernor.sample(dt);
+    if (clear !== undefined) this.setClearWater(clear);
+    const next = this.governor.sample(dt, this.clearGovernor.enabled);
     if (next !== undefined) this.engine.setHardwareScalingLevel(next);
+  }
+
+  /** Turns the see-through sea on or off (the opaque sea is the fallback); the quality governor does it by itself, unless `pin` holds the state (tests). */
+  setClearWater(on: boolean, pin = false) {
+    if (pin) this.clearGovernor.lock(on);
+    else {
+      this.clearGovernor.unlock();
+      this.clearGovernor.set(on);
+    }
+    this.clearWater?.setEnabled(this.clearGovernor.enabled);
+    this.gear?.setClearWater(
+      this.clearGovernor.enabled ? this.clearWater : undefined,
+    );
   }
 
   /** Frame cost, for diagnostics and tests. */
@@ -795,6 +839,8 @@ export class OceanScene {
       meshes: this.scene.getActiveMeshes().length,
       triangles: Math.round(this.scene.getActiveIndices() / 3),
       renderScale: 1 / this.governor.scaling,
+      clearWater: this.clearWater?.enabled ?? false,
+      clearWaterMeshes: this.clearWater?.drawn() ?? 0,
     };
   }
 
@@ -802,6 +848,7 @@ export class OceanScene {
     this.observer.disconnect();
     for (const craft of this.fleet.values()) craft.label.remove();
     this.gear?.dispose();
+    this.clearWater?.dispose();
     this.seaProps.dispose();
     for (const market of this.markets) market.dispose();
     for (const id of [...this.trails.keys()]) this.forgetTrail(id);

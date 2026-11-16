@@ -34,8 +34,12 @@ export class ScaleGovernor {
   get scaling() {
     return this.level;
   }
-  /** Feed the seconds since the previous drawn frame; returns a new level when it changes. */
-  sample(dt: number): number | undefined {
+  /**
+   * Feed the seconds since the previous drawn frame; returns a new level when it changes. While
+   * `hold` is true (a cheaper thing is still to be given up first, see clear-water.ts) slow frames
+   * are counted for nothing: the level is not coarsened.
+   */
+  sample(dt: number, hold = false): number | undefined {
     if (!(dt > 0) || dt > 1) return undefined; // a hidden tab is not a slow phone
     this.elapsed += dt;
     if (this.elapsed < WARMUP) return undefined;
@@ -47,6 +51,10 @@ export class ScaleGovernor {
     this.frames = 0;
     if (average > SLOW) {
       this.fast = 0;
+      if (hold) {
+        this.slow = 0;
+        return undefined;
+      }
       // Two slow windows in a row, so one hiccup never costs sharpness.
       if (++this.slow >= 2 && this.level < this.coarsest) {
         this.slow = 0;

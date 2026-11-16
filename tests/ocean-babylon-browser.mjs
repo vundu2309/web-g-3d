@@ -91,6 +91,50 @@ try {
     cost.triangles > 5000 && cost.triangles < 450000,
     `triangles ${cost.triangles}`,
   );
+  // The see-through sea (clear-water.ts) is on and can be switched off for the opaque one; its
+  // extra pass (the meshes that can be under the water) is counted in the triangles.
+  assert.equal(typeof cost.clearWater, "boolean");
+  // The state is pinned (the quality governor would otherwise switch it off by itself under slow
+  // software frames) and read right after each call, so the checks do not depend on frame speed.
+  const clear = await page.evaluate(async () => {
+    const scene = window.oceanScene;
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 2500));
+    scene.setClearWater(true, true);
+    const onNow = scene.stats().clearWater;
+    await settle();
+    const on = scene.stats();
+    scene.setClearWater(false, true);
+    const offNow = scene.stats().clearWater;
+    await settle();
+    const off = scene.stats();
+    scene.setClearWater(true, true);
+    const backNow = scene.stats().clearWater;
+    await settle();
+    // Back to the governor's own care.
+    scene.setClearWater(true);
+    return { on, off, onNow, offNow, backNow };
+  });
+  assert.equal(clear.onNow, true, "the see-through sea switches on");
+  assert.equal(clear.offNow, false, "and off (the opaque sea)");
+  assert.equal(clear.backNow, true, "and on again");
+  assert.equal(clear.on.clearWater, true, "and stays on while pinned");
+  assert.equal(clear.off.clearWater, false, "and stays off while pinned");
+  assert.ok(
+    clear.on.clearWaterMeshes > 0,
+    `the layer's pass drew ${clear.on.clearWaterMeshes} meshes (the boats are in it)`,
+  );
+  assert.equal(
+    clear.off.clearWaterMeshes,
+    0,
+    "nothing is drawn when it is off",
+  );
+  assert.ok(
+    clear.on.triangles > clear.off.triangles,
+    `the layer is a pass over some meshes: ${clear.on.triangles} on, ${clear.off.triangles} off`,
+  );
+  console.log(
+    `clear water: ${clear.on.triangles} triangles on (${clear.on.clearWaterMeshes} meshes in the layer), ${clear.off.triangles} off (the layer's pass: ${clear.on.triangles - clear.off.triangles})`,
+  );
   const picture = await page.screenshot();
   assert.ok(
     picture.length > 150000,
@@ -169,6 +213,27 @@ try {
   // Stick still held, but with the line out the boat gets no thrust (the fish may take
   // the line in again within seconds, so this checks the input, not the final stop).
   await page.waitForTimeout(700);
+  // Software frames can be slow (the see-through sea adds a pass): wait, up to 8 s, until enough
+  // frames have been seen with the line out instead of counting the frames of a fixed 0.7 s.
+  await page
+    .waitForFunction(
+      () => {
+        const out = window.published.find((p) => p.fishing)?.at ?? Infinity;
+        const back =
+          window.published.find((p) => !p.fishing && p.at > out)?.at ??
+          Infinity;
+        return (
+          window.inputs.filter(
+            (i) =>
+              i.at > out + 150 &&
+              i.at < Math.min(back - 150, performance.now()),
+          ).length > 3
+        );
+      },
+      null,
+      { timeout: 8000 },
+    )
+    .catch(() => undefined);
   const verdict = await page.evaluate(() => {
     const out = window.published.find((p) => p.fishing)?.at ?? Infinity;
     const back =

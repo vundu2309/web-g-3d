@@ -18,6 +18,7 @@ import {
 import { RIPPLE_RANGE, RIPPLE_SIZE, ripplePixels } from "./ripples.ts";
 import { glslSkyModel } from "./sky-model.ts";
 import { glslReflection } from "./reflection-model.ts";
+import { CLEAR, glslUnderLayer } from "./clear-water.ts";
 import type { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
 import { createSwash } from "./swash.ts";
 import {
@@ -129,12 +130,15 @@ uniform sampler2D rippleMap;
 uniform sampler2D reflectionMap;
 uniform vec2 reflectionSize;
 uniform mat4 viewProjection;
+uniform sampler2D underMap;
+uniform float underOn;
 varying vec3 vWorld;
 varying float vHeight;
 varying vec4 vWake;
 ${glslSkyModel()}
 ${glslShore(true)}
 ${glslReflection()}
+${glslUnderLayer()}
 // Absorption of clear sea water per metre (red goes first, then green): turquoise shallows.
 const vec3 absorb = vec3(${WATER_ABSORPTION.map((v) => v.toFixed(4)).join(", ")});
 // A hash without sin(): cheaper on phone GPUs.
@@ -429,6 +433,16 @@ void main() {
   vec3 open = mix(toLinear(deep), toLinear(deepTeal), smoothstep(0.32, 0.72, hue));
   vec3 scatterColor = mix(open, toLinear(shallow), (1.0 - smoothstep(3.0, 13.0, depth)) * 0.85);
   vec3 body = floorColor * transmit + scatterColor * incident * 0.4 * (1.0 - transmit);
+  // ----- What is under the water (clear-water.ts) -----
+  // Boat hulls, piles, rocks, buoys, the hooked fish and the line are drawn on a layer of their own,
+  // below the waves only, already dimmed and tinted by the depth (red first). Where the layer has
+  // something, the water shows it through itself, fading into its own body with depth (clearer over
+  // the shallows); the Fresnel mirror, the glitter and the foam come over it, as over everything.
+  // Switched off (underOn 0) the sea is the opaque one it always was: no texture read at all.
+  if (underOn > 0.5) {
+    vec4 under = underLayerAt(vWorld, slope, smoothstep(3.0, 13.0, depth));
+    body = mix(body, under.rgb * incident * ${CLEAR.light.toFixed(2)}, under.a);
+  }
   // Light through the waves: crests seen against the sun glow green-blue (subsurface), and so
   // does the thin face of a breaker about to curl.
   float against = pow(clamp(dot(-view, normalize(vec3(sunDir.x, 0.0, sunDir.z))) * 0.5 + 0.5, 0.0, 1.0), 3.0);
@@ -487,6 +501,8 @@ export interface Water {
   swash: Mesh[];
   /** Gives the water its planar reflection (reflection.ts); undefined goes back to the sky alone. */
   setReflection(texture: BaseTexture | undefined): void;
+  /** Gives the water the layer of what lies under it (clear-water.ts); undefined is the opaque sea. */
+  setUnderlayer(texture: BaseTexture | undefined): void;
   /** Keeps the grid centred under the camera and advances the wave clock. */
   update(
     cameraX: number,
@@ -555,8 +571,9 @@ export function createWater(scene: Scene): Water {
         "boats",
         "viewProjection",
         "reflectionSize",
+        "underOn",
       ],
-      samplers: ["rippleMap", "coastMap", "reflectionMap"],
+      samplers: ["rippleMap", "coastMap", "reflectionMap", "underMap"],
     },
   );
   material.backFaceCulling = false;
@@ -614,6 +631,20 @@ export function createWater(scene: Scene): Water {
   let reflection: BaseTexture | undefined;
   material.setTexture("reflectionMap", noReflection);
   material.setVector2("reflectionSize", new Vector2(1, 1));
+  // The layer of what is under the water: until the clear-water pass gives one (or when it is switched
+  // off) the sea reads nothing and stays opaque.
+  const noUnder = new RawTexture(
+    new Uint8Array(4),
+    1,
+    1,
+    Constants.TEXTUREFORMAT_RGBA,
+    scene,
+    false,
+    false,
+    Texture.NEAREST_SAMPLINGMODE,
+  );
+  material.setTexture("underMap", noUnder);
+  material.setFloat("underOn", 0);
   mesh.material = material;
   const swash = createSwash(scene);
   const anchor = new Vector3();
@@ -623,6 +654,10 @@ export function createWater(scene: Scene): Water {
     setReflection(texture) {
       reflection = texture;
       material.setTexture("reflectionMap", texture ?? noReflection);
+    },
+    setUnderlayer(texture) {
+      material.setTexture("underMap", texture ?? noUnder);
+      material.setFloat("underOn", texture ? 1 : 0);
     },
     update(cameraX, cameraZ, time, wake, boats) {
       swash.update(time);
