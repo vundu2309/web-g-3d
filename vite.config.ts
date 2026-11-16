@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import { pwaBuild } from "./scripts/pwa-build.mjs";
 export default defineConfig({
   base: "./",
+  // Set by scripts/qa.mjs, shots.mjs and wt.mjs so servers in different checkouts never share a cache.
+  cacheDir: process.env.VITE_CACHE_DIR || undefined,
   plugins: [pwaBuild()],
   build: {
     rollupOptions: {

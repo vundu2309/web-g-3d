@@ -1,6 +1,6 @@
 # Development, mobile review and release
 
-Use Node 24 (`.node-version`), npm 11 and the existing checkout. `npm ci` installs the lockfile. `npm run dev` starts Vite; `npm run build` typechecks and builds; `npm run preview` serves production output. On cloud machines with a read-only home use `npm ci --cache /workspace/.npm-cache`. Do not make a worktree unless the user asks.
+Use Node 24 (`.node-version`), npm 11 and the existing checkout. `npm ci` installs the lockfile. `npm run dev` starts Vite; `npm run build` typechecks and builds; `npm run preview` serves production output. On cloud machines with a read-only home use `npm ci --cache /workspace/.npm-cache`. Make a worktree only for parallel agent work, with `node scripts/wt.mjs` (see [agent briefs](agent-briefs.md)); the user authorised this on 2026-11-16.
 
 ## Checks
 

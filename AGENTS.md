@@ -20,7 +20,7 @@ The user selected Vercel (frontend/PWA), Render (API) and Supabase (Auth/Postgre
 
 ## Change contract
 
-1. Identify observable behavior and a check that can fail when it is broken. Use the existing isolated checkout; do not create worktrees unless asked.
+1. Identify observable behavior and a check that can fail when it is broken. Use the existing isolated checkout; create git worktrees only for parallel agent work, with `node scripts/wt.mjs` (see [agent briefs](docs/agent-briefs.md), authorised by the user on 2026-11-16), not otherwise.
 2. Preserve the approved sky/cobalt/yellow theme, typography and one-task-per-screen flow. Propose new visual directions with images for review before implementing them unless the user explicitly skips review. Apply design skills when available, but never override the approved direction or require global skills in CI.
 3. Trace ownership/callers. Keep pure room transitions in `src/hub`, infrastructure in `src/platform`, app DOM/navigation in `src/app`, artwork and shared theme in `src/ui`/CSS. Hub/platform must not import app/main. Do not add an engine, framework, global event bus or duplicated theme per screen speculatively.
 4. Keep HUD foreground inside the shared `.game-safe` inset container; size cards against that container and avoid double insets on children. Respect 44px touch targets, safe areas, readable inputs, keyboard focus and reduced motion. Inspect real browser screenshots; generated images and passing builds are not visual or real-device performance evidence.
