@@ -1,5 +1,7 @@
 # 0002 — Mobile landscape board-game hub
 
+> **Superseded in part by [0012](0012-remove-firebase-and-monopoly.md) (2026-11-16):** the Monopoly and Firebase code described here was removed.
+
 Status: accepted by the user for implementation.
 
 The product changes from a procedural ocean experience to a multiplayer property-trading board game. Implement the basic hub before the board/game graphics. The user approved separate landscape images for home, create, join and waiting room, then clarified that phone users are the first target.

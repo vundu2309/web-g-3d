@@ -1,9 +1,10 @@
 import { Server } from "socket.io";
 
-// Push invalidations only. Authorized snapshots always come from PostgreSQL.
+// One Socket.IO server: every connection must carry a Supabase access token that the Auth
+// server accepts. The shared sea (ocean.mjs) adds its own events on top.
 export function attachSockets(
   server,
-  { origins, authenticate, snapshot, ready = () => true },
+  { origins, authenticate, ready = () => true },
 ) {
   const allowed = new Set(origins);
   const io = new Server(server, {
@@ -18,7 +19,7 @@ export function attachSockets(
       const error = new Error(
         code === "AUTH_REQUIRED"
           ? "Hãy đăng nhập lại."
-          : "Dịch vụ phòng đang kết nối lại.",
+          : "Dịch vụ đang kết nối lại.",
       );
       error.data = { code };
       next(error);
@@ -36,42 +37,6 @@ export function attachSockets(
     } catch {
       reject("SERVICE_UNAVAILABLE");
     }
-  });
-  io.on("connection", (socket) => {
-    let pending = false;
-    let count = 0;
-    let windowEnd = Date.now() + 60000;
-    socket.on("hub:snapshot", async (input, acknowledge) => {
-      if (typeof acknowledge !== "function") return;
-      if (Date.now() > windowEnd) {
-        count = 0;
-        windowEnd = Date.now() + 60000;
-      }
-      if (pending || ++count > 120)
-        return acknowledge({ error: "Thao tác quá nhanh. Hãy đợi một lúc." });
-      if (
-        !input ||
-        !["get", "list"].includes(input.action) ||
-        (input.action === "get" && !/^[A-HJ-NP-Z2-9]{6}$/.test(input.code))
-      )
-        return acknowledge({ error: "Yêu cầu không hợp lệ." });
-      pending = true;
-      try {
-        // Revalidate on every read; a connected socket is not a permanent Auth grant.
-        const user = await authenticate(socket.data.token);
-        if (!user || user.id !== socket.data.uid) {
-          acknowledge({ error: "Hãy đăng nhập lại." });
-          socket.disconnect(true);
-          return;
-        }
-        const data = await snapshot(socket.data.token, input);
-        acknowledge({ data });
-      } catch {
-        acknowledge({ error: "Không tải được phòng. Hãy kết nối lại." });
-      } finally {
-        pending = false;
-      }
-    });
   });
   return io;
 }

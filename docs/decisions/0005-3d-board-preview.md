@@ -1,5 +1,7 @@
 # 0005 — Bàn 3D xem trước bằng Three.js
 
+> **Superseded in part by [0012](0012-remove-firebase-and-monopoly.md) (2026-11-16):** the Monopoly and Firebase code described here was removed.
+
 **Trạng thái:** Chấp nhận cho bản xem trước cục bộ (không phải gameplay).
 
 ## Bối cảnh

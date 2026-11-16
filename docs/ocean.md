@@ -1,6 +1,6 @@
 # Shared fishing sea
 
-Approved 2026-11-05: each player is a separate fishing boat in one common online map. Enter through the hub's “Ra khơi” (see “Hub, sign-in and loading” below); authenticate with the existing Firebase Email/Password dialog, then sail immediately. No room creation, invitations, lobby, readiness or host. `?view=ocean` restores this direct-entry route after reload. Returning to the hub leaves the sea.
+Approved 2026-11-05: each player is a separate fishing boat in one common online map. Enter through the hub's “Ra khơi” (see “Hub, sign-in and loading” below); authenticate with the Supabase Email/Password dialog, then sail immediately. No room creation, invitations, lobby, readiness or host. `?view=ocean` restores this direct-entry route after reload. Returning to the hub leaves the sea.
 
 ## Implementation and ownership
 
@@ -8,9 +8,9 @@ Approved 2026-11-05: each player is a separate fishing boat in one common online
 - `src/app/ocean.ts`: controls, fishing interaction, HUD/dialogs, animation and cleanup.
 - `src/ocean/model.ts`: deterministic per-UID spawn, bounded movement, island collisions, remote payload validation.
 - `src/ocean/babylon-scene.ts`: the Babylon.js scene: one engine, Havok physics for the player's boat, a chase camera, instanced boats for other players and safe text labels. It builds from `water.ts` (wave-displaced sea shader), `sky.ts` (gradient sky, sun, clouds), `boat-visual.ts` and `island-visual.ts` (procedural models merged into one vertex-coloured mesh each, so a boat is one draw call and other players' boats are instances; the land's shape is pure maths in `island-shape.ts`), `shore.ts` (the shore field every coast-aware part measures from) and `swash.ts` (the swash on the beaches), `clear-water.ts` / `clear-water-pass.ts` (the see-through sea, see "Clear water"), `havok.ts` (loads the WASM), `render-scale.ts` (resolution governor) and `sea-style.ts` (shared colours and sun).
-- `src/platform/ocean.ts`: selects the same configured provider as the account layer. `ocean-firebase.ts` owns the legacy Firestore lease; `ocean-socket.ts` uses the Supabase-authenticated Render Socket.IO API. `server/ocean.mjs` owns the ephemeral shared sea for that API instance.
+- `src/platform/ocean.ts`: loads `ocean-socket.ts`, the Supabase-authenticated Render Socket.IO client. There is no other provider and no fallback: without `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` and `VITE_API_URL` the harbor shows a clear message. `server/ocean.mjs` owns the ephemeral shared sea for that API instance.
 
-The original Monopoly board/HUD/artwork and room/auth services remain. `?view=game` is the original local Monopoly preview; `?view=monopoly-hub` runs its preserved room hub. New modules do not use room transitions or alter Monopoly economics/resources.
+The Monopoly board game, its rooms hub and Firebase were removed on 2026-11-16 ([decision 0012](decisions/0012-remove-firebase-and-monopoly.md)); this game is all the repository holds.
 
 ## Controls and fishing
 
@@ -85,11 +85,7 @@ The three islands and the sea around them carry more detail, all scenery: nothin
 
 ## Online contract and limits
 
-On the Firebase configuration, all users query the same `monopolyHub/v1/oceanBoats` collection ordered by `updatedAt` descending, limited to 100 most recently updated boats. No silent offline/demo fallback or sample players. Identity is a UID-keyed document; display name contains no account email. A new tab for the same account replaces its old session, which stops controlling the boat. Leave deletes only a matching lease; abrupt loss expires visually within 30 seconds. Hidden tabs stop motion/heartbeats and can expire remotely; foreground entry resumes updates. Deletion is best effort on abrupt tab closure.
-
-Transactions fail offline rather than queue old motion. Motion writes on the Firebase adapter are at most 1 Hz, idle heartbeats at 10 seconds, remote render positions are interpolated. Firestore read/write volume grows with active boats and is unsuitable for a large continuous-action world without an authoritative realtime server. Coordinates and ownership are validated by prototype rules, but movement/fishing remain client-simulated. There is no persistent catch economy, trading, chat, matchmaking or server anti-cheat. Production backend permissions must be deployed separately; the frontend does not grant access by itself.
-
-On the Supabase configuration, the existing account and password-recovery flow are preserved. All sea clients enter the `ocean:shared` Socket.IO channel on the existing API; user identity comes from server-validated Auth, never a payload UID. Joining validates the token once, enforces one active session per UID, validates finite bounded pose fields, bounds payload/rate and caps the sea at 100 boats. Joined sea clients alone receive pushes. Disconnect removes the matching boat; old replaced sockets cannot remove the new boat. No polling or Supabase schema writes are introduced.
+Accounts are Supabase Email/Password with email confirmation and password recovery. All sea clients enter the `ocean:shared` Socket.IO channel on the existing API; user identity comes from server-validated Auth, never a payload UID. Joining validates the token once, enforces one active session per UID, validates finite bounded pose fields, bounds payload/rate and caps the sea at 100 boats. Joined sea clients alone receive pushes. Disconnect removes the matching boat; old replaced sockets cannot remove the new boat. No polling or Supabase schema writes are introduced.
 
 ### Transport (protocol 2)
 
@@ -102,13 +98,11 @@ On the Supabase configuration, the existing account and password-recovery flow a
 - **Compatibility.** The client announces `proto: 2` when joining; the server answers with `proto`, `sendMs` and `delayMs`. A server without it keeps the old behaviour (acknowledged `ocean:command` moves, full `ocean:state` snapshots, 1 Hz, 1.3 s playback delay); a client without it keeps getting full snapshots. Deploy order does not matter.
 - **Not done:** interest management (sending only nearby boats) and binary encoding; with at most 100 boats at 5 Hz they are not needed yet. The server is still one instance with in-memory state.
 
-This Socket.IO sea is intentionally ephemeral and requires exactly **one API process/instance**: restart/redeploy clears boats and players re-enter; positions and catches are not saved. Do not scale Render to multiple instances until shared authoritative world state/broadcast is implemented. Existing PostgreSQL LISTEN/NOTIFY continues serving the preserved room hub; it is not falsely presented as synchronizing the ephemeral sea across instances. The adapter fails visibly and returns to the hub on connection failure instead of switching providers.
+This Socket.IO sea is intentionally ephemeral and requires exactly **one API process/instance**: restart/redeploy clears boats and players re-enter; positions and catches are not saved. Do not scale Render to multiple instances until shared authoritative world state/broadcast is implemented. The API reads no database (it asks Supabase Auth who a token belongs to), so there is no LISTEN/NOTIFY to share the sea across instances. The adapter fails visibly and returns to the hub on connection failure instead of switching providers.
 
 ## Verification
 
-`npm run check` includes the preserved Monopoly regression tests, pure movement/remote-payload tests, emulator rules deny/allow cases and `tests/ocean-browser.mjs`. The Firebase browser test registers two real SDK accounts on local `demo-photyphu`, enters directly through the hub, checks the common map and shared motion, catches a fish, inspects mobile screenshots, reloads, replaces a duplicate session, leaves, and checks offline return. It aborts production Firebase requests. Generated concepts are design references, not evidence of actual browser rendering or live multiplayer deployment.
-
-`npm run test:api` also runs real Socket.IO-client tests for shared-sea push, ownership, denied malformed motion, duplicate replacement, leave and nonparticipant snapshot isolation. `npm run test:supabase` preserves the full local GoTrue/PostgREST/SMTP/PostgreSQL room/account suite and adds direct sea entry, two boats, cross-browser rendered motion and leave on the Supabase/Socket.IO configuration.
+`npm run check` runs lint, format, the unit tests (pure movement/remote-payload tests among them), the build, the browser tests (`tests/ocean-*-browser.mjs`, the harbor, the PWA) and `npm run test:api` (the HTTP health endpoint, the Socket.IO Auth gate and real Socket.IO-client tests for shared-sea push, ownership, denied malformed motion, duplicate replacement and leave). Browser tests answer the account service with fakes (`tests/support/supabase-dev.mjs`); no test talks to a live Supabase project. Generated concepts are design references, not evidence of actual browser rendering or live multiplayer deployment.
 
 ## Boat physics (Babylon.js + Havok)
 

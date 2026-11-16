@@ -1,21 +1,10 @@
-# Phố Tỷ Phú — approved hub direction
+# Ra khơi — approved visual direction
 
 The primary audience plays on phones. Design for **landscape mobile first**, especially 844×390 and 932×430; also check 667×375. Desktop is an expansion, not the source layout. Portrait must remain usable without forcing orientation or fullscreen APIs. Account for safe-area insets and the on-screen keyboard; allow vertical scrolling when necessary instead of clipping form controls.
 
-## Visual source of truth
-
-The user approved these separate landscape concepts before implementation:
-
-- [Main menu](hub-reference.png): identity/house-and-dice emblem on the left, two primary choices on the right.
-- [Create room](create-reference.png): display name and maximum room size only.
-- [Join room](join-reference.png): display name and six-character code only.
-- [Waiting room](lobby-reference.png): invitation code, player slots and readiness.
-
-These are layout/art targets, not screenshots or evidence of implemented behavior. Actual screens use native HTML controls and an authored SVG emblem rather than flattened screenshots as UI. Simplified vector shading replaces the concept's paper-cut lighting. The local/online selector is an intentional addition so preview is never presented as cross-device multiplayer.
-
 ## Theme tokens
 
-Edit shared tokens in `src/style.css` rather than introducing local palettes per screen.
+Edit shared tokens in `src/style.css` (and `src/ocean/style.css`) rather than introducing local palettes per screen.
 
 | Role | Value |
 | --- | --- |
@@ -30,28 +19,19 @@ Use Baloo 2 800 for the brand and headings, Be Vietnam Pro 400/600/700 for contr
 
 ## Interaction and scope
 
-- One task per screen. Home has “Tạo phòng”, “Tham gia phòng” and secondary “Cách chơi”. Do not combine creation/join forms or a waiting-room dashboard into home.
-- Name is requested in the selected form and remembered on this browser. Room capacity is a maximum, not a requirement to fill every seat.
-- The host is ready by default. Guests can toggle their own readiness. Starting requires at least two present players and all ready. Only the host starts; departure by the host closes the room, after an explicit in-app confirmation.
-- “Bắt đầu” currently changes the room to the completed-hub state. Explain that the board is not built yet. Do not invent dice rolls, property economy, 3D gameplay, shops or progression.
-- Online mode is the default. The optional device preview must always be labeled “Bản thử”; it only synchronizes tabs in the same browser origin. Never silently fall back from online to preview.
-- Use visible labels, keyboard focus, readable Vietnamese text and touch targets at least 44 CSS px. Do not rely on hover, tiny icons or color alone. Disabled start has a textual explanation.
-- Prefer modest input padding and adaptive heading size on horizontal phones. Primary room actions and waiting status must fit the normal 844×390 viewport. The keyboard can require scrolling; do not shrink inputs below 16px and trigger iOS zoom.
+- One task per screen: the harbor (one “Ra khơi” button), the full-screen sign-in, the loading screen, the sea. No rooms, lobby or readiness.
+- Use visible labels, keyboard focus, readable Vietnamese text and touch targets at least 44 CSS px. Do not rely on hover, tiny icons or color alone.
+- Do not shrink inputs below 16px (iOS zoom); the on-screen keyboard can require scrolling.
+- A missing account configuration, a lost connection or a refused sign-in is shown as a message, never replaced by sample players or a different service.
 
 ## Review before release
 
-Inspect real rendered home, create, join and lobby at mobile landscape sizes first. Test portrait fallback, text escaping, long names, errors, readiness updates and reload. A generated concept or passing build is not visual verification. Save temporary browser screenshots under ignored `test-results/`.
+Inspect real rendered harbor, sign-in, loading and sea screens at mobile landscape sizes first (844×390, 932×430, compact 667×375). Test portrait fallback, text escaping, long names and errors. A generated concept or passing build is not visual verification. Save temporary browser screenshots under ignored `test-results/`.
 
-Design skills used: `ui-ux-pro-max` and `frontend-design`; optional `board-game-design` applies when designing actual rules/economy. Skills are aids, not permission to change an approved direction. Do not require globally installed skills for CI. New visual directions still need concept review before implementation unless the user explicitly skips it.
-
-## Account and room directory extension
-
-The user requested real email/password accounts and a room directory. Online create/join now requires Firebase Authentication; the dialog offers login, registration (player name/email/password), password visibility and password reset. Keep the same theme, native labels and landscape-phone layout. The account dialog may scroll with the keyboard, but its close/header remains accessible. A demo player is never represented as an online account.
-
-Online player names come from the authenticated profile and are readonly in room forms. Create adds a room title (1–24 characters, with a default title when blank). Home's join action opens a separate directory: title, host display name, occupancy and join button. Keep direct code entry as a secondary route. Never put email addresses or password data in the directory.
+New visual directions still need concept review before implementation unless the user explicitly skips it.
 
 ## Approved shared-sea direction (2026-11-05)
 
-The user approved a fishing-boat concept with one separate boat per player, then selected one common channel/map and direct entry after login. Reuse the sky/cobalt/yellow palette, fonts and mobile-first touch controls. The active hub offers “Vào game”; no create/join/ready flow is shown. The main view is an elevated follow camera over the player's boat, other actual players' boat labels, minimal channel/status HUD, steering pad, “Thả câu” and “Kho cá”. See [shared sea contract](../ocean.md). The original Monopoly references above remain for the preserved legacy hub.
+The user approved a fishing-boat concept with one separate boat per player, then selected one common channel/map and direct entry after login. Reuse the sky/cobalt/yellow palette, fonts and mobile-first touch controls. The active hub offers “Vào game”; no create/join/ready flow is shown. The main view is an elevated follow camera over the player's boat, other actual players' boat labels, minimal channel/status HUD, steering pad, “Thả câu” and “Kho cá”. See [shared sea contract](../ocean.md).
 
 The implementation uses procedural low-poly boats, shader waves and simple islands, rather than claiming the generated concept's detailed wooden textures/lighting are implemented. Actual browser captures are required for visual acceptance.

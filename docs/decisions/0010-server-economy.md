@@ -1,5 +1,7 @@
 # 0010. Server-side economy (coins)
 
+> **Superseded in part by [0012](0012-remove-firebase-and-monopoly.md) (2026-11-16):** the Monopoly and Firebase code described here was removed.
+
 Date: 2026-11-12. Status: accepted by the user (2026-11-12); applied to the live database and switched on in production on 2026-11-13.
 
 ## Context
@@ -22,8 +24,7 @@ with places to sell on the islands (see docs/ocean.md "Markets").
 - A **ledger** holds the fish the player has caught and not yet sold. A catch is accepted only for
   a real species within its weight range, at most one every 6 seconds, and while fewer than 200
   fish wait. Selling consumes ledger rows (by species and weight) atomically.
-- The economy needs the Supabase backend (`VITE_ONLINE_BACKEND=supabase`). The legacy Firebase
-  fallback and the local preview have no money; they do not show the market.
+- The economy needs the public switch `VITE_ECONOMY=on`. Without it the market is not shown.
 
 ## Limits (said plainly)
 

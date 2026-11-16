@@ -1,5 +1,7 @@
 # 0003 — Luật Classic US và kế hoạch từng phần
 
+> **Superseded in part by [0012](0012-remove-firebase-and-monopoly.md) (2026-11-16):** the Monopoly and Firebase code described here was removed.
+
 Trạng thái: Đã chốt hướng sản phẩm ngày 2026-11-03; nguồn rulebook G0009 US 2025 đã được xác minh, chi tiết luật chưa được duyệt đầy đủ.
 
 Người dùng chọn Monopoly truyền thống bản Mỹ, giữ nguyên tên đất; không dùng bản rút gọn. Công việc được chia thành bảy plan riêng và làm lần lượt. Giai đoạn hiện tại chỉ thiết lập đặc tả, không đổi hub/Firebase đang chạy.

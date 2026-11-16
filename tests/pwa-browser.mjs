@@ -185,8 +185,8 @@ try {
   });
   assert.ok(entries.some((url) => url.endsWith("index.html")));
   assert.ok(
-    entries.some((url) => /assets\/play-.*\.js$/.test(url)),
-    "lazy HUD code is precached before visiting it",
+    entries.some((url) => /assets\/ocean-.*\.js$/.test(url)),
+    "lazy sea code is precached before visiting it",
   );
   assert.ok(
     entries.every(
@@ -198,10 +198,10 @@ try {
   );
   // Offline cold navigations, including a lazy route never opened before going offline.
   await context.setOffline(true);
-  await page.goto(`${base}?view=game&state=5`);
-  await page.getByRole("button", { name: "+10 → M130", exact: true }).waitFor();
+  await page.goto(`${base}?view=ocean`);
+  await page.getByRole("button", { name: "Ra khơi" }).waitFor();
   await page.reload();
-  await page.getByRole("button", { name: "+10 → M130", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Ra khơi" }).waitFor();
   await page.goto(base);
   await page.locator("[data-pwa-install]").waitFor();
   await context.setOffline(false);
@@ -224,8 +224,8 @@ try {
   });
   assert.equal(await page.locator(".pwa-update").isVisible(), false);
   // An active game view is never reloaded underneath the player.
-  await page.goto(`${base}?view=game&state=5`);
-  await page.getByRole("button", { name: "+10 → M130", exact: true }).waitFor();
+  await page.goto(`${base}?view=ocean`);
+  await page.getByRole("button", { name: "Ra khơi" }).waitFor();
   await page.evaluate(() => {
     window.pwaSentinel = "in-game";
   });
@@ -250,7 +250,7 @@ try {
   assert.equal(await page.locator("[data-pwa-install]").isVisible(), false);
   assert.deepEqual(errors, []);
   console.log(
-    "PWA passed: GitHub Pages subpath scope/icons, install guide/prompt handling, static-only offline home/lazy HUD reloads, self-activating updates that reload only from the idle home screen, never during a game view, with stale cache cleanup.",
+    "PWA passed: GitHub Pages subpath scope/icons, install guide/prompt handling, static-only offline home/lazy sea reloads, self-activating updates that reload only from the idle home screen, never during a game view, with stale cache cleanup.",
   );
 } catch (error) {
   if (!page.isClosed())

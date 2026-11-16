@@ -24,7 +24,7 @@ async function open(connectSource, timing) {
       window.calls = 0;
       window.left = false;
       const { startOcean } = await import("/src/app/ocean.ts");
-      const { HubError } = await import("/src/hub/model.ts");
+      const { HubError } = await import("/src/platform/errors.ts");
       const good = (onBoats) => {
         onBoats([], Date.now());
         return {

@@ -1,5 +1,7 @@
 # 0007 — One shared fishing sea, one boat per player
 
+> **Superseded in part by [0012](0012-remove-firebase-and-monopoly.md) (2026-11-16):** the Monopoly and Firebase code described here was removed.
+
 Date: 2026-11-05. Status: user-approved direction; production rules rollout pending authenticated backend access.
 
 The user changed the active gameplay from Monopoly to fishing-boat roleplay while explicitly preserving Monopoly code/resources, the hub and authenticator. They clarified that each player controls one separate boat, approved the separate-boat visual concept, and selected one shared channel/map with direct entry after clicking the game. Room creation/join/readiness is not part of the active game.

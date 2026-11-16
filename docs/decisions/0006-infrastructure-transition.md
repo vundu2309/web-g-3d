@@ -1,5 +1,7 @@
 # 0006 — Chuyển sang Vercel, Render và Supabase
 
+> **Superseded in part by [0012](0012-remove-firebase-and-monopoly.md) (2026-11-16):** the Monopoly and Firebase code described here was removed.
+
 **Trạng thái:** Người dùng chọn stack; chuẩn bị chuyển đổi. Chưa provision/deploy dịch vụ mới, chưa thay runtime Firebase hay tắt GitHub Pages.
 
 ## Phân vai

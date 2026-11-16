@@ -5,7 +5,7 @@ import {
   type Boat,
   type Pose,
 } from "../ocean/model";
-import { HubError } from "../hub/model";
+import { HubError } from "../platform/errors";
 import type { connectOcean } from "../platform/ocean";
 import { OceanScene } from "../ocean/babylon-scene";
 import { createStick, type StickInput } from "../ocean/stick";

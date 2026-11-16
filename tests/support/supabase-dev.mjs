@@ -1,6 +1,6 @@
 import { createServer } from "vite";
 
-// A dev server built in "Supabase mode" for browser tests that exercise the real
+// A dev server with the Supabase and API variables set, for browser tests that exercise the real
 // account + Socket.IO path without a real Supabase project. Auth traffic goes to a
 // fake origin that tests answer themselves (page.route or a fake `request`).
 export const FAKE_SUPABASE = "http://127.0.0.1:18999";
@@ -8,7 +8,6 @@ export const API_PORT = 18787;
 
 export async function startSupabaseDev() {
   Object.assign(process.env, {
-    VITE_ONLINE_BACKEND: "supabase",
     VITE_SUPABASE_URL: FAKE_SUPABASE,
     VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
     VITE_API_URL: `http://127.0.0.1:${API_PORT}`,

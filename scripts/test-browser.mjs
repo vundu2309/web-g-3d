@@ -15,6 +15,11 @@ async function run(file, port) {
   });
 }
 
+// The sea refuses to start without a Supabase address (no fallback); tests answer for it.
+Object.assign(process.env, {
+  VITE_SUPABASE_URL: "http://127.0.0.1:18999",
+  VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
+});
 let dev;
 let production;
 try {
@@ -25,10 +30,6 @@ try {
   });
   await dev.listen();
   const port = dev.httpServer.address().port;
-  await run("tests/hub-browser.mjs", port);
-  await run("tests/game-ui-browser.mjs", port);
-  await run("tests/safe-area-browser.mjs", port);
-  await run("tests/board-browser.mjs", port);
   await run("tests/ocean-stick-browser.mjs", port);
   await run("tests/ocean-input-browser.mjs", port);
   await run("tests/boot-fallback-browser.mjs", port);
@@ -47,13 +48,6 @@ try {
     preview: { host: "127.0.0.1", port: 0 },
     logLevel: "warn",
   });
-  await run("tests/hub-browser.mjs", production.httpServer.address().port);
-  await run("tests/game-ui-browser.mjs", production.httpServer.address().port);
-  await run(
-    "tests/safe-area-browser.mjs",
-    production.httpServer.address().port,
-  );
-  await run("tests/board-browser.mjs", production.httpServer.address().port);
   await run(
     "tests/boot-fallback-browser.mjs",
     production.httpServer.address().port,

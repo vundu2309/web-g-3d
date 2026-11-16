@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 import { supabase } from "./supabase-client";
 import { currentPlayer } from "./account";
-import { HubError } from "../hub/model";
+import { HubError } from "./errors.ts";
 import { readBoat, type Boat, type Pose } from "../ocean/model";
 export async function connectOcean(
   onBoats: (boats: Boat[], serverTime: number) => void,

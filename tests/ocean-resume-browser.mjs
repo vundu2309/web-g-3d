@@ -111,7 +111,7 @@ try {
   const before = await where(page);
   const publishedBefore = await page.evaluate(() => window.published.length);
   await page.evaluate(async () => {
-    const { HubError } = await import("/src/hub/model.ts");
+    const { HubError } = await import("/src/platform/errors.ts");
     window.failNext = 2;
     window.lose(new HubError("Mất kết nối biển chung."));
   });
@@ -149,7 +149,7 @@ try {
   //     of the session: reconnecting sends a fresh token, so the game carries on.
   const expiredBefore = await page.evaluate(() => window.calls);
   await page.evaluate(async () => {
-    const { HubError } = await import("/src/hub/model.ts");
+    const { HubError } = await import("/src/platform/errors.ts");
     window.lose(new HubError("Hãy đăng nhập lại."));
   });
   await page.waitForFunction((n) => window.calls > n, expiredBefore, {
@@ -169,7 +169,7 @@ try {
   // 2b. A refused sign-in (revoked session) is not retried: sign in again instead.
   const callsBefore = await page.evaluate(() => window.calls);
   await page.evaluate(async () => {
-    const { HubError } = await import("/src/hub/model.ts");
+    const { HubError } = await import("/src/platform/errors.ts");
     window.lose(new HubError("Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại."));
   });
   await page

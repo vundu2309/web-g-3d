@@ -1,4 +1,3 @@
-import { useSupabase } from "./online-config";
 import {
   EconomyError,
   type EconomyApi,
@@ -10,9 +9,8 @@ export * from "../ocean/economy-api";
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
 
-/** The economy is on only with the Supabase backend AND the public switch VITE_ECONOMY=on. */
-export const economyEnabled = () =>
-  useSupabase && import.meta.env.VITE_ECONOMY === "on";
+/** The economy is on only with the public switch VITE_ECONOMY=on. */
+export const economyEnabled = () => import.meta.env.VITE_ECONOMY === "on";
 
 function failureOf(error: {
   code?: string;

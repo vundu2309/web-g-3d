@@ -44,7 +44,7 @@ self.addEventListener("fetch", (event) => {
     request.mode === "navigate" &&
     (url.pathname === root.pathname ||
       url.pathname === new URL(INDEX).pathname);
-  // An exact static allowlist avoids Firebase, auth callbacks, arbitrary URLs and other repositories.
+  // An exact static allowlist avoids the Auth and API services, auth callbacks, arbitrary URLs and other repositories.
   if (!navigation && (url.search || !ALLOWED.has(url.href))) return;
   event.respondWith(
     (async () => {

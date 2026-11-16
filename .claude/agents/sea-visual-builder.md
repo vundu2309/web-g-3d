@@ -17,7 +17,7 @@ You change how the sea game LOOKS, in /Users/vunguyendanguy/web-g-3d (Babylon.js
 - The boats float on exactly the surface the player sees: `src/ocean/waves.ts` is shared by the CPU and the shader. Never displace the water mesh near the shore or change the vertex shader without the same change on the CPU, and keep the tests that pin this.
 - Colours come only from roles of `src/ocean/art/colors.ts` (`tests/art-palette.test.mjs` forbids raw hex in migrated visual files). The sunset is fixed.
 - Put maths and rules in pure files (no Babylon import) and test them with node; keep GPU-only code thin. Every change gets a test that can fail, and `docs/ocean.md` is updated where the contract changes.
-- Keep Monopoly code, the economy and fishing rules untouched unless the brief says otherwise. Do not touch Supabase, Vercel or Render.
+- Keep the economy and fishing rules untouched unless the brief says otherwise. Do not touch Supabase, Vercel or Render.
 - Never run `git add`, `git commit` or `git push`: the caller reviews and publishes. Do not edit files another agent was told to own.
 - Stop every server you start and delete temporary pages you put in the repo.
 

@@ -4,23 +4,27 @@ Use Node 24 (`.node-version`), npm 11 and the existing checkout. `npm ci` instal
 
 ## Checks
 
-| Command                | What it verifies                                                                                                         |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `npm run lint`         | TypeScript rules and hub/platform import boundaries                                                                      |
-| `npm run format:check` | Authored executable formatting                                                                                           |
-| `npm run test:unit`    | Room transitions plus diagnostic timing, safe errors and bounded history                                                 |
-| `npm run build`        | Strict TypeScript and production asset generation                                                                        |
-| `npm run test:browser` | Owned dev/preview servers; create/join/errors, two preview clients, reload, ready/start/close, mobile layout, Auth error |
-| `npm run test:rules`   | Firestore rules plus real Auth/Firestore emulator browser accounts, profiles and directory; needs Java 21                |
-| `npm run check`        | Lint, format, unit, build, browser and rules tests                                                                       |
+The user asked for basic tests only (2026-11-16): the fast checks always, the browser tests for what a change touches.
 
-**CI scope:** the GitHub workflow runs `npm run lint`, `npm run format:check`, `npm run typecheck` and `npm run test:unit` (plus `npm run build` when publishing Pages). The unit suite was added on 2026-11-13 at the project owner's request, reversing the earlier decision to run only lint, format and typecheck (it had missed an empty `tools/blender/palette.json` that failed a unit test for days); to undo it, remove the "Unit tests" step of `.github/workflows/pages.yml`. Browser, Firestore-rules, API/Socket.IO and Supabase tests are still not run in CI; the scripts remain available to run locally (the browser tests need Chrome and are slow under software WebGL).
+| Command                | What it verifies                                                                                                  |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `npm run lint`         | TypeScript rules and the platform-does-not-import-app boundary                                                     |
+| `npm run format:check` | Authored executable formatting                                                                                    |
+| `npm run test:unit`    | Sea rules, physics, models, economy client, update check, the account-configuration error                          |
+| `npm run build`        | Strict TypeScript and production asset generation                                                                 |
+| `npm run test:browser` | Owned dev/preview servers: the harbor, the sea scenes, fishing, markets, resume, sign-up, multiplayer, PWA        |
+| `npm run test:api`     | `/health`, the Socket.IO Auth gate and the shared-sea protocol                                                     |
+| `npm run check`        | Lint, format, unit, build, browser and API tests                                                                  |
 
-Browser tests use `CHROMIUM_PATH`, system `/usr/bin/chromium`, or the Playwright-managed browser. Install the managed browser with `npx --no-install playwright-core install --with-deps chromium` if needed. The runner starts servers on free ports and owns their cleanup. Failure output and screenshots belong under ignored `test-results/`; tests must not leave a user-owned server running or use live Firebase writes. The auth browser scenario starts on a dedicated DEV-only emulator configuration and aborts any production Firebase request.
+For one-off browser runs use `node scripts/qa.mjs <names>` (see [agent briefs](agent-briefs.md)); it serves the checkout with fake Supabase settings and reruns a failing test alone. A browser test that opens the sea needs `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in the server's environment (the sea refuses to start without them); `scripts/qa.mjs` and `scripts/test-browser.mjs` set fakes.
+
+**CI scope:** the GitHub workflow runs `npm run lint`, `npm run format:check`, `npm run typecheck` and `npm run test:unit` (plus `npm run build` when publishing Pages). Browser and API tests are not run in CI; the scripts remain available to run locally (the browser tests need Chrome and are slow under software WebGL). `tests/harbor-browser.mjs` was already failing on `main` before the removal (its loading-step assertion); `ocean-babylon` and `ocean-fishing` have timing checks that are flaky under software WebGL.
+
+Browser tests use `CHROMIUM_PATH`, system `/usr/bin/chromium`, or the Playwright-managed browser. Install the managed browser with `npx --no-install playwright-core install --with-deps chromium` if needed. The runner starts servers on free ports and owns their cleanup. Failure output and screenshots belong under ignored `test-results/`; tests must not leave a user-owned server running or write to live services.
 
 ## Mobile-first visual acceptance
 
-[Approved theme and image references](design/theme.md) are the visual contract. Inspect actual home, create, join and lobby screenshots first at **844×390 and 932×430**, with 667×375 as compact coverage. Check 390×844 portrait fallback and then 1440×900 desktop. Confirm no horizontal overflow, 44px touch controls, 16px form text, safe area padding, focus, escaped long names and readable disabled explanations. Core lobby actions/status should fit horizontal phones; forms must still scroll when the OS keyboard is open. Test on a real phone before making performance or keyboard claims: browser emulation does not reproduce all Safari/Android behavior.
+[Approved theme and image references](design/theme.md) are the visual contract. Inspect actual harbor, sign-in, loading and sea screenshots first at **844×390 and 932×430**, with 667×375 as compact coverage. Check 390×844 portrait fallback and then 1440×900 desktop. Confirm no horizontal overflow, 44px touch controls, 16px form text, safe area padding, focus, escaped long names and readable disabled explanations. Core actions should fit horizontal phones; forms must still scroll when the OS keyboard is open. Test on a real phone before making performance or keyboard claims: browser emulation does not reproduce all Safari/Android behavior.
 
 Do not equate a generated image, build or screenshot with complete usability approval. Record simplifications from the concept honestly; never add unrelated visual styles without review.
 
@@ -36,26 +40,14 @@ When publication is required, monitor the exact SHA through deployment, compare 
 
 Update authored docs when contracts change. Finish source edits before refreshing affected OpenWiki pages via its installed lifecycle; never hand-edit managed metadata, Claims or indexes. No model-token spending or autonomous wiki CI is enabled. `AGENTS.md` is the single agent entrypoint; do not duplicate divergent instructions across agent-specific files.
 
-## Investigating room latency
-
-Use the opt-in [timing panel](diagnostics.md) on the affected phone before attributing slow create/join operations to billing or region. No production timing is inferred from emulator tests.
-
-## HUD preview checks
-
-The browser runner also exercises `tests/game-ui-browser.mjs` and `tests/board-browser.mjs` against dev and production builds. The board suite checks a single WebGL context across redraws, Focus/Overview gestures, resize, context loss and the flat fallback; unit geometry lives in `tests/board-layout.test.mjs`. It checks the 24 scenario layouts at landscape phone sizes, no observer actions, fixed-step bids, touch-only trade controls, active-turn/respondent markers and local offline/reload behavior. The route is a local UI preview with no production Firebase requests; it is not a real multiplayer game test. See [HUD implementation](game/ui-implementation.md).
-
 ## PWA checks
 
 `npm run build` generates a versioned static-shell worker. The browser suite additionally runs `tests/pwa-browser.mjs` on a dedicated local server under the Pages subpath, testing offline reload, install handler/guide, API cache exclusion and waiting-worker updates. See [PWA](pwa.md). Native OS install is not covered by synthetic browser events.
 
-## Safe-area regression
+## Safe-area and PWA updates
 
-`tests/safe-area-browser.mjs` runs on dev and production in the browser runner: all24 HUD scenarios with asymmetric left/right and bottom inset profiles, touch-target reachability and portrait dialog bounds. It overrides shared CSS inset tokens to simulate cutouts; real Android/iOS browser and installed-app verification remains necessary.
-
-PWA update regression also covers cancelling confirmation, rejecting apply with another scoped window, and a single confirmed reload after that window closes. Waiting updates never reload automatically.
+The PWA update regression covers cancelling confirmation, rejecting apply with another scoped window, and a single confirmed reload after that window closes. Waiting updates never reload automatically. Safe-area insets are CSS tokens; simulated cutouts do not replace a real Android/iOS check.
 
 ## Shared-sea verification
 
-The default route is now the fishing hub. Preserved room browser regressions explicitly visit `?view=monopoly-hub`; `?view=game` still exercises the original Monopoly code/resources. `npm run check` adds pure movement/remote-payload tests, ownership/range/query rule tests, two Firebase-emulator sea clients and real Socket.IO sea tests. `npm run test:supabase` adds two-browser direct sea entry and shared motion after its preserved account/room/recovery checks. Inspect `test-results/ocean-*.png` and `test-results/supabase-ocean.png` as actual rendering evidence.
-
-Release the tested backend sea handlers to the existing Render API with one instance before promoting the Supabase frontend. Firebase rules are a separate administrator rollout; Pages publication cannot apply them. OpenWiki lifecycle tools must be available to refresh generated pages; do not fabricate a successful refresh or hand-edit managed metadata when unavailable.
+The default route is the fishing harbor. `npm run check` covers pure movement/remote-payload tests, real Socket.IO sea tests and the browser scenes; inspect `test-results/ocean-*.png` as actual rendering evidence. Release the tested backend sea handlers to the Render API with one instance before promoting a frontend that needs them. OpenWiki lifecycle tools must be available to refresh generated pages; do not fabricate a successful refresh or hand-edit managed metadata when unavailable.

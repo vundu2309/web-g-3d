@@ -16,7 +16,6 @@ test("shared sea: separate authenticated boats, push sync, identity ownership, d
   const io = attachSockets(server, {
     origins: ["https://sea.test"],
     authenticate,
-    snapshot: async () => null,
   });
   attachOcean(io, { authenticate, now: () => clock, tickMs: 30 });
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
@@ -153,7 +152,6 @@ test("shared sea protocol 2: synchronous moves, per-tick deltas, rate limit, tok
   const io = attachSockets(server, {
     origins: ["https://sea.test"],
     authenticate,
-    snapshot: async () => null,
   });
   attachOcean(io, {
     authenticate,

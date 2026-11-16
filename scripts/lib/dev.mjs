@@ -49,6 +49,15 @@ export const cacheDirFor = (cwd) =>
   path.join(tmpdir(), "web-g-3d-vite", path.basename(cwd));
 
 /**
+ * Public settings the browser tests need: the sea refuses to start without a Supabase
+ * address (no fallback), and the tests that open the account dialog answer for it themselves.
+ */
+export const TEST_ENV = {
+  VITE_SUPABASE_URL: "http://127.0.0.1:18999",
+  VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
+};
+
+/**
  * Starts `vite` in `cwd` on 127.0.0.1:port (--strictPort). `detached` lets it outlive this
  * process (wt.mjs preview); `logFile` receives its output.
  */
@@ -57,6 +66,7 @@ export async function startVite({
   port,
   detached = false,
   logFile,
+  env = {},
 } = {}) {
   const bin = path.join(cwd, "node_modules", "vite", "bin", "vite.js");
   if (!existsSync(bin))
@@ -80,6 +90,7 @@ export async function startVite({
       stdio: ["ignore", out, out],
       env: {
         ...process.env,
+        ...env,
         VITE_CACHE_DIR: cacheDir,
         // Where node_modules really lives (a worktree symlinks it): Vite must be allowed to serve it.
         VITE_FS_ALLOW: realpathSync(path.join(cwd, "node_modules")),

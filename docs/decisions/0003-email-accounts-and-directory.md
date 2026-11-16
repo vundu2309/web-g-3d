@@ -1,5 +1,7 @@
 # 0003 — Firebase email accounts and discoverable waiting rooms
 
+> **Superseded in part by [0012](0012-remove-firebase-and-monopoly.md) (2026-11-16):** the Monopoly and Firebase code described here was removed.
+
 Status: accepted for implementation.
 
 Use Firebase Authentication Email/Password directly from the browser, retaining custom game-themed forms and GitHub Pages. No additional application server, Cloud Functions or Blaze requirement is introduced for this hub. Password verification/session management belongs to Firebase Auth, never to a local password table or client comparison.

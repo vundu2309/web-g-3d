@@ -16,22 +16,16 @@
     "format:check": "prettier --check src tests scripts server eslint.config.js vite.config.ts",
     "assets:palette": "node --import ./tests/support/register-resolve.mjs scripts/export-palette.mjs",
     "assets": "npm run assets:palette && .blender-venv/bin/python tools/blender/build.py",
-    "test:unit": "node --import ./tests/support/register-resolve.mjs --test tests/rooms.test.mjs tests/diagnostics.test.mjs tests/game-ui.test.mjs tests/board-layout.test.mjs tests/ocean.test.mjs tests/fishing.test.mjs tests/fight.test.mjs tests/fight-look.test.mjs tests/rod-rope.test.mjs tests/haptics.test.mjs tests/map-detail.test.mjs tests/minimap.test.mjs tests/shore.test.mjs tests/wake.test.mjs tests/wake-trail.test.mjs tests/hull-water.test.mjs tests/creatures.test.mjs tests/boat-physics.test.mjs tests/art-palette.test.mjs tests/orbit-camera.test.mjs tests/hub-canvas.test.mjs tests/economy.test.mjs tests/market.test.mjs tests/economy-client.test.mjs tests/sky-model.test.mjs tests/ripples.test.mjs tests/models.test.mjs tests/props-models.test.mjs tests/water-extent.test.mjs tests/update-check.test.mjs tests/cats.test.mjs tests/chase-camera.test.mjs tests/reflection.test.mjs tests/boat-model.test.mjs tests/rod-plan.test.mjs tests/cast-rules.test.mjs tests/fish-models.test.mjs tests/underwater.test.mjs tests/clear-water.test.mjs",
+    "test:unit": "node --import ./tests/support/register-resolve.mjs --test tests/ocean.test.mjs tests/fishing.test.mjs tests/fight.test.mjs tests/fight-look.test.mjs tests/rod-rope.test.mjs tests/haptics.test.mjs tests/map-detail.test.mjs tests/minimap.test.mjs tests/shore.test.mjs tests/wake.test.mjs tests/wake-trail.test.mjs tests/hull-water.test.mjs tests/creatures.test.mjs tests/boat-physics.test.mjs tests/art-palette.test.mjs tests/orbit-camera.test.mjs tests/hub-canvas.test.mjs tests/economy.test.mjs tests/market.test.mjs tests/economy-client.test.mjs tests/sky-model.test.mjs tests/ripples.test.mjs tests/models.test.mjs tests/props-models.test.mjs tests/water-extent.test.mjs tests/update-check.test.mjs tests/cats.test.mjs tests/chase-camera.test.mjs tests/reflection.test.mjs tests/boat-model.test.mjs tests/rod-plan.test.mjs tests/cast-rules.test.mjs tests/fish-models.test.mjs tests/underwater.test.mjs tests/clear-water.test.mjs tests/supabase-client.test.mjs",
     "test:browser": "node scripts/test-browser.mjs && node tests/pwa-browser.mjs",
     "test": "npm run test:unit && npm run build && npm run test:browser",
-    "check": "npm run lint && npm run format:check && npm test && npm run test:rules && npm run test:api",
-    "test:rules": "node scripts/test-rules.mjs",
+    "check": "npm run lint && npm run format:check && npm test && npm run test:api",
     "test:api": "node --test tests/api.test.mjs tests/socket.test.mjs tests/ocean-socket.test.mjs",
-    "start:api": "node server/index.mjs",
-    "test:postgres": "node scripts/test-postgres.mjs",
-    "test:supabase": "node scripts/test-supabase.mjs"
+    "start:api": "node server/index.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
-    "@firebase/rules-unit-testing": "^6.0.0",
-    "@types/three": "^0.187.0",
     "eslint": "10.14.0",
-    "firebase-tools": "^15.34.2",
     "openwiki": "0.7.3",
     "playwright-core": "^1.64.1",
     "prettier": "3.6.2",
@@ -50,10 +44,7 @@
     "@fontsource/baloo-2": "^5.3.0",
     "@fontsource/be-vietnam-pro": "^5.3.0",
     "@supabase/supabase-js": "2.118.0",
-    "firebase": "13.2.0",
-    "pg": "8.16.3",
     "socket.io": "4.8.3",
-    "socket.io-client": "4.8.3",
-    "three": "^0.187.0"
+    "socket.io-client": "4.8.3"
   }
 }

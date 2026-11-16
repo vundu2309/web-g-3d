@@ -10,7 +10,7 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { CHROME, startVite } from "./lib/dev.mjs";
+import { CHROME, startVite, TEST_ENV } from "./lib/dev.mjs";
 
 const GROUPS = {
   ocean: [
@@ -47,7 +47,7 @@ for (const name of names)
     process.exit(2);
   }
 
-const server = await startVite({ cwd, port });
+const server = await startVite({ cwd, port, env: TEST_ENV });
 console.log(`qa: ${cwd} served at ${server.url}`);
 
 function run(name) {

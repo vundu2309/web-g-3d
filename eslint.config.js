@@ -16,7 +16,7 @@ export default ts.config(
     extends: [js.configs.recommended, ...ts.configs.recommended],
   },
   {
-    files: ["src/hub/**/*.ts", "src/platform/**/*.ts"],
+    files: ["src/platform/**/*.ts"],
     rules: {
       "no-restricted-imports": [
         "error",

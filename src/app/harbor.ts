@@ -1,6 +1,7 @@
 import "../ocean/style.css";
 import { CHROME_COLORS, setChromeColor } from "./chrome-color";
 import { wakeApi } from "../platform/wake";
+import { HubError } from "../platform/errors";
 import { mountHubArt } from "../ui/hub-canvas";
 import { stockTotal } from "../ocean/fishing";
 import { decodeSave, saveKey } from "../ocean/save";
@@ -88,8 +89,11 @@ export function startHarbor(root: HTMLElement) {
         history.replaceState(null, "", "./");
         render();
       });
-    } catch {
-      error = "Chưa mở được game. Kiểm tra mạng rồi thử lại.";
+    } catch (cause) {
+      error =
+        cause instanceof HubError
+          ? cause.message
+          : "Chưa mở được game. Kiểm tra mạng rồi thử lại.";
     } finally {
       busy = false;
       render();
@@ -107,8 +111,11 @@ export function startHarbor(root: HTMLElement) {
         render();
         void import("./account")
           .then(({ requirePlayer }) => requirePlayer(abort.signal))
-          .catch(() => {
-            error = "Chưa mở được đăng nhập. Hãy thử lại.";
+          .catch((cause) => {
+            error =
+              cause instanceof HubError
+                ? cause.message
+                : "Chưa mở được đăng nhập. Hãy thử lại.";
           })
           .finally(() => {
             busy = false;
