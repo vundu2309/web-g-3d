@@ -33,6 +33,18 @@ import {
 } from "./sea-style.ts";
 import { waterRingRadii } from "./water-extent.ts";
 import {
+  FOAM_REACH,
+  COLLAR,
+  CREST_FOAM,
+  EDGE_PER_METRE,
+  HULL_REACH,
+  HULL_WATER,
+  RING_FADE,
+  glslCollarWidth,
+  glslHullEdge,
+} from "./hull-water.ts";
+import { SHADOW } from "./boat-shadow.ts";
+import {
   COAST_SAMPLES,
   coastPixels,
   coastRows,
@@ -69,21 +81,7 @@ export interface BoatSpot {
   z: number;
   heading: number;
 }
-/**
- * The water at a hull (see `hullWater` in the shader): the waterline is an ellipse-like outline
- * `beam` wide amidships and drawn to a point at the bow; `scale` turns the outline's size into
- * metres from the hull; the rings have this wavelength (m), spread `rate` wavelengths a
- * second and tilt the water by `height` (m, so a slope of height x 2 pi / wavelength).
- */
-export const HULL_WATER = {
-  halfLength: 3.9,
-  beam: 1.45,
-  shift: 0.2,
-  scale: 1.2,
-  wavelength: 2.1,
-  rate: 0.5,
-  height: 0.11,
-};
+export { HULL_WATER } from "./hull-water.ts";
 /** Packs boats into the shader's vec4 array: x, z, heading, 1 for a boat and 0 for empty. */
 export function packBoats(boats: readonly BoatSpot[]): number[] {
   const out = new Array<number>(BOAT_MAX * 4).fill(0);
@@ -206,7 +204,8 @@ float shadowSlice(vec2 d, vec2 away, vec2 fwd, vec2 side, float h, float halfLen
   vec2 q = d - away * h - fwd * shift;
   float u = dot(q, fwd) / halfLength;
   float v = dot(q, side) / halfWidth;
-  return 1.0 - smoothstep(0.55, 1.05, length(vec2(u, v)));
+  // The shadow's edge softens with the height it is thrown from, as a real penumbra does.
+  return 1.0 - smoothstep(${SHADOW.edgeFrom.toFixed(2)}, 1.05 + ${SHADOW.penumbra.toFixed(2)} * h, length(vec2(u, v)));
 }
 float boatShadow(vec2 p, vec3 sunDir) {
   vec2 away = -sunDir.xz / max(sunDir.y, 0.15);
@@ -226,6 +225,15 @@ float boatShadow(vec2 p, vec3 sunDir) {
   }
   return dark;
 }
+// Value noise from two lattices turned against each other: the plateaus and straight steps of a
+// single lattice (square cells at a pixel's size) cancel. Contrast is put back to a single lattice's.
+float softNoise(vec2 p) {
+  float a = noise(p);
+  float b = noise(vec2(0.8 * p.x - 0.6 * p.y, 0.6 * p.x + 0.8 * p.y) * 1.37 + 17.3);
+  return clamp(0.5 + (a + b - 1.0) * 0.72, 0.0, 1.0);
+}
+${glslHullEdge()}
+${glslCollarWidth()}
 // What a hull does to the water around it, whether the boat moves or not (the wake is for
 // moving boats): a collar of white water lapping against the planking, which breaks up as it
 // goes, and rings of ripple that spread from the hull and come in pulses, as the boat rocks.
@@ -237,19 +245,21 @@ vec3 hullWater(vec2 p, float t) {
   for (int i = 0; i < ${BOAT_MAX}; i++) {
     vec4 boat = boats[i];
     vec2 d = p - boat.xy;
-    if (boat.w < 0.5 || dot(d, d) > 100.0) continue;
+    if (boat.w < 0.5 || dot(d, d) > ${(HULL_REACH * HULL_REACH).toFixed(1)}) continue;
     vec2 fwd = vec2(sin(boat.z), -cos(boat.z));
     vec2 side = vec2(cos(boat.z), sin(boat.z));
     float u = dot(d, fwd) + ${HULL_WATER.shift.toFixed(2)};
     float v = dot(d, side);
-    // The waterline: wide amidships, drawn in to a point at the bow, a little narrower at the stern.
-    float hw = u > 0.0 ? mix(${HULL_WATER.beam.toFixed(2)}, 0.2, smoothstep(0.0, ${HULL_WATER.halfLength.toFixed(2)}, u)) : mix(${HULL_WATER.beam.toFixed(2)}, 1.0, smoothstep(0.0, ${HULL_WATER.halfLength.toFixed(2)}, -u));
-    float edge = max((length(vec2(v / hw, u / ${HULL_WATER.halfLength.toFixed(2)})) - 1.0) * ${HULL_WATER.scale.toFixed(2)}, 0.0);
-    // The collar: thin, ragged, never the same twice.
-    float lap = noise(p * 3.4 + vec2(t * 0.35, -t * 0.28));
-    // Wider and whiter where the bow parts the water and along the quarter, thinner at the stern.
-    float push = 1.0 + 0.9 * smoothstep(0.5, 3.4, u);
-    float collar = (1.0 - smoothstep(0.15, (0.8 + 1.4 * lap) * push, edge)) * (0.85 + 0.15 * lap);
+    // Metres from the waterline (times a constant), the same along the keel and across it.
+    float edge = hullEdge(u, v);
+    // The collar: a narrow ragged lap of foam along the waterline, cut into pieces in places
+    // (hull-water.ts: a splash at the stem that stops at the tip, a modest wash behind the
+    // transom that the wake strips take on). Its width is in metres from the waterline.
+    float lap = softNoise(p * 3.4 + vec2(t * 0.35, -t * 0.28));
+    float gap = noise(p * 1.9 + vec2(-t * 0.21, t * 0.17));
+    float metres = edge / ${EDGE_PER_METRE.toFixed(4)};
+    float width = max(collarWidth(u, lap), 0.03);
+    float collar = (1.0 - smoothstep(0.02, width, metres)) * smoothstep(${COLLAR.gaps.from.toFixed(2)}, ${COLLAR.gaps.to.toFixed(2)}, gap) * (0.85 + 0.15 * lap);
     // Rings: a slow pulse (the boat rocks), each ring spreading about a metre a second. The rings
     // are never perfect ellipses: the distance they are measured from is warped by slow noise,
     // so neighbouring rings drift apart and together, and their foam breaks into patches.
@@ -258,12 +268,13 @@ vec3 hullWater(vec2 p, float t) {
     float warp = (noise(p * 0.55 + vec2(t * 0.08, -t * 0.06)) - 0.5) * 2.2 + (noise(p * 1.7 - vec2(t * 0.15, t * 0.1)) - 0.5) * 0.8;
     float warped = edge + warp * smoothstep(0.2, 1.6, edge);
     float phase = warped * k - 6.2832 * ${HULL_WATER.rate.toFixed(2)} * t;
-    float fade = exp(-edge / 3.2) * smoothstep(0.0, 0.5, edge) * (1.0 - smoothstep(5.0, 8.5, edge));
+    // The ripples fade out well inside the shader's reach (hull-water.ts), so nothing is cut off.
+    float fade = exp(-edge / 3.2) * smoothstep(0.0, 0.5, edge) * (1.0 - smoothstep(${RING_FADE.from.toFixed(1)}, ${RING_FADE.to.toFixed(1)}, edge));
     slope += normalize(d + 0.0001) * ${HULL_WATER.height.toFixed(3)} * k * cos(phase) * fade * pulse;
     // The crests of the first rings catch a little foam, in broken patches that thin out quickly.
-    float broken = smoothstep(0.42, 0.72, noise(p * 1.25 + vec2(t * 0.22, -t * 0.17)) * 0.65 + noise(p * 3.3 - vec2(t * 0.3, t * 0.2)) * 0.35);
-    float crest = smoothstep(0.55, 0.95, cos(phase)) * (1.0 - smoothstep(0.4, 3.4, edge)) * smoothstep(0.1, 0.5, edge) * (0.45 + 0.55 * pulse) * (0.35 + 0.65 * lap) * broken;
-    foam = max(foam, max(collar, crest * 0.8));
+    float broken = smoothstep(0.42, 0.72, noise(p * 1.25 + vec2(t * 0.22, -t * 0.17)) * 0.65 + softNoise(p * 3.3 - vec2(t * 0.3, t * 0.2)) * 0.35);
+    float crest = smoothstep(0.55, 0.95, cos(phase)) * (1.0 - smoothstep(0.4, ${FOAM_REACH.toFixed(1)}, edge)) * smoothstep(0.1, 0.5, edge) * (0.45 + 0.55 * pulse) * (0.35 + 0.65 * lap) * broken;
+    foam = max(foam, max(collar, crest * ${CREST_FOAM.toFixed(2)}));
   }
   return vec3(foam, slope);
 }
@@ -391,7 +402,7 @@ void main() {
   vec3 skyIrradiance = mix(toLinear(horizon), toLinear(zenith), 0.6);
   float nl = max(dot(vec3(0.0, 1.0, 0.0), sunDir), 0.0);
   float shade = boatShadow(vWorld.xz, sunDir);
-  float sunlit = 1.0 - 0.9 * shade;
+  float sunlit = 1.0 - ${SHADOW.sun.toFixed(2)} * shade;
   vec3 incident = skyIrradiance * 0.55 + sunColor() * SUN_RADIANCE * nl * 0.55 * sunlit;
   vec3 refracted = refract(-view, n, 0.75);
   // The water is a little murky (1.7 x the clear-water path), so the sand fades to turquoise.
@@ -424,8 +435,8 @@ void main() {
   float thin = smoothstep(0.0, 0.8, (vHeight * 1.2 + length(slope) * 1.5) / ${SEA_GAIN.toFixed(3)});
   body += toLinear(shallow) * vec3(0.3, 0.8, 0.7) * (against * thin * 0.4 + nearShore * (1.0 - broken) * smoothstep(0.1, 0.7, length(surfSlope)) * 0.25) * incident * 0.35;
   // In the shadow the water is lit by the sky alone, and the sky it mirrors is partly blocked by the hull.
-  body *= 1.0 - 0.45 * shade;
-  vec3 color = body * (1.0 - fresnel) + mirror * (fresnel * (1.0 - 0.3 * shade));
+  body *= 1.0 - ${SHADOW.sky.toFixed(2)} * shade;
+  vec3 color = body * (1.0 - fresnel) + mirror * (fresnel * (1.0 - ${SHADOW.mirror.toFixed(2)} * shade));
   // The sun on the water: GGX specular, a bright glitter path whose width grows with roughness.
   vec3 halfway = normalize(view + sunDir);
   float nh = max(dot(n, halfway), 0.0);
