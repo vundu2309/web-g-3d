@@ -4,7 +4,7 @@
 import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 import { get } from "node:http";
-import { existsSync, mkdirSync, openSync } from "node:fs";
+import { existsSync, mkdirSync, openSync, realpathSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -78,7 +78,12 @@ export async function startVite({
       cwd,
       detached,
       stdio: ["ignore", out, out],
-      env: { ...process.env, VITE_CACHE_DIR: cacheDir },
+      env: {
+        ...process.env,
+        VITE_CACHE_DIR: cacheDir,
+        // Where node_modules really lives (a worktree symlinks it): Vite must be allowed to serve it.
+        VITE_FS_ALLOW: realpathSync(path.join(cwd, "node_modules")),
+      },
     },
   );
   if (detached) child.unref();
