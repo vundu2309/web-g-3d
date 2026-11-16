@@ -39,6 +39,22 @@ export function inflate(box: Box, min: number = MIN_HIT): Box {
 export const inside = (box: Box, x: number, y: number) =>
   x >= box.left && x <= box.right && y >= box.top && y <= box.bottom;
 
+/**
+ * What a touch on the stick's area does. On the ring it grabs the ring where it is. In the
+ * larger zone around it, a finger or a pen makes the ring jump under the thumb (a floating
+ * stick). A mouse never does: it has the keyboard to drive with, and a click-drag near the
+ * stick is a camera drag, which must not turn into steering. Elsewhere it is not the stick's.
+ */
+export function stickGrab(
+  pointerType: string,
+  inZone: boolean,
+  onRing: boolean,
+): "ring" | "float" | undefined {
+  if (onRing) return "ring";
+  if (inZone && pointerType !== "mouse") return "float";
+  return undefined;
+}
+
 export interface InputTarget {
   element: HTMLElement;
   /** `press` acts when the finger lands and again when it lifts; `tap` acts on lift. */
@@ -147,13 +163,13 @@ export function bindInputLayer(
       return;
     }
     const stick = options.stick;
-    if (
-      stick &&
-      stick.enabled() &&
-      inside(boxOf(stick.zone), event.clientX, event.clientY)
-    ) {
-      const onRing = inside(boxOf(stick.ring), event.clientX, event.clientY);
-      if (stick.controller.down(event, !onRing)) {
+    if (stick && stick.enabled()) {
+      const grab = stickGrab(
+        event.pointerType,
+        inside(boxOf(stick.zone), event.clientX, event.clientY),
+        inside(boxOf(stick.ring), event.clientX, event.clientY),
+      );
+      if (grab && stick.controller.down(event, grab === "float")) {
         routes.set(event.pointerId, { kind: "stick" });
         capture(event.pointerId);
         return;

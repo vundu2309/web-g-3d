@@ -107,8 +107,9 @@
   position: absolute;
   left: 0;
   bottom: 0;
-  width: 48%;
-  height: 66%;
+  /* The stick's own corner: a drag anywhere else on the sea turns the camera. */
+  width: 34%;
+  height: 60%;
   pointer-events: none;
 }
 .ocean-input {

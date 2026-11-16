@@ -199,6 +199,38 @@ try {
     "no thrust or steering while the line is out",
   );
   await touch("touchEnd", [{ x: cx + 14, y: cy - 38, id: 1 }]);
+
+  // A drag that starts outside the stick's corner turns the camera and never grabs the
+  // stick, and a mouse drag right beside the ring does not steer either.
+  const yawBefore = await page.evaluate(() => window.oceanScene.orbit.yaw);
+  const drag = async (x, y) => {
+    await touch("touchStart", [{ x, y, id: 3 }]);
+    for (let i = 1; i <= 5; i++) {
+      await touch("touchMove", [{ x: x + i * 30, y, id: 3 }]);
+      await page.waitForTimeout(80);
+      assert.equal(
+        await page.locator(".ocean-stick.is-active").count(),
+        0,
+        "the stick is not active during a camera drag",
+      );
+    }
+    await touch("touchEnd", [{ x: x + 150, y, id: 3 }]);
+  };
+  await drag(340, 250);
+  assert.notEqual(
+    await page.evaluate(() => window.oceanScene.orbit.yaw),
+    yawBefore,
+    "the drag turned the camera",
+  );
+  await page.mouse.move(cx + 110, cy - 20);
+  await page.mouse.down();
+  await page.mouse.move(cx + 200, cy - 20, { steps: 5 });
+  assert.equal(
+    await page.locator(".ocean-stick.is-active").count(),
+    0,
+    "a mouse drag beside the ring does not steer",
+  );
+  await page.mouse.up();
   assert.deepEqual(problems, []);
   console.log(
     `Ocean Babylon: sharp 2x draw, ${cost.triangles} triangles / ${cost.meshes} meshes, floats, runs+turns with one thumb, casting slows the boat, no errors.`,

@@ -549,6 +549,19 @@ test("floating stick centres under the thumb but stays fully on screen", async (
   assert.deepEqual(floatingCenter(10, 10, 68, 100, 100), { x: 50, y: 50 });
 });
 
+test("a camera drag near the stick never becomes steering", async () => {
+  const { stickGrab } = await import("../src/ocean/input-layer.ts");
+  // A finger on the ring grabs it; in the zone around it the ring jumps under the thumb.
+  assert.equal(stickGrab("touch", true, true), "ring");
+  assert.equal(stickGrab("touch", true, false), "float");
+  assert.equal(stickGrab("pen", true, false), "float");
+  // Anywhere else on the sea it is the camera's.
+  assert.equal(stickGrab("touch", false, false), undefined);
+  // A mouse (the keyboard drives) only takes the ring itself; a click-drag beside it looks around.
+  assert.equal(stickGrab("mouse", true, true), "ring");
+  assert.equal(stickGrab("mouse", true, false), undefined);
+});
+
 test("name labels that would overlap are stacked, distant ones are left alone", async () => {
   const { separateLabels } = await import("../src/ocean/indicator.ts");
   const box = (x, y) => ({ x, y, w: 60, h: 24 });
