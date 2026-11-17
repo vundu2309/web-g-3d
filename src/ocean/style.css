@@ -1549,3 +1549,34 @@ dialog.account-screen :is(input, textarea) {
   opacity: 0.6;
   cursor: default;
 }
+
+/* Settings: the day/night and weather test card (this device only). */
+.weather-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+.weather-chip {
+  min-height: 44px;
+  padding: 8px 14px;
+  background: #fff;
+  border: 3px solid #153b80;
+  border-radius: 16px;
+  box-shadow: 0 3px 0 #153b80;
+  color: #153b80;
+  font:
+    800 16px/1 "Baloo 2",
+    sans-serif;
+  cursor: pointer;
+}
+.weather-chip[aria-pressed="true"] {
+  background: #ffd35a;
+}
+.weather-chip:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #153b80;
+}
+.weather-chip.is-reset {
+  min-width: 200px;
+}

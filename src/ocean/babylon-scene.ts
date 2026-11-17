@@ -51,6 +51,9 @@ import { FishingGear, type GearInput } from "./fishing-gear.ts";
 import { paletteIndex } from "./palette.ts";
 import { RodVisual } from "./rod-visual.ts";
 import { FOG_DENSITY, HORIZON } from "./sea-style.ts";
+import { stepAtmosphere } from "./sea-atmosphere.ts";
+import { createRain, type Rain } from "./rain.ts";
+import { createBeacon, type Beacon } from "./beacon.ts";
 import { createSeaLights } from "./art/lighting.ts";
 import { edgeIndicator, separateLabels } from "./indicator.ts";
 import { ScaleGovernor } from "./render-scale.ts";
@@ -105,6 +108,8 @@ export class OceanScene {
   private readonly camera: FreeCamera;
   private readonly water: Water;
   private readonly sky: Sky;
+  private readonly rain: Rain;
+  private readonly beacons: Beacon[] = [];
   private readonly templates: Mesh[];
   /** The Blender boat, once loaded (until then, and if the load fails, the code-built one). */
   private boatModels: BoatModels | undefined;
@@ -192,7 +197,7 @@ export class OceanScene {
     this.scene.clearColor = new Color4(HORIZON.r, HORIZON.g, HORIZON.b, 1);
     this.scene.fogMode = Scene.FOGMODE_EXP2;
     this.scene.fogDensity = FOG_DENSITY;
-    this.scene.fogColor = HORIZON;
+    this.scene.fogColor = HORIZON.clone();
     enableSeaPhysics(this.scene, plugin);
     this.camera = new FreeCamera("camera", new Vector3(0, 10, 16), this.scene);
     this.camera.inputs.clear();
@@ -203,6 +208,7 @@ export class OceanScene {
     createSeaLights(this.scene);
     this.water = createWater(this.scene);
     this.sky = createSky(this.scene);
+    this.rain = createRain(this.scene);
     // The sea mirrors the islands, markets and boats too (a predicate over the whole scene).
     createSeaReflection(this.scene, this.water, this.sky);
     // The sea is see-through: hulls, piles, rocks, the fish and the line show through it. Slow
@@ -227,6 +233,15 @@ export class OceanScene {
       });
       visual.mesh.position.set(island.x, 0, island.z);
       visual.mesh.freezeWorldMatrix();
+      // The lighthouse lamp shines at night.
+      if (visual.lamp)
+        this.beacons.push(
+          createBeacon(this.scene, {
+            x: island.x + visual.lamp.x,
+            y: visual.lamp.y,
+            z: island.z + visual.lamp.z,
+          }),
+        );
       return visual;
     });
     // The fishing gear is built now, not at the first throw: building it (meshes, textures, shaders)
@@ -516,6 +531,8 @@ export class OceanScene {
   ) {
     if (this.lost) return;
     this.clock = reduced ? 0 : time;
+    // The day and the weather: the shared UTC clock (atmosphere.ts), once per frame, before anything reads it.
+    stepAtmosphere();
     const step = Math.min(dt, 0.1);
     const present = new Set<string>();
     for (const boat of boats) {
@@ -611,6 +628,8 @@ export class OceanScene {
       this.wakeField.data,
       [...(this.self && state ? [state] : []), ...this.fleet.values()],
     );
+    this.rain.update(this.clock);
+    for (const beacon of this.beacons) beacon.update(this.clock);
     this.sky.update(
       this.camera.position.x,
       this.camera.position.y,

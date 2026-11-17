@@ -39,6 +39,16 @@ Each spec is `mode,island,angleDeg,seconds`:
 `CHROMIUM_PATH` picks another Chrome. The page itself is `preview.html`; its query parameters are
 `m`, `i`, `a`, `t`, `refl=0` (no reflection) and `models=0` (procedural props instead of the GLBs).
 
+## Time of day and weather
+
+The sea has a day and a weather (`docs/ocean.md`, "Day, night and weather"). The harness never follows the real clock: its default is noon, clear, the sea's original look. Add `&daytime=<hour 0..24>&weather=clear|overcast|rain|fog` to the page, or from the shell:
+
+```bash
+VIEW=844x390 EXTRA="&daytime=21.5&weather=rain" node tools/render-harness/shoot.mjs 5193 /tmp/out rainy-dusk chase,0,0,4
+```
+
+`VIEW=WxH` sets the picture size (default 1500x700; the phone landscape sizes are 844x390, 932x430 and 667x375). Good hours: 6.3 dawn, 12 midday, 17.7 dusk, 0 night, 3 for a moon in view with `chase,0,170,4`. `?daytime` and `?weather` work the same in the game's own address.
+
 ## Rules
 
 - Take **before** images first (tag `before`), change the code, then take **after** images with the same specs.

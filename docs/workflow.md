@@ -6,15 +6,15 @@ Use Node 24 (`.node-version`), npm 11 and the existing checkout. `npm ci` instal
 
 The user asked for basic tests only (2026-11-16): the fast checks always, the browser tests for what a change touches.
 
-| Command                | What it verifies                                                                                                  |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `npm run lint`         | TypeScript rules and the platform-does-not-import-app boundary                                                     |
-| `npm run format:check` | Authored executable formatting                                                                                    |
-| `npm run test:unit`    | Sea rules, physics, models, economy client, update check, the account-configuration error                          |
-| `npm run build`        | Strict TypeScript and production asset generation                                                                 |
-| `npm run test:browser` | Owned dev/preview servers: the harbor, the sea scenes, fishing, markets, resume, sign-up, multiplayer, PWA        |
-| `npm run test:api`     | `/health`, the Socket.IO Auth gate and the shared-sea protocol                                                     |
-| `npm run check`        | Lint, format, unit, build, browser and API tests                                                                  |
+| Command                | What it verifies                                                                                           |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `npm run lint`         | TypeScript rules and the platform-does-not-import-app boundary                                             |
+| `npm run format:check` | Authored executable formatting                                                                             |
+| `npm run test:unit`    | Sea rules, physics, models, economy client, update check, the account-configuration error                  |
+| `npm run build`        | Strict TypeScript and production asset generation                                                          |
+| `npm run test:browser` | Owned dev/preview servers: the harbor, the sea scenes, fishing, markets, resume, sign-up, multiplayer, PWA |
+| `npm run test:api`     | `/health`, the Socket.IO Auth gate and the shared-sea protocol                                             |
+| `npm run check`        | Lint, format, unit, build, browser and API tests                                                           |
 
 For one-off browser runs use `node scripts/qa.mjs <names>` (see [agent briefs](agent-briefs.md)); it serves the checkout with fake Supabase settings and reruns a failing test alone. A browser test that opens the sea needs `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in the server's environment (the sea refuses to start without them); `scripts/qa.mjs` and `scripts/test-browser.mjs` set fakes.
 

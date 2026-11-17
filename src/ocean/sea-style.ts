@@ -1,7 +1,12 @@
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 
-/** Shared look of the sea: the sky, the water and the fog must agree. */
+/**
+ * Shared look of the sea: the sky, the water and the fog must agree. These are the midday,
+ * clear values; the live look (time of day and weather) is `SEA` in sea-atmosphere.ts, which
+ * starts from these and which everything reads. `atmosphere.ts` repeats them as plain numbers
+ * and `tests/atmosphere.test.mjs` pins that midday, clear equals them.
+ */
 export const SUN_DIRECTION = new Vector3(-0.45, 0.32, -0.55).normalize();
 export const HORIZON = new Color3(0.8, 0.89, 0.94);
 export const ZENITH = new Color3(0.28, 0.55, 0.84);

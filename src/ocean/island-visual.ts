@@ -73,6 +73,8 @@ export interface IslandVisual {
   /** Triangles in the island (both meshes), and what was placed on it. */
   triangles: number;
   props: PropSummary;
+  /** Island-local centre of the lighthouse lamp, when the island has a lighthouse (it glows at night). */
+  lamp?: { x: number; y: number; z: number };
 }
 
 export function createIsland(
@@ -337,6 +339,7 @@ export function createIsland(
       keepOut.push({ ax: x, az: z, bx: x, bz: z, r });
   } else props.bushes = addBushes(ctx, Math.min(12, Math.round(4 * f)));
 
+  let lamp: { x: number; y: number; z: number } | undefined;
   if (lighthouse) {
     // On the highest point of the land (a 0.5 m search over the middle of the island).
     let bestX = 0;
@@ -362,6 +365,7 @@ export function createIsland(
       );
     }
     const base = foot - 0.1;
+    lamp = { x: bestX, y: base + 10.6, z: bestZ };
     keepOut.push({ ax: bestX, az: bestZ, bx: bestX, bz: bestZ, r: 3 });
     for (let i = 0; i < 4; i++) {
       const bottomR = 1.5 - i * 0.14;
@@ -483,5 +487,6 @@ export function createIsland(
     triangles:
       (mesh.getTotalIndices() + (fallback?.getTotalIndices() ?? 0)) / 3,
     props,
+    lamp,
   };
 }

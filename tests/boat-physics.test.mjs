@@ -618,8 +618,16 @@ test("uneven frames (a slow phone, a long frame while the mouse drags) give the 
     Math.abs(rough.m - steady.m) < 0.04,
     `same turn rate: ${rough.m.toFixed(3)} against ${steady.m.toFixed(3)} rad/s`,
   );
+  // Uneven frames must not add wobble to the turn: the spread equals the one at steady frames.
+  // The steady spread itself is the sea's: the steeper sea (pinched crests, big-sea harbor) rocks
+  // the hull's heading by about 0.12 rad/s on a full-lock turn (0.07 on the old sea), so the
+  // absolute cap is a sanity limit and the comparison is the test.
   assert.ok(
-    rough.sd < 0.1,
+    rough.sd < steady.sd * 1.1 + 0.005,
+    `uneven frames add wobble: ${rough.sd.toFixed(3)} against ${steady.sd.toFixed(3)} rad/s of spread`,
+  );
+  assert.ok(
+    rough.sd < 0.16,
     `a smooth turn, ${rough.sd.toFixed(3)} rad/s of spread`,
   );
   assert.ok(
