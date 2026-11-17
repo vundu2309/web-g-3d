@@ -12,10 +12,24 @@
       // (placed by the game's own placeIslandProps), markets, sea props, one boat and the reflection pass.
       // ?m=chase|low|beach|surf|top|hut|grove|high|wide  &i=<island 0..2>  &a=<angle in degrees>  &t=<seconds>
       // &refl=0 skips the reflection pass (faster); &models=0 keeps the procedural props. See README.md.
-      import { Engine, Scene, Vector3, FreeCamera } from "@babylonjs/core";
+      import {
+        Engine,
+        Scene,
+        Vector3,
+        FreeCamera,
+        Color4,
+      } from "@babylonjs/core";
+      import { FOG_DENSITY, HORIZON } from "/src/ocean/sea-style.ts";
       import { createSeaLights } from "/src/ocean/art/lighting.ts";
       import { createWater } from "/src/ocean/water.ts";
       import { createSky } from "/src/ocean/sky.ts";
+      import { createRain } from "/src/ocean/rain.ts";
+      import { createBeacon } from "/src/ocean/beacon.ts";
+      import {
+        currentPin,
+        pinAtmosphere,
+        stepAtmosphere,
+      } from "/src/ocean/sea-atmosphere.ts";
       import { createSeaReflection } from "/src/ocean/reflection.ts";
       import { createIsland, islandShape } from "/src/ocean/island-visual.ts";
       import { createBoatTemplate } from "/src/ocean/boat-visual.ts";
@@ -35,6 +49,9 @@
         placeIslandProps,
       } from "/src/ocean/island-models.ts";
       const q = new URLSearchParams(location.search);
+      // &daytime=<hour 0..24>&weather=clear|overcast|rain|fog pin the time and the weather (default:
+      // noon, clear, the sea's original look; the harness never follows the real clock).
+      pinAtmosphere({ hour: 12, weather: "clear", ...currentPin() });
       // m=openchase / openlow: the same cameras with the boat 140 m further out, in open water.
       const rawMode = q.get("m") || "chase";
       const far = rawMode.startsWith("open") ? 140 : 0;
@@ -42,16 +59,30 @@
       const T = +(q.get("t") || 4);
       const idx = +(q.get("i") || 0);
       const ang = (+(q.get("a") || 0) * Math.PI) / 180;
-      const engine = new Engine(document.getElementById("c"), true, {
+      // &w=&h= size the canvas (default 1500 x 700); the scene fog is on, as in the game.
+      const canvas = document.getElementById("c");
+      if (q.get("w") && q.get("h")) {
+        canvas.width = +q.get("w");
+        canvas.height = +q.get("h");
+        canvas.style.width = `${q.get("w")}px`;
+        canvas.style.height = `${q.get("h")}px`;
+      }
+      const engine = new Engine(canvas, true, {
         preserveDrawingBuffer: true,
       });
       const scene = new Scene(engine);
       scene.useRightHandedSystem = true;
+      scene.fogMode = Scene.FOGMODE_EXP2;
+      scene.fogDensity = FOG_DENSITY;
+      scene.fogColor = HORIZON.clone();
+      scene.clearColor = new Color4(HORIZON.r, HORIZON.g, HORIZON.b, 1);
       createSeaLights(scene);
       const water = createWater(scene);
       const sky = createSky(scene);
+      const rain = createRain(scene);
       if (q.get("refl") !== "0") createSeaReflection(scene, water, sky);
       const extras = [];
+      const beacons = [];
       const visuals = islands.map((island, i) => {
         const v = createIsland(scene, {
           seed: 11 + i * 7,
@@ -60,6 +91,14 @@
         });
         v.mesh.position.set(island.x, 0, island.z);
         v.mesh.freezeWorldMatrix();
+        if (v.lamp)
+          beacons.push(
+            createBeacon(scene, {
+              x: island.x + v.lamp.x,
+              y: v.lamp.y,
+              z: island.z + v.lamp.z,
+            }),
+          );
         return v;
       });
       const placedAll = [];
@@ -242,6 +281,9 @@
       scene.activeCamera = cam;
       window.scene = scene;
       const tick = () => {
+        stepAtmosphere(0);
+        rain.update(T);
+        for (const b of beacons) b.update(T);
         if (boatAt) {
           const p = boatAt.pose(T);
           wakeField.track("b", p.x, p.z, T);

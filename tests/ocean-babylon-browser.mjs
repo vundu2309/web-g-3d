@@ -18,7 +18,9 @@ page.on("console", (message) => {
     problems.push(message.text());
 });
 try {
-  await page.goto(process.env.TEST_BASE_URL);
+  // The sea has a day and a weather from the shared UTC clock (atmosphere.ts); the test pins noon,
+  // clear (the sea's original look) so what it measures does not depend on when it runs.
+  await page.goto(`${process.env.TEST_BASE_URL}?daytime=12&weather=clear`);
   await page.getByRole("button", { name: "Ra khơi" }).waitFor();
   await page.evaluate(async () => {
     window.published = [];
@@ -296,9 +298,78 @@ try {
     "a mouse drag beside the ring does not steer",
   );
   await page.mouse.up();
+  // Day, night and weather: pinned through the shared sea, the frame follows (noon is bright, midnight
+  // dark but not black, rain adds its one mesh) and normal play, with no pin, would follow UTC.
+  const look = async (hour, weather) => {
+    await page.evaluate(
+      async ([h, w]) => {
+        const sea = await import("/src/ocean/sea-atmosphere.ts");
+        sea.pinAtmosphere({ hour: h, weather: w });
+      },
+      [hour, weather],
+    );
+    await page.waitForTimeout(700);
+    const stats = await page.evaluate(() => window.oceanScene.stats());
+    const state = await page.evaluate(async () => {
+      const { SEA } = await import("/src/ocean/sea-atmosphere.ts");
+      return {
+        daylight: SEA.grade.y,
+        stars: SEA.grade.z,
+        rain: SEA.weather.z,
+        sun: SEA.sun.intensity,
+        moon: SEA.moon.intensity,
+        fog: SEA.fogDensity,
+      };
+    });
+    const shot = (await page.screenshot()).toString("base64");
+    const mean = await page.evaluate(async (b64) => {
+      const image = new Image();
+      image.src = `data:image/png;base64,${b64}`;
+      await image.decode();
+      const c = document.createElement("canvas");
+      c.width = 84;
+      c.height = 39;
+      const g = c.getContext("2d");
+      g.drawImage(image, 0, 0, c.width, c.height);
+      const px = g.getImageData(0, 0, c.width, c.height).data;
+      let sum = 0;
+      for (let i = 0; i < px.length; i += 4)
+        sum += 0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2];
+      return sum / (px.length / 4);
+    }, shot);
+    return { stats, state, mean };
+  };
+  const noon = await look(12, "clear");
+  const midnight = await look(0, "clear");
+  const rain = await look(12, "rain");
+  const nightRain = await look(0, "rain");
+  assert.equal(noon.state.daylight, 1);
+  assert.equal(midnight.state.daylight, 0);
+  assert.ok(midnight.state.stars > 0.9 && midnight.state.moon > 0.3);
+  assert.equal(midnight.state.sun, 0, "no sun at night");
+  assert.ok(
+    midnight.mean < noon.mean * 0.6 && midnight.mean > 12,
+    `night is dark but not black (${midnight.mean.toFixed(1)} against ${noon.mean.toFixed(1)} at noon)`,
+  );
+  assert.ok(
+    nightRain.mean > 8,
+    `rain at night is readable (${nightRain.mean.toFixed(1)})`,
+  );
+  assert.equal(noon.state.rain, 0);
+  assert.ok(rain.state.rain > 0.7, "rain is falling");
+  assert.ok(
+    rain.stats.triangles >= noon.stats.triangles + 2500,
+    `the rain is one mesh of 3,000 triangles (${rain.stats.triangles} against ${noon.stats.triangles})`,
+  );
+  assert.ok(rain.state.fog > noon.state.fog, "rain thickens the fog");
+  assert.ok(rain.state.sun < noon.state.sun * 0.6, "rain dims the sun");
+  await page.evaluate(async () => {
+    const sea = await import("/src/ocean/sea-atmosphere.ts");
+    sea.pinAtmosphere({ hour: 12, weather: "clear" });
+  });
   assert.deepEqual(problems, []);
   console.log(
-    `Ocean Babylon: sharp 2x draw, ${cost.triangles} triangles / ${cost.meshes} meshes, floats, runs+turns with one thumb, casting slows the boat, no errors.`,
+    `Ocean Babylon: sharp 2x draw, ${cost.triangles} triangles / ${cost.meshes} meshes, floats, runs+turns with one thumb, casting slows the boat, day, night and rain follow the sea's atmosphere, no errors.`,
   );
 } finally {
   await context.close();
