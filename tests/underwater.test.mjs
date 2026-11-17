@@ -141,7 +141,7 @@ test("the shaders draw nothing above the real waves and tint what is below", () 
   assert.match(UNDERWATER_FRAGMENT, /float waveHeight\(vec2 p, float t\)/);
   assert.match(
     UNDERWATER_FRAGMENT,
-    /waveHeight\(vWorld\.xz, time\) - vWorld\.y/,
+    /seaHeight\(vWorld\.xz, time\) - vWorld\.y/,
   );
   // ... throws away what is above it (unless leaping out), fades with depth and ends transparent.
   assert.match(

@@ -4,7 +4,7 @@
  * the colour of the sky; if it ends sooner, a high camera sees the edge and the far backdrop
  * islands (340 to 420 m out) hang over the gap like floating things.
  */
-export const NEAR_RINGS = 56;
+export const NEAR_RINGS = 80;
 /** The near rings, dense so the waves stay smooth where they are seen: out to this radius (m). */
 export const NEAR_RADIUS = 480;
 export const FAR_RINGS = 8;

@@ -40,3 +40,18 @@ export function crestFoamAmount(seaState: number): number {
   );
   return t * t * (3 - 2 * t);
 }
+/**
+ * The painted curl on the tallest steepest crests of a rough sea (no geometry: the drawn mesh is
+ * a height field moved sideways and must never fold). `front` is how far the swell's slope along
+ * the wind must run to count as a front face.
+ */
+export const CURL = {
+  frontFrom: 0.01,
+  frontTo: 0.07,
+  /** Half width, as a slope along the wind, of the bright edge on the crest line. */
+  lipWidth: 0.03,
+  /** Darkening of the front face under a tall crest, strength of the lip highlight and of the foam running down. */
+  undercut: 0.4,
+  lip: 0.55,
+  runoff: 0.8,
+};

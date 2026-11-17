@@ -1,5 +1,10 @@
 import { WATER_ABSORPTION } from "./sea-style.ts";
-import { MAX_WAVE_HEIGHT, glslWaveHeight } from "./waves.ts";
+import {
+  MAX_WAVE_HEIGHT,
+  glslHorizontalFade,
+  glslWaveDisplace,
+  glslWaveHeight,
+} from "./waves.ts";
 
 /**
  * Clear water: the sea is see-through. The sea itself stays one opaque shader (water.ts), so
@@ -338,11 +343,13 @@ varying vec3 vWorld;
 varying vec3 vNormal;
 varying vec4 vColor;
 ${glslWaveHeight()}
+${glslHorizontalFade()}
+${glslWaveDisplace()}
 const vec3 absorb = vec3(${WATER_ABSORPTION.map((v) => f(v)).join(", ")});
 void main() {
   // Almost every fragment of a boat is above the highest wave: gone before any wave is summed.
   if (vWorld.y > ${f(CLEAR.top)}) discard;
-  float depth = waveHeight(vWorld.xz, time) - vWorld.y;
+  float depth = seaHeight(vWorld.xz, time) - vWorld.y;
   if (depth < 0.0) discard;
   vec3 view = normalize(cameraPosition - vWorld);
   // The view ray bends toward the vertical at the surface (Snell); its length under the surface.

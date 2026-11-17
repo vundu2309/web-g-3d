@@ -214,14 +214,14 @@ test("a big mesh of which only the piles are under the water is drawn only when 
 test("the layer's shader keeps only what is under the real waves and tints it by the sea's absorption", () => {
   // The shared wave function: the one the sea mesh and the boats use.
   assert.match(UNDER_FRAGMENT, /float waveHeight\(vec2 p, float t\)/);
-  assert.match(UNDER_FRAGMENT, /waveHeight\(vWorld\.xz, time\) - vWorld\.y/);
+  assert.match(UNDER_FRAGMENT, /seaHeight\(vWorld\.xz, time\) - vWorld\.y/);
   assert.match(UNDER_FRAGMENT, /if \(depth < 0\.0\) discard;/);
   // Above the highest wave a fragment is thrown away before any wave is summed.
   const top = CLEAR.top.toFixed(4);
   assert.ok(CLEAR.top > MAX_WAVE_HEIGHT);
   assert.ok(
     UNDER_FRAGMENT.indexOf(`vWorld.y > ${top}`) <
-      UNDER_FRAGMENT.indexOf("waveHeight(vWorld.xz, time)"),
+      UNDER_FRAGMENT.indexOf("seaHeight(vWorld.xz, time)"),
   );
   // The sea's own absorption, red first.
   const absorb = WATER_ABSORPTION.map((v) => v.toFixed(4)).join(", ");

@@ -16,6 +16,8 @@
  * layering (the summed amplitudes are about 1.4 m); the roughest is about 2.4 m. The same
  * function of the same clock runs in the shader.
  */
+import { SHORE_ISLANDS } from "./shore.ts";
+
 export type WaveTier = "swell" | "medium" | "chop";
 export interface Wave {
   /** Wavelength in metres. */
@@ -102,7 +104,7 @@ export function drawWaves(): Wave[] {
       weight,
       direction: WIND_DIRECTION + side * spread,
       phase: random() * Math.PI * 2,
-      sharp: 1.3 + 1.7 * (1 - rank),
+      sharp: 2.0 + 1.6 * (1 - rank),
       lean:
         length >= 50
           ? 0.3
@@ -175,23 +177,23 @@ function meanOfSharpened(sharp: number, lean: number) {
 }
 
 /**
- * Gerstner-style HORIZONTAL motion of the water surface, drawn by the vertex shader only
- * (physics never sees it, the boats float on the analytic vertical function). Each wave moves
- * every point of the sea along its heading by (q / k) cos(psi), psi the wave's (leaning) phase:
- * the points before a crest move toward it and the ones behind it move back, so the crest
- * pinches and sharpens and the trough widens. `q` is the wave's pinch (0 flat, 1 the crest
- * stands up to a point, a fold): the pinches of a tier add up to PINCH[tier], shared out by
- * amplitude, and together stay under 1 so the surface never folds over itself. The drawn
- * surface differs from the physics one by the slope times the displacement, about q times the
- * wave's amplitude: waves.test.mjs bounds it (HORIZONTAL_LIMIT) at the calm and the roughest sea.
+ * Gerstner-style HORIZONTAL motion of the water surface. Each wave moves every point of the
+ * sea along its heading by (q / k) cos(psi), psi the wave's (leaning) phase: the points before
+ * a crest move toward it and the ones behind it move back, so the crest pinches to a point and
+ * the trough widens. `q` is the wave's pinch (1 would stand the crest up to a fold): the
+ * pinches of a tier add up to PINCH[tier], shared out by amplitude. The mesh is drawn with this
+ * motion (vertex shader) and the physics follows it: `waveHeight` returns the height of the
+ * vertex that lands at a world point (`restPoint`, Newton's method), so the hull floats on the
+ * crest it sees. The Jacobian of the motion, I - M with M summed from the same loop, must stay
+ * positive (the surface never folds): waves tests check its smallest determinant.
  */
 export const PINCH: Record<WaveTier, number> = {
-  swell: 0.03,
-  medium: 0.09,
-  chop: 0.4,
+  swell: 0.3,
+  medium: 0.55,
+  chop: 0.3,
 };
-/** The most (m) the drawn surface may differ from the physics one at the boat, at any sea state. */
-export const HORIZONTAL_LIMIT = 0.25;
+/** The most (m) the drawn surface may differ from the physics one at any point, at any sea state. */
+export const HORIZONTAL_LIMIT = 0.03;
 /** Metres from an island's mean coast where the horizontal motion is zero and where it is full. */
 export const HORIZONTAL_FADE = { from: 70, to: 170 };
 
@@ -240,8 +242,12 @@ export const CALM_WAVE_HEIGHT = WAVES.reduce(
   0,
 );
 
-/** Sea surface height in metres at world (x, z) and time t in seconds. */
-export function waveHeight(x: number, z: number, t: number): number {
+/**
+ * The sea's height at a REST position (the point a mesh vertex starts from, before the
+ * horizontal motion below): a pure vertical sum of the waves. Not what a boat feels: see
+ * `waveHeight`.
+ */
+export function restHeight(x: number, z: number, t: number): number {
   let swell = 0;
   let medium = 0;
   let chop = 0;
@@ -261,8 +267,8 @@ export function waveHeight(x: number, z: number, t: number): number {
   );
 }
 
-/** Slope of the surface, dh/dx and dh/dz, exact (not a finite difference). */
-export function waveGradient(
+/** Slope of the rest surface, dh/dx and dh/dz, exact (not a finite difference). */
+export function restGradient(
   x: number,
   z: number,
   t: number,
@@ -295,40 +301,162 @@ export function waveGradient(
 }
 
 /**
- * The horizontal motion (m) the water mesh is drawn with at (x, z) and time t, before the
- * shore fade (the CPU twin of the shader's `waveDisplace`). The mesh vertex that starts at
- * (x, z) is drawn at (x + dx, z + dz) at the height `waveHeight(x, z, t)`.
+ * How much of the horizontal motion a rest position keeps: 0 within HORIZONTAL_FADE.from of
+ * an island's mean coast, 1 beyond .to (smooth between). The GLSL `horizontalFade` is the
+ * same function of the same island list.
  */
+export function horizontalFade(x: number, z: number): number {
+  return fadeAt(x, z).f;
+}
+/** The fade and its gradient (the Newton steps and the slope need how it changes). */
+export function fadeAt(
+  x: number,
+  z: number,
+): { f: number; gx: number; gz: number } {
+  let nearest = 1e4;
+  let nx = 0;
+  let nz = 0;
+  for (const island of SHORE_ISLANDS) {
+    const dx = x - island.x;
+    const dz = z - island.z;
+    const length = Math.hypot(dx, dz);
+    const away = length - island.radius * 0.92;
+    if (away < nearest) {
+      nearest = away;
+      nx = dx / Math.max(length, 1e-6);
+      nz = dz / Math.max(length, 1e-6);
+    }
+  }
+  const span = HORIZONTAL_FADE.to - HORIZONTAL_FADE.from;
+  const u = Math.min(1, Math.max(0, (nearest - HORIZONTAL_FADE.from) / span));
+  const slope = (6 * u * (1 - u)) / span;
+  return { f: u * u * (3 - 2 * u), gx: slope * nx, gz: slope * nz };
+}
+
+export interface WaveMotion {
+  /** Horizontal motion (m) of the rest position, before the shore fade. */
+  x: number;
+  z: number;
+  /** The symmetric squeeze matrix M: the motion's Jacobian is I - fade * M. */
+  xx: number;
+  xz: number;
+  zz: number;
+}
+/** The horizontal motion at a rest position and its squeeze (the CPU twin of `waveMotion`). */
+export function waveMotion(x: number, z: number, t: number): WaveMotion {
+  const s = seaState(t);
+  const gains = TIERS.map((tier) => tierGain(tier, s));
+  let mx = 0;
+  let mz = 0;
+  let xx = 0;
+  let xz = 0;
+  let zz = 0;
+  for (const w of terms) {
+    const g = gains[w.tier]!;
+    const theta = w.k * (w.dx * x + w.dz * z) - w.omega * t + w.phase;
+    const bent = leanPhase(theta, w.lean);
+    const move = ((g * w.pinch) / w.k) * Math.cos(bent);
+    mx += move * w.dx;
+    mz += move * w.dz;
+    const squeeze =
+      g * w.pinch * Math.sin(bent) * (1 - w.lean * Math.cos(theta));
+    xx += squeeze * w.dx * w.dx;
+    xz += squeeze * w.dx * w.dz;
+    zz += squeeze * w.dz * w.dz;
+  }
+  return { x: mx, z: mz, xx, xz, zz };
+}
+/** The horizontal motion (m) the mesh vertex that starts at (x, z) is drawn with, shore fade included. */
 export function waveDisplacement(
   x: number,
   z: number,
   t: number,
 ): { x: number; z: number } {
-  const dx = [0, 0, 0] as [number, number, number];
-  const dz = [0, 0, 0] as [number, number, number];
-  for (const w of terms) {
-    const theta = w.k * (w.dx * x + w.dz * z) - w.omega * t + w.phase;
-    const move = (w.pinch / w.k) * Math.cos(leanPhase(theta, w.lean));
-    const i = w.tier as 0 | 1 | 2;
-    dx[i] += move * w.dx;
-    dz[i] += move * w.dz;
-  }
-  const s = seaState(t);
-  const g = TIERS.map((tier) => tierGain(tier, s));
-  return {
-    x: dx[0]! * g[0]! + dx[1]! * g[1]! + dx[2]! * g[2]!,
-    z: dz[0]! * g[0]! + dz[1]! * g[1]! + dz[2]! * g[2]!,
+  const m = waveMotion(x, z, t);
+  const f = horizontalFade(x, z);
+  return { x: m.x * f, z: m.z * f };
+}
+
+/** Newton steps that find the rest position drawn at a world point (the shader does the same). */
+export const REST_STEPS = 4;
+/** The 2 x 2 Jacobian [[a, b], [c, d]] of the drawn position with respect to the rest position. */
+export interface Jacobian {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+}
+function jacobianAt(x: number, z: number, t: number) {
+  const m = waveMotion(x, z, t);
+  const fade = fadeAt(x, z);
+  const jac: Jacobian = {
+    a: 1 - fade.f * m.xx + m.x * fade.gx,
+    b: -fade.f * m.xz + m.x * fade.gz,
+    c: -fade.f * m.xz + m.z * fade.gx,
+    d: 1 - fade.f * m.zz + m.z * fade.gz,
   };
+  return { m, f: fade.f, jac };
+}
+/**
+ * The rest position (x0, z0) whose vertex is drawn at the world point (x, z): the solution of
+ * x0 + fade * D(x0) = x, by Newton's method from x - D(x). `residual` is how far the last
+ * step left the drawn point from (x, z), in metres; `jac` is the Jacobian at the solution.
+ */
+export function restPoint(
+  x: number,
+  z: number,
+  t: number,
+): { x: number; z: number; jac: Jacobian; residual: number } {
+  const first = waveMotion(x, z, t);
+  const f0 = horizontalFade(x, z);
+  let px = x - f0 * first.x;
+  let pz = z - f0 * first.z;
+  let residual = 0;
+  for (let i = 0; i < REST_STEPS; i++) {
+    const { m, f, jac } = jacobianAt(px, pz, t);
+    const rx = px + f * m.x - x;
+    const rz = pz + f * m.z - z;
+    residual = Math.hypot(rx, rz);
+    const det = Math.max(jac.a * jac.d - jac.b * jac.c, 0.02);
+    px -= (jac.d * rx - jac.b * rz) / det;
+    pz -= (-jac.c * rx + jac.a * rz) / det;
+  }
+  return { x: px, z: pz, jac: jacobianAt(px, pz, t).jac, residual };
 }
 
 /**
- * How far the drawn surface at the point where the vertex that started at (x, z) lands is from
- * the physics surface there (m): the height drawn is the one of (x, z), the height the boat
- * feels at the landing point is another. Bounded by HORIZONTAL_LIMIT (tested).
+ * Sea surface height in metres at world (x, z) and time t in seconds: the height of the surface
+ * AS IT IS DRAWN. The mesh moves sideways (the Gerstner-style motion above), so the height at a
+ * world point is the rest height of the vertex that lands there. The boats, the fishing line and
+ * the shaders that need the surface all use this one.
+ */
+export function waveHeight(x: number, z: number, t: number): number {
+  const p = restPoint(x, z, t);
+  return restHeight(p.x, p.z, t);
+}
+
+/** Slope of the drawn surface, dh/dx and dh/dz: the rest slope through the inverse of the motion's Jacobian. */
+export function waveGradient(
+  x: number,
+  z: number,
+  t: number,
+): { x: number; z: number } {
+  const p = restPoint(x, z, t);
+  const g = restGradient(p.x, p.z, t);
+  const { a, b, c, d } = p.jac;
+  const det = Math.max(a * d - b * c, 0.02);
+  return { x: (d * g.x - c * g.z) / det, z: (-b * g.x + a * g.z) / det };
+}
+
+/**
+ * How far the drawn surface is from the physics surface (m) at the point where the vertex that
+ * starts at (x, z) is drawn: the drawn height is the rest height of (x, z), the physics height
+ * there is `waveHeight`. Near zero by construction (the Newton residual); bounded by
+ * HORIZONTAL_LIMIT (tested).
  */
 export function drawnSurfaceError(x: number, z: number, t: number): number {
   const d = waveDisplacement(x, z, t);
-  return Math.abs(waveHeight(x, z, t) - waveHeight(x + d.x, z + d.z, t));
+  return Math.abs(restHeight(x, z, t) - waveHeight(x + d.x, z + d.z, t));
 }
 
 /**
@@ -410,36 +538,76 @@ float waveReach(float t) {
 }
 
 /**
- * GLSL for the horizontal motion of the water mesh (vertex shader only; needs
- * `glslWaveHeight()` before it): `waveDisplace(p, t)` is the CPU's `waveDisplacement`, and
- * `horizontalFade(p)` brings it to zero near every island (`shoreIslands` is the uniform of
- * shore.ts, `count` its length), so the water at the beach is the exact analytic surface.
+ * GLSL for the horizontal motion of the water mesh (needs `glslWaveHeight()` and
+ * `glslHorizontalFade()` before it): `waveMotion` is the CPU's, `waveDisplace` the motion
+ * alone, and `seaHeight(p, t)` the height of the drawn surface at a world point (the CPU's
+ * `waveHeight`: the rest position found with `REST_STEPS` Newton steps, then `waveHeight` of
+ * the shader's rest function). The sea mesh moves its vertices with `waveDisplace`; the shaders
+ * that read the surface at a world point (under the water) use `seaHeight`.
  */
 export function glslWaveDisplace(): string {
   const f = (n: number) => n.toFixed(6);
   const body = terms.map((w) => {
     const bent = w.lean > 0 ? `th - ${f(w.lean)} * sin(th)` : "th";
-    return `  { float th = ${f(w.k)} * (${f(w.dx)} * p.x + ${f(w.dz)} * p.y) - ${f(w.omega)} * t + ${f(w.phase)}; acc[${w.tier}] += ${f(w.pinch / w.k)} * cos(${bent}) * vec2(${f(w.dx)}, ${f(w.dz)}); }`;
+    const lean = w.lean > 0 ? ` * (1.0 - ${f(w.lean)} * cos(th))` : "";
+    return `  { float th = ${f(w.k)} * (${f(w.dx)} * p.x + ${f(w.dz)} * p.y) - ${f(w.omega)} * t + ${f(w.phase)}; float bt = ${bent};
+    move[${w.tier}] += ${f(w.pinch / w.k)} * cos(bt) * vec2(${f(w.dx)}, ${f(w.dz)});
+    sq[${w.tier}] += ${f(w.pinch)} * sin(bt)${lean} * vec3(${f(w.dx * w.dx)}, ${f(w.dx * w.dz)}, ${f(w.dz * w.dz)}); }`;
   });
-  return `vec2 waveDisplace(vec2 p, float t) {
-  vec2 acc[3];
-  acc[0] = vec2(0.0);
-  acc[1] = vec2(0.0);
-  acc[2] = vec2(0.0);
+  return `vec2 waveMotion(vec2 p, float t, out vec3 squeeze) {
+  vec2 move[3];
+  move[0] = vec2(0.0);
+  move[1] = vec2(0.0);
+  move[2] = vec2(0.0);
+  vec3 sq[3];
+  sq[0] = vec3(0.0);
+  sq[1] = vec3(0.0);
+  sq[2] = vec3(0.0);
 ${body.join("\n")}
   vec3 g = tierGains(t);
-  return acc[0] * g.x + acc[1] * g.y + acc[2] * g.z;
+  squeeze = sq[0] * g.x + sq[1] * g.y + sq[2] * g.z;
+  return move[0] * g.x + move[1] * g.y + move[2] * g.z;
+}
+vec2 waveDisplace(vec2 p, float t) {
+  vec3 squeeze;
+  return waveMotion(p, t, squeeze);
+}
+float seaHeight(vec2 p, float t) {
+  vec3 sq;
+  vec2 q = p - waveMotion(p, t, sq) * horizontalFade(p);
+  for (int i = 0; i < ${REST_STEPS}; i++) {
+    vec2 d = waveMotion(q, t, sq);
+    vec2 fg;
+    float fade = horizontalFadeGrad(q, fg);
+    vec2 r = q + d * fade - p;
+    float a = 1.0 - fade * sq.x + d.x * fg.x;
+    float b = -fade * sq.y + d.x * fg.y;
+    float c = -fade * sq.y + d.y * fg.x;
+    float e = 1.0 - fade * sq.z + d.y * fg.y;
+    float det = max(a * e - b * c, 0.02);
+    q -= vec2(e * r.x - b * r.y, -c * r.x + a * r.y) / det;
+  }
+  return waveHeight(q, t);
 }`;
 }
-/** GLSL `horizontalFade(p)`: 0 within HORIZONTAL_FADE.from of an island's coast, 1 beyond .to. */
-export function glslHorizontalFade(count: number): string {
+/** GLSL `horizontalFade(p)`: 0 within HORIZONTAL_FADE.from of an island's coast, 1 beyond .to; `horizontalFadeGrad` also gives its gradient. */
+export function glslHorizontalFade(): string {
   const f = (n: number) => n.toFixed(6);
-  return `float horizontalFade(vec2 p) {
+  const islands = SHORE_ISLANDS.map(
+    (island) =>
+      `  { vec2 v = p - vec2(${f(island.x)}, ${f(island.z)}); float l = max(length(v), 1.0e-6); float away = l - ${f(island.radius * 0.92)}; if (away < nearest) { nearest = away; dir = v / l; } }`,
+  );
+  const span = HORIZONTAL_FADE.to - HORIZONTAL_FADE.from;
+  return `float horizontalFadeGrad(vec2 p, out vec2 grad) {
   float nearest = 1.0e4;
-  for (int i = 0; i < ${count}; i++) {
-    vec4 island = shoreIslands[i];
-    nearest = min(nearest, length(p - island.xy) - island.z * 0.92);
-  }
-  return smoothstep(${f(HORIZONTAL_FADE.from)}, ${f(HORIZONTAL_FADE.to)}, nearest);
+  vec2 dir = vec2(0.0);
+${islands.join("\n")}
+  float u = clamp((nearest - ${f(HORIZONTAL_FADE.from)}) / ${f(span)}, 0.0, 1.0);
+  grad = dir * (6.0 * u * (1.0 - u) / ${f(span)});
+  return u * u * (3.0 - 2.0 * u);
+}
+float horizontalFade(vec2 p) {
+  vec2 grad;
+  return horizontalFadeGrad(p, grad);
 }`;
 }

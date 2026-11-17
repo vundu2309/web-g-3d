@@ -1,6 +1,10 @@
 import type { FightMood } from "./fight.ts";
 import { UNDER_THE_SEA } from "./reflection-model.ts";
-import { glslWaveHeight } from "./waves.ts";
+import {
+  glslHorizontalFade,
+  glslWaveDisplace,
+  glslWaveHeight,
+} from "./waves.ts";
 import { WATER_ABSORPTION } from "./sea-style.ts";
 
 /**
@@ -238,9 +242,11 @@ varying vec3 vWorld;
 varying vec3 vNormal;
 varying vec4 vColor;
 ${glslWaveHeight()}
+${glslHorizontalFade()}
+${glslWaveDisplace()}
 void main() {
   // Depth under the sea as it really is under this pixel (the shared wave function).
-  float depth = waveHeight(vWorld.xz, time) - vWorld.y;
+  float depth = seaHeight(vWorld.xz, time) - vWorld.y;
   // Nothing of the fish is ever drawn above the water (unless it is leaping out of it: cut = 0).
   if (cut > 0.5 && depth < 0.0) discard;
   float d = max(depth, 0.0);

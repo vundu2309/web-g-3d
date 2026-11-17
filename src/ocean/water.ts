@@ -33,7 +33,7 @@ import {
   WATER_ABSORPTION,
   ZENITH,
 } from "./sea-style.ts";
-import { CREST_FOAM as CREST, SWELL_SHADING } from "./swell-look.ts";
+import { CREST_FOAM as CREST, CURL, SWELL_SHADING } from "./swell-look.ts";
 import { waterRingRadii } from "./water-extent.ts";
 import {
   FOAM_REACH,
@@ -72,8 +72,6 @@ const glslAxis = (offset: number) =>
 const SEA_GAIN = (CALM_WAVE_HEIGHT / 0.825) * 1.2;
 /** The share of the wave height the shore paint reads as water at the waterline (see `column`). */
 const SHORE_WAVE = 0.4;
-/** How many islands the shader knows (the `shoreIslands` uniform has this many entries). */
-const SHORE_COUNT = shoreUniform().length / 4;
 const COMMON = `
 precision highp float;
 uniform float time;
@@ -100,9 +98,8 @@ export function packBoats(boats: readonly BoatSpot[]): number[] {
 Effect.ShadersStore["seaVertexShader"] = `
 ${COMMON}
 ${glslWake()}
+${glslHorizontalFade()}
 ${glslWaveDisplace()}
-uniform vec4 shoreIslands[${SHORE_COUNT}];
-${glslHorizontalFade(SHORE_COUNT)}
 attribute vec3 position;
 uniform mat4 worldViewProjection;
 uniform vec3 anchor;
@@ -151,7 +148,7 @@ varying float vHeight;
 varying vec4 vWake;
 ${glslSkyModel()}
 ${glslShore(true)}
-${glslHorizontalFade(SHORE_COUNT)}
+${glslHorizontalFade()}
 ${glslReflection()}
 ${glslUnderLayer()}
 // Absorption of clear sea water per metre (red goes first, then green): turquoise shallows.
@@ -311,7 +308,7 @@ void main() {
   vec3 squeeze;
   vec2 waveOnly = waveSlopeSplit(vOrigin, time, dist, bigSlope, squeeze);
   squeeze *= horizontalFade(vOrigin);
-  float squeezeDet = max((1.0 - squeeze.x) * (1.0 - squeeze.z) - squeeze.y * squeeze.y, 0.3);
+  float squeezeDet = max((1.0 - squeeze.x) * (1.0 - squeeze.z) - squeeze.y * squeeze.y, 0.04);
   mat2 unsqueeze = mat2(1.0 - squeeze.z, squeeze.y, squeeze.y, 1.0 - squeeze.x) / squeezeDet;
   bigSlope = unsqueeze * bigSlope;
   vec2 slope = unsqueeze * waveOnly + vWake.yz + hull.yz;
@@ -536,6 +533,18 @@ void main() {
       float crestFoam = crestTop * smoothstep(0.5, 0.62, along * 0.6 + lace * 0.4) * ${CREST.strength.toFixed(2)} * crestSea;
       vec3 crestFoamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * max(nlSun, nl * 0.6) * 0.3 * sunlit);
       color = mix(color, crestFoamColor, crestFoam);
+      // The look of a curl (a painted lip, not geometry: the mesh must never fold). Just ahead of
+      // a tall crest the front face is darker, as if the lip overhung it; the crest line itself
+      // catches a thin bright edge; and foam streams down the front face along the slope.
+      float travel = dot(bigSlope, WIND);
+      float front = smoothstep(${CURL.frontFrom.toFixed(3)}, ${CURL.frontTo.toFixed(3)}, -travel);
+      float lip = (1.0 - smoothstep(0.0, ${CURL.lipWidth.toFixed(3)}, abs(travel))) * crestTop;
+      color *= 1.0 - ${CURL.undercut.toFixed(2)} * front * crestTop * crestSea;
+      color += crestFoamColor * lip * ${CURL.lip.toFixed(2)} * crestSea;
+      vec2 down = WIND;
+      float stream = noise(vec2(dot(q, down) * 0.2 + time * 0.5, dot(q, vec2(-down.y, down.x)) * 0.35));
+      float runoff = smoothstep(0.35, 0.8, front) * crestTop * smoothstep(0.5, 0.72, stream * 0.8 + lace * 0.2) * ${CURL.runoff.toFixed(2)} * crestSea;
+      color = mix(color, crestFoamColor, runoff);
     }
   }
   // The white water at the hulls (hullWater): a rough surface like the other foam.
@@ -576,7 +585,7 @@ export function createWater(scene: Scene): Water {
   const rings = radii.length;
   // 144 slices (was 96): the pinched crests and the 12 to 20 m medium waves need a vertex every few
   // metres round the camera too, at 100 m out as well as near.
-  const slices = 144;
+  const slices = 192;
   const positions: number[] = [0, 0, 0];
   const indices: number[] = [];
   for (let ring = 1; ring <= rings; ring++) {

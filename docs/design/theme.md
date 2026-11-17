@@ -6,14 +6,14 @@ The primary audience plays on phones. Design for **landscape mobile first**, esp
 
 Edit shared tokens in `src/style.css` (and `src/ocean/style.css`) rather than introducing local palettes per screen.
 
-| Role | Value |
-| --- | --- |
-| Paper sky background | `#DCEEFF` |
-| Cobalt ink / outlines | `#153B80` |
-| Main action yellow | `#FFD35A` |
+| Role                      | Value     |
+| ------------------------- | --------- |
+| Paper sky background      | `#DCEEFF` |
+| Cobalt ink / outlines     | `#153B80` |
+| Main action yellow        | `#FFD35A` |
 | Input / secondary surface | `#FFFFFF` |
-| Small roof accent | `#E97760` |
-| Supporting text | `#385B8D` |
+| Small roof accent         | `#E97760` |
+| Supporting text           | `#385B8D` |
 
 Use Baloo 2 800 for the brand and headings, Be Vietnam Pro 400/600/700 for controls and body text. Latin and Vietnamese subsets are self-hosted through Fontsource, never a runtime Google Fonts request. Controls have a moderate rounded shape and a short cobalt lower edge. Player slots have a different radius from buttons. Keep paper grain subtle and pointer-transparent.
 
