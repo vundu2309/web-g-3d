@@ -9,7 +9,13 @@ import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Constants } from "@babylonjs/core/Engines/constants";
 import { BED_DIP } from "./island-shape.ts";
-import { CALM_WAVE_HEIGHT, WIND_DIRECTION, glslWaveHeight } from "./waves.ts";
+import {
+  CALM_WAVE_HEIGHT,
+  WIND_DIRECTION,
+  glslHorizontalFade,
+  glslWaveDisplace,
+  glslWaveHeight,
+} from "./waves.ts";
 import { RIPPLE_RANGE, RIPPLE_SIZE, ripplePixels } from "./ripples.ts";
 import { glslSkyModel } from "./sky-model.ts";
 import { glslReflection } from "./reflection-model.ts";
@@ -27,6 +33,7 @@ import {
   WATER_ABSORPTION,
   ZENITH,
 } from "./sea-style.ts";
+import { CREST_FOAM as CREST, SWELL_SHADING } from "./swell-look.ts";
 import { waterRingRadii } from "./water-extent.ts";
 import {
   FOAM_REACH,
@@ -65,6 +72,8 @@ const glslAxis = (offset: number) =>
 const SEA_GAIN = (CALM_WAVE_HEIGHT / 0.825) * 1.2;
 /** The share of the wave height the shore paint reads as water at the waterline (see `column`). */
 const SHORE_WAVE = 0.4;
+/** How many islands the shader knows (the `shoreIslands` uniform has this many entries). */
+const SHORE_COUNT = shoreUniform().length / 4;
 const COMMON = `
 precision highp float;
 uniform float time;
@@ -91,10 +100,14 @@ export function packBoats(boats: readonly BoatSpot[]): number[] {
 Effect.ShadersStore["seaVertexShader"] = `
 ${COMMON}
 ${glslWake()}
+${glslWaveDisplace()}
+uniform vec4 shoreIslands[${SHORE_COUNT}];
+${glslHorizontalFade(SHORE_COUNT)}
 attribute vec3 position;
 uniform mat4 worldViewProjection;
 uniform vec3 anchor;
 varying vec3 vWorld;
+varying vec2 vOrigin;
 varying float vHeight;
 varying vec4 vWake;
 void main() {
@@ -105,6 +118,10 @@ void main() {
   vec4 wakeHere = wakeAt(p.xz, time);
   vWake = wakeHere;
   p.y = waveHeight(p.xz, time) + wakeHere.x;
+  // Gerstner-style horizontal motion (visual only, none near a beach): the vertex that starts at
+  // vOrigin is drawn a little toward the crest it sits before, so crests pinch and troughs widen.
+  vOrigin = p.xz;
+  p.xz += waveDisplace(p.xz, time) * horizontalFade(p.xz);
   vWorld = p;
   vHeight = p.y;
   gl_Position = worldViewProjection * vec4(p, 1.0);
@@ -129,10 +146,12 @@ uniform mat4 viewProjection;
 uniform sampler2D underMap;
 uniform float underOn;
 varying vec3 vWorld;
+varying vec2 vOrigin;
 varying float vHeight;
 varying vec4 vWake;
 ${glslSkyModel()}
 ${glslShore(true)}
+${glslHorizontalFade(SHORE_COUNT)}
 ${glslReflection()}
 ${glslUnderLayer()}
 // Absorption of clear sea water per metre (red goes first, then green): turquoise shallows.
@@ -285,7 +304,17 @@ void main() {
   vec3 sunDir = normalize(sunDirection);
   // The exact slope of the waves, with the short ones faded out with distance.
   vec3 hull = hullWater(vWorld.xz, time);
-  vec2 slope = waveSlope(vWorld.xz, time, dist) + vWake.yz + hull.yz;
+  // The slope of the surface as it is drawn: the analytic slope at the point the vertex started
+  // from, corrected for the horizontal motion (the mesh is squeezed at the crests, so the slope
+  // there is steeper: (I - squeeze)^-1 times it).
+  vec2 bigSlope;
+  vec3 squeeze;
+  vec2 waveOnly = waveSlopeSplit(vOrigin, time, dist, bigSlope, squeeze);
+  squeeze *= horizontalFade(vOrigin);
+  float squeezeDet = max((1.0 - squeeze.x) * (1.0 - squeeze.z) - squeeze.y * squeeze.y, 0.3);
+  mat2 unsqueeze = mat2(1.0 - squeeze.z, squeeze.y, squeeze.y, 1.0 - squeeze.x) / squeezeDet;
+  bigSlope = unsqueeze * bigSlope;
+  vec2 slope = unsqueeze * waveOnly + vWake.yz + hull.yz;
   // How choppy the sea is here: wide calm and rough patches drifting downwind, and faint
   // streaks along the wind (faded far away, where they would alias).
   vec2 q = vWorld.xz;
@@ -380,7 +409,15 @@ void main() {
     // No foam below a trace: the foam cells (the costly part) are only drawn where there is some.
     surfFoam *= nearShore * smoothstep(0.0, 0.05, surfFoam);
   }
-  vec3 n = normalize(vec3(-slope.x - detail.x, 1.0, -slope.y - detail.y));
+  // ----- The shape of the swell (open sea only) -----
+  // The long and medium waves, read apart from the chop: how high this point sits between the
+  // trough (-1) and the tallest crest (+1) of the sea as it is now, and which way its face leans.
+  // Purely the paint, like the shore: the normal is exaggerated so the faces catch light and
+  // shadow, the mesh and the boats' water are not touched.
+  float openSea = 1.0 - nearShore;
+  float hNorm = clamp(vHeight / waveReach(time), -1.0, 1.0);
+  slope += (bigSlope * ${SWELL_SHADING.exaggerate.toFixed(2)} - (slope - bigSlope - vWake.yz - hull.yz) * ${(1 - SWELL_SHADING.chopKeep).toFixed(2)}) * openSea;
+  vec3 n = normalize(vec3(-slope.x - detail.x * ${SWELL_SHADING.detailKeep.toFixed(2)}, 1.0, -slope.y - detail.y * ${SWELL_SHADING.detailKeep.toFixed(2)}));
   float nv = max(dot(n, view), 0.02);
   // Roughness: the waves too small to draw make the sea rougher the farther it is.
   // Calm patches stay glassy far out and rough ones go matt, so the far sea is not one tone.
@@ -432,6 +469,11 @@ void main() {
   float hue = noise(q * 0.0045 + 5.0) * 0.6 + noise(q * 0.012 - time * 0.003) * 0.4;
   vec3 open = mix(toLinear(deep), toLinear(deepTeal), smoothstep(0.32, 0.72, hue));
   vec3 scatterColor = mix(open, toLinear(shallow), (1.0 - smoothstep(3.0, 13.0, depth)) * 0.85);
+  // Sun on the faces: a face tilted toward the sun is lit, the one behind it is in its own shade, a
+  // trough is darker (less sky, a deeper blue) and a crest is paler. Open sea only.
+  float faceSun = clamp(-dot(bigSlope, sunDir.xz) / max(length(sunDir.xz), 0.2) * ${SWELL_SHADING.face.toFixed(2)}, -1.0, 1.0);
+  float shape = (1.0 + faceSun * 0.55) * mix(${SWELL_SHADING.trough.toFixed(2)}, ${SWELL_SHADING.crest.toFixed(2)}, smoothstep(-0.4, 0.5, hNorm));
+  incident *= mix(1.0, shape, openSea);
   vec3 body = floorColor * transmit + scatterColor * incident * 0.4 * (1.0 - transmit);
   // ----- What is under the water (clear-water.ts) -----
   // Boat hulls, piles, rocks, buoys, the hooked fish and the line are drawn on a layer of their own,
@@ -482,6 +524,20 @@ void main() {
     vec3 foamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * max(nlSun, nl * 0.6) * 0.3 * sunlit);
     color = mix(color, foamColor, foam);
   }
+  // Foam streaks on the tallest crests, only when the sea state is high (none on a calm sea): the
+  // height of the point on the swell plus its steepness, broken into streaks that run along the
+  // crest line (long across the wind, short along it), with a finer lace over them.
+  float crestSea = smoothstep(${CREST.seaFrom.toFixed(2)}, ${CREST.seaTo.toFixed(2)}, seaState(time)) * openSea * (1.0 - smoothstep(180.0, 420.0, dist));
+  if (crestSea > 0.0) {
+    float crestTop = smoothstep(${CREST.from.toFixed(2)}, ${CREST.to.toFixed(2)}, hNorm + length(bigSlope) * 0.9 + (noise(q * 0.011 + 3.0) - 0.5) * 0.3);
+    if (crestTop > 0.0) {
+      float along = noise(vec2(dot(q, WIND) * 0.6 - time * 0.35, dot(q, across) * 0.1));
+      float lace = noise(q * 3.1 + vec2(time * 0.2, -time * 0.15)) * 0.6 + noise(q * 7.3 - time * 0.3) * 0.4;
+      float crestFoam = crestTop * smoothstep(0.5, 0.62, along * 0.6 + lace * 0.4) * ${CREST.strength.toFixed(2)} * crestSea;
+      vec3 crestFoamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * max(nlSun, nl * 0.6) * 0.3 * sunlit);
+      color = mix(color, crestFoamColor, crestFoam);
+    }
+  }
   // The white water at the hulls (hullWater): a rough surface like the other foam.
   if (hull.x > 0.01) {
     vec3 hullFoamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * max(nlSun, nl * 0.6) * 0.3 * sunlit);
@@ -518,7 +574,9 @@ export function createWater(scene: Scene): Water {
   // rings reach past the fog (water-extent.ts) so a high camera never sees the edge of the sea.
   const radii = waterRingRadii();
   const rings = radii.length;
-  const slices = 96;
+  // 144 slices (was 96): the pinched crests and the 12 to 20 m medium waves need a vertex every few
+  // metres round the camera too, at 100 m out as well as near.
+  const slices = 144;
   const positions: number[] = [0, 0, 0];
   const indices: number[] = [];
   for (let ring = 1; ring <= rings; ring++) {

@@ -256,7 +256,19 @@ test("the sea draws its surf from the real coast; the old flat foam ring is gone
     water.indexOf('ShadersStore["seaFragmentShader"]'),
   );
   assert.match(vertex, /p\.y = waveHeight\(p\.xz, time\) \+ wakeHere\.x;/);
-  assert.doesNotMatch(vertex, /shore|surf/i);
+  // The only thing it knows of the coast is where the islands are, to fade the visual-only
+  // horizontal motion of the waves to zero near a beach (waves.ts, HORIZONTAL_FADE): no surf,
+  // no coast field, no swash.
+  assert.doesNotMatch(vertex, /surf|shoreField|swash|coastMap/i);
+  assert.equal(
+    (vertex.match(/shore/gi) ?? []).length,
+    (vertex.match(/shoreIslands|SHORE_COUNT/g) ?? []).length,
+    "'shore' only in the island list",
+  );
+  assert.match(
+    vertex,
+    /p\.xz \+= waveDisplace\(p\.xz, time\) \* horizontalFade\(p\.xz\);/,
+  );
   const island = read("island-visual.ts");
   assert.doesNotMatch(island, /createFoam|DynamicTexture|foam/);
   for (const file of ["babylon-scene.ts", "sea-props.ts"])
