@@ -42,6 +42,8 @@ export interface OceanOptions {
   onScene?: (scene: OceanScene) => void;
   /** Runs the tug of war faster; tests on a software renderer would take minutes. */
   fightSpeed?: number;
+  /** Hold the drawing rhythm ("eco" is about 30 fps) instead of following the display; for tests. */
+  rhythm?: "full" | "eco";
   /** Replaces the server economy (tests use an in-memory one); none means no market. */
   economy?: EconomyApi;
   /** Overrides the connection patience; tests use short values. */
@@ -142,7 +144,7 @@ export function startOcean(
   let active = false;
   let frame = 0;
   let lastDraw = 0;
-  const pacer = new FramePacer();
+  const pacer = new FramePacer(options.rhythm);
   const perfLog = new URLSearchParams(window.location.search).has("perf");
   const hitches: Record<string, number | string | boolean>[] = [];
   if (perfLog)

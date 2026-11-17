@@ -56,6 +56,7 @@ async function start(page, { failNext = 0 } = {}) {
       };
       window.stop = startOcean(document.querySelector("#app"), () => {}, {
         fightSpeed: 2,
+        rhythm: "eco",
         connect,
         timing: {
           delaysMs: [300],

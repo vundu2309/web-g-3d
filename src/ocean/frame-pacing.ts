@@ -50,6 +50,14 @@ export class FramePacer {
   private retryAfter = RETRY_FIRST;
   private retried = false;
 
+  /** `locked` holds one mode for good (tests that drive the fishing fight with a bot at a fixed rhythm). */
+  private readonly locked: PaceMode | undefined;
+
+  constructor(locked?: PaceMode) {
+    this.locked = locked;
+    if (locked) this.current = locked;
+  }
+
   get mode(): PaceMode {
     return this.current;
   }
@@ -68,7 +76,7 @@ export class FramePacer {
     if (gap < interval) return false;
     const drawn = Number.isFinite(gap) ? gap : 0;
     this.lastDraw = now;
-    this.judge(now, drawn);
+    if (!this.locked) this.judge(now, drawn);
     return true;
   }
 
