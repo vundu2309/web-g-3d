@@ -1,0 +1,100 @@
+import { currentPin, pinAtmosphere } from "../ocean/sea-atmosphere";
+import type { WeatherKind } from "../ocean/atmosphere";
+
+/** The hours the test card offers (hour of the 24 minute game day, 12 is noon). */
+export const TEST_HOURS = [
+  { label: "Bình minh", hour: 6 },
+  { label: "Trưa", hour: 12 },
+  { label: "Hoàng hôn", hour: 18 },
+  { label: "Đêm", hour: 0 },
+] as const;
+
+export const TEST_WEATHER: readonly { label: string; kind: WeatherKind }[] = [
+  { label: "Nắng", kind: "clear" },
+  { label: "U ám", kind: "overcast" },
+  { label: "Mưa", kind: "rain" },
+  { label: "Sương mù", kind: "fog" },
+];
+
+/**
+ * The "Thử ngày đêm" card of the Settings screen: pins the time of day and the weather on this
+ * device only, so they can be looked at on production without waiting for the shared clock.
+ * Nothing is saved or sent: a reload, or "Theo giờ thật", goes back to the shared UTC clock.
+ */
+export function createWeatherTestSection(): HTMLElement {
+  const section = document.createElement("section");
+  section.className = "update-card weather-card";
+  section.setAttribute("aria-label", "Thử ngày đêm");
+  const head = document.createElement("div");
+  head.className = "crew-head";
+  const title = document.createElement("h3");
+  title.textContent = "Thử ngày đêm";
+  head.append(title);
+  const note = document.createElement("p");
+  note.className = "update-note";
+  note.textContent =
+    "Chỉ đổi trên máy này để xem thử. Tải lại hoặc bấm “Theo giờ thật” để về giờ chung.";
+
+  const buttons: { el: HTMLButtonElement; test: () => boolean }[] = [];
+  const chip = (label: string, test: () => boolean, apply: () => void) => {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "weather-chip";
+    el.textContent = label;
+    el.addEventListener("click", () => {
+      apply();
+      refresh();
+    });
+    buttons.push({ el, test });
+    return el;
+  };
+  const refresh = () => {
+    for (const { el, test } of buttons)
+      el.setAttribute("aria-pressed", String(test()));
+  };
+  const setPin = (patch: {
+    hour?: number | undefined;
+    weather?: WeatherKind;
+  }) => {
+    const now = currentPin() ?? {};
+    const next = { ...now, ...patch };
+    pinAtmosphere(
+      next.hour === undefined && next.weather === undefined ? undefined : next,
+    );
+  };
+
+  const hours = document.createElement("div");
+  hours.className = "weather-row";
+  hours.setAttribute("role", "group");
+  hours.setAttribute("aria-label", "Giờ trong ngày");
+  for (const { label, hour } of TEST_HOURS)
+    hours.append(
+      chip(
+        label,
+        () => currentPin()?.hour === hour,
+        () => setPin({ hour }),
+      ),
+    );
+  const sky = document.createElement("div");
+  sky.className = "weather-row";
+  sky.setAttribute("role", "group");
+  sky.setAttribute("aria-label", "Thời tiết");
+  for (const { label, kind } of TEST_WEATHER)
+    sky.append(
+      chip(
+        label,
+        () => currentPin()?.weather === kind,
+        () => setPin({ weather: kind }),
+      ),
+    );
+  const reset = chip(
+    "Theo giờ thật",
+    () => currentPin() === undefined,
+    () => pinAtmosphere(undefined),
+  );
+  reset.classList.add("is-reset");
+  reset.dataset.ocean = "weather-reset";
+  refresh();
+  section.append(head, note, hours, sky, reset);
+  return section;
+}

@@ -23,12 +23,15 @@ const browser = await chromium.launch({
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
 });
+// VIEW=844x390 sizes the picture; EXTRA="&daytime=21&weather=rain" is added to the page address.
+const VIEW = (process.env.VIEW || "1500x700").split("x").map(Number);
+const EXTRA = process.env.EXTRA || "";
 const queue = [...specs];
 const worker = async () => {
   for (let spec; (spec = queue.shift()); ) {
     const [m, i = "0", a = "0", t = "4", sp = "0"] = spec.split(",");
     const page = await browser.newPage({
-      viewport: { width: 1500, height: 700 },
+      viewport: { width: VIEW[0], height: VIEW[1] },
     });
     const errors = [];
     page.on("pageerror", (e) => errors.push(String(e)));
@@ -38,7 +41,7 @@ const worker = async () => {
         console.log("  log", spec, msg.text().slice(0, 300));
     });
     try {
-      const url = `http://localhost:${port}/tools/render-harness/preview.html?m=${m}&i=${i}&a=${a}&t=${t}&sp=${sp}&refl=${process.env.REFL ?? 1}`;
+      const url = `http://localhost:${port}/tools/render-harness/preview.html?m=${m}&i=${i}&a=${a}&t=${t}&sp=${sp}&refl=${process.env.REFL ?? 1}&w=${VIEW[0]}&h=${VIEW[1]}${EXTRA}`;
       await page.goto(url, { timeout: 240000 });
       await page.waitForFunction(() => window.__done, null, {
         timeout: 300000,

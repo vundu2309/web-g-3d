@@ -18,7 +18,7 @@ import {
   underwaterCapable,
   underwaterReach,
 } from "./clear-water.ts";
-import { SUN_DIRECTION } from "./sea-style.ts";
+import { SEA } from "./sea-atmosphere.ts";
 import type { Water } from "./water.ts";
 
 /**
@@ -77,7 +77,7 @@ function layerMaterial(scene: Scene, name: string, unlit: boolean) {
   );
   // Fins and the line are single sheets: both sides are drawn.
   material.backFaceCulling = false;
-  material.setVector3("sunDirection", SUN_DIRECTION);
+  material.setVector3("sunDirection", SEA.sunDirection);
   material.setColor3("tint", Color3.White());
   material.setFloat("unlit", unlit ? 1 : 0);
   material.setFloat("time", 0);

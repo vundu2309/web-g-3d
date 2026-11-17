@@ -22,17 +22,8 @@ import { glslReflection } from "./reflection-model.ts";
 import { CLEAR, glslUnderLayer } from "./clear-water.ts";
 import type { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
 import { createSwash } from "./swash.ts";
-import {
-  DEEP_TEAL,
-  DEEP_WATER,
-  FOG_DENSITY,
-  HORIZON,
-  SEA_FLOOR,
-  SHALLOW_WATER,
-  SUN_DIRECTION,
-  WATER_ABSORPTION,
-  ZENITH,
-} from "./sea-style.ts";
+import { SEA_FLOOR, WATER_ABSORPTION } from "./sea-style.ts";
+import { ATMOSPHERE_UNIFORMS, bindAtmosphere, SEA } from "./sea-atmosphere.ts";
 import { CREST_FOAM as CREST, CURL, SWELL_SHADING } from "./swell-look.ts";
 import { waterRingRadii } from "./water-extent.ts";
 import {
@@ -329,6 +320,20 @@ void main() {
     if (rippleNear > 0.0)
       detail += rippleLayer(q, ${glslAxis(-0.5)}, 2.3, vec2(0.05, -0.02) * time, -time * 2.3) * 0.04 * rippleNear;
     detail *= mix(0.15, 1.5, choppy);
+    // Rain: drops land at random places and start rings that spread and die (a look only: the
+    // mesh the boats float on is untouched).
+    if (weather.z > 0.02 && rippleNear > 0.0) {
+      vec2 rp = vWorld.xz * 1.7;
+      vec2 rc = floor(rp);
+      vec2 rf = fract(rp) - 0.5;
+      float rh = hash(rc + 3.7);
+      float age = fract(time * 1.1 + rh * 7.0);
+      vec2 off = (vec2(hash(rc + 11.3), hash(rc + 23.9)) - 0.5) * 0.5;
+      vec2 rv = rf - off;
+      float rr = length(rv);
+      float ring = exp(-pow((rr - age * 0.42) / 0.045, 2.0)) * (1.0 - age) * step(rh, weather.z * 0.85);
+      detail += rv / max(rr, 0.01) * ring * 0.34 * rippleNear;
+    }
   }
   // ----- The shore -----
   // The real coast (shore.ts): metres to the nearest beach and the beach's outward normal.
@@ -441,7 +446,7 @@ void main() {
   float nl = max(dot(vec3(0.0, 1.0, 0.0), sunDir), 0.0);
   float shade = boatShadow(vWorld.xz, sunDir);
   float sunlit = 1.0 - ${SHADOW.sun.toFixed(2)} * shade;
-  vec3 incident = skyIrradiance * 0.55 + sunColor() * SUN_RADIANCE * nl * 0.55 * sunlit;
+  vec3 incident = skyIrradiance * 0.55 + sunColor() * SUN_RADIANCE * nl * 0.55 * sunlit + nightGlow;
   vec3 refracted = refract(-view, n, 0.75);
   // The water is a little murky (1.7 x the clear-water path), so the sand fades to turquoise.
   float path = depth * 1.7 * (1.0 + 1.0 / max(-refracted.y, 0.25));
@@ -498,6 +503,16 @@ void main() {
   float fSun = f0 + (1.0 - f0) * pow(1.0 - vh, 5.0);
   float specular = distributionGGX(nh, max(alpha, 0.0009)) * visibilitySmith(nlSun, nv, max(alpha, 0.03)) * fSun * nlSun;
   color += sunColor() * SUN_RADIANCE * min(specular, 40.0) * sunlit;
+  // The moon's glitter path: the same highlight from the moon's direction (black by day).
+  if (moonLight.b > 0.002) {
+    vec3 moonDir = normalize(moonDirection);
+    vec3 moonHalf = normalize(view + moonDir);
+    float moonNl = max(dot(n, moonDir), 0.0);
+    float moonVh = max(dot(view, moonHalf), 0.0);
+    float moonF = f0 + (1.0 - f0) * pow(1.0 - moonVh, 5.0);
+    float moonSpec = distributionGGX(max(dot(n, moonHalf), 0.0), max(alpha, 0.0009)) * visibilitySmith(moonNl, nv, max(alpha, 0.03)) * moonF * moonNl;
+    color += moonLight * SUN_RADIANCE * min(moonSpec, 40.0);
+  }
   // Foam: white caps on steep crests and the surf, broken up into lace. It is a rough white
   // surface, so it takes the light that falls on it (sun and sky), not the mirror.
   float cap = smoothstep(0.46, 0.92, (vHeight * 0.9 + length(slope) * 0.9) / ${SEA_GAIN.toFixed(3)}) * (1.0 - nearShore * 0.7);
@@ -518,7 +533,7 @@ void main() {
     float need = 1.0 - surfFoam;
     float surf = max(mix(smoothstep(need - 0.08, need + 0.08, lace) * min(1.0, surfFoam * 3.0), surfFoam * 0.85, laceFar), surfFoam * 0.3);
     foam = clamp(max(foam, surf), 0.0, 1.0);
-    vec3 foamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * max(nlSun, nl * 0.6) * 0.3 * sunlit);
+    vec3 foamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * max(nlSun, nl * 0.6) * 0.3 * sunlit + nightGlow + moonLight * SUN_RADIANCE * max(normalize(moonDirection).y, 0.0) * 0.3);
     color = mix(color, foamColor, foam);
   }
   // Foam streaks on the tallest crests, only when the sea state is high (none on a calm sea): the
@@ -531,7 +546,7 @@ void main() {
       float along = noise(vec2(dot(q, WIND) * 0.6 - time * 0.35, dot(q, across) * 0.1));
       float lace = noise(q * 3.1 + vec2(time * 0.2, -time * 0.15)) * 0.6 + noise(q * 7.3 - time * 0.3) * 0.4;
       float crestFoam = crestTop * smoothstep(0.5, 0.62, along * 0.6 + lace * 0.4) * ${CREST.strength.toFixed(2)} * crestSea;
-      vec3 crestFoamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * max(nlSun, nl * 0.6) * 0.3 * sunlit);
+      vec3 crestFoamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * max(nlSun, nl * 0.6) * 0.3 * sunlit + nightGlow + moonLight * SUN_RADIANCE * max(normalize(moonDirection).y, 0.0) * 0.3);
       color = mix(color, crestFoamColor, crestFoam);
       // The look of a curl (a painted lip, not geometry: the mesh must never fold). Just ahead of
       // a tall crest the front face is darker, as if the lip overhung it; the crest line itself
@@ -549,7 +564,7 @@ void main() {
   }
   // The white water at the hulls (hullWater): a rough surface like the other foam.
   if (hull.x > 0.01) {
-    vec3 hullFoamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * max(nlSun, nl * 0.6) * 0.3 * sunlit);
+    vec3 hullFoamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * max(nlSun, nl * 0.6) * 0.3 * sunlit + nightGlow + moonLight * SUN_RADIANCE * max(normalize(moonDirection).y, 0.0) * 0.3);
     color = mix(color, hullFoamColor, hull.x * (1.0 - smoothstep(120.0, 260.0, dist)));
   }
   // Aerial perspective: far water takes the colour of the sky toward the horizon in its own
@@ -625,9 +640,7 @@ export function createWater(scene: Scene): Water {
         "time",
         "anchor",
         "cameraPosition",
-        "sunDirection",
-        "horizon",
-        "zenith",
+        ...ATMOSPHERE_UNIFORMS,
         "deep",
         "shallow",
         "deepTeal",
@@ -644,14 +657,12 @@ export function createWater(scene: Scene): Water {
     },
   );
   material.backFaceCulling = false;
-  material.setVector3("sunDirection", SUN_DIRECTION);
-  material.setColor3("horizon", HORIZON);
-  material.setColor3("zenith", ZENITH);
-  material.setColor3("deep", DEEP_WATER);
-  material.setColor3("shallow", SHALLOW_WATER);
-  material.setColor3("deepTeal", DEEP_TEAL);
+  bindAtmosphere(material);
+  material.setColor3("deep", SEA.deep);
+  material.setColor3("shallow", SEA.shallow);
+  material.setColor3("deepTeal", SEA.deepTeal);
   material.setColor3("sand", SEA_FLOOR);
-  material.setFloat("fogDensity", FOG_DENSITY);
+  material.setFloat("fogDensity", SEA.fogDensity);
   material.setArray4("wake", new Array(WAKE_MAX * 4).fill(0));
   material.setArray4("boats", new Array(BOAT_MAX * 4).fill(0));
   const ripples = new RawTexture(
@@ -730,6 +741,7 @@ export function createWater(scene: Scene): Water {
       swash.update(time);
       if (boats) material.setArray4("boats", packBoats(boats));
       material.setFloat("time", time);
+      material.setFloat("fogDensity", SEA.fogDensity);
       if (reflection) {
         const size = reflection.getSize();
         material.setVector2(

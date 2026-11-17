@@ -8,12 +8,8 @@ import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import type { Scene } from "@babylonjs/core/scene";
 import { LINE_WIDTH } from "./ribbon.ts";
 import { ribbonPositions, type Point3 } from "./rope.ts";
-import {
-  DEEP_TEAL,
-  DEEP_WATER,
-  SHALLOW_WATER,
-  SUN_DIRECTION,
-} from "./sea-style.ts";
+import { DEEP_TEAL, DEEP_WATER, SHALLOW_WATER } from "./sea-style.ts";
+import { SEA } from "./sea-atmosphere.ts";
 import {
   ALPHA,
   LINE_VISIBLE,
@@ -69,7 +65,7 @@ export class UnderwaterSkin {
     );
     material.backFaceCulling = false;
     material.forceDepthWrite = true;
-    material.setVector3("sunDirection", SUN_DIRECTION);
+    material.setVector3("sunDirection", SEA.sunDirection);
     material.setColor3("murk", MURK_DEEP);
     material.setColor3("tint", Color3.White());
     material.setFloat("shade", shade);
@@ -96,6 +92,8 @@ export class UnderwaterSkin {
     turquoise = 0,
   ) {
     Color3.LerpToRef(MURK_DEEP, MURK_SHALLOW, turquoise, this.murk);
+    // Night and heavy weather dim what the water hides (SEA.murk is 1 at midday, clear).
+    this.murk.scaleInPlace(SEA.murk);
     this.material.setColor3("murk", this.murk);
     this.material.setFloat("time", time);
     this.material.setFloat("surface", surface);

@@ -3,17 +3,28 @@
  * always agree: an analytic sky (colours worked out in linear light, a warm glow on the
  * horizon toward the sun, a forward-scattering halo round it, a real sun disc far brighter
  * than the sky), the sun's radiance, a filmic tone curve and the encoding to the screen.
- * The caller declares the uniforms `horizon`, `zenith` (display colours, converted to linear
- * here) and `sunDirection` (unit, pointing at the sun) before including this.
+ * The look follows the time of day and the weather (atmosphere.ts): this declares the uniforms
+ * of the shared atmosphere itself (`ATMOSPHERE_UNIFORMS` in sea-atmosphere.ts lists them and
+ * `bindAtmosphere` sets them): `horizon`, `zenith` (display colours, converted to linear here),
+ * `sunDirection` (unit, toward the sun), `sunLight` (the sun's colour times its strength: dark
+ * below the horizon, dim under cloud), `moonDirection`, `moonLight`, `nightGlow` (light added at
+ * night), `grade` (x exposure, y daylight, z stars) and `weather` (x cloud cover, y gloom, z rain).
+ * At midday, clear, the values are the ones the sea always had.
  */
 export const SUN_RADIANCE = 4.2;
+/** Exposure by day; the night raises it (`grade.x`) the way an eye adapts. */
 export const EXPOSURE = 1.0;
 
 export const glslSkyModel = () => `
+uniform vec3 sunLight;
+uniform vec3 moonDirection;
+uniform vec3 moonLight;
+uniform vec3 nightGlow;
+uniform vec3 grade;
+uniform vec4 weather;
 const float SUN_RADIANCE = ${SUN_RADIANCE.toFixed(2)};
-const float EXPOSURE = ${EXPOSURE.toFixed(2)};
 vec3 toLinear(vec3 c) { return pow(c, vec3(2.2)); }
-vec3 sunColor() { return vec3(1.0, 0.82, 0.58); }
+vec3 sunColor() { return sunLight; }
 /** Sky radiance looking along d; the sun disc itself is added only when asked. */
 vec3 skyRadiance(vec3 d, bool withSun) {
   vec3 sunDir = normalize(sunDirection);
@@ -39,6 +50,6 @@ vec3 aces(vec3 x) {
 }
 /** Linear scene light to the colour shown on screen. */
 vec3 toScreen(vec3 linear) {
-  return pow(aces(linear * EXPOSURE), vec3(1.0 / 2.2));
+  return pow(aces(linear * grade.x), vec3(1.0 / 2.2));
 }
 `;

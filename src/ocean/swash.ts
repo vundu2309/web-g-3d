@@ -7,14 +7,8 @@ import type { Scene } from "@babylonjs/core/scene";
 import { islands } from "./model.ts";
 import { drawnBed } from "./island-shape.ts";
 import { glslSkyModel } from "./sky-model.ts";
-import {
-  HORIZON,
-  SEA_FLOOR,
-  SHALLOW_WATER,
-  SUN_DIRECTION,
-  WATER_ABSORPTION,
-  ZENITH,
-} from "./sea-style.ts";
+import { SEA_FLOOR, WATER_ABSORPTION } from "./sea-style.ts";
+import { ATMOSPHERE_UNIFORMS, bindAtmosphere, SEA } from "./sea-atmosphere.ts";
 import {
   SHORE_ISLANDS,
   coastAt,
@@ -150,7 +144,7 @@ void main() {
   vec3 sunDir = normalize(sunDirection);
   vec3 skyIrradiance = mix(toLinear(horizon), toLinear(zenith), 0.6);
   float nl = max(sunDir.y, 0.0);
-  vec3 incident = skyIrradiance * 0.55 + sunColor() * SUN_RADIANCE * nl * 0.55;
+  vec3 incident = skyIrradiance * 0.55 + sunColor() * SUN_RADIANCE * nl * 0.55 + nightGlow;
   // Layered front to back (premultiplied): wet sand, then the film, then the foam.
   float alpha = wet * 0.42;
   vec3 layered = toLinear(sand) * incident * 0.18 * alpha;
@@ -163,7 +157,7 @@ void main() {
   float filmAlpha = film * mix(0.2, 0.45, smoothstep(0.0, 1.8, under)) * (1.0 - smoothstep(-0.1, 0.6, vShore));
   layered = filmColor * filmAlpha + layered * (1.0 - filmAlpha);
   alpha = filmAlpha + alpha * (1.0 - filmAlpha);
-  vec3 foamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * nl * 0.3);
+  vec3 foamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * nl * 0.3 + nightGlow + moonLight * SUN_RADIANCE * max(normalize(moonDirection).y, 0.0) * 0.3);
   layered = foamColor * foam + layered * (1.0 - foam);
   alpha = foam + alpha * (1.0 - foam);
   vec3 color = layered / max(alpha, 1.0e-3);
@@ -191,9 +185,7 @@ export function createSwash(scene: Scene): Swash {
         "worldViewProjection",
         "time",
         "cameraPosition",
-        "sunDirection",
-        "horizon",
-        "zenith",
+        ...ATMOSPHERE_UNIFORMS,
         "shallow",
         "sand",
       ],
@@ -205,10 +197,8 @@ export function createSwash(scene: Scene): Swash {
   material.alphaMode = Constants.ALPHA_COMBINE;
   // Drawn over the sand it lies on, never fighting it for depth.
   material.zOffset = -2;
-  material.setVector3("sunDirection", SUN_DIRECTION);
-  material.setColor3("horizon", HORIZON);
-  material.setColor3("zenith", ZENITH);
-  material.setColor3("shallow", SHALLOW_WATER);
+  bindAtmosphere(material);
+  material.setColor3("shallow", SEA.shallow);
   material.setColor3("sand", SEA_FLOOR);
   const meshes = islands.map((_, index) => {
     const sheet = swashSheet(index);
