@@ -308,8 +308,8 @@ function frameAt(s: number): Frame {
 }
 
 /** The sea's own colours (sea-style.ts), which the weather greys. */
-const DEEP: Rgb = [0, 0.26, 0.52];
-const TEAL: Rgb = [0, 0.4, 0.5];
+const DEEP: Rgb = [0.03, 0.42, 0.68];
+const TEAL: Rgb = [0.03, 0.55, 0.62];
 const SHALLOW: Rgb = [0.08, 0.72, 0.72];
 /** The fog the sea always had (sea-style.ts FOG_DENSITY). */
 const FOG_BASE = 0.0011;
