@@ -142,6 +142,16 @@ export class BowWaveMesh {
   }
 
   /**
+   * Compiles both materials now. The meshes stay hidden until the boat is fast, so without this the
+   * first fast stretch compiled the shaders in the middle of a frame (a stall of 0.3 to 0.5 s in
+   * software rendering, measured: it happened on the first acceleration and not on the second).
+   */
+  warm(): void {
+    for (const mesh of [this.crest, this.spray])
+      void mesh.material?.forceCompilationAsync(mesh).catch(() => undefined);
+  }
+
+  /**
    * Lays the bow wave for a boat at (x, z) heading `heading` (0 is -Z, a quarter turn is +X)
    * doing `speed` m/s, at sea time `now`.
    */

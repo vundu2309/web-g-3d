@@ -354,6 +354,27 @@ test("the soft wall keeps the boat inside the sea the server accepts", () => {
   assert.ok(farthest < 186, `reached ${farthest.toFixed(1)} m of a 180 m sea`);
 });
 
+test("the edge of the sea slows a boat at full speed without a jolt or a rebound", () => {
+  const w = world({ start: { x: 100, z: 0, heading: Math.PI / 2 } });
+  let previous = null;
+  let slowest = Infinity;
+  let hardest = 0;
+  w.run(
+    40,
+    () => ({ throttle: 1 }),
+    (s) => {
+      slowest = Math.min(slowest, s.forwardSpeed);
+      if (previous !== null)
+        hardest = Math.max(hardest, (previous - s.forwardSpeed) / DT);
+      previous = s.forwardSpeed;
+    },
+  );
+  w.dispose();
+  // An undamped wall stopped the boat at 26 m/s^2 and threw it back at 9 m/s.
+  assert.ok(hardest < 14, `slowed by ${hardest.toFixed(1)} m/s^2`);
+  assert.ok(slowest > -2, `rebounded at ${slowest.toFixed(1)} m/s`);
+});
+
 test("the start heading points the bow where the movement model says it does", () => {
   for (const heading of [0, Math.PI / 2, -Math.PI / 2, Math.PI * 0.75]) {
     const w = world({ start: { x: 0, z: 0, heading } });

@@ -153,6 +153,7 @@ export class WakeMesh {
     this.mesh.isPickable = false;
     this.mesh.alwaysSelectAsActiveMesh = true;
     this.bow = new BowWaveMesh(scene, material(scene));
+    this.bow.warm();
   }
 
   /**

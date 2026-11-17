@@ -75,6 +75,11 @@ export interface BoatPhysicsOptions {
   start?: { x: number; z: number; heading: number };
 }
 
+/** The damped zone before the edge of the sea (m), its spring (N/m) and damping (N s/m). */
+const EDGE_ZONE = 40;
+const EDGE_W = 0.4;
+const EDGE_K = 900 * EDGE_W * EDGE_W;
+const EDGE_C = 2 * 900 * EDGE_W;
 export const HULL = { width: 2.8, height: 1.4, length: 7.4, mass: 900 };
 const DRAFT = 0.45;
 const BOTTOM = -HULL.height / 2;
@@ -316,16 +321,26 @@ export function createBoatPhysics(
       clamp(input.steer, -1, 1) * clamp(speed / 8, 0, 1) * wet * BANK * dt;
     spin.set(forward.x * lean, 0, forward.z * lean);
     body.applyAngularImpulse(spin);
-    // Soft wall keeps the boat inside the sea the server validates.
+    // The edge of the sea: a damped zone that eases the boat to a stop without a rebound, then a
+    // hard backstop at the limit the server validates (an undamped wall alone stopped a boat at
+    // full speed in under a second and threw it back at 9 m/s).
     const px = mesh.position.x;
     const pz = mesh.position.z;
     const limit = SEA_BOUND - 4;
-    const wall = (v: number) =>
-      Math.abs(v) > limit
-        ? -Math.sign(v) * (Math.abs(v) - limit) * 6000 * dt
-        : 0;
-    if (wall(px) || wall(pz)) {
-      force.set(wall(px), 0, wall(pz));
+    body.getLinearVelocityToRef(velocity);
+    const edge = (p: number, v: number) => {
+      const over = Math.abs(p) - (limit - EDGE_ZONE);
+      if (over <= 0) return 0;
+      const out = v * Math.sign(p);
+      // Spring toward the sea, plus damping only while still heading out.
+      const push = EDGE_K * over + (out > 0 ? EDGE_C * out : 0);
+      const hard = Math.abs(p) > limit ? (Math.abs(p) - limit) * 6000 : 0;
+      return -Math.sign(p) * (push + hard) * dt;
+    };
+    const ex = edge(px, velocity.x);
+    const ez = edge(pz, velocity.z);
+    if (ex || ez) {
+      force.set(ex, 0, ez);
       body.applyImpulse(force, mesh.position);
     }
   };

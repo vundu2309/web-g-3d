@@ -9,6 +9,8 @@ import { HubError } from "../platform/errors";
 import type { connectOcean } from "../platform/ocean";
 import { OceanScene } from "../ocean/babylon-scene";
 import { createStick, type StickInput } from "../ocean/stick";
+import { createBoatControl } from "../ocean/boat-control";
+import { FramePacer } from "../ocean/frame-pacing";
 import { bindInputLayer, type InputTarget } from "../ocean/input-layer";
 import { RemoteTracks, ServerClock } from "../ocean/remote";
 import { stockTotal, type Inventory } from "../ocean/fishing";
@@ -140,6 +142,15 @@ export function startOcean(
   let active = false;
   let frame = 0;
   let lastDraw = 0;
+  const pacer = new FramePacer();
+  const perfLog = new URLSearchParams(window.location.search).has("perf");
+  const hitches: Record<string, number | string | boolean>[] = [];
+  if (perfLog)
+    (window as unknown as { __seaHitches: unknown }).__seaHitches = hitches;
+  let lastControl = 0;
+  const boatControl = createBoatControl();
+  const noKeys = { left: false, right: false, up: false, down: false };
+  const noStick = { steer: 0, throttle: 0 };
   let lastPublish = 0;
   let lastPose = "";
   let clockOffset = 0;
@@ -473,16 +484,30 @@ export function startOcean(
   }
   function animate(now: number) {
     if (disposed) return;
-    if (!active || document.hidden || dialog.open) scene?.setInput(0, 0);
-    if (active && !document.hidden && !dialog.open) {
+    const frameStart = lastControl;
+    lastControl = now;
+    const playable = active && !document.hidden && !dialog.open;
+    if (!playable) {
+      boatControl.update(0, noKeys, noStick, false, false);
+      scene?.setInput(0, 0);
+    }
+    if (playable) {
       fishingUi.tick(now);
-      // The stick is analog; keys are full deflection. The stick wins while held.
-      const steer =
-        stick.steer || Number(keys.has("right")) - Number(keys.has("left"));
-      const throttle =
-        stick.throttle || Number(keys.has("up")) - Number(keys.has("down"));
-      // While casting, the boat gets no thrust and drag brings it to rest.
-      scene?.setInput(pose.fishing ? 0 : steer, pose.fishing ? 0 : throttle);
+      // Stick, keys and the fishing pause become one command in boat-control.ts. While casting,
+      // the boat gets no thrust and drag brings it to rest.
+      const command = boatControl.update(
+        (now - frameStart) / 1000,
+        {
+          left: keys.has("left"),
+          right: keys.has("right"),
+          up: keys.has("up"),
+          down: keys.has("down"),
+        },
+        stick,
+        true,
+        pose.fishing,
+      );
+      scene?.setInput(command.steer, command.throttle);
       const state = scene?.selfState();
       if (state)
         pose = {
@@ -520,7 +545,7 @@ export function startOcean(
         : "Chưa kết nối";
     if (count.textContent !== text) count.textContent = text;
     // Draw the sea even while connecting or offline; boats appear once connected.
-    if (scene && now - lastDraw >= 33) {
+    if (scene && pacer.frame(now)) {
       const shown = drawnBoats(visible, now);
       // The minimap is redrawn ten times a second, not every frame.
       if (now - lastMap >= 100) {
@@ -531,6 +556,7 @@ export function startOcean(
           now / 1000,
         );
       }
+      const began = performance.now();
       scene.update(
         shown,
         connection?.uid ?? "",
@@ -538,6 +564,27 @@ export function startOcean(
         (now - lastDraw) / 1000,
         reduced,
       );
+      if (perfLog) {
+        // With ?perf in the address: every long frame (the gap since the last drawn frame, and how
+        // long the update itself took) goes to window.__seaHitches, for a bug report.
+        const gap = now - lastDraw;
+        if (lastDraw > 0 && gap > 80) {
+          const stats = scene.stats();
+          const self = scene.selfState();
+          hitches.push({
+            at: Math.round(now),
+            gapMs: Math.round(gap),
+            updateMs: Math.round(performance.now() - began),
+            mode: pacer.mode,
+            speed: self
+              ? +Math.hypot(self.forwardSpeed, self.sideSpeed).toFixed(1)
+              : 0,
+            renderScale: +stats.renderScale.toFixed(2),
+            clearWater: stats.clearWater,
+          });
+          if (hitches.length > 60) hitches.shift();
+        }
+      }
       lastDraw = now;
     }
     frame = requestAnimationFrame(animate);
