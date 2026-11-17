@@ -2,18 +2,16 @@ import type { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { Scene } from "@babylonjs/core/scene";
 import { Geo, rgbOf } from "./geo.ts";
-import { createIsland } from "./island-visual.ts";
 
-import { BACKDROP, BUOYS, GULLS, gullPose } from "./sea-layout.ts";
+import { BUOYS, GULLS, gullPose } from "./sea-layout.ts";
 import { waveGradient, waveHeight } from "./waves.ts";
 import { PAL } from "./art/colors.ts";
 import { Parts, SIDES } from "./art/shapes.ts";
 import { useSolid } from "./art/materials.ts";
 
 /**
- * The extra life of the sea: bobbing channel buoys, circling gulls and the backdrop
- * islands beyond the edge of the sea. Buoys and gulls are instances of two small meshes,
- * so they cost two draw calls; the backdrop islands are coarse and only have palms.
+ * The extra life of the sea: bobbing channel buoys and circling gulls. Buoys and gulls are
+ * instances of two small meshes, so they cost two draw calls.
  */
 function buoyTemplate(scene: Scene, color: number) {
   const parts = new Parts(scene);
@@ -88,7 +86,6 @@ export class SeaProps {
   private readonly buoys: InstancedMesh[] = [];
   private readonly gulls: InstancedMesh[] = [];
   private readonly templates: Mesh[] = [];
-  private readonly extra: Mesh[] = [];
 
   constructor(scene: Scene) {
     const red = buoyTemplate(scene, PAL.paint.red);
@@ -107,16 +104,6 @@ export class SeaProps {
       const instance = gull.createInstance(`gull-${i}`);
       instance.isPickable = false;
       this.gulls.push(instance);
-    });
-    BACKDROP.forEach((island) => {
-      const visual = createIsland(scene, {
-        seed: island.seed,
-        radius: island.radius,
-        distant: true,
-      });
-      visual.mesh.position.set(island.x, 0, island.z);
-      visual.mesh.freezeWorldMatrix();
-      this.extra.push(visual.mesh);
     });
     this.update(0);
   }
@@ -144,6 +131,6 @@ export class SeaProps {
 
   dispose() {
     for (const mesh of [...this.buoys, ...this.gulls]) mesh.dispose();
-    for (const mesh of [...this.templates, ...this.extra]) mesh.dispose();
+    for (const mesh of this.templates) mesh.dispose();
   }
 }

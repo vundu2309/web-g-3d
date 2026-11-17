@@ -1,5 +1,5 @@
 import type { CreatureKind, Look } from "./creatures.ts";
-import { SEA_BOUND, islandCollisionRadius, islands } from "./model.ts";
+import { HARBOR, SEA_BOUND, islandCollisionRadius, islands } from "./model.ts";
 import { coastDistance } from "./shore.ts";
 import {
   Fight,
@@ -326,11 +326,15 @@ export const SHORE_RANGE = 30;
 export const DEEP_RANGE = 128;
 export function zoneAt(x: number, z: number): Zone {
   const nearest = coastDistance(x, z);
-  return nearest < SHORE_RANGE
-    ? "shore"
-    : nearest > DEEP_RANGE
-      ? "deep"
-      : "open";
+  if (nearest < SHORE_RANGE) return "shore";
+  // The harbor lies far from every island now, but the water beside it stays open sea: the
+  // deep sea starts DEEP_RANGE metres beyond the harbor as well as beyond every beach.
+  if (
+    nearest > DEEP_RANGE &&
+    Math.hypot(x - HARBOR.x, z - HARBOR.z) > DEEP_RANGE
+  )
+    return "deep";
+  return "open";
 }
 
 export interface Catch {

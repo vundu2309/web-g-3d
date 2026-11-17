@@ -1,4 +1,4 @@
-import { DRY_SAND, random } from "./island-shape.ts";
+import { DRY_SAND, fbm, random } from "./island-shape.ts";
 
 /**
  * Where the Blender-made island props stand (public/models: palm-1..3, rock-1..3, hut; built by
@@ -51,7 +51,10 @@ export interface IslandLayout {
   palms: Spot[];
   rocks: Spot[];
   bushes: Spot[];
+  /** The first hut (of the first village on a big island). */
   hut?: HutSpot;
+  /** Every hut: one on a small island, villages of three to five on a big one. */
+  huts: HutSpot[];
 }
 
 /** The yaw that turns the model's local −Z (the hut's door) toward (dx, dz). */
@@ -85,8 +88,8 @@ export const HUT = {
 };
 /** Rough footprint radius of each rock model at scale 1 (m). */
 export const ROCK_RADIUS = [1.25, 0.8, 1.8] as const;
-/** How far beyond the island radius boats collide (model.ts islandCollisionRadius). */
-const RING = 1.08;
+/** How far beyond the island radius boats collide (model.ts islandCollisionRadius: 4 m). */
+const RING_OUT = 4;
 /** Half the widest span of each bush model at scale 1 (m; checked against the GLBs by the tests). */
 export const BUSH_RADIUS = [0.75, 0.96, 0.58] as const;
 
@@ -256,7 +259,7 @@ export function placeRocks(
 ): Spot[] {
   const { height, radius } = input;
   const rocks: Spot[] = [];
-  const ring = radius * RING - 0.4;
+  const ring = radius + RING_OUT - 0.4;
   const tryRock = (
     x: number,
     z: number,
@@ -419,11 +422,238 @@ export function placeBushes(
   return bushes;
 }
 
+/** Islands of at least this radius (m) get villages, forest and outcrops (`layoutBigIsland`). */
+export const BIG_ISLAND = 60;
+
+/** How wooded the ground is at (x, z): 0 is open meadow, 1 is dense forest. Slow patches. */
+export const forestAt = (x: number, z: number, seed: number) =>
+  Math.min(
+    1,
+    Math.max(0, (fbm(x * 0.016 + 7, z * 0.016 + 7, seed + 99) - 0.38) * 3.5),
+  );
+
+/** A square-bucket index of discs, to ask "is there room here" without scanning every prop. */
+class Discs {
+  private readonly cells = new Map<number, [number, number, number][]>();
+  private readonly cell: number;
+  constructor(cell: number) {
+    this.cell = cell;
+  }
+  private key(i: number, j: number) {
+    return (i * 73856093) ^ (j * 19349663);
+  }
+  add(x: number, z: number, r: number) {
+    const k = this.key(Math.floor(x / this.cell), Math.floor(z / this.cell));
+    const list = this.cells.get(k);
+    if (list) list.push([x, z, r]);
+    else this.cells.set(k, [[x, z, r]]);
+  }
+  free(x: number, z: number, r: number) {
+    const ci = Math.floor(x / this.cell);
+    const cj = Math.floor(z / this.cell);
+    const reach = Math.ceil((r + 6) / this.cell);
+    for (let i = ci - reach; i <= ci + reach; i++)
+      for (let j = cj - reach; j <= cj + reach; j++)
+        for (const [px, pz, pr] of this.cells.get(this.key(i, j)) ?? [])
+          if (Math.hypot(px - x, pz - z) < r + pr) return false;
+    return true;
+  }
+}
+
+const circle = (x: number, z: number, r: number): KeepOut => ({
+  ax: x,
+  az: z,
+  bx: x,
+  bz: z,
+  r,
+});
+
+/**
+ * A hut at a chosen spot under the same rules as `placeHut`'s best spot: on dry ground behind the
+ * sand, the deck clearing all the ground under it, the posts on near-level ground, its door
+ * turned out to sea.
+ */
+function hutAt(
+  input: LayoutInput,
+  keepOut: readonly KeepOut[],
+  x: number,
+  z: number,
+  angle: number,
+): HutSpot | undefined {
+  const { height } = input;
+  const yaw = yawFacing(Math.cos(angle), Math.sin(angle));
+  const at = ([lx, lz]: readonly [number, number]) => {
+    const [wx, wz] = turn(lx, lz, yaw);
+    return height(x + wx, z + wz);
+  };
+  const posts = HUT.posts.map(at);
+  const ladder = at(HUT.ladder);
+  if (ladder < 0.9 || Math.min(...posts) < 0.9) return undefined;
+  if (!clearOf(keepOut, x, z, HUT.reach + 0.6)) return undefined;
+  const origin = Math.min(Math.min(...posts) + HUT.postDepth - 0.05, ladder);
+  const under = Math.max(
+    ...posts,
+    height(x, z),
+    at([0, -1.2]),
+    at([0, 1.2]),
+    at([-1.5, 0]),
+    at([1.5, 0]),
+  );
+  if (origin + HUT.deck < under + 0.1) return undefined;
+  if (Math.max(...posts, ladder) - Math.min(...posts, ladder) > 1.0)
+    return undefined;
+  return { variant: 0, x, y: origin - HUT.postDepth, z, yaw, scale: 1, angle };
+}
+
+/**
+ * A big island (radius from `BIG_ISLAND`): one to three villages of three to five stilt huts
+ * (the first hut of each is `placeHut`'s best spot, the rest cluster round it), palms along the
+ * beach and then in dense stands inland in patches of forest (`forestAt`), boulder outcrops on
+ * the steep ground and a few clusters on the beach, and bushes in and at the edge of the forest.
+ * Counts grow with the island's area but stop at a phone-sized budget. Seeded.
+ */
+function layoutBigIsland(input: LayoutInput): IslandLayout {
+  const { seed, radius, peak, height, coast } = input;
+  const rng = random(seed ^ 0x77aa);
+  const keepOut: KeepOut[] = [...input.keepOut];
+  const discs = new Discs(8);
+  const area = (radius / 36) ** 2;
+
+  // Villages.
+  const huts: HutSpot[] = [];
+  const villages = Math.max(1, Math.min(3, Math.round(radius / 85)));
+  for (let v = 0; v < villages; v++) {
+    const anchor = placeHut({ ...input, keepOut });
+    if (!anchor) break;
+    const village = [anchor];
+    keepOut.push(circle(anchor.x, anchor.z, HUT.reach));
+    const want = 3 + Math.floor(rng() * 3);
+    for (let t = 0; t < 400 && village.length < want; t++) {
+      const a = rng() * Math.PI * 2;
+      const d = 6 + rng() * 15;
+      const x = anchor.x + Math.cos(a) * d;
+      const z = anchor.z + Math.sin(a) * d;
+      if (inland(input, x, z) < DRY_SAND + 2) continue;
+      const hut = hutAt(input, keepOut, x, z, Math.atan2(z, x));
+      if (hut) {
+        village.push(hut);
+        keepOut.push(circle(hut.x, hut.z, HUT.reach));
+      }
+    }
+    huts.push(...village);
+    // The village's square stays clear of the forest.
+    keepOut.push(circle(anchor.x, anchor.z, 26));
+  }
+  for (const h of huts) discs.add(h.x, h.z, 3.2);
+
+  // Palms: the beach rule first (a few passes), then forest stands inland.
+  const palms: Spot[] = [];
+  const passes = Math.max(1, Math.min(4, Math.round(area * 0.1)));
+  for (let p = 0; p < passes; p++)
+    for (const spot of placePalms(
+      { ...input, keepOut },
+      random(seed ^ (0x1000 + p)),
+      keepOut,
+    )) {
+      palms.push(spot);
+      discs.add(spot.x, spot.z, 1.7);
+      keepOut.push(circle(spot.x, spot.z, 1.6));
+    }
+  const tries = Math.min(40000, Math.round(radius * radius * 0.9));
+  const forestCap = Math.round(Math.min(160, area * 7));
+  let forest = 0;
+  for (let t = 0; t < tries && forest < forestCap; t++) {
+    const a = rng() * Math.PI * 2;
+    const r = Math.sqrt(rng()) * radius;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    if (coast(Math.atan2(z, x)) - r < DRY_SAND + 3) continue;
+    const y = height(x, z);
+    if (y < 1.1 || y > peak * 0.85) continue;
+    if (rng() > forestAt(x, z, seed) ** 1.2 * 0.95) continue;
+    if (slopeAt(height, x, z) > 0.45) continue;
+    if (!clearOf(keepOut, x, z, 1.6) || !discs.free(x, z, 1.7)) continue;
+    const scale = 0.8 + rng() * 0.5;
+    palms.push({
+      variant: Math.floor(rng() * 3) % 3,
+      x,
+      y: lowestUnder(height, x, z, 0.4 * scale) - 0.18 * scale,
+      z,
+      yaw: rng() * Math.PI * 2,
+      scale,
+    });
+    discs.add(x, z, 1.7);
+    forest++;
+  }
+
+  // Outcrops on steep ground, and a few single rocks on the beach.
+  const rocks: Spot[] = [];
+  const rockCap = Math.round(Math.min(100, area * 2.5));
+  for (let t = 0; t < tries * 2 && rocks.length < rockCap; t++) {
+    const a = rng() * Math.PI * 2;
+    const r = Math.sqrt(rng()) * radius;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    const d = coast(Math.atan2(z, x)) - r;
+    if (d < 1) continue;
+    const y = height(x, z);
+    const slope = slopeAt(height, x, z);
+    const steep = slope > 0.3 && y > 2;
+    if (!steep && !(d < DRY_SAND && rng() < 0.04)) continue;
+    if (steep && rng() > Math.min(1, slope * 2)) continue;
+    const variant = Math.floor(rng() * 3) % 3;
+    const scale = steep ? 1.4 + rng() * 2.2 : 0.7 + rng() * 0.9;
+    const reach = ROCK_RADIUS[variant]! * scale * 0.8;
+    if (!clearOf(keepOut, x, z, reach) || !discs.free(x, z, reach)) continue;
+    rocks.push({
+      variant,
+      x,
+      y: lowestUnder(height, x, z, reach) - 0.25 * scale,
+      z,
+      yaw: rng() * Math.PI * 2,
+      scale,
+    });
+    discs.add(x, z, reach);
+  }
+
+  // Undergrowth: more bushes at the forest's edge than in its depth or in the open.
+  const bushes: Spot[] = [];
+  const bushCap = Math.round(Math.min(180, area * 7));
+  for (let t = 0; t < tries * 2 && bushes.length < bushCap; t++) {
+    const a = rng() * Math.PI * 2;
+    const r = Math.sqrt(rng()) * radius;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    if (coast(Math.atan2(z, x)) - r < DRY_SAND + 1) continue;
+    const y = height(x, z);
+    if (y < 1.0) continue;
+    const f = forestAt(x, z, seed);
+    if (rng() > 0.15 + 0.7 * Math.sin(Math.PI * f)) continue;
+    if (slopeAt(height, x, z) > 0.5) continue;
+    const variant = Math.floor(rng() * 3) % 3;
+    const scale = 0.8 + rng() * 0.9;
+    const reach = BUSH_RADIUS[variant]! * scale * 0.8;
+    if (!clearOf(keepOut, x, z, 1.0) || !discs.free(x, z, reach)) continue;
+    bushes.push({
+      variant,
+      x,
+      y: lowestUnder(height, x, z, reach * 0.7) - 0.1 * scale,
+      z,
+      yaw: rng() * Math.PI * 2,
+      scale,
+    });
+    discs.add(x, z, reach);
+  }
+  return { palms, rocks, bushes, hut: huts[0], huts };
+}
+
 /**
  * The whole layout: the hut first, then palms round it, then rocks round both, then the bushes
- * (on a stream of their own). Seeded.
+ * (on a stream of their own). A big island gets villages, forest and outcrops instead
+ * (`layoutBigIsland`). Seeded.
  */
 export function layoutIsland(input: LayoutInput): IslandLayout {
+  if (input.radius >= BIG_ISLAND) return layoutBigIsland(input);
   const rng = random(input.seed ^ 0x2f6b);
   const hut = placeHut(input);
   const keepOut: KeepOut[] = [...input.keepOut];
@@ -438,7 +668,7 @@ export function layoutIsland(input: LayoutInput): IslandLayout {
     palms,
     rocks,
   );
-  return { palms, rocks, bushes, hut };
+  return { palms, rocks, bushes, hut, huts: hut ? [hut] : [] };
 }
 
 /** True where (x, z) is more than `margin` inland of the coast (for tests and callers). */

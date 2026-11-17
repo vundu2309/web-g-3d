@@ -25,8 +25,14 @@ import {
   SHORE_RANGE,
   DEEP_RANGE,
 } from "../src/ocean/fishing.ts";
-import { islands } from "../src/ocean/model.ts";
-import { shoreShape } from "../src/ocean/shore.ts";
+import { SEA_BOUND, islands } from "../src/ocean/model.ts";
+import { shoreOf, shoreShape } from "../src/ocean/shore.ts";
+
+/** Just off island 0's south beach (z grows southward): a cast to the north lands on its sand. */
+const offSouthShore = {
+  x: islands[0].x,
+  z: islands[0].z + shoreShape(0).coast(Math.PI / 2) + 5,
+};
 
 // A small seeded generator so distributions are tested without flakiness.
 const seeded = (seed) => () => {
@@ -58,9 +64,14 @@ test("the species table is consistent and every zone has fish", () => {
 });
 
 test("zones follow the distance to the nearest island shore", () => {
-  assert.equal(zoneAt(-68 + 18 + 10, -65), "shore");
-  assert.equal(zoneAt(-136, -65), "open");
-  assert.equal(zoneAt(-170, 150), "deep");
+  const east = islands[0].x + shoreShape(0).coast(0);
+  assert.equal(zoneAt(east + 10, islands[0].z), "shore");
+  assert.equal(zoneAt(east + 80, islands[0].z), "open");
+  assert.equal(
+    zoneAt(-300, -250),
+    "deep",
+    "far from every shore and the harbor",
+  );
   assert.equal(zoneAt(0, 22), "open", "the harbor is open water");
   // Measured from the real, irregular coast: the zone edges follow its bays and headlands,
   // SHORE_RANGE and DEEP_RANGE metres out along the shore's normal, all round every island.
@@ -68,8 +79,21 @@ test("zones follow the distance to the nearest island shore", () => {
     for (let a = 0; a < Math.PI * 2; a += 0.21) {
       const island = islands[index];
       const coast = shoreShape(index).coast(a);
+      // The point `metres` off the coast (measured along its normal, not along the radius).
       const at = (metres) => {
-        const r = coast + metres;
+        let lo = coast - 5;
+        let hi = coast + metres * 3;
+        for (let k = 0; k < 40; k++) {
+          const mid = (lo + hi) / 2;
+          const d = shoreOf(
+            index,
+            island.x + Math.cos(a) * mid,
+            island.z + Math.sin(a) * mid,
+          ).distance;
+          if (d < metres) lo = mid;
+          else hi = mid;
+        }
+        const r = (lo + hi) / 2;
         return zoneAt(island.x + Math.cos(a) * r, island.z + Math.sin(a) * r);
       };
       assert.equal(
@@ -157,12 +181,12 @@ test("casts: power maps to distance, the sweet spot is marked, islands and the e
   assert.ok(SWEET_FROM >= CAST_MIN && SWEET_TO <= CAST_MAX);
   assert.equal(castTarget({ x: 0, z: 0 }, { x: 0, z: -1 }, 0.5).water, true);
   assert.equal(
-    castTarget({ x: -68, z: -10 }, { x: 0, z: -1 }, 1).water,
+    castTarget(offSouthShore, { x: 0, z: -1 }, 1).water,
     false,
     "the bobber would land on the island",
   );
   assert.equal(
-    castTarget({ x: 170, z: 0 }, { x: 1, z: 0 }, 1).water,
+    castTarget({ x: SEA_BOUND - 10, z: 0 }, { x: 1, z: 0 }, 1).water,
     false,
     "past the edge",
   );
@@ -191,7 +215,7 @@ test("angler: charging, a cast that fizzles on land, a throw that flies then wai
   assert.equal(angler.view(1000 + CHARGE_MS / 2).power, 0.5);
   assert.equal(angler.view(1000 + CHARGE_MS * 3).power, 1, "full power holds");
   assert.equal(angler.fishing, false, "charging is not fishing yet");
-  angler.release(1000 + CHARGE_MS, { x: -68, z: -10 }, DIR);
+  angler.release(1000 + CHARGE_MS, offSouthShore, DIR);
   assert.deepEqual(types(), ["fizzle"]);
   assert.equal(angler.busy, false);
   const landed = cast(angler, 5000);

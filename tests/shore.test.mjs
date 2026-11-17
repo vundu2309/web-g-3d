@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { islandShape } from "../src/ocean/island-shape.ts";
 import { islands, islandCollisionRadius } from "../src/ocean/model.ts";
-import { BACKDROP } from "../src/ocean/sea-layout.ts";
 import {
   COAST_SAMPLES,
   SHORE_ISLANDS,
@@ -29,8 +28,8 @@ import {
 // The shore field is what the water's surf, depth and colour, the swash on the beaches, the
 // minimap and the fishing zones all measure from. These tests pin it to the land itself.
 
-test("every island the sea meets is in the shore field, the play area's first", () => {
-  assert.equal(SHORE_ISLANDS.length, islands.length + BACKDROP.length);
+test("every island the sea meets is in the shore field", () => {
+  assert.equal(SHORE_ISLANDS.length, islands.length);
   islands.forEach((island, i) => {
     assert.equal(SHORE_ISLANDS[i].x, island.x);
     assert.equal(SHORE_ISLANDS[i].z, island.z);
@@ -72,8 +71,10 @@ test("the shore distance is the true distance to the coast, negative on land", (
     const island = islands[index];
     const shape = shoreShape(index);
     const coast = [];
-    for (let k = 0; k < 4000; k++) {
-      const a = (k / 4000) * Math.PI * 2;
+    // About 6 mm between points, whatever the island's size.
+    const points = Math.max(4000, Math.round(island.radius * 1000));
+    for (let k = 0; k < points; k++) {
+      const a = (k / points) * Math.PI * 2;
       const c = shape.coast(a);
       coast.push([island.x + Math.cos(a) * c, island.z + Math.sin(a) * c]);
     }

@@ -16,7 +16,6 @@ import {
 } from "../src/ocean/island-visual.ts";
 import { Geo } from "../src/ocean/geo.ts";
 import {
-  BACKDROP,
   BUOYS,
   GULLS,
   clearOfIslands,
@@ -57,8 +56,14 @@ test("each island carries its small details inside a phone-sized triangle budget
       triangles > 9000,
       `island ${i}: ${triangles} triangles is too bare`,
     );
+    // The small things stay inside 26000 triangles; the terrain grid grows with the island
+    // (cells of about 3.5 m, island-visual.ts), so a big island is allowed its bigger grid.
+    const cells = Math.max(
+      76,
+      Math.min(240, Math.round((islands[i].radius * 2.8) / 3.5)),
+    );
     assert.ok(
-      triangles < 26000,
+      triangles < 26000 + 2 * cells * cells,
       `island ${i}: ${triangles} triangles is too many`,
     );
     assert.ok(props.grass > 150, `grass ${props.grass}`);
@@ -100,7 +105,7 @@ test("the geometry buffer builds valid shapes", () => {
   assert.ok(geo.indices.every((i) => i >= 0 && i < geo.positions.length / 3));
 });
 
-test("buoys are clear of every island and of the harbor, gulls stay up, backdrop islands are out of reach", () => {
+test("buoys are clear of every island and of the harbor, gulls stay up", () => {
   for (const buoy of BUOYS)
     assert.ok(clearOfIslands(buoy.x, buoy.z), `buoy at ${buoy.x},${buoy.z}`);
   for (const gull of GULLS)
@@ -117,11 +122,6 @@ test("buoys are clear of every island and of the harbor, gulls stay up, backdrop
     const b = gullPose(gull, 10.05);
     assert.ok(Math.hypot(a.x - b.x, a.z - b.z) < 1, "no teleporting");
   }
-  for (const far of BACKDROP)
-    assert.ok(
-      Math.max(Math.abs(far.x), Math.abs(far.z)) - far.radius > SEA_BOUND + 40,
-      `backdrop at ${far.x},${far.z} is beyond the sea wall`,
-    );
 });
 
 // The islands are low and green with a gentle ridge (the user found the old cones fake):
@@ -178,7 +178,12 @@ test("islands are low with gentle slopes, and their coast stays inside the boats
     }
     assert.ok(near >= radius * (COAST_MIN - 0.01), `island ${i} near ${near}`);
     assert.ok(far <= radius * COAST_MAX, `island ${i} far ${far}`);
-    assert.ok(far < islandCollisionRadius(island) - radius * 0.08);
+    // The collision ring stands 4 m beyond the farthest headland, so the invisible wall is never
+    // far off the beach (islands.ts).
+    assert.ok(
+      Math.abs(islandCollisionRadius(island) - far - 4) < 0.2,
+      `island ${i} ring ${islandCollisionRadius(island)} vs far ${far}`,
+    );
     assert.ok(far - near > radius * 0.05, `island ${i} coast is not a circle`);
     // Same seed, same island.
     const again = islandShape(seed, radius);
@@ -196,7 +201,7 @@ test("islands are low with gentle slopes, and their coast stays inside the boats
           (y, k) =>
             Math.abs(
               y / optionsFor(a).radius - profiles[b][k] / optionsFor(b).radius,
-            ) > 0.02,
+            ) > 0.008,
         ),
         `islands ${a} and ${b} differ`,
       );

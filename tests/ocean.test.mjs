@@ -50,7 +50,7 @@ test("malformed remote boats are discarded rather than passed to the renderer", 
   for (const invalid of [
     { x: NaN },
     { z: Infinity },
-    { x: 181 },
+    { x: SEA_BOUND + 1 },
     { heading: 12 },
     { name: "x".repeat(25) },
     { fishing: 1 },
@@ -290,7 +290,10 @@ test("every account starts in the shared harbor, close together and facing the s
       ),
       "never inside an island",
     );
-    assert.ok(Math.abs(s.x) < 180 && Math.abs(s.z) < 180, "inside the sea");
+    assert.ok(
+      Math.abs(s.x) < SEA_BOUND && Math.abs(s.z) < SEA_BOUND,
+      "inside the sea",
+    );
   }
 });
 
@@ -368,10 +371,10 @@ test("saved sea state restores a safe position and the catch count, and rejects 
   // The catch count survives even when the position cannot be trusted.
   for (const bad of [
     raw({ x: NaN }),
-    raw({ x: 500 }),
-    raw({ z: -179 }),
+    raw({ x: SEA_BOUND * 3 }),
+    raw({ z: -(SEA_BOUND - 5) }),
     raw({ heading: 9 }),
-    raw({ x: -68, z: -65 }), // inside the first island
+    raw({ x: islands[0].x, z: islands[0].z }), // inside the first island
     raw({}, now - 8 * 24 * 3600 * 1000), // stale
     raw({}, now + 3600_000), // from the future
     JSON.stringify({
@@ -386,7 +389,7 @@ test("saved sea state restores a safe position and the catch count, and rejects 
     const r = decodeSave(bad, now);
     assert.equal(r.pose, undefined, bad);
   }
-  assert.equal(decodeSave(raw({ x: 500 }), now).caught, 7);
+  assert.equal(decodeSave(raw({ x: SEA_BOUND * 3 }), now).caught, 7);
   // Garbage is harmless.
   for (const junk of [
     null,
@@ -431,7 +434,7 @@ test("saved sea state restores a safe position and the catch count, and rejects 
   assert.deepEqual(clean["ca-hong"], { n: 9999, best: 0 });
   assert.deepEqual(decodeSave(raw({ fish: [1, 2] }), now).fish, {});
   assert.deepEqual(
-    decodeSave(raw({ x: 500, fish }), now).fish,
+    decodeSave(raw({ x: SEA_BOUND * 3, fish }), now).fish,
     fish,
     "kept when the position is bad",
   );

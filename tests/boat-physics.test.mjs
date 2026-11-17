@@ -10,6 +10,7 @@ import {
   enableSeaPhysics,
 } from "../src/ocean/boat-physics.ts";
 import { humpAt, planingAt } from "../src/ocean/boat-physics.ts";
+import { SEA_BOUND } from "../src/ocean/model.ts";
 import { WakeField, sampleWake } from "../src/ocean/wake.ts";
 import {
   WAVES,
@@ -343,7 +344,9 @@ test("results repeat exactly for the same inputs", () => {
 });
 
 test("the soft wall keeps the boat inside the sea the server accepts", () => {
-  const w = world({ start: { x: 150, z: 0, heading: Math.PI / 2 } });
+  const w = world({
+    start: { x: SEA_BOUND - 30, z: 0, heading: Math.PI / 2 },
+  });
   let farthest = 0;
   w.run(
     50,
@@ -351,7 +354,10 @@ test("the soft wall keeps the boat inside the sea the server accepts", () => {
     (s) => (farthest = Math.max(farthest, Math.abs(s.x))),
   );
   w.dispose();
-  assert.ok(farthest < 186, `reached ${farthest.toFixed(1)} m of a 180 m sea`);
+  assert.ok(
+    farthest < SEA_BOUND + 6,
+    `reached ${farthest.toFixed(1)} m of a ${SEA_BOUND} m sea`,
+  );
 });
 
 test("the edge of the sea slows a boat at full speed without a jolt or a rebound", () => {

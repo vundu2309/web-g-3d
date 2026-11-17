@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { islandCollisionRadius, islands } from "../src/ocean/model.ts";
 import { launchBrowser } from "./browser.mjs";
 import { fightBot } from "./support/fight-bot.mjs";
 
@@ -214,8 +215,8 @@ try {
   const save = JSON.stringify({
     v: 1,
     savedAt: Date.now(),
-    x: -29,
-    z: -65,
+    x: islands[0].x + islandCollisionRadius(islands[0]) + 9,
+    z: islands[0].z,
     heading: -Math.PI / 2,
     caught: 0,
     fish: {},
@@ -244,7 +245,8 @@ try {
   void blockedSeen;
   const where = await page.evaluate(() => window.oceanScene.selfState());
   assert.ok(
-    Math.hypot(where.x + 68, where.z + 65) < 40,
+    Math.hypot(where.x - islands[0].x, where.z - islands[0].z) <
+      islandCollisionRadius(islands[0]) + 40,
     `the boat is by island 0 (${where.x}, ${where.z})`,
   );
   await touch("pointerdown");

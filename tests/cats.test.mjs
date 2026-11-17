@@ -122,12 +122,25 @@ test("triangle budgets, vertex colours, height and feet at 0", () => {
 
 test("every market vendor has its own cat", () => {
   const looks = MARKETS.map((m) => m.vendor.look);
-  assert.equal(new Set(looks).size, MARKETS.length, "one cat per market");
+  // Three cats serve five markets: a cat may stand at two, never more.
+  for (const look of new Set(looks))
+    assert.ok(
+      looks.filter((l) => l === look).length <= 2,
+      `${look} at too many`,
+    );
   for (const look of looks) assert.ok(CAT_IDS.includes(look), look);
-  const names = Object.fromEntries(
-    MARKETS.map((m) => [m.vendor.look, m.vendor.name]),
+  const byId = Object.fromEntries(MARKETS.map((m) => [m.id, m.vendor]));
+  assert.deepEqual(
+    ["hai-dang", "doi-xanh", "bai-co"].map((id) => [
+      byId[id].name,
+      byId[id].look,
+    ]),
+    [
+      ["Cô Lan", "lan"],
+      ["Chú Tư", "tu"],
+      ["Bà Sáu", "sau"],
+    ],
   );
-  assert.deepEqual(names, { lan: "Cô Lan", tu: "Chú Tư", sau: "Bà Sáu" });
   assert.ok(CAT_SCALE > 1 && CAT_SCALE < 2);
 });
 

@@ -5,6 +5,7 @@ import { createServer } from "node:http";
 import { io as connect } from "socket.io-client";
 import { attachSockets } from "../server/socket.mjs";
 import { attachOcean } from "../server/ocean.mjs";
+import { SEA_BOUND } from "../src/ocean/model.ts";
 test("shared sea: separate authenticated boats, push sync, identity ownership, duplicate replacement and leave", async () => {
   const server = createServer();
   let clock = 1000;
@@ -80,7 +81,7 @@ test("shared sea: separate authenticated boats, push sync, identity ownership, d
     clock += 1000;
     for (const bad of [
       { x: Infinity },
-      { x: 181 },
+      { x: SEA_BOUND + 1 },
       { heading: 9 },
       { extra: true },
       { fishing: "yes" },

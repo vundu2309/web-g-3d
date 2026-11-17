@@ -25,7 +25,7 @@ import {
 import { DRY_SAND, random } from "../src/ocean/island-shape.ts";
 import { MARKETS } from "../src/ocean/market.ts";
 import { islandSeed } from "../src/ocean/shore.ts";
-import { islands } from "../src/ocean/model.ts";
+import { islands, lighthouseIslands } from "../src/ocean/model.ts";
 
 // The island props made in Blender (tools/blender/props.py -> public/models): the game loads
 // them without Blender, so a bad file would only show up in a player's browser. Then the pure
@@ -139,30 +139,47 @@ test("the hut's door is on the model's -Z side, the side yawFacing turns to the 
   );
 });
 
-// The islands as the game builds them (headless), with their real keep-out areas.
-const built = islands.map((island, index) => {
-  const engine = new NullEngine();
-  const scene = new Scene(engine);
-  const visual = createIsland(scene, {
-    seed: islandSeed(index),
-    radius: island.radius,
-    lighthouse: index === 0,
+// Islands as the game builds them (headless), with their real keep-out areas. `built` are three
+// small islands (the layout every island under BIG_ISLAND metres gets: one hut, 8 to 16 palms),
+// `builtBig` the sea's own islands (villages, forest and outcrops).
+const buildAll = (list) =>
+  list.map(({ island, index, lighthouse }) => {
+    const engine = new NullEngine();
+    const scene = new Scene(engine);
+    const visual = createIsland(scene, {
+      seed: islandSeed(index),
+      radius: island.radius,
+      lighthouse,
+    });
+    visual.mesh.position.set(island.x, 0, island.z);
+    const keepOut = [...visual.keepOut, ...gangwayKeepOut(visual, MARKETS)];
+    const input = {
+      seed: visual.seed,
+      radius: visual.radius,
+      peak: visual.peak,
+      height: visual.height,
+      coast: visual.coast,
+      keepOut,
+    };
+    const layout = layoutIsland(input);
+    scene.dispose();
+    engine.dispose();
+    return { island, input, layout };
   });
-  visual.mesh.position.set(island.x, 0, island.z);
-  const keepOut = [...visual.keepOut, ...gangwayKeepOut(visual, MARKETS)];
-  const input = {
-    seed: visual.seed,
-    radius: visual.radius,
-    peak: visual.peak,
-    height: visual.height,
-    coast: visual.coast,
-    keepOut,
-  };
-  const layout = layoutIsland(input);
-  scene.dispose();
-  engine.dispose();
-  return { island, input, layout };
-});
+const built = buildAll(
+  [31, 39, 26].map((radius, index) => ({
+    island: { x: index * 400, z: 5000, radius },
+    index,
+    lighthouse: index === 0,
+  })),
+);
+const builtBig = buildAll(
+  islands.map((island, index) => ({
+    island,
+    index,
+    lighthouse: lighthouseIslands.includes(index),
+  })),
+);
 
 const slope = (h, x, z) =>
   Math.hypot(h(x + 0.6, z) - h(x - 0.6, z), h(x, z + 0.6) - h(x, z - 0.6)) /
@@ -223,7 +240,7 @@ test("rocks sit in the ground on the beach, the slopes and the shallows, inside 
     for (const r of rocks) {
       const size = ROCK_RADIUS[r.variant] * r.scale;
       assert.ok(
-        Math.hypot(r.x, r.z) + size <= island.radius * 1.08,
+        Math.hypot(r.x, r.z) + size <= island.radius + 4,
         "rock in the boats' way",
       );
       assert.ok(r.scale >= 0.6 && r.scale <= 2.2, `scale ${r.scale}`);
@@ -398,9 +415,9 @@ test("placing the models replaces the procedural props once, and goes with the i
   assert.equal(visual.fallback, undefined);
   assert.equal(
     placed.instances.length,
-    placed.palms + placed.rocks + placed.bushes + (placed.hut ? 1 : 0),
+    placed.palms + placed.rocks + placed.bushes + placed.huts,
   );
-  assert.ok(placed.palms >= 8 && placed.rocks > 0 && placed.hut);
+  assert.ok(placed.palms >= 8 && placed.rocks > 0 && placed.huts >= 3);
   assert.ok(placed.bushes >= 14, `${placed.bushes} bushes`);
   assert.ok(placed.instances.every((i) => i.parent === visual.mesh));
   // A palm's base is where the layout put it (the box's bottom is at its origin).
@@ -449,4 +466,103 @@ test("on the long beach the palms, bushes and hut stand behind the dry sand; roc
       "a rock in the shallows",
     );
   }
+});
+
+test("a big island has villages of stilt huts with their doors to the sea, clear of everything", () => {
+  for (const { island, input, layout } of builtBig) {
+    const { huts } = layout;
+    assert.ok(
+      huts.length >= 3 && huts.length <= 15,
+      `${huts.length} huts on radius ${island.radius}`,
+    );
+    assert.equal(layout.hut, huts[0]);
+    for (const [i, hut] of huts.entries()) {
+      // Door out to sea, posts into the ground, deck clear of it, behind the dry sand.
+      const [fx, fz] = turn(0, -1, hut.yaw);
+      assert.ok(
+        (fx * hut.x + fz * hut.z) / Math.hypot(hut.x, hut.z) > 0.99,
+        "the door looks out to sea",
+      );
+      const origin = hut.y + HUT.postDepth;
+      for (const post of HUT.posts) {
+        const [wx, wz] = turn(post[0], post[1], hut.yaw);
+        const ground = input.height(hut.x + wx, hut.z + wz);
+        assert.ok(
+          hut.y < ground && origin + HUT.deck > ground,
+          "post and deck",
+        );
+      }
+      assert.ok(
+        input.coast(Math.atan2(hut.z, hut.x)) - Math.hypot(hut.x, hut.z) >=
+          DRY_SAND,
+        "a hut stands behind the dry sand",
+      );
+      for (const k of input.keepOut)
+        assert.ok(
+          clearance(k, hut.x, hut.z) >= HUT.reach,
+          "hut on a structure",
+        );
+      for (const other of huts.slice(i + 1))
+        assert.ok(
+          Math.hypot(hut.x - other.x, hut.z - other.z) >= 2 * HUT.reach - 0.5,
+          "two huts overlap",
+        );
+    }
+  }
+});
+
+test("a big island has a beach fringe of palms, forest inland, outcrops on the slopes and undergrowth, within a phone-sized budget", () => {
+  for (const { island, input, layout } of builtBig) {
+    const { palms, rocks, bushes } = layout;
+    assert.ok(palms.length >= 50, `${palms.length} palms on ${island.radius}`);
+    assert.ok(palms.length <= 230, `${palms.length} palms is too many`);
+    assert.ok(
+      rocks.length >= 15 && rocks.length <= 100,
+      `${rocks.length} rocks`,
+    );
+    assert.ok(
+      bushes.length >= 40 && bushes.length <= 180,
+      `${bushes.length} bushes`,
+    );
+    const depth = (p) =>
+      input.coast(Math.atan2(p.z, p.x)) - Math.hypot(p.x, p.z);
+    // Palms are not only on the beach: a good part stands far inland.
+    assert.ok(
+      palms.filter((p) => depth(p) > island.radius * 0.25).length >= 10,
+      "forest inland",
+    );
+    for (const p of palms) {
+      assert.ok(input.height(p.x, p.z) >= 0.7, "palm in the water");
+      assert.ok(slope(input.height, p.x, p.z) <= 0.46, "palm on steep ground");
+      assert.ok(p.scale >= 0.8 && p.scale <= 1.31, `scale ${p.scale}`);
+      assert.ok(p.y < lowestUnder(input.height, p.x, p.z, 0.4 * p.scale));
+      for (const k of input.keepOut)
+        assert.ok(clearance(k, p.x, p.z) >= 1.5, "palm on a structure");
+    }
+    // Outcrops: large boulders on steep ground; singles on the beach. Never in the water.
+    assert.ok(
+      rocks.some((r) => r.scale >= 1.4 && slope(input.height, r.x, r.z) > 0.3),
+      "outcrops on the slopes",
+    );
+    for (const r of rocks) {
+      assert.ok(depth(r) > 0.5, "rock in the water");
+      assert.ok(r.y < input.height(r.x, r.z), "sunk into the ground");
+    }
+    for (const b of bushes) {
+      assert.ok(input.height(b.x, b.z) >= 0.6, "bush in the water");
+      assert.ok(slope(input.height, b.x, b.z) <= 0.5, "bush on steep ground");
+    }
+    // Nothing stands inside another: palms keep 3 m apart at least.
+    for (let i = 0; i < palms.length; i += 7)
+      for (let j = i + 1; j < palms.length; j++)
+        assert.ok(
+          Math.hypot(palms[i].x - palms[j].x, palms[i].z - palms[j].z) >=
+            3.2 - 1e-9,
+          "palms closer than 3.2 m",
+        );
+  }
+  // The same for everyone, and different between islands.
+  for (const { input, layout } of builtBig)
+    assert.deepEqual(layoutIsland(input), layout);
+  assert.notDeepEqual(builtBig[0].layout.palms, builtBig[1].layout.palms);
 });

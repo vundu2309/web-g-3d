@@ -15,8 +15,9 @@ import { CAT_IDS } from "../src/ocean/cat-pose.ts";
 import { coastDistance, shoreShape } from "../src/ocean/shore.ts";
 import { HARBOR, islandCollisionRadius, islands } from "../src/ocean/model.ts";
 
-test("every island has a market, named and inside the sea", () => {
-  assert.equal(MARKETS.length, islands.length);
+test("markets are named, inside the sea, and each serves a different island", () => {
+  assert.ok(MARKETS.length >= 3 && MARKETS.length <= islands.length);
+  assert.equal(new Set(MARKETS.map((m) => m.island)).size, MARKETS.length);
   assert.equal(new Set(MARKETS.map((m) => m.id)).size, MARKETS.length);
   for (const market of MARKETS) {
     assert.ok(market.name.startsWith("Chợ "), market.name);
@@ -25,7 +26,8 @@ test("every island has a market, named and inside the sea", () => {
 });
 
 test("a pier stands in the shallows with its gangway on the sand, clear of every island's ring", () => {
-  MARKETS.forEach((market, index) => {
+  MARKETS.forEach((market) => {
+    const index = market.island;
     const island = islands[index];
     const from = Math.hypot(market.x - island.x, market.z - island.z);
     const ring = islandCollisionRadius(island);
@@ -118,6 +120,11 @@ test("every market has its own vendor with a name, a greeting and a look", () =>
     names.add(vendor.name);
   }
   assert.equal(names.size, MARKETS.length, "vendors are different people");
-  const looks = new Set(MARKETS.map((m) => m.vendor.look));
-  assert.equal(looks.size, MARKETS.length, "and look different");
+  // Only three cats are drawn, so with more markets a look repeats, but never beside itself.
+  const looks = MARKETS.map((m) => m.vendor.look);
+  for (const look of new Set(looks))
+    assert.ok(
+      looks.filter((l) => l === look).length <= 2,
+      `${look} used often`,
+    );
 });

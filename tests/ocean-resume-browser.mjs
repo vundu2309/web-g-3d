@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { islands } from "../src/ocean/model.ts";
 import { launchBrowser } from "./browser.mjs";
 import { tap } from "./support/tap.mjs";
 import { fightBot } from "./support/fight-bot.mjs";
@@ -282,8 +283,8 @@ try {
     JSON.stringify({
       v: 1,
       savedAt: Date.now(),
-      x: -68,
-      z: -65,
+      x: islands[0].x,
+      z: islands[0].z,
       heading: 0,
       caught: 4,
     }),

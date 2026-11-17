@@ -7,6 +7,8 @@ const { pressAction, castLook, FIZZLE_MS } = await import(
 const { Angler, CHARGE_MS, castTarget, castDirection, CAST_MIN } = await import(
   "../src/ocean/fishing.ts"
 );
+const { islands } = await import("../src/ocean/model.ts");
+const { shoreShape } = await import("../src/ocean/shore.ts");
 
 // "Không ném được cần": what a press of the fishing button does (src/ocean/cast-rules.ts, applied by
 // src/app/fishing-ui.ts), and the one place where the press used to be swallowed.
@@ -73,8 +75,11 @@ test("a quick tap throws the shortest throw from open water, and facing an islan
   angler.release(5000, tip, castDirection(0));
   assert.equal(angler.fishing, true, "a quick tap from the harbor throws");
   assert.deepEqual(events, []);
-  // By island 0 (-68, -65), 39 m from its centre, heading west: the sand is where the lure lands.
-  const near = { x: -68 + 39 + 2.5, z: -65 };
+  // Off the east shore of island 0, heading west: the sand is where the lure lands.
+  const near = {
+    x: islands[0].x + shoreShape(0).coast(0) + 2.5,
+    z: islands[0].z,
+  };
   const target = castTarget(near, castDirection(-Math.PI / 2), 0.5);
   assert.equal(target.water, false);
   assert.equal(castLook(target), "blocked");

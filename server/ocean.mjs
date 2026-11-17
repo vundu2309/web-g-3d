@@ -1,4 +1,4 @@
-import { spawn } from "../src/ocean/model.ts";
+import { SEA_BOUND, spawn } from "../src/ocean/model.ts";
 
 /**
  * The shared sea is ephemeral on ONE API instance. No room/persistent economy writes.
@@ -104,8 +104,8 @@ export function attachOcean(
     ["x", "z", "heading"].every(
       (key) => typeof pose[key] === "number" && Number.isFinite(pose[key]),
     ) &&
-    Math.abs(pose.x) <= 180 &&
-    Math.abs(pose.z) <= 180 &&
+    Math.abs(pose.x) <= SEA_BOUND &&
+    Math.abs(pose.z) <= SEA_BOUND &&
     Math.abs(pose.heading) <= Math.PI &&
     typeof pose.fishing === "boolean";
 

@@ -1,4 +1,14 @@
 import assert from "node:assert/strict";
+import { MARKETS } from "../src/ocean/market.ts";
+
+// A boat 10 m seaward of the Hải Đăng pier (the pier faces (sin facing, -cos facing)): in range of
+// its market and clear of its solid circle.
+const pier = MARKETS.find((m) => m.id === "hai-dang");
+const atPier = {
+  x: pier.x + Math.sin(pier.facing) * 10,
+  z: pier.z - Math.cos(pier.facing) * 10,
+  heading: 0,
+};
 import { mkdir } from "node:fs/promises";
 import { launchBrowser } from "./browser.mjs";
 import { tap } from "./support/tap.mjs";
@@ -120,16 +130,13 @@ try {
   }
   // 2. No economy configured (legacy backend, preview): the button never shows, even at a pier.
   {
-    const { page, context } = await open(
-      { x: -45, z: -18, heading: 0 },
-      { economy: false },
-    );
+    const { page, context } = await open(atPier, { economy: false });
     await page.waitForTimeout(1500);
     assert.equal(await market(page).isHidden(), true, "no economy, no market");
     await context.close();
   }
   // 3. Next to the Hải Đăng pier: the button shows, named for the pier, and opens the hub.
-  const { page, context } = await open({ x: -45, z: -18, heading: 0 });
+  const { page, context } = await open(atPier);
   await market(page).waitFor({ state: "visible", timeout: 20000 });
   assert.match(await market(page).getAttribute("aria-label"), /Chợ Hải Đăng/);
   assert.ok(await inView(page, market(page)), "the button is on screen");
@@ -194,10 +201,7 @@ try {
   await page.waitForFunction(() => !document.querySelector("dialog[open]"));
   await context.close();
   // 4. A small phone: the button and the hub still fit.
-  const small = await open(
-    { x: -45, z: -18, heading: 0 },
-    { size: { width: 667, height: 375 } },
-  );
+  const small = await open(atPier, { size: { width: 667, height: 375 } });
   await market(small.page).waitFor({ state: "visible", timeout: 20000 });
   assert.ok(
     await inView(small.page, market(small.page)),
