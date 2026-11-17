@@ -39,113 +39,88 @@ export const GRAVITY = 9.81;
  */
 export const WIND_DIRECTION = 0.25;
 /**
- * Eleven waves in three tiers. Neighbouring lengths and headings beat against each other, so
- * the swell comes in groups (higher sets, calmer gaps) instead of a uniform corrugation.
+ * The summed amplitudes (m) of each tier at the roughest sea: the sea the game has always had
+ * (swell 1.41, medium 0.87, chop 0.125, 2.405 in all). The wave table below is drawn to fill
+ * exactly these, so the calm and the roughest heights, and the boats' handling, do not change
+ * with the wave set.
  */
-export const WAVES: readonly Wave[] = [
-  // Swell: long, slow, tall, close to the wind.
-  {
-    length: 92,
-    amplitude: 0.55,
-    direction: 0.14,
-    phase: 1.7,
-    sharp: 1.3,
-    lean: 0.35,
-    tier: "swell",
-  },
-  {
-    length: 71,
-    amplitude: 0.48,
-    direction: 0.38,
-    phase: 0.4,
-    sharp: 1.4,
-    lean: 0.3,
-    tier: "swell",
-  },
-  {
-    length: 56,
-    amplitude: 0.38,
-    direction: 0.05,
-    phase: 5.2,
-    sharp: 1.5,
-    lean: 0.25,
-    tier: "swell",
-  },
-  // Medium: what the hull rides on.
-  {
-    length: 38,
-    amplitude: 0.3,
-    direction: 0.62,
-    phase: 2.1,
-    sharp: 1.8,
-    lean: 0.3,
-    tier: "medium",
-  },
-  {
-    length: 28,
-    amplitude: 0.25,
-    direction: -0.25,
-    phase: 3.6,
-    sharp: 2,
-    lean: 0.25,
-    tier: "medium",
-  },
-  {
-    length: 20,
-    amplitude: 0.19,
-    direction: 0.95,
-    phase: 4.2,
-    sharp: 2.2,
-    lean: 0,
-    tier: "medium",
-  },
-  {
-    length: 14.5,
-    amplitude: 0.13,
-    direction: -0.55,
-    phase: 0.9,
-    sharp: 2.4,
-    lean: 0,
-    tier: "medium",
-  },
-  // Chop: the small texture on top.
-  {
-    length: 10,
-    amplitude: 0.05,
-    direction: 1.2,
-    phase: 1.3,
-    sharp: 2.6,
-    lean: 0,
-    tier: "chop",
-  },
-  {
-    length: 6.8,
-    amplitude: 0.035,
-    direction: -0.85,
-    phase: 5.5,
-    sharp: 2.8,
-    lean: 0,
-    tier: "chop",
-  },
-  {
-    length: 4.6,
-    amplitude: 0.024,
-    direction: 0.55,
-    phase: 2.8,
-    sharp: 3,
-    lean: 0,
-    tier: "chop",
-  },
-  {
-    length: 3.1,
-    amplitude: 0.016,
-    direction: 1.5,
-    phase: 3.3,
-    sharp: 3,
-    lean: 0,
-    tier: "chop",
-  },
-];
+export const TIER_TOTALS = { swell: 1.41, medium: 0.87, chop: 0.125 } as const;
+/** How many waves the sea is made of, and the longest and shortest wavelength (m). */
+export const SPECTRUM = {
+  count: 20,
+  longest: 92,
+  shortest: 3,
+  /** The wavelength (m) where the wind sea peaks: the spectrum has a JONSWAP-like bump there. */
+  peak: 58,
+  /** A wave of at least this length is swell, of at least `medium` is medium, below is chop. */
+  swell: 50,
+  medium: 12,
+  seed: 20261117,
+};
+/** A small deterministic random generator, so the same sea is drawn on every device. */
+function seeded(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+/**
+ * A wave set drawn from a wind spectrum. Wavelengths run geometrically from the longest to the
+ * shortest (a hair of jitter, so no two neighbours are the same length); amplitude follows a
+ * Phillips-like fall-off, a proportional to the wavelength, with a JONSWAP bump at the peak and
+ * a little random spread, then each tier is scaled to its fixed total. Headings spread around
+ * the wind, wider the shorter the wave (about 10 degrees for the longest, nearly 70 for the
+ * shortest) and alternate side from one wave to the next, so neighbours never run alike.
+ */
+export function drawWaves(): Wave[] {
+  const random = seeded(SPECTRUM.seed);
+  const { count, longest, shortest, peak } = SPECTRUM;
+  const ratio = Math.pow(shortest / longest, 1 / (count - 1));
+  const span = Math.log(longest / shortest);
+  const raw = Array.from({ length: count }, (_, i) => {
+    const jitter = 1 + (random() - 0.5) * 0.04;
+    const length = longest * Math.pow(ratio, i) * (i === 0 ? 1 : jitter);
+    const rank = Math.log(length / shortest) / span; // 1 longest, 0 shortest
+    const bump =
+      1 +
+      1.8 * Math.exp(-Math.pow(Math.log(length / peak), 2) / (2 * 0.35 * 0.35));
+    const weight = length * bump * (0.7 + 0.6 * random());
+    const side = (i % 2 === 0 ? -1 : 1) * (0.5 + 0.5 * random());
+    const spread = 0.2 + 1.0 * Math.pow(1 - rank, 1.3);
+    const tier: WaveTier =
+      length >= SPECTRUM.swell
+        ? "swell"
+        : length >= SPECTRUM.medium
+          ? "medium"
+          : "chop";
+    return {
+      length,
+      weight,
+      direction: WIND_DIRECTION + side * spread,
+      phase: random() * Math.PI * 2,
+      sharp: 1.3 + 1.7 * (1 - rank),
+      lean:
+        length >= 50
+          ? 0.3
+          : length >= 20
+            ? 0.25 * ((length - 20) / 30 + 0.4)
+            : 0,
+      tier,
+    };
+  });
+  const sums = { swell: 0, medium: 0, chop: 0 };
+  for (const w of raw) sums[w.tier] += w.weight;
+  return raw.map(({ weight, ...w }) => ({
+    ...w,
+    amplitude: (weight / sums[w.tier]) * TIER_TOTALS[w.tier],
+  }));
+}
+/** The waves of the sea (the boats' physics and the water shader both read this table). */
+export const WAVES: readonly Wave[] = drawWaves();
 
 /** The tiers in the order the sums keep them. */
 export const TIERS: readonly WaveTier[] = ["swell", "medium", "chop"];
@@ -199,6 +174,27 @@ function meanOfSharpened(sharp: number, lean: number) {
   return sum / samples;
 }
 
+/**
+ * Gerstner-style HORIZONTAL motion of the water surface, drawn by the vertex shader only
+ * (physics never sees it, the boats float on the analytic vertical function). Each wave moves
+ * every point of the sea along its heading by (q / k) cos(psi), psi the wave's (leaning) phase:
+ * the points before a crest move toward it and the ones behind it move back, so the crest
+ * pinches and sharpens and the trough widens. `q` is the wave's pinch (0 flat, 1 the crest
+ * stands up to a point, a fold): the pinches of a tier add up to PINCH[tier], shared out by
+ * amplitude, and together stay under 1 so the surface never folds over itself. The drawn
+ * surface differs from the physics one by the slope times the displacement, about q times the
+ * wave's amplitude: waves.test.mjs bounds it (HORIZONTAL_LIMIT) at the calm and the roughest sea.
+ */
+export const PINCH: Record<WaveTier, number> = {
+  swell: 0.03,
+  medium: 0.09,
+  chop: 0.4,
+};
+/** The most (m) the drawn surface may differ from the physics one at the boat, at any sea state. */
+export const HORIZONTAL_LIMIT = 0.25;
+/** Metres from an island's mean coast where the horizontal motion is zero and where it is full. */
+export const HORIZONTAL_FADE = { from: 70, to: 170 };
+
 const terms = WAVES.map((wave) => {
   const k = (Math.PI * 2) / wave.length;
   // f = 2 u^s - 1 - m has zero mean (m = 2 mean(u^s) - 1) and |f| <= 1 + |m| after
@@ -217,11 +213,27 @@ const terms = WAVES.map((wave) => {
     dx: Math.cos(wave.direction),
     dz: Math.sin(wave.direction),
     phase: wave.phase,
+    pinch: (PINCH[wave.tier] * wave.amplitude) / TIER_TOTALS[wave.tier],
   };
 });
 
 /** Sum of the wave amplitudes at the roughest sea: the sea never rises or falls farther than this. */
 export const MAX_WAVE_HEIGHT = WAVES.reduce((s, w) => s + w.amplitude, 0);
+/** Summed amplitudes of each tier at the roughest sea. */
+export const TIER_AMPLITUDE: Record<WaveTier, number> = {
+  swell: WAVES.filter((w) => w.tier === "swell").reduce(
+    (s, w) => s + w.amplitude,
+    0,
+  ),
+  medium: WAVES.filter((w) => w.tier === "medium").reduce(
+    (s, w) => s + w.amplitude,
+    0,
+  ),
+  chop: WAVES.filter((w) => w.tier === "chop").reduce(
+    (s, w) => s + w.amplitude,
+    0,
+  ),
+};
 /** The same at the calmest sea. */
 export const CALM_WAVE_HEIGHT = WAVES.reduce(
   (s, w) => s + w.amplitude * CALM_GAIN[w.tier],
@@ -283,6 +295,43 @@ export function waveGradient(
 }
 
 /**
+ * The horizontal motion (m) the water mesh is drawn with at (x, z) and time t, before the
+ * shore fade (the CPU twin of the shader's `waveDisplace`). The mesh vertex that starts at
+ * (x, z) is drawn at (x + dx, z + dz) at the height `waveHeight(x, z, t)`.
+ */
+export function waveDisplacement(
+  x: number,
+  z: number,
+  t: number,
+): { x: number; z: number } {
+  const dx = [0, 0, 0] as [number, number, number];
+  const dz = [0, 0, 0] as [number, number, number];
+  for (const w of terms) {
+    const theta = w.k * (w.dx * x + w.dz * z) - w.omega * t + w.phase;
+    const move = (w.pinch / w.k) * Math.cos(leanPhase(theta, w.lean));
+    const i = w.tier as 0 | 1 | 2;
+    dx[i] += move * w.dx;
+    dz[i] += move * w.dz;
+  }
+  const s = seaState(t);
+  const g = TIERS.map((tier) => tierGain(tier, s));
+  return {
+    x: dx[0]! * g[0]! + dx[1]! * g[1]! + dx[2]! * g[2]!,
+    z: dz[0]! * g[0]! + dz[1]! * g[1]! + dz[2]! * g[2]!,
+  };
+}
+
+/**
+ * How far the drawn surface at the point where the vertex that started at (x, z) lands is from
+ * the physics surface there (m): the height drawn is the one of (x, z), the height the boat
+ * feels at the landing point is another. Bounded by HORIZONTAL_LIMIT (tested).
+ */
+export function drawnSurfaceError(x: number, z: number, t: number): number {
+  const d = waveDisplacement(x, z, t);
+  return Math.abs(waveHeight(x, z, t) - waveHeight(x + d.x, z + d.z, t));
+}
+
+/**
  * The same functions as GLSL, built from WAVES so the shader can never drift from the
  * CPU. `waveHeight` is what the vertex shader displaces by (exactly the CPU height).
  * `waveSurface` also returns the slope, with each wave's slope faded out with the
@@ -311,6 +360,8 @@ ${lean ? `      float bt = th - ${f(w.lean)} * sin(th);` : "      float bt = th;
       float u = max(0.5 + 0.5 * sin(bt), 0.0);
       float s = ${f(w.scale * w.sharp * w.k)} * pow(u, ${f(w.sharp - 1)}) * cos(bt)${lean ? ` * (1.0 - ${f(w.lean)} * cos(th))` : ""} * fade;
       acc[${w.tier}] += s * vec2(${f(w.dx)}, ${f(w.dz)});
+      // How much this wave squeezes the mesh along its heading (the horizontal motion, see PINCH).
+      jac[${w.tier}] += ${f(w.pinch)} * (2.0 * u - 1.0)${lean ? ` * (1.0 - ${f(w.lean)} * cos(th))` : ""} * vec3(${f(w.dx * w.dx)}, ${f(w.dx * w.dz)}, ${f(w.dz * w.dz)});
     }
   }`;
   });
@@ -329,13 +380,66 @@ float waveHeight(vec2 p, float t) {
 ${height.join("\n")}
   return dot(acc, tierGains(t));
 }
-vec2 waveSlope(vec2 p, float t, float dist) {
+// The slope of the analytic surface at p; \`big\` is the swell and medium part alone and \`squeeze\`
+// the symmetric matrix (xx, xz, zz) the horizontal motion adds to the mesh: the drawn surface's
+// slope is (I - squeeze)^-1 times this slope (the shader does that, with the shore fade).
+vec2 waveSlopeSplit(vec2 p, float t, float dist, out vec2 big, out vec3 squeeze) {
   vec2 acc[3];
   acc[0] = vec2(0.0);
   acc[1] = vec2(0.0);
   acc[2] = vec2(0.0);
+  vec3 jac[3];
+  jac[0] = vec3(0.0);
+  jac[1] = vec3(0.0);
+  jac[2] = vec3(0.0);
 ${surface.join("\n")}
   vec3 g = tierGains(t);
+  big = acc[0] * g.x + acc[1] * g.y;
+  squeeze = jac[0] * g.x + jac[1] * g.y + jac[2] * g.z;
+  return big + acc[2] * g.z;
+}
+vec2 waveSlope(vec2 p, float t, float dist) {
+  vec2 big;
+  vec3 squeeze;
+  return waveSlopeSplit(p, t, dist, big, squeeze);
+}
+/** The tallest height the sea can have right now (the summed amplitudes at the current state). */
+float waveReach(float t) {
+  return dot(vec3(${f(TIER_AMPLITUDE.swell)}, ${f(TIER_AMPLITUDE.medium)}, ${f(TIER_AMPLITUDE.chop)}), tierGains(t));
+}`;
+}
+
+/**
+ * GLSL for the horizontal motion of the water mesh (vertex shader only; needs
+ * `glslWaveHeight()` before it): `waveDisplace(p, t)` is the CPU's `waveDisplacement`, and
+ * `horizontalFade(p)` brings it to zero near every island (`shoreIslands` is the uniform of
+ * shore.ts, `count` its length), so the water at the beach is the exact analytic surface.
+ */
+export function glslWaveDisplace(): string {
+  const f = (n: number) => n.toFixed(6);
+  const body = terms.map((w) => {
+    const bent = w.lean > 0 ? `th - ${f(w.lean)} * sin(th)` : "th";
+    return `  { float th = ${f(w.k)} * (${f(w.dx)} * p.x + ${f(w.dz)} * p.y) - ${f(w.omega)} * t + ${f(w.phase)}; acc[${w.tier}] += ${f(w.pinch / w.k)} * cos(${bent}) * vec2(${f(w.dx)}, ${f(w.dz)}); }`;
+  });
+  return `vec2 waveDisplace(vec2 p, float t) {
+  vec2 acc[3];
+  acc[0] = vec2(0.0);
+  acc[1] = vec2(0.0);
+  acc[2] = vec2(0.0);
+${body.join("\n")}
+  vec3 g = tierGains(t);
   return acc[0] * g.x + acc[1] * g.y + acc[2] * g.z;
+}`;
+}
+/** GLSL `horizontalFade(p)`: 0 within HORIZONTAL_FADE.from of an island's coast, 1 beyond .to. */
+export function glslHorizontalFade(count: number): string {
+  const f = (n: number) => n.toFixed(6);
+  return `float horizontalFade(vec2 p) {
+  float nearest = 1.0e4;
+  for (int i = 0; i < ${count}; i++) {
+    vec4 island = shoreIslands[i];
+    nearest = min(nearest, length(p - island.xy) - island.z * 0.92);
+  }
+  return smoothstep(${f(HORIZONTAL_FADE.from)}, ${f(HORIZONTAL_FADE.to)}, nearest);
 }`;
 }

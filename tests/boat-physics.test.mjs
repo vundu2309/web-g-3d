@@ -134,7 +134,7 @@ test("the sea has sharp crests and broad troughs, a zero mean, and an exact slop
 });
 
 test("the waves are a layered wind sea: swell, medium and chop around the wind", () => {
-  assert.ok(WAVES.length >= 10 && WAVES.length <= 12, `${WAVES.length} waves`);
+  assert.ok(WAVES.length >= 16 && WAVES.length <= 24, `${WAVES.length} waves`);
   const lengths = WAVES.map((w) => w.length);
   assert.ok(Math.min(...lengths) >= 2 && Math.max(...lengths) <= 100);
   assert.equal(new Set(lengths).size, WAVES.length, "no two the same length");
