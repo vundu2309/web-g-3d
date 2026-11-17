@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:dec94f87a94ca3a062531b4a414f98a804411a8edd6f9618e2ce5480733bd245",
+  "pageVersion": "sha256:fe6030868a890cf33a2e61ca001f5302c5596ea21c51829e28d26296ca5c38b4",
   "claims": [
     {
       "id": "claim_82600e8b7a3841069eec60b3a6516608",
@@ -18,45 +18,53 @@
     },
     {
       "id": "claim_c382292d84c34cd8813bc0348fa664bb",
-      "statement": "Palette Blender được sao chép từ src/ocean/art/colors.ts qua scripts/export-palette.mjs vào tools/blender/palette.json, không còn là bảng màu độc lập.",
+      "statement": "Bảng màu Blender được xuất từ PAL trong src/ocean/art/colors.ts qua scripts/export-palette.mjs vào tools/blender/palette.json, không phải một bảng độc lập.",
       "evidence": [
         {
-          "resource": "repo://scripts/export-palette.mjs",
-          "version": "repo-file-v1:sha256:daa6a3a8316f85809a136fe7800fc3a9980baf7461d0b8c1b09e8d5a066407f7"
+          "resource": "repo://scripts/export-palette.mjs#L1-L9",
+          "version": "repo-lines-v1:sha256:daa6a3a8316f85809a136fe7800fc3a9980baf7461d0b8c1b09e8d5a066407f7:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQ3MGIwOGZhNjc1YjYzMGVkYzIwY2MxZjg2N2ZjN2MyMWFmM2ZlZGViYTA1MjM3MDkwNjcwZTU5Yzg3NDQ4MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTA0YzMyM2Y3YzhmYjk4NzE0ZDJhZDg1ZDhmMmE5N2UzYzJhYTk1YmZhZWZlOGE4YmVjODI4YWY1YWUzY2JiNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         },
         {
-          "resource": "repo://tools/blender/palette.json",
-          "version": "repo-file-v1:sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "resource": "repo://src/ocean/art/colors.ts#L1-L8",
+          "version": "repo-lines-v1:sha256:7be99100442a7ba5e0edffa7551df074d8e66e7f11a498c87ba75244f4c7d250:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWFmMjJjZjA3MzI1OTJjMjQ3MTQxY2JlNjFlZmExMTAxMjYxMmY1YTMxMjJiOWFmOWJiYWY1MmY1NzI0ZDE5NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTIzODAyNTBmMmIzZTI0ZWJiNTk2ZTE0ZDI5MDcwNzRiOTdiZTQ2OWEwZmE4NmE1ZWM5NDkxZjMzMGE5NGZhZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWQ4NGE5MGU0ZDA5ODAwYzA5YTVkMzlmNjU4NzBlNWJjZmIwNzdjYTZjZWYwMmUwMmNiMjkwZDdkYjJiYTZmNyJ9"
         }
       ]
     },
     {
       "id": "claim_8f3339de5a8a4e2e9fc0b2474d8ec6a3",
-      "statement": "tests/models.test.mjs kiểm tra mỗi GLB có header glTF phiên bản 2, có COLOR_0, nằm trong ngân sách tam giác của test và có nút arm_wave; và có người cho từng chợ trong MARKETS.",
+      "statement": "tests/models.test.mjs kiểm tra năm GLB người people-1..5 có header glTF phiên bản 2, có COLOR_0, có nút arm_wave và nằm trong ngân sách tam giác của thân và tay; còn palette Blender được kiểm tra là palette của game.",
       "evidence": [
         {
           "resource": "repo://tests/models.test.mjs#L1-L60",
-          "version": "repo-lines-v1:sha256:2abe898872f686f96291b75e1e9ef2f8ae160a7f9eb59165863e3553d2ecc989:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5ODY1YmNjMGI5NTc5NmJjZDE1MjRiMzBkNzFiZmFhN2M5NTY3MDQ3YjA2Mjg2NWRiMmQ0OTA2MGU5MmUzMmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiY2E3OTMxYmI1NjQwZDRhMGQ4ODQ3NjM3M2I1ZDhmMDg0NDFlZjAzMWMwNjY5ZGI2NzdiNGZhMzhlYjM3MjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNhMDk1OTAxZjRmNWY0ZDViM2EyZWE3M2EwNDFhMTVlY2ZhNGUxNmQ3YzFhNTY3NDNhOThhODU5NzI3OGZkMjMifQ"
+          "version": "repo-lines-v1:sha256:fb978b0d9f92120d119de800a7cd64bddda886099035abf00981dcea44c137cb:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5ODY1YmNjMGI5NTc5NmJjZDE1MjRiMzBkNzFiZmFhN2M5NTY3MDQ3YjA2Mjg2NWRiMmQ0OTA2MGU5MmUzMmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0ZTQyMDhjZDZmZmI4YzRhMzU0N2IyZjU0YWRhMTk5NzhjM2YzNjVlNzhmOTUwMmVmNTE0NWNkZDJhYTg1NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1ODQyODlkZjNjNjcxNGU4ZjNjNmYzMDNhODBjMmExNmU0MDU4ZWFmODhlYmQzMDM0ZTkzOWViNDNhYWE0YTIifQ"
+        },
+        {
+          "resource": "repo://tests/models.test.mjs#L74-L74",
+          "version": "repo-lines-v1:sha256:5f12075163f860889635999681bcccd157659eb8cc92ec157adefb5a114524df:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWYxMjA3NTE2M2Y4NjA4ODk2MzU5OTk2ODFiY2NjZDE1NzY1OWViOGNjOTJlYzE1N2FkZWZiNWExMTQ1MjRkZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWYxMjA3NTE2M2Y4NjA4ODk2MzU5OTk2ODFiY2NjZDE1NzY1OWViOGNjOTJlYzE1N2FkZWZiNWExMTQ1MjRkZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWIxZWExNWEwZjdiMWQ3NzQxYzA5MmRlODAyZDM5ZmRhNDQzNGVjZjA1Zjk0MzU4YzZmMzY5Y2E5MTE2ZTIyZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTM3MGYxMDdjYThhOTdlODcxOTQzZjM2NmJhMzA0MTFlYjU5MjQ4NjIyZDU5MjViZTE2MGJmNGMxNTVmZTgzOCJ9"
         }
       ]
     },
     {
       "id": "claim_4fe01776d4504e55beb07701e0425e4e",
-      "statement": "model-loader.ts nạp GLB bằng LoadAssetContainerAsync, bỏ vật liệu gốc và áp shared solid look với màu đỉnh; không nạp được thì người bán bị bỏ, quầy hàng vẫn chạy.",
+      "statement": "model-loader.ts nạp GLB bằng LoadAssetContainerAsync, hủy vật liệu gốc và áp chất liệu satin dùng chung cho mesh; loadMergedModel gộp mesh thành một.",
       "evidence": [
         {
-          "resource": "repo://src/ocean/market-vendor.ts#L1-L12",
-          "version": "repo-lines-v1:sha256:79e9638aaf8770a2ede9cd8ab370e3da5c06548a73d48a3a950fe8960ddc8d0e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkZGY3ZDE3ZjI1Y2EzYzdkMDgzNGE3YzIyNDhjMTZkMjBmNTA5MWNkZGRjZWI3MTIyNmFlN2YyYzcyNTkwNmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3MmE0MjkzODJiMmUxNDcxOGUwZTM3YjA1NzBhOGExNzAyOTkxZmNkODQ5OGNkODQwNjBhOGJmNGYwNTAxN2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlNzQ0MjlhZmI3MDc0YzU5M2RlZTFiZjc5Y2Y4NWY2YjJlZGU0OWFjZWE4NGFjZWEwOTczYTg1ODc3ODYwZmQifQ"
+          "resource": "repo://src/ocean/model-loader.ts#L1-L15",
+          "version": "repo-lines-v1:sha256:ac61150fb7dc191bd03c16a2d11b967fc0376d1ddbe25e2e7cb2853acc82fa75:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkY2M4ODQyZDQyMjJhZDJkYjAyZThiYjEwMzY0YWFjNThjY2IzOGU2N2IyZTBkZTNmNjc1MzkyMTg4Y2M0OGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyM2NiNGMxM2Q2Nzc1OWQ1NGY3NjcxZDQ0MDM0OTcyZDA5MDNhMzlkMDhhZmFlNzNiYjk4MWViOWFiMGRjZjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIzNWE5MTk4ZjE1ZGUxYjhiNTQ3NGJlMzRiMGEyNDY0ZGZhMjFmZjc4OTczMDAxOTQ0NzRmMWFmNGMxNTZkMTMifQ"
         },
         {
-          "resource": "repo://src/ocean/model-loader.ts#L1-L15",
-          "version": "repo-lines-v1:sha256:03d2c633c9de4b19c8b94d96e74b408b8c21edb6839263cbd21738f94b32b2c7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkY2M4ODQyZDQyMjJhZDJkYjAyZThiYjEwMzY0YWFjNThjY2IzOGU2N2IyZTBkZTNmNjc1MzkyMTg4Y2M0OGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExYzY3Mjg4OGFmZjM2MTAzMzdiYWU0MDM1OTljODFiYjIzN2MyYThmZjk3Y2Y5ZDUyMjFmYTMxNTAzODhiZTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwMzAyMTM4NzljYWViZGM0OGNkMTEzZjRjY2QzZWE0YjY4NTg1NGQ1YjAyYmZmOWNjMGJiNTUzYTRiZmZiNmIifQ"
+          "resource": "repo://src/ocean/model-loader.ts#L34-L52",
+          "version": "repo-lines-v1:sha256:568f82d602c30f5492acbd307f9deeabeabf207c1f90caa15f7cfc8ec2e319fd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwYzFhODUxMDgyYWMyMTVkYmU4OTExYjI3OWEyMzBhNWUyZGEwYmMzMGYxZDliNWYwZDFiYWE0MGUxZTgyMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3ZTA5ZjhjYjBmYjQxNDRkNjZlOGIxOTczN2FkN2Y4ZDNiZDM3MWI0NDFiNTVhMzQ5YzJmOGU4ZGQzOTczYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlNDk0MjIzMzY2OTY2NTIyODVlZmZjN2QyZmRkZjkzYjk0Nzk5NjUxYjhmMjZlNTEzYjE2YjgyYWRmMWE3MGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRlN2FhYWVjNTA0NWVjNGI0NTk3YWQxNTIwOGMxY2NiZWM1M2NiZDMwZmM1NTZhMTRkYzJjOWEyZGQ4NDU0NWUifQ"
+        },
+        {
+          "resource": "repo://src/ocean/model-loader.ts#L67-L85",
+          "version": "repo-lines-v1:sha256:a408e7798555e12d3fd7003790d0812e667a3c68afb17912e987234af47da906:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4Y2Q1ODg3YWQxMTIwNGQ5YmE3OGRlNDFlZGZkNTMxMjlhMmJmNmIxZDA2OGQwMjJiOGNjMWM5Y2NjNWU4OTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2ZjE0MGMwMTc3ZWNkYTgyNjA5NmEzMTE4YjM3OTE5YWNjOGMxMDFjN2QxNjk0MDdhYzQ4Mzg1YzVlY2MxMjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA2YzI5ODliNTI5MTVkNTljOWFmNmU0OWYzNTRhNTk2NDc0ZGRhM2QyNjcwOGFiMWEwNGU3MzcwYWNkZDQ3ZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyZTRlMDgyN2YxMTZlNzJmMTJmMjJkNjg2OWY3Zjg5MGEyODQxN2EyYmEzMmJjNDQ4ZmJiNDQ5Y2Y2ODMzYjUifQ"
         }
       ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.8.0",
-    "at": "2026-11-13T03:02:54.827Z"
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-17T08:18:15.877Z"
   }
 }

@@ -1,32 +1,14 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:dfb7fc25fcdefd649bc51233776cda27e5db0d6a4db2623cec91e565d553238a",
+  "pageVersion": "sha256:0e82a7bd0b76366263a118a2ab6928b927039bfaea1c1226c49f9619d93a2eaf",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
-      "statement": "Pages workflow chạy checks cho PR/main/dispatch; chỉ publish marked push có trailer Pages-Deploy: true hoặc manual dispatch, PR không deploy. Quy ước chỉ đánh dấu thay đổi có UI/UX impact.",
+      "statement": "Workflow pages.yml chạy lint, format, typecheck và unit cho PR, main và dispatch; chỉ publish khi push có trailer Pages-Deploy: true hoặc khi dispatch thủ công, PR không deploy.",
       "evidence": [
         {
           "resource": "repo://.github/workflows/pages.yml",
-          "version": "repo-file-v1:sha256:d0b30ec9a56908081f81f5e36b71f20b8558fa6bd7bfa28a333ac23b72de3619"
-        },
-        {
-          "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:1a5dd8be42823be9893210c1d57c4ee0ceb73cd7244ad20cf0a6d574ae092793"
-        },
-        {
-          "resource": "repo://docs/workflow.md",
-          "version": "repo-file-v1:sha256:a35cebd2d0ff10f305c84b023b4748365a17a937c73501fb4a0b7a9ef0f09a54"
-        }
-      ]
-    },
-    {
-      "id": "claim_92d2cb01ea2d44769b1310038a3831a8",
-      "statement": "MCP OpenWiki của Codex chạy qua npx --no-install để dùng dependency trong repo.",
-      "evidence": [
-        {
-          "resource": "repo://.codex/config.toml",
-          "version": "repo-file-v1:sha256:1a57de45554398b6f766e432cb8305967c5348f970bb51f9a8a3f7db73099b2c"
+          "version": "repo-file-v1:sha256:ad19433b1f8bae64680dabb5adbcaa2ee9346b9ce7f039ffcd3c6de780793142"
         }
       ]
     },
@@ -42,307 +24,65 @@
     },
     {
       "id": "claim_7f0efb779d404f5c9e4682419541c353",
-      "statement": "npm run check gồm lint, format, unit, build, browser, rules và API tests; scripts/test-browser.mjs đóng đúng các server Vite mà nó tạo trong khối finally.",
+      "statement": "npm run check chạy lint, format:check, npm test (test:unit, build, test:browser) rồi test:api.",
       "evidence": [
         {
-          "resource": "repo://package.json#L21-L22",
-          "version": "repo-lines-v1:sha256:98f69db2e9c02bbd803b8a07142e9650126ce751dd1c8fdaa21189fbb49a4f6f:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzVkOTU4ZDE3MWNkM2YwYWYzMzc5OTBhYjM0NDJmMGY2NjcwMjJkM2VhMTc1YzAxZGNjOGI2NGVjOTYzOTFjOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTI1YzIzZWZjMGFiZTM1N2UzYjYzNzE0ZDYzZjI1YjI5Y2Q2YTNiNzA0MWYxMmI3NmIzZWNjMzJjYjY3ZDczYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTk3ZGMwYWJiNjAzYjQ5MDM2NDcxM2E5MTg4NjJlMzQwZWNmYjY4MWYzMzRlYjhiZmI3ZTBmMWYyNGZjZWZjZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmU3MGZmMTA3NDFlYjJhMjc3MDY2MGRmYzZiYWFhNjE2NmJkNzg4ZjBmYjJkZTNhNTU2ZThjYjFmNDk0MDliYiJ9"
-        },
-        {
-          "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:0494f441f7e6ae2adeec70853b8248f0e5eb4409287bb76ce51307a5c7b43d8a"
-        },
-        {
-          "resource": "repo://scripts/test-rules.mjs",
-          "version": "repo-file-v1:sha256:e128675560357c590e4ae9a269587d92d8e8d6106859df2a22b765fdca0b9bb3"
-        }
-      ]
-    },
-    {
-      "id": "claim_3ba1b926b98c45148618fbd328cc20a9",
-      "statement": "AGENTS.md nạp context theo tác vụ, ưu tiên mobile landscape và theme đã duyệt, dẫn tới architecture/workflow/Firebase và yêu cầu ảnh render thực.",
-      "evidence": [
-        {
-          "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:1a5dd8be42823be9893210c1d57c4ee0ceb73cd7244ad20cf0a6d574ae092793"
-        }
-      ]
-    },
-    {
-      "id": "claim_3fa0c6aabd9f4f53ad35a01c043db5d1",
-      "statement": "Browser tests kiểm tra hai client bản thử, validation, reload, readiness, đóng phòng, nhiều viewport mobile và lỗi Auth có kiểm soát.",
-      "evidence": [
-        {
-          "resource": "repo://tests/hub-browser.mjs",
-          "version": "repo-file-v1:sha256:f959122a367f418af1470cc85a9ad9db98ac12bbe0cba3dce6f5fcb3efa45508"
-        }
-      ]
-    },
-    {
-      "id": "claim_1a97e8a8418d45858f411e05eeae2475",
-      "statement": "Runner kiểm tra checksum/size Firestore JAR chính thức, chạy emulator Java loopback và test quyền, schema, query cùng tranh chỗ cuối bằng SDK transactions, không ghi cloud.",
-      "evidence": [
-        {
-          "resource": "repo://scripts/test-rules.mjs",
-          "version": "repo-file-v1:sha256:e128675560357c590e4ae9a269587d92d8e8d6106859df2a22b765fdca0b9bb3"
-        },
-        {
-          "resource": "repo://tests/rules.test.mjs",
-          "version": "repo-file-v1:sha256:7a89519a22165ba0f70bcd5fa6920db5a76c780623f81349370cd04feb1d633c"
-        }
-      ]
-    },
-    {
-      "id": "claim_bdf5ae1429bb4a69b986cbe225bb80fd",
-      "statement": "Runner chạy Auth/Firestore emulator browser test dùng hai tài khoản SDK thật, profile, phòng có tên, logout/login và khôi phục phiên; production requests bị chặn.",
-      "evidence": [
-        {
-          "resource": "repo://scripts/test-rules.mjs",
-          "version": "repo-file-v1:sha256:e128675560357c590e4ae9a269587d92d8e8d6106859df2a22b765fdca0b9bb3"
-        },
-        {
-          "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:c5eea22b378230593f6decb8a06d54f6e6291ccd712c8a2e5e9e4e3a140472f5"
-        }
-      ]
-    },
-    {
-      "id": "claim_4d7ed525c7434a64846c26c360d57b4f",
-      "statement": "CSS account dialog có chế độ compact cho điện thoại ngang; browser test kiểm tra nút đăng ký hiển thị trong dialog không cần cuộn ở viewport thử nghiệm.",
-      "evidence": [
-        {
-          "resource": "repo://src/style.css",
-          "version": "repo-file-v1:sha256:e8bd4e646b9a542bd0fae5337e4b1797cff5527fb464466b632074829144003c"
-        },
-        {
-          "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:c5eea22b378230593f6decb8a06d54f6e6291ccd712c8a2e5e9e4e3a140472f5"
-        }
-      ]
-    },
-    {
-      "id": "claim_a747a2fc3701491a8b9315dd1c36927b",
-      "statement": "Browser regression test chặn document batch reads khi mở danh sách và xác nhận directory không phụ thuộc profile transaction; join vẫn dùng đường đọc đã kiểm chứng.",
-      "evidence": [
-        {
-          "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:c5eea22b378230593f6decb8a06d54f6e6291ccd712c8a2e5e9e4e3a140472f5"
-        }
-      ]
-    },
-    {
-      "id": "claim_a8ddcae5d7f547c9b0be24fd472571be",
-      "statement": "Test browser xác nhận lần tạo phòng đầu chỉ có một RPC commit với hai update documents profile và room.",
-      "evidence": [
-        {
-          "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:c5eea22b378230593f6decb8a06d54f6e6291ccd712c8a2e5e9e4e3a140472f5"
-        }
-      ]
-    },
-    {
-      "id": "claim_813fc4d7e5af4e2faf0b930a5f0bd27b",
-      "statement": "Kiểm tra chẩn đoán gồm unit test và browser emulator trì hoãn commit 200 ms để xác nhận timing; không là số đo production.",
-      "evidence": [
-        {
-          "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:c5eea22b378230593f6decb8a06d54f6e6291ccd712c8a2e5e9e4e3a140472f5"
-        },
-        {
-          "resource": "repo://tests/diagnostics.test.mjs",
-          "version": "repo-file-v1:sha256:1d952e78adc130004f47ea828441b8976ddaa7215d1449f8d9da3c629ba549c1"
-        }
-      ]
-    },
-    {
-      "id": "claim_2e542c100ba04040abe4b3ab4e5767eb",
-      "statement": "Bộ 24 trạng thái HUD đã duyệt và được implement dưới dạng UI preview; roster căn giữa không nền, highlight theo lượt, action gọn; state02 không text di chuyển, chưa có backend gameplay.",
-      "evidence": [
-        {
-          "resource": "repo://docs/game/plans/02-mobile-ui.md",
-          "version": "repo-file-v1:sha256:bf31849c680688d3868b433793ba7703aa996c759e6246bbc11625bc9b1f439c"
-        },
-        {
-          "resource": "repo://docs/game/ui-implementation.md",
-          "version": "repo-file-v1:sha256:1aa296420de0c58ae3ef96aed6e95f5b374f81976bd3f9c2ca3b02aa39e1fc02"
-        },
-        {
-          "resource": "repo://src/game-ui/model.ts",
-          "version": "repo-file-v1:sha256:bc3ae6d87c6ff8b221550cdb7b8c5fcee16517b6fbdafd7a9b587426da493705"
-        }
-      ]
-    },
-    {
-      "id": "claim_e6ff65b237a1403cb52764eb57245bbb",
-      "statement": "Quy trình đối chiếu ưu tiên text và so bảng có revision; ảnh chỉ xử lý ngoại lệ cụ thể, không lặp tìm ảnh bị chặn. Bảng nháp đã có 189 số khớp S-004 nhưng không đồng nghĩa xác minh edition G0009.",
-      "evidence": [
-        {
-          "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:1a5dd8be42823be9893210c1d57c4ee0ceb73cd7244ad20cf0a6d574ae092793"
-        },
-        {
-          "resource": "repo://docs/game/README.md",
-          "version": "repo-file-v1:sha256:ab335ddc9729bda6e7c7a1f5c263282a757723f214db5e10dbe125d10f62782c"
-        },
-        {
-          "resource": "repo://docs/game/rules/property-economics.md",
-          "version": "repo-file-v1:sha256:0f1ef886a366b84f5081b76e9294e442d757abbcbf5bcd6e2c2c52d3be19e520"
-        },
-        {
-          "resource": "repo://docs/game/rules/sources.md",
-          "version": "repo-file-v1:sha256:f59dbe4791e9ddd3e5e590109aa89fd31ed06ddac2ac13136814699b69aa3f16"
-        }
-      ]
-    },
-    {
-      "id": "claim_e7a3c9b106f64154b5e79c7e079819e6",
-      "statement": "Tiêu chí phiên chơi đã chốt: ngoài lượt chỉ quan sát diễn biến chung, không action/Tài sản hoặc Lịch sử; người được chỉ định phản hồi trade/đấu giá có đúng action tác vụ, không tự mở tác vụ độc lập.",
-      "evidence": [
-        {
-          "resource": "repo://AGENTS.md",
-          "version": "repo-file-v1:sha256:1a5dd8be42823be9893210c1d57c4ee0ceb73cd7244ad20cf0a6d574ae092793"
-        },
-        {
-          "resource": "repo://docs/game/shared-session-design.md",
-          "version": "repo-file-v1:sha256:83d1ddb3b4a47bef57b2ef9f66f565e8127c6c260931734366bb178ea1452657"
-        }
-      ]
-    },
-    {
-      "id": "claim_35b4c812754946518f7ad843aaba34b5",
-      "statement": "npm run check có unit/browser HUD preview trên dev và production, với 24 trạng thái và ba viewport landscape; preview không gọi Firebase, suite Auth/Firestore phòng vẫn riêng.",
-      "evidence": [
-        {
-          "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:d5f989349a224315e3933d02356feabbd1148247c99435103e9ac4f37f774ffb"
-        },
-        {
-          "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:0494f441f7e6ae2adeec70853b8248f0e5eb4409287bb76ce51307a5c7b43d8a"
-        },
-        {
-          "resource": "repo://tests/game-ui-browser.mjs",
-          "version": "repo-file-v1:sha256:147daba44b9bde35787396eb8f79ed87e797b2854091f8e4a74aeafa1062efd0"
+          "resource": "repo://package.json#L21-L24",
+          "version": "repo-lines-v1:sha256:739ee3ec1d4c945bbe962946234df6dda1c0ea866d5369f57a2aa7cb1c14058a:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzVkOTU4ZDE3MWNkM2YwYWYzMzc5OTBhYjM0NDJmMGY2NjcwMjJkM2VhMTc1YzAxZGNjOGI2NGVjOTYzOTFjOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTU4NTc2OThhOTFlNTNhYjU5MjFkODg4MmUwZjM1MjY5NDdjZjI1MzYxNjY5ZmU0YmM1OTAwODA5YjI2MDEzMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTE4ZTRmZDdjOGIwNDAyZmI1M2Y0YTMyMjE5MmY0MTdlMWNhYzhjMWRjNjJhNDNiYTRlMmEwZTI5NjRjMzk3OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODk1MmNkY2QxOTQ3MzUxMmM0YmVlNzYzZmVjYmQ4Y2UyOTA2MGU4NmZhMGIwNjczMTM0MWYwNmRkODkzZWU5MiJ9"
         }
       ]
     },
     {
       "id": "claim_191d90b63cdc48dbbe22625f77df5148",
-      "statement": "Browser suite có test PWA trên production build/subpath kiểm tra manifest/icons, install handler, offline reload và waiting update; cài OS trên Android/iOS còn cần real-device verification.",
+      "statement": "tests/pwa-browser.mjs chạy sau test:browser, kiểm tra bản build production và PWA; cài đặt trên Android/iOS thật vẫn cần kiểm tra trên thiết bị.",
       "evidence": [
         {
-          "resource": "repo://docs/pwa.md",
-          "version": "repo-file-v1:sha256:db7aefaf701449c62888b6b335bc14227265e1647503b9183785a04eb77a0661"
+          "resource": "repo://package.json#L20-L20",
+          "version": "repo-lines-v1:sha256:8b5d70163733fdbd658dbbada5d36a34bbf93e8071ec8e0990de7d51e83f9c95:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI1ZDcwMTYzNzMzZmRiZDY1OGRiYmFkYTVkMzZhMzRiYmY5M2U4MDcxZWM4ZTA5OTBkZTdkNTFlODNmOWM5NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI1ZDcwMTYzNzMzZmRiZDY1OGRiYmFkYTVkMzZhMzRiYmY5M2U4MDcxZWM4ZTA5OTBkZTdkNTFlODNmOWM5NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODQ0NjJhODFlYmJhZDk4ZTdhZDc1NmMxZTVkY2YwMDdiOTAwZmZjYzI1YzFhMTZmZWVkMTZhZjYwODA0Njk0MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTMyZWZiOGY0MmYwOGYxNDhmMGE4MTZhNmQyMzg0N2VlM2ZiMDYxODI2NDRiYzNiMjRiNTQ0NTMwNjNjOTEyMiJ9"
         },
         {
-          "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:d5f989349a224315e3933d02356feabbd1148247c99435103e9ac4f37f774ffb"
-        },
-        {
-          "resource": "repo://tests/pwa-browser.mjs",
-          "version": "repo-file-v1:sha256:0e3e51cf3cacf7117316fe25c40d8d247f71865a39e68c8c8422cba22fd097c5"
+          "resource": "repo://tests/pwa-browser.mjs#L1-L12",
+          "version": "repo-lines-v1:sha256:8dc57a43a6451ef62a7b2c642366eeb12325144160579c6eee6dc57e83b56e75:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2YzdjY2UwYTcwYjM0ZWZhM2FlMzgwZWExMjA2ZTRmZjAwMzNmZjJmNzZlN2M2ZGZlNGNlM2Y3ZGNkMDg2MjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlNWNlY2Y0NzBlOWNlZDc2OWY5OGVkZTlkYzM0ZjIwZGU3MzNlMTY4YThjZjQ5YzVmYjRlYWMyZGJmYjU0OGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljMzJhNmNkMDg1NjFhOGVmNTExYjFlNGM2ZmRlODllMmIzNWUxOGFlYmE1YzQ2NjQ4ZWZkMjQwNTYwOTRkY2QifQ"
         }
       ]
     },
     {
-      "id": "claim_b2420d31cee7467f973a0b3cd880b139",
-      "statement": "HUD shares one safe-area container and scrollable landscape task/action regions; dev/production tests simulate cutouts across24 states, without claiming real-device verification.",
+      "id": "claim_b40fab845d5e462fa7e3ed1fce7f3fa5",
+      "statement": "scripts/qa.mjs chạy các test trình duyệt theo tên với Chrome hệ thống và chạy lại riêng test bị lỗi một lần để phân biệt lỗi thời gian với lỗi thật.",
       "evidence": [
         {
-          "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:0494f441f7e6ae2adeec70853b8248f0e5eb4409287bb76ce51307a5c7b43d8a"
+          "resource": "repo://scripts/qa.mjs#L1-L12",
+          "version": "repo-lines-v1:sha256:f9bb5a081fe2e0a0543d0b54dbf329a06f7e8caa7f6ffd9efff67cf5cc0361f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxMjBmZmM3YmUyZjliMDUxYzFiMzI0MjkyNTg5OWM2NjgxMDQ2MWU3ZmM5ODZlYTUyNWY5YTFlNTBlMGI4NzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwY2JiMzU4Mzk2MWRjMWRhZDc0YWMwNjZhOWQ1MDE5YWUxMTJiMDMwN2U4ODFkYTAxY2ZmYjZkYmUzYzNlMjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIwY2RhODZjOThlMDJiZmU1MzBmN2ZhYzM0OWQ0OTE2NzUyYWEyZjBjM2M1ZjFiODFkMDJjYzUyZjE5ZmM3MjMifQ"
         },
         {
-          "resource": "repo://src/game-ui/render.ts",
-          "version": "repo-file-v1:sha256:d8f84dc971532046032a05311f549d86400a9d8992e665bc28b5911a22612d9e"
-        },
-        {
-          "resource": "repo://src/game-ui/style.css",
-          "version": "repo-file-v1:sha256:6f8026ae157c86b147b5dfc5297e502ebbab5baaaa3ef40763b824ad9529ffaa"
-        },
-        {
-          "resource": "repo://src/style.css",
-          "version": "repo-file-v1:sha256:e8bd4e646b9a542bd0fae5337e4b1797cff5527fb464466b632074829144003c"
-        },
-        {
-          "resource": "repo://tests/safe-area-browser.mjs",
-          "version": "repo-file-v1:sha256:ee8ae0f23f771c78acb7811493d39647007951a6f456b2c4247c89cd019bd0d1"
+          "resource": "repo://scripts/qa.mjs#L86-L89",
+          "version": "repo-lines-v1:sha256:a0a6c32fe82f489f73f418ebdfd6c4e3142981f879cffadb875eebf927ed08e2:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzQ4YWU1YWMxNDllYmY5MWNjNjg1YTYxNzZlYmZhNDRhYTMyYjY5OTg3MDViMjExNDRlY2Y0M2RiYmFiMmI5OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDZmY2EwMjJkNmVhZmYxMzAwMTM3MmIyN2NjNTcwOTI5ZjBkZmY4YjU4Y2UxMDk0ZTI1NWU3MjA1N2FmMWZmYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzJiMmRjNzZkYjc3YTgzZDI5YTgzZmY4YTFkY2NkYzY0MGJmM2YwNzFkZTRjMjY0ODU4N2YzYjFiZDVjYzQyYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjc3MDZlMDljODE4N2Y2OGZlMjAyMzU2NTMxNWEwMTRlYTBiMDc3NzYyOGY3NmFhYmI4MmI0MzcxNDg2YmVmNiJ9"
         }
       ]
     },
     {
-      "id": "claim_94d0c69db1834d139522ca71db05bdaf",
-      "statement": "The local ?view=game preview uses one Three.js renderer across HUD redraws, a shared40-space grid with2.2-deep tiles, outward-readable labels and buildings on inner property stripes. Focus follows the active fixture token; Overview supports orbit/pan/zoom. WebGL fallback preserves a flat board. No authoritative economy or multiplayer gameplay is added.",
+      "id": "claim_3a3adba2aa254008816e61b529016bc2",
+      "statement": "scripts/test-browser.mjs đặt VITE_SUPABASE_URL và khóa công khai giả, vì biển từ chối khởi động khi thiếu cấu hình.",
       "evidence": [
         {
-          "resource": "repo://src/board/layout.ts",
-          "version": "repo-file-v1:sha256:707a5ca84d90e0f049dc1698900f17dfd1a947e7c1c3249701fefacb2abf0292"
-        },
-        {
-          "resource": "repo://src/board/scene.ts",
-          "version": "repo-file-v1:sha256:ea08534ead1252304514aa5984e08ab962e64fd76342c1a276a617f5e8890641"
-        },
-        {
-          "resource": "repo://src/board/stage.ts",
-          "version": "repo-file-v1:sha256:e3b3a580fb9ba2a5d83c25a1ab0a037e7dc53165d9af3014def9480b389cb29f"
-        },
-        {
-          "resource": "repo://src/game-ui/board-preview.ts",
-          "version": "repo-file-v1:sha256:d75d3f96ce1ef1965aa7fa409f869a31778a17bd1cd3f3d85e53589bc8f68dff"
-        },
-        {
-          "resource": "repo://tests/board-browser.mjs",
-          "version": "repo-file-v1:sha256:e5835f8eccc6c04ce686fe546849551867419fe6f21b1ae66309192be9f6765d"
-        },
-        {
-          "resource": "repo://tests/board-layout.test.mjs",
-          "version": "repo-file-v1:sha256:f6d0c2e39a7a80adbd96b947ce776b3ca0b09a5be66349a3231e0bc16057c445"
+          "resource": "repo://scripts/test-browser.mjs#L17-L22",
+          "version": "repo-lines-v1:sha256:173ccc1a9f1dee7e8519598a118e13f11874e406679332302a0bdd005cfa1fc7:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjZmNWI0MGIxNTg0NTdkMTc4NjRmMjE3OTA3ODZkZDVhMmVjZGI2NGI2NmE2NTFmNzg4ZDRlMjVjZDMzMDNkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjc2MGE2MTBhNTYwM2NmNjQyMjY2ZTQ5ODcyOTE5NzIwMGQyZGQzMDJjNmYxNWRlOTBmZDFjYjlhYzU4ZjAxMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmI0OGJlNWQwMjk1ZjY3YmJkZDVhMDk2YzVkNGI3MzE3NzBlYjk1Y2I0YWUzYmYwZjNmN2VmN2M2MmEwMGRkNCJ9"
         }
       ]
     },
     {
-      "id": "claim_2e891357355740b6b8321e78f0f08219",
-      "statement": "Runtime Supabase opt-in có facade Auth gồm xác nhận email và đặt mật khẩu mới; phòng gửi HTTP mutations kèm Bearer token và nhận Socket.IO snapshots; Firebase/Pages giữ làm fallback; test Docker cô lập chạy GoTrue, PostgREST và PostgreSQL thật.",
+      "id": "claim_2dcf9a030b134f7a8b0703a7b1b5ad3e",
+      "statement": "scripts/wt.mjs tạo worktree tại ../web-g-3d-wt/<name> với nhánh wt/<name>, dùng chung node_modules qua symlink.",
       "evidence": [
         {
-          "resource": "repo://scripts/test-supabase.mjs",
-          "version": "repo-file-v1:sha256:b4066a39a2403ae2231ec3e182fdd8d81015c798e3f9b21dba847a9498bd8812"
-        },
-        {
-          "resource": "repo://src/app/password-recovery.ts",
-          "version": "repo-file-v1:sha256:15c9444965ddf4b70c816ed92ea9ec83327acca78350f9fae5ce50773bdf66fc"
-        },
-        {
-          "resource": "repo://src/app/start.ts#L49-L49",
-          "version": "repo-lines-v1:sha256:53922c0bdad10780a9bf88f599b0d776f47183dc93df4e0e67bf0f4b2a7acaac:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTM5MjJjMGJkYWQxMDc4MGE5YmY4OGY1OTliMGQ3NzZmNDcxODNkYzkzZGY0ZTBlNjdiZjBmNGIyYTdhY2FhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTM5MjJjMGJkYWQxMDc4MGE5YmY4OGY1OTliMGQ3NzZmNDcxODNkYzkzZGY0ZTBlNjdiZjBmNGIyYTdhY2FhYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzcyOGRlNGRhYTI0MzFhYWY3YjM3MjhhYjY2NWQ3NDAxNDg5NWM1NTEyOTI2MDllOTRiOGZlYjFiNjEzZGQ0YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjgwNDVkMWFkMWIyMzgwNTdhMDc3N2E3MTBmNzhhYWIxN2E5YzA4YzFiMWI2YzgwNzkzM2FiYzIxZDMzYWE2YSJ9"
-        },
-        {
-          "resource": "repo://src/platform/api.ts#L27-L27",
-          "version": "repo-lines-v1:sha256:6ebf9fddadc301a999b593dc87a9d8852698a5ee13a987ef524a2f5876fdb9c6:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViZjlmZGRhZGMzMDFhOTk5YjU5M2RjODdhOWQ4ODUyNjk4YTVlZTEzYTk4N2VmNTI0YTJmNTg3NmZkYjljNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViZjlmZGRhZGMzMDFhOTk5YjU5M2RjODdhOWQ4ODUyNjk4YTVlZTEzYTk4N2VmNTI0YTJmNTg3NmZkYjljNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjdhY2Q4NzE5Y2RlMTg2NTU1YTE5YjhjM2M2NWVlNjk0NzdlNWRhODkxNzkyYWFmNDE5NWI0OGM3MmNmYTIzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmUwZDZhNzdhZmNmNTIzNTNlY2Q2NjhiODI1Y2M4NThhMmZkODRmMTZkYjQ1MmUzZmQ3ZmUzOTQwMDBlYjczMyJ9"
-        }
-      ]
-    },
-    {
-      "id": "claim_78c6eb38c45146e69c61ddc69a04f7c0",
-      "statement": "Hồi quy biển gồm unit, Socket.IO thật, hai tài khoản Firebase emulator trong tests/ocean-browser.mjs và, qua scripts/test-supabase.mjs, hai browser vào biển qua Supabase local; không ghi fixture production.",
-      "evidence": [
-        {
-          "resource": "repo://scripts/test-supabase.mjs",
-          "version": "repo-file-v1:sha256:b4066a39a2403ae2231ec3e182fdd8d81015c798e3f9b21dba847a9498bd8812"
-        },
-        {
-          "resource": "repo://tests/ocean-browser.mjs",
-          "version": "repo-file-v1:sha256:126eea2d384732a9da0498e9855470579274cc3111fb582a6dc560840d9778a6"
-        },
-        {
-          "resource": "repo://tests/ocean-socket.test.mjs",
-          "version": "repo-file-v1:sha256:43d20fd869319838ccc2d882702c4d23ab9b9e2a681be07e2b81bc3d48144e13"
+          "resource": "repo://scripts/wt.mjs#L1-L12",
+          "version": "repo-lines-v1:sha256:d68ac015d3f9d3be272ed32be74e7542c66a58ed6a37ec810e438709bfd97b61:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjNzVlNDA5MGI3MzkzMDM4OTk2ZTJjODdiMzBmZTk5NzRjZmUxNTVmMDZhYjJhNmE0MzRmNWYxZDVhYzU5OWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxZmRhMTQ5NDVjYjM0ZTI5ZDFmMDY4MGU5MDA0NGZmZWMzM2Q2MGExMDIxNTBlMDdkNTYxNzc1MzY4YTEwZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFjNzRjZjE2Yjg5NjNiN2ZkMTVhNGM0NDg1YzNiZTUwMGNiMDE2NmE0NGYyZmEzOWViODBlOWQyN2Q2NjUzNzEifQ"
         }
       ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.8.0",
-    "at": "2026-11-13T03:02:54.827Z"
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-17T08:18:15.877Z"
   }
 }

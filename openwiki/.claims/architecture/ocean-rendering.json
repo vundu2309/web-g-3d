@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:5d13a085e3976eb285503d42d064fb930edaf19c74ec951171ded38494cf31ba",
+  "claims": [
+    {
+      "id": "claim_b319dc8a808242728325f65d6db631d6",
+      "statement": "Mặt nước là hàm chiều cao giải tích dùng chung cho CPU và GPU: thuyền Havok tính phao nổi từ waveHeight, còn shader nước dời đỉnh bằng glslWaveHeight cùng công thức.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/boat-physics.ts#L229-L232",
+          "version": "repo-lines-v1:sha256:2c9b2af4bdc94d84a5187b0f709c659651275deea48e1001426512d417e9a8da:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODFmNTMwY2I0Zjk1OTMyN2Y1MmNkNGY5ZDA1NTI5ZTM2ZmRlOGVmOGQ0ZmQzYmQ4NTEzZmQ2ZTc3ZjJmZWMwNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmYxNzc3NTdlMmM3YjFiZWUxMjE5MzE0NWQzYTEwYmFkNGRiYzQ4YWYwNDFjODkzMmMzNmNkNjNmOTBkMDAxZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzc0MGQ1N2VmZjc4YjZkMTFlNmQ2N2JjNmRhYzQ2NDBjZDFmYTU3N2RhOWQ2NDY5Yzc2ODlhYzJmMWI3ZDBlNiJ9"
+        },
+        {
+          "resource": "repo://src/ocean/waves.ts#L1-L12",
+          "version": "repo-lines-v1:sha256:ce1e10fbec9fc37b7ce4b4f437c43d80692ae3e88084dd5e2b8dbbb61e3014a7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyM2NiNGMxM2Q2Nzc1OWQ1NGY3NjcxZDQ0MDM0OTcyZDA5MDNhMzlkMDhhZmFlNzNiYjk4MWViOWFiMGRjZjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyN2IwOGE5Y2U2NGNjNDkwMDFjNmRkNGYwNmZlNDY4NDE3YTExNDZkMGMyZWFlODUwZTczYThmMGYwNzVhODcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e779d0fc39394bd594bc6220997973f6",
+      "statement": "Khoang cách tới bờ được tính từ shore.ts một lần, và cùng bảng được dùng cho shader nước, lớp bãi, bản đồ nhỏ và vùng câu cá, nên chúng không lệch nhau.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/fishing.ts#L3-L3",
+          "version": "repo-lines-v1:sha256:5508c3ab4857fb5227a47d5e9c2fa76a5336c83313fb0488217660a191abdd03:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTUwOGMzYWI0ODU3ZmI1MjI3YTQ3ZDVlOWMyZmE3NmE1MzM2YzgzMzEzZmIwNDg4MjE3NjYwYTE5MWFiZGQwMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTUwOGMzYWI0ODU3ZmI1MjI3YTQ3ZDVlOWMyZmE3NmE1MzM2YzgzMzEzZmIwNDg4MjE3NjYwYTE5MWFiZGQwMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWFhOGVjMDE0MzM3Njg2MjhjMGIxYjQ0MTlkM2Q5YmVhN2I0NWFiOWU2YmYwNDNiZmY2YjgwNjYzMTgwMDVkZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2VhNzJkMjQ1NTZjMjczZTQ1OTM0MjBlZDdiN2Q2N2NlYjE2ZmQxZjE4N2U0NjA3MzQ2MmZjYTZkN2I2ZGNmYSJ9"
+        },
+        {
+          "resource": "repo://src/ocean/shore.ts#L14-L22",
+          "version": "repo-lines-v1:sha256:c6c05380fd2e0787c0ac6a866f99497c716dd0c18e63124e485646493596b600:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGFkYWJhMWI4NDFiNTA4ZWJlMmNiOTlmNjY0MjRiYmFmY2VjNWZmNDYwYTllYmI0ZDQwMTgyOTM4MjM3MGE0MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTI1NTRlZDdkNTJkZjRkZDA1MDU1ZTUwZDU3Mzk3ODEwY2YwMTg1ZWY2ODk0MWNhY2IyNmNlYmEzYTllNTk3NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzk0MGIwMWM0MWJiOGZlZTQ5MzEzZWQ2MjQ3ZDkyZTI3ZTdiMGM0MTFkNmI5NjQ0MjJhZWRkMjIzZTEwN2M4OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzI2NjU4ZmU2M2IyMzk4ZjdhMmE5ZDI4NzE4MjBkYmFiZjIyMjRlZTk5OGIwMTBlN2NiMDQ4MjliMzM4NzY3MCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_4c28e6a2abe64a6eb6ccbcaf23338165",
+      "statement": "OceanScene tạo một Engine và một Scene; độ sắc ban đầu là 1 đàn hồi theo devicePixelRatio tối đa 2, và ScaleGovernor có thể làm thô hơn khi khung chậm.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/babylon-scene.ts#L169-L179",
+          "version": "repo-lines-v1:sha256:97729d8a1529ba6755200091d4c5d5609ced1af01f2da6acc41a831417ff4fb3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiYmY4MzJhNzAxYTg0ZTdlZDQ5NzY5ZmNjNzA2ZjFjMGNiOWM4N2VkMGI0MzliMGZhNjJhZThkMWEyM2YzYTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwYjEzYjNiNzBjZmRmNjA4YTAzMWEyYmZjMzMzZjg2MjhhZjQ1YTE5YTY3NmQ0ZTE2ODUxMDU4ZTNkMzY5ZmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjZjMwZDM1MDI0Njc4NWI4MDQ2NGRkZWEyZGFiOGY0MTJmZjk1NDc2ZDZlZjQ5ODNiNzE1ZDZkNmMxZjUyMzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlMThjZTkzNWUxNDhlYzlkMzBmMDFmY2FhN2M0NWE3MWU4ZGEwOWFjODFlZmRiNWE1YWMxY2U3Mzc2NTcwMjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7ae74b1db01147478967d184757346a9",
+      "statement": "Lớp nước trong là lớp bị tắt đầu tiên khi khung chậm: ClearWaterGovernor được tạo trước và ScaleGovernor chỉ giảm độ phân giải sau khi lớp này đã tắt.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/babylon-scene.ts#L204-L212",
+          "version": "repo-lines-v1:sha256:4a463838b61a90186ebba92b2dbaabf9e9673faed5dfefb0e94ccfe846fa5ad4:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDk3MDBiZTQxMmE4Nzk2MGVlYmU2MWZiZjAxZWM0OTk1M2RiMTIxOTBjN2YyYTNjOTkzOTQ0NDk1ZDIzMTU2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2RkNDBhNDJlZmI5MDNmMDFhZTNmYTQ1ZDIyNzU0MDRmZjMwNzY2OGUzNmJhYzlmNWViMGFmNzYwNTdiMjRkMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmFlZTQ1ZGE4NTRlN2ZiMGIwYmM1NDAwODY1ZTJlMTNkYzBjNzdkMTE0OGE0ZTlmNTMzNzYyZWQyMTE4N2I5YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjg2MzllMjVmYjIzZDkyMjQzOTJjNDdmMDk4OWMwOTM5OTg4M2U4NWQ2YjE2NjhjMGFkOGNjMjcyMTM4YjAyNiJ9"
+        },
+        {
+          "resource": "repo://src/ocean/render-scale.ts#L1-L40",
+          "version": "repo-lines-v1:sha256:8045ab5af03240888063978a1aa8ba39bfee2a81a274f72889dc1c460b1cfeb1:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2NDQ1NzU1NDQwM2U3MTA5YWMwMTFjNDRlNWViMTY0ZTUwYjQyMDQ5YTI1OTIzYjEzZWQ2NTFhNzNjNTIxNmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzZmYyMDNkMmIxMWUzOWY3NWM0ZTAyODMwZmZiZjM3MmRkZGMxYWVhY2YyOWRjZmY2MGZlYTlkODZkMjgwNzYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_626ac2bc7c214a639f528c70be1f5aad",
+      "statement": "ScaleGovernor chỉ quyết định sau cửa sổ hai giây, sau 4 giây khởi động; trung bình trên 0,052 giây là chậm và dưới 0,04 giây là nhanh, với mức thô nhất là 2.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/render-scale.ts#L1-L40",
+          "version": "repo-lines-v1:sha256:8045ab5af03240888063978a1aa8ba39bfee2a81a274f72889dc1c460b1cfeb1:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2NDQ1NzU1NDQwM2U3MTA5YWMwMTFjNDRlNWViMTY0ZTUwYjQyMDQ5YTI1OTIzYjEzZWQ2NTFhNzNjNTIxNmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzZmYyMDNkMmIxMWUzOWY3NWM0ZTAyODMwZmZiZjM3MmRkZGMxYWVhY2YyOWRjZmY2MGZlYTlkODZkMjgwNzYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1730eab8ae1a4819a1e4eed63f8d1f13",
+      "statement": "Nhịp vẽ có hai chế độ: full vẽ theo khung hình màn hình nhưng không nhanh hơn khoảng 100 fps, eco vẽ khoảng 30 fps; khi không ổn định thì chuyển sang eco.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/frame-pacing.ts#L1-L17",
+          "version": "repo-lines-v1:sha256:366b41bf9e135ad485858da73ee71f0b60136951ecaf3ce1a4ed4e3bf92e9e2e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2ZmI2YWE0MDBlYzk0Nzg1M2EzYzk2M2M0OTdkNWJhYzcwYTk2MTVhM2U1Y2Q2YWJiZjNiMDkwZDBiMzA4OGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyZDJiMDY2MmQ4OGY5MDQ2ZmZmY2I0MDVmMmNhODViODQ0ZDViNjhhNzAzZTExNzYyNjNiNjYyNzU4YmE3MjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8402dcd6d83947bbb7fff64ae48eac02",
+      "statement": "Thuyền hiển thị được dựng bằng code thành một mesh đỉnh màu, mỗi thuyền khác là một instance rẻ; GLB boat.glb thay thế khi tải xong.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/babylon-scene.ts#L290-L302",
+          "version": "repo-lines-v1:sha256:ed3b76779c055452a3005d3e73495f808192292f4e46cbab313ef919dc6bf6ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMDdmMDAxZmM1YjhkODIxZDk5YTdiZjRiNjM4NGQ2YzcyNzE2ZDk2ZjhhMzIwYmUwZDNlMjMxNGRiZDcxZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlZDQ5NjcxNDBhYzhlYzkyZjU3NjhjNjI0YTMyN2NhY2Y1MTA1YWY3NDQ3MmFlMGEyNjFmYjk2M2QyNDYyYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAyNDE1ZWFiNWEwNWRiMjY5NWMwOTEwNDZiMTNkNzYwMWE0YzdiZWNlYTNlZjdlNDQ0M2ZiNWEzMDQ5OTUyMmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiZWI2ZmMwM2Y1OTdkOTRlYzI1M2JmMjc0ZmNiMjUwMDI5YTYxY2ZhZTg1NWMzNWUyZjNlZTZjMDdjNzdjNWMifQ"
+        },
+        {
+          "resource": "repo://src/ocean/boat-visual.ts#L1-L12",
+          "version": "repo-lines-v1:sha256:b50be3ebd211fd6ff368ff6fed9dbb45d25c8b89aeea29b4ddd30de1371d6a49:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzMjlkN2M0ZGY0MzNlZGFkMDVkNDc3MmYxYmEwNzMwYzVjMjI4NDQxODg5MDEzYmQ4YmQzMDZiZWM2N2E2OWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5YTQ0YmM3MTQ1ODVlZTE0YzhlMDA1MmUzY2Q0NTM3YzFlZTMyNWY3MjFkZDUwZTMwY2E4YzkzNWY1OGRkYjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFiOTc0M2E1ZWVhMTQzNzg5MDFhNTAwMTVkM2JhZTg0Zjg4YWNkNmZjMmI2OTg0ODhhOGViNDUwMjgxMTk3ZGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0d7e77f9c3e948e5b3402c2d93d757a3",
+      "statement": "Đảo được đặt tại vị trí cố định rồi đóng băng ma trận thế giới, vì không di chuyển.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/babylon-scene.ts#L222-L232",
+          "version": "repo-lines-v1:sha256:69b93c1735d242227cda329ad2f0b0c0cbada746b45a543bb149aa2828076afa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyMTgxOGUyNjM1NDUwNTA5ZDkwODU4OTk1ZjNkMGUwMmE2ZTFmNTgzOWQ3Y2Q3OTA0ODc1MTFjN2E5MmY2ZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1ODYzZWM2MzFiYWQwZmVjNDhkMDkxMGU1OWM3NDc3MjE5Mjk5MDQ5MzYyMjU4NDdkOWY4MTZkZmIwOGExMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2YzRjNWVjOGEwMzA0M2RlMTIzODBkZDYxNTU1ZWM5NmJhMzViM2Q2ODkyYTExNmEwYTVhMDY0YzJiOTEwZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiMzExZTg0YTM5OTMxNmVmOTM2NzE3NmYwNzhlODJlYjkwYzM5YmYwMjUyMGU3NTZjZDM1ZDYyOThkNmNmNGMifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-17T08:18:15.877Z"
+  }
+}

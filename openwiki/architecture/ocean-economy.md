@@ -1,16 +1,16 @@
 ---
 type: architecture
 title: Kinh tế biển và chợ cá
-description: Ví xu, sổ cá chưa bán và bảng giá trên server qua ba RPC; chợ cá và người bán ở phía client; ranh giới client báo cáo và trạng thái migration còn pending.
+description: Ví xu, sổ cá chưa bán và bảng giá trên server qua ba RPC công khai của Supabase; chợ cá và người bán ở phía client; ranh giới giữa báo cáo của client và quyền quyết định của database.
 tags:
   - economy
-  - market
   - supabase
-  - server-authority
-  - ocean
+  - rpc
+  - market
+  - architecture
 verified:
-  - by: openwiki/0.8.0
-    at: 2026-11-13T03:02:54.827Z
+  - by: openwiki/0.7.3
+    at: 2026-11-17T08:18:15.877Z
 sources:
   - id: openwiki-source-8fa3dc9f08f4cf4f5eb0bca9
     resource: repo://docs/decisions/0010-server-economy.md
@@ -20,68 +20,63 @@ sources:
     resource: repo://src/ocean/economy.ts
   - id: openwiki-source-16ec70f90c57ae45d86eff47
     resource: repo://src/platform/economy.ts
-  - id: openwiki-source-f8fe78dcd8d1757c6a667e26
-    resource: repo://supabase/pending/20261112090000_economy.sql
-generated: { by: "claude-code", at: "2026-11-13T03:02:54.827Z" }
+  - id: openwiki-source-00f8ef8b12a88c41e2cb46b0
+    resource: repo://supabase/migrations/20261113032223_economy.sql
+generated: { by: "claude-code", at: "2026-11-17T08:18:15.877Z" }
 ---
 
 # Kinh tế biển và chợ cá
 
-## Phạm vi và trạng thái
+Xu (“xu”) là tiền duy nhất của biển. Ví, sổ cá đã bắt nhưng chưa bán và bảng giá nằm trên PostgreSQL của Supabase, trong schema riêng `economy_private`. Ứng dụng chỉ chạm tới ba hàm công khai, và database là bên quyết định giá, số dư và các giới hạn. Quyết định nền tảng nằm ở [decision 0010](../../docs/decisions/0010-server-economy.md).
 
-Kinh tế biển gồm xu ("xu"), một ví mỗi tài khoản, sổ cá đã bắt nhưng chưa bán và bảng giá. Theo [quyết định 0010](../../docs/decisions/0010-server-economy.md) (chấp nhận ngày 2026-11-12), tiền nằm trên cơ sở dữ liệu Supabase, không chỉ trên thiết bị.
+## Ranh giới
 
-Migration nằm ở `supabase/pending/20261112090000_economy.sql`, **chưa được áp dụng** vào project thật. Quyết định yêu cầu chuyển sang `supabase/migrations/` và đặt `VITE_ECONOMY=on` chỉ sau khi người dùng xác nhận. Vì vậy trong source hiện tại, mục kinh tế chỉ bật khi cả hai điều kiện đúng: backend là Supabase (`useSupabase`) và `VITE_ECONOMY === "on"`. Nếu RPC chưa có, client báo lỗi `closed`. Không mô tả chợ như đã chạy trên production.
+| Phần | File | Vai trò |
+| --- | --- | --- |
+| Migration đã áp dụng | `supabase/migrations/20261113032223_economy.sql` | Bảng, RLS, hàm, quyền và RPC công khai. Đây là lịch sử, không sửa. |
+| Bảng giá phía client | `src/ocean/economy.ts` | Công thức giá thuần (`basePrice`, `priceOf`), hằng `CATCH_COOLDOWN_SECONDS = 6`, `LEDGER_CAP = 200`, và `priceTable()` để so với seed của SQL. |
+| API kinh tế | `src/ocean/economy-api.ts` | Kiểu `EconomyApi`, `EconomyError`, và `memoryEconomy` (cùng luật, trong bộ nhớ, dùng cho kiểm thử). |
+| Adapter Supabase | `src/platform/economy.ts` | `supabaseEconomy()` gọi RPC; ánh xạ mã lỗi PostgreSQL sang `EconomyError`; `economyEnabled()` đọc `VITE_ECONOMY`. |
+| Nối với biển | `src/app/ocean.ts` | Truyền `supabaseEconomy()` vào chợ khi `economyEnabled()`; nếu không, chợ không có kinh tế. |
+| Giao diện chợ | `src/app/market-ui.ts`, `src/ocean/market.ts`, `src/ocean/market-vendor.ts`, `src/ocean/market-visual.ts` | Nút Bán gần cầu cảng, hộp thoại chợ và người bán ba chiều. |
 
-Cửa hàng nâng cấp đã được nhắc trong quyết định nhưng không có trong source hiện tại; không có màn mua sắm nào trong `src/app/market-ui.ts`.
+Server Node (`server/app.mjs`) không có route kinh tế nào. Client gọi RPC của Supabase trực tiếp bằng phiên đăng nhập, không qua API Render.
 
-## Ownership
+## Ba RPC công khai
 
-| File | Trách nhiệm |
-| --- | --- |
-| `src/ocean/economy.ts` | Hàm giá thuần: `basePrice`, `priceOf`, `priceTable`, các hằng cooldown 6 giây và trần sổ 200 con |
-| `src/ocean/economy-api.ts` | Kiểu `LedgerFish`, `EconomyState`, `SellResult`, `EconomyError` và `memoryEconomy` cùng luật cho test |
-| `src/platform/economy.ts` | `economyEnabled()` và `supabaseEconomy()`; ánh xạ mã lỗi PostgreSQL sang `EconomyFailure` |
-| `src/ocean/market.ts` | Dữ liệu ba chợ (Hải Đăng, Đồi Xanh, Bãi Cọ), tầm `MARKET_RANGE` = 17 m, vùng va chạm |
-| `src/ocean/market-vendor.ts`, `market-visual.ts` | Người bán và pier 3D (trang trí, không ảnh hưởng luật) |
-| `src/app/market-ui.ts` | Nút Bán khi thuyền gần pier, hộp bán theo loại hoặc tất cả, hiển thị ví |
-| `src/app/ocean.ts` | Gắn `marketUi` với `economy` (mặc định `supabaseEconomy()` khi bật) và nối `onKeep` vào `recordCatch` |
+Các hàm `public.*` là lớp mỏng gọi hàm nội bộ trong `economy_private`:
 
-Giá và số dư do server quyết định. Client chỉ hiển thị và yêu cầu bán; nó không gửi giá, số dư hay danh sách cá mà sổ không có.
+- `economy_state()`: trả số xu và sổ cá hiện có (`economy_private.state`).
+- `economy_record_catch(p_species, p_kg)`: ghi một con cá client báo đã bắt (`record_catch`).
+- `economy_sell(p_fish)`: bán các con cá trong sổ; `p_fish` là null thì bán tất cả (`sell`).
 
-## Ba RPC và bảng private
+Quyền được siết chặt: các hàm nội bộ bị thu hồi từ `public`, `anon` và `authenticated`; các RPC công khai bị thu hồi từ `public` và `anon`, và chỉ `authenticated` được `execute`. Mọi bảng `economy_private` bật RLS và bị thu hồi quyền.
 
-Schema `economy_private` bật RLS, thu hồi quyền từ `public`, `anon` và `authenticated`. Client chỉ gọi ba hàm công khai, được cấp `execute` cho `authenticated`:
+## Quy tắc trong database
 
-- `economy_state()`: trả `coins` và danh sách `ledger` của người gọi.
-- `economy_record_catch(p_species, p_kg)`: ghi một con cá vào sổ.
-- `economy_sell(p_fish jsonb default null)`: bán các con được chỉ định, hoặc tất cả khi `null`.
+- **Danh tính**: `economy_private.me()` lấy `auth.uid()` và ném lỗi `42501` (chưa đăng nhập) nếu không có.
+- **Bảng giá**: `economy_private.fish_prices` có 20 loài, mỗi loài có `base`, `min_kg`, `max_kg`. Giá bán do `price(species, kg)` tính: `base` nhân với từ 0,6 (nhẹ nhất) đến 1,5 (nặng nhất) theo vị trí cân nặng trong khoảng của loài. Client không gửi giá.
+- **Bắt cá** (`record_catch`): từ chối loài lạ (`22023`), cân nặng ngoài khoảng `[min_kg, max_kg]` (`22023`), lần bắt cách lần trước dưới 6 giây (`55000`, dùng `clock_timestamp()`), và sổ đã có từ 200 con (`54000`). Cân nặng được làm tròn hai chữ số trước khi kiểm tra. Lần bắt được ghi vào `ledger` và cập nhật `last_catch_at` của ví.
+- **Bán cá** (`sell`): khóa dòng ví (`for update`), tối đa 200 phần tử trong danh sách; mỗi phần tử phải khớp một con cá còn trong sổ theo loài và cân nặng (`fish not in the ledger`, `22023`), không dùng lại cùng một dòng. Số tiền thu được cộng vào `coins`, và các dòng bị xóa khỏi sổ trong cùng giao dịch.
 
-Các hàm nội bộ `economy_private.me()`, `price()`, `state()`, `record_catch()` và `sell()` bị thu hồi quyền truy cập trực tiếp. Hàm `me()` lấy `auth.uid()` của người gọi, nên người chơi không thể chọn người khác.
+Các lỗi trên được `failureOf` ánh xạ sang `EconomyError`: `42501` thành `signin`, `55000` thành `fast`, `54000` thành `full`, `22023` thành `invalid`, và `PGRST202` hoặc `42883` (hàm chưa có trong schema cache, tức migration chưa áp dụng) hoặc HTTP 404 thành `closed`. Lỗi còn lại là `network`.
 
-Bảng `economy_private.fish_prices` lưu giá gốc, `min_kg` và `max_kg` cho từng loài, được seed trong migration và được `tests/economy.test.mjs` so với `priceTable()` ở client.
+## Ranh giới tin cậy
 
-## Luật phía server
+Việc câu cá chạy trên thiết bị (xem [câu cá](ocean-fishing.md)), nên mỗi lần bắt vẫn là **báo cáo của client**. Các giới hạn của database chỉ hạn chế mức thu nhập mà một client đã sửa có thể đạt được: giới hạn tốc độ, khoảng cân nặng, sức chứa sổ và giá do server tính. Chúng không ngăn một client sửa đổi tạo ra cá hợp lệ trong các giới hạn đó. Vì vậy trang này không mô tả kinh tế là phần thưởng có thẩm quyền.
 
-- **Bắt cá (`record_catch`)**: loài phải có trong bảng giá; `kg` phải nằm trong khoảng cân nặng của loài; lần bắt trước của cùng người chơi phải cách ít nhất 6 giây (mã lỗi `55000` → `fast`); sổ phải dưới 200 con (mã `54000` → `full`).
-- **Bán (`sell`)**: tiêu thụ đúng các dòng sổ theo loài và cân nặng; giá do server tính theo cùng công thức `priceOf`; số dư tăng trong cùng giao dịch. Một người không thể bán cá của người khác (có test trong `tests/economy-postgres.sql`); gọi `economy_sell(null)` ẩn danh bị từ chối.
-- Mã lỗi `42501` → `signin`; `22023` → `invalid`; `PGRST202`, `42883` hoặc HTTP 404 → `closed`; các lỗi khác → `network`.
+Client không gửi giá hay số dư để được chấp nhận; số liệu hiển thị lấy lại từ `economy_state`.
 
-Công thức giá: giá gốc = `RARITY_BASE[độ hiếm] × max(1, cbrt(kg_tối_đa_loài))` làm tròn; giá bán = giá gốc × (0,6 + 0,9 × vị trí cân nặng trong khoảng loài), làm tròn.
+## Đồng bộ với kiểm thử
 
-## Giới hạn trung thực
+- `tests/economy.test.mjs` đọc chính file migration và so với `priceTable()` của client; lệch giá hay khoảng cân nặng làm kiểm thử thất bại. Cùng file kiểm tra các hằng cooldown và sức chứa.
+- `tests/economy-client.test.mjs` kiểm tra adapter và ánh xạ lỗi.
+- `tests/economy-postgres.sql` và `tests/economy-postgres.sh` chạy các kịch bản SQL trong PostgreSQL dùng một lần, không bao giờ trên production.
 
-Việc câu cá chạy trên thiết bị, nên một lần bắt là **báo cáo của client**. Các kiểm tra (cooldown, khoảng cân, trần sổ) chỉ giới hạn mức thu nhập có thể gian lận, không ngăn một client đã sửa tạo cá trong giới hạn đó. Muốn chặn hẳn cần chuyển luật câu cá và cắn câu sang server; đó là công việc riêng và chưa có trong source.
+Các kiểm thử này chứng minh quy tắc trong file và trong mô phỏng. Chưa có bằng chứng từ repository rằng migration đã được áp dụng vào dự án Supabase live, hoặc rằng `VITE_ECONOMY=on` đang bật ở production.
 
-Việc thiếu sổ cá hoặc ví trên thiết bị không ảnh hưởng dữ liệu server. Ngược lại, trạng thái cá giữ trên máy trong [save.ts](../../src/ocean/save.ts) chỉ là bản lưu cục bộ và không phải nguồn tiền.
+## Giới hạn và việc chưa làm
 
-## Kiểm chứng
-
-- `tests/economy.test.mjs`: giá khớp giữa `economy.ts` và seed SQL.
-- `tests/economy-client.test.mjs` và `tests/market.test.mjs`: client, `memoryEconomy` và hình học chợ.
-- `tests/economy-postgres.sql` (chạy qua `tests/economy-postgres.sh` hoặc `npm run test:postgres`): quyền truy cập, từ chối bán ẩn danh, từ chối bán cá người khác và các giới hạn bắt cá.
-- `tests/ocean-market-browser.mjs`: luồng chợ trong trình duyệt.
-
-Các test trên là kiểm tra cục bộ và trên database dùng một lần; chúng không chứng minh migration đã có trên Supabase production.
-
-Xem thêm [kiến trúc biển](ocean.md), [câu cá và cuộc giằng co](ocean-fishing.md), [realtime biển](ocean-realtime.md) và [chuyển đổi hạ tầng](infrastructure-transition.md).
+- Không có thưởng, chuyển xu giữa người chơi, hay đối soát với cửa hàng thật.
+- Chợ chỉ hiện khi `VITE_ECONOMY=on`; không có backend kinh tế thay thế.
+- Cân chỉnh giá và giới hạn là quyết định sản phẩm, chưa được chơi thử trên điện thoại thật.

@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:8a959f735e6ea269cb470b6311bd4b7aa8a0c813baf0adda29c245be34735ef6",
+  "pageVersion": "sha256:b073d0a77b69df0925d0915845b7625d4b7de194614ed84ea588d1b587c93dfc",
   "claims": [
     {
       "id": "claim_ec30a91cf1004a989cedfde496347504",
-      "statement": "Route mặc định là hub biển; đăng nhập rồi vào map chung, mỗi tài khoản một thuyền, không có phòng/readiness; Monopoly giữ hai route riêng.",
+      "statement": "Hub mở biển bằng startOcean sau khi requirePlayer trả về người chơi; ?view=ocean vào thẳng biển, mỗi tài khoản một thuyền, không có phòng hay trạng thái sẵn sàng; không còn route Monopoly.",
       "evidence": [
         {
-          "resource": "repo://docs/ocean.md",
-          "version": "repo-file-v1:sha256:86e7c3b7e211db494559f76f09a3b1d7bdfc235488f74c7d4f00fd4f6796750c"
+          "resource": "repo://src/app/harbor.ts#L161-L162",
+          "version": "repo-lines-v1:sha256:5b8dcf4f5d4cfe1a1608024617eee0007ca1ad66d679b5386a941df200e4d3ae:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2IyZmU0NDc5NzI5Y2FjZGM1OTI4NGViYjI1NjEwOTg5NjcwZWVjNWRkYWFmNWE0N2YwZTVkZGI1N2JkMzkwMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWNiNDk0NzkwODQ3YzY0OTQ0NmQ0MTFjZWVjZWQ1MjYxODE4ODU0OTQ5OWI0NjMyMmU5MGU2OTk0YjAwYmRjZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTk5ZWUyZDVkZjY3ZDBkNzIxOTk4MWY1ZmI2YzRjZDBmYTRmYmMzMjYyNzNkYWI0MzFmOWU3ODYzYTg4Zjc2MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjNkMGY0MDI2NzNkNTA1MzY5MzI5YzQ1MWZjODcyMWQ3ODExMTk1NjMyNmViYmI2Yjg1NzkyYmVlOThjOGE0MyJ9"
         },
         {
-          "resource": "repo://src/app/harbor.ts",
-          "version": "repo-file-v1:sha256:e090d518b3ab0d84ff12391e82f434199083e73a5a79eb5830585b6750bf1023"
+          "resource": "repo://src/app/harbor.ts#L71-L90",
+          "version": "repo-lines-v1:sha256:07268dc51402271d28909eeb45d402eaf651d366b7d9e03c136e482f494b01eb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3YjFkMDYxMWM2MGI5YmEyMGI3MGQyY2UyYThjM2EwYmUxNjZjZjhiNzRjMWRmYmU4MTQzN2E3ZDU5MzA2MjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExY2JhNGRiNDkwNzE3MTczOWVhMTZlMGEzMTU2ZDEyYWRiZWNkNWExNjIzMjdlNzVlODFmMzNmYzZhNTQ3YTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyNWFlMWQ4NzZmYWEyZDdiYjZlNjRhZGYwMjJiZDYwMDlkNTUwZjUzODMyZDM0YTRiMjFlMTM0MjJjOGFkMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwNGQ5NTUzNWUzNzdjNmRlYjQ1MDhlNWNmZDUxNDMwZWQwMWVlYzk2OTNkZWZjZDAwODVkNWVmYjBhMTc4ZmEifQ"
         },
         {
-          "resource": "repo://src/main.ts",
-          "version": "repo-file-v1:sha256:b27c774d57891b76b3f7de63050b96d2bcda09a6efc119e9c57e504645d6232f"
+          "resource": "repo://src/main.ts#L1-L21",
+          "version": "repo-lines-v1:sha256:e0dfde31f04b89a813d5a863ed6651bf486e8c20cd7d519ff9903659710cf866:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzNGJiYjA3ZGQzYjA3YzMzNjIxNTg2YzlhNzdmZTFhZmUwNmVlNDJiNWQzNjkzNDg5OTJlNGM3MWM0MTJhM2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhM2U0NmY5NDI3NmI2ZjZmNGVkMWYwMmFmNzhiZWY2YTJlZTFjNDM5ZGQ1NTg0Yjk3Mzk0ODMxMzIxNGQyYjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -25,16 +25,20 @@
       "statement": "Di chuyển, spawn và payload thuần nằm trong src/ocean/model.ts; scene là Babylon.js trong babylon-scene.ts, có thuyền Havok và thuyền khác dưới dạng instance; app/ocean.ts sở hữu input, HUD, dialog và cleanup.",
       "evidence": [
         {
-          "resource": "repo://src/app/ocean.ts#L62-L62",
-          "version": "repo-lines-v1:sha256:e77f9bc07d823850dcc16824dcde00f53fadcae021aa048b44342b3e0c4a0502:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTc3ZjliYzA3ZDgyMzg1MGRjYzE2ODI0ZGNkZTAwZjUzZmFkY2FlMDIxYWEwNDhiNDQzNDJiM2UwYzRhMDUwMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTc3ZjliYzA3ZDgyMzg1MGRjYzE2ODI0ZGNkZTAwZjUzZmFkY2FlMDIxYWEwNDhiNDQzNDJiM2UwYzRhMDUwMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzNiY2VjMWNiYjIyMTI0YjQ2NTMxNDZiMDY5YjM0Y2MzZjhjNWFkYmJmYWI5ZTYyZTUwMzQzNzY1OWI2MDI3NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmVjMGQ2YTc1N2MyZTc5ZDQzOWU2MTkyNTg0ZDRmMTYzOTAyZTJjNzJkZDA3MjI2ZDRlNWY0ZmViZTQwNTE5ZCJ9"
+          "resource": "repo://src/app/ocean.ts#L57-L70",
+          "version": "repo-lines-v1:sha256:4d5d56620b1b832c926cdbe1aa0d46527a7d1da3c74c81c62a0edfd7ceb94cb9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4ODNlNjBlOWIxZDYwYzg0ZTUzZjMyZjA1OTA4ZjAwNTg4YWFlMzNiOTY3NmU3NzJjOGQ0YTNmZTFmYzcyMWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5MmQ5MGJjOTI5MDIxOWYxNDI4NjkzZGI0Y2NkYjg1YjNhMDgyNGE3N2E5YWU1Y2Q2NmIzMGVmMTRhYTFhYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiMjdkYmI5OTU5NjdmZTQ1MGIwMWUzNmE5NjZhYjRiZTkyMTZhYWVmZjA4ZmMyNmQzNTc5NThkNmRmN2ViYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxMWQ2OGI0MmNjOGNjZjI1NDlkMDE4MDRkYmJkNmYxYTUxZjQ0NDg4MDI3ZDkzZDI0NGIzZjcyMDZjMDBmMTUifQ"
         },
         {
-          "resource": "repo://src/ocean/babylon-scene.ts",
-          "version": "repo-file-v1:sha256:63f58687a4fac6d3f37ef5a6c4d7a26ca0362abc1d707ca28c41087365a671e8"
+          "resource": "repo://src/ocean/babylon-scene.ts#L96-L100",
+          "version": "repo-lines-v1:sha256:28bc0c1be29fc1316921e88584c1c2c02973ea5ea07a8164d230ab31838bd577:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDE1ZTAyMzNmZmVlYTQ5ZjI4OGVmNjI4ZDlhMWE0NWRmYjQ4YjBhODRhMzM2ZTgyMTY3OWYwYmIxMzM0ZDlhMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGRkZWVkMzVmOGQwMDVkMTA4NDU0Y2RhNjkwNzNlYWQxY2E3M2MwYWYxN2FlOGViYWVjZjcxYWY0NmE0MGQyNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWVlY2E5YWZjZTVmMjAzNWQ5N2NiODA0YTA2MjgyYTRhMTIyMzllYzVhMjRhYmI2YWVmZWU3MDNlNDhiOGM4MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDgyZWE0YWE5ZmQ1MmJmZjBkMDBiZDNjMGYyNWJkMDVlOTNjMmQxNWFkM2NlYjA1ZjA3YTA2YjYyYzU2ZTY1NSJ9"
         },
         {
-          "resource": "repo://src/ocean/model.ts",
-          "version": "repo-file-v1:sha256:70903a155fc9bae2a2b0fad19a54a4944c8d82c9dbc27b89ea860051f17ff815"
+          "resource": "repo://src/ocean/model.ts#L1-L3",
+          "version": "repo-lines-v1:sha256:8dcf95e02929dd7078b3691e98cbef20f969b0d6a06b3605bdb8bda1fcfcec27:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzlmZjUzYjM3OWY5MTQ4NzQ3NTkzOWVjYmE2MWIwY2UxYmNiYTc0ZDRlM2Q0YWI2MThkNzBjNmY0N2Y2YzNiZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTBjMTY1YWYzNGJjZWVhNzY0NDMzMjBmNGJkN2RjYTBhZWI2NzAyMjZiZDlhOGMyZDRkYzAyNGJkNjc0NjQ3NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTlkMGYxZDI2MGUwZjY1NGI1NTk0MzAwNzA3YWU2ODlkZGQ5ZDAxYTdiNDk4MmRkNTgxZGUxNGQ5ODdiNmExYyJ9"
+        },
+        {
+          "resource": "repo://src/ocean/model.ts#L42-L42",
+          "version": "repo-lines-v1:sha256:efe7dac13cb322797b2e2d6b7781ac62d368a91b7461c4b868255d9f71d43df3:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWZlN2RhYzEzY2IzMjI3OTdiMmUyZDZiNzc4MWFjNjJkMzY4YTkxYjc0NjFjNGI4NjgyNTVkOWY3MWQ0M2RmMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWZlN2RhYzEzY2IzMjI3OTdiMmUyZDZiNzc4MWFjNjJkMzY4YTkxYjc0NjFjNGI4NjgyNTVkOWY3MWQ0M2RmMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzYwZjYyMTQ2MzE2MzIxMTNhNDIzYTFlZmVkYWU5MzIyNjRkNmNhMGQ3M2Y5ZWE1YzI2YzZkYTk2YjAwMDdiMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDAxZWZkMjQxN2JiMmY5ODRiMDI5NzM3MDkwMGJhOTZkNDc5Njg1ODI4NzZhM2Y4OTYyOTU4Y2FiOGI0ZDM0OSJ9"
         }
       ]
     },
@@ -57,48 +61,50 @@
       ]
     },
     {
-      "id": "claim_4285f5a57419497b8b99cfacdd94f8ad",
-      "statement": "Adapter Firestore ghi tài liệu thuyền của chính UID trong monopolyHub/v1/oceanBoats, giới hạn gửi tối đa một lần mỗi giây, truy vấn danh sách limit 100, và không xếp hàng motion khi offline; rules chỉ cho chủ tài khoản ghi.",
+      "id": "claim_22d2a43df0144cf18b6f5b53eb26687e",
+      "statement": "startOcean giữ một AbortController cho giao diện và một cho kết nối; dispose hủy listener, ngắt kết nối, giải phóng cảnh và gọi fishingUi.dispose().",
       "evidence": [
         {
-          "resource": "repo://firestore.rules#L54-L60",
-          "version": "repo-lines-v1:sha256:e0a42da72a802e48c6664d14bccdab22afd917b0a3faaa0e2b271810abf3b1c2:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzI4MzJiOTFjZTRjMTIzOGM1NjMyNDMyYTJmMzVkYzVhODhkYjgxNjViZmFjMDViYjg3ZjEzNWFmMzg4ZDVlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjg0OWRiMGJmYThmYTQwN2U5ZGVmNWFlOTY1ZTQ3M2UyYWY3YWRjMmI3OTAzYmM0ZTkxYjVkNjgxMTk5YTdiMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWE5ZmEwYjE3MWQ1YTYxNWVlYWE3NjBiMTJkZTExYjM2ZjUxYWM5MmE1NDkzYzAxOGE4Y2RiYmU5Mjg0NWEzOSJ9"
+          "resource": "repo://src/app/ocean.ts#L57-L63",
+          "version": "repo-lines-v1:sha256:0a335c826a49d0c6e36b88b7975cd09d085fa0687d3e7521e993aed8b9e70e00:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg4M2U2MGU5YjFkNjBjODRlNTNmMzJmMDU5MDhmMDA1ODhhYWUzM2I5Njc2ZTc3MmM4ZDRhM2ZlMWZjNzIxYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTE5YjNlMTM4MTUzMzVlMDMzMjZlZTdlOTllOWExYjlhZGE5YWFkYjQzNDA5ZGY0NGU4MzRjMTVkMTVmOTZjOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGIyN2RiYjk5NTk2N2ZlNDUwYjAxZTM2YTk2NmFiNGJlOTIxNmFhZWZmMDhmYzI2ZDM1Nzk1OGQ2ZGY3ZWJhOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzNiY2VjMWNiYjIyMTI0YjQ2NTMxNDZiMDY5YjM0Y2MzZjhjNWFkYmJmYWI5ZTYyZTUwMzQzNzY1OWI2MDI3NSJ9"
         },
         {
-          "resource": "repo://src/platform/ocean-firebase.ts#L118-L118",
-          "version": "repo-lines-v1:sha256:86d938ce03be779fda1129d81d0e7b6a14852380c98f9f0ad9b0403996e44d41:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODZkOTM4Y2UwM2JlNzc5ZmRhMTEyOWQ4MWQwZTdiNmExNDg1MjM4MGM5OGY5ZjBhZDliMDQwMzk5NmU0NGQ0MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODZkOTM4Y2UwM2JlNzc5ZmRhMTEyOWQ4MWQwZTdiNmExNDg1MjM4MGM5OGY5ZjBhZDliMDQwMzk5NmU0NGQ0MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzMyMzcwNmMwNjFlN2I4NzYwMGFlZGE3NDI5MzU2MGYwNzI0OTM4NDExOTA2ZDIwYzFmMzEyNDJkNzEwYzVhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDFmNWJjMWNmMjYxYTg4ZmU5ODgyY2QyOTVlM2VhZmQ5YzE3MWZhMjRhZWM4NzkwOGU2Nzg2MWY3ODA5NjFkNyJ9"
-        },
-        {
-          "resource": "repo://src/platform/ocean-firebase.ts#L17-L17",
-          "version": "repo-lines-v1:sha256:f39bcdd0634ae4e9552b61394c06494afdef905f7c7f3d5e096d091f9c269a86:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjM5YmNkZDA2MzRhZTRlOTU1MmI2MTM5NGMwNjQ5NGFmZGVmOTA1ZjdjN2YzZDVlMDk2ZDA5MWY5YzI2OWE4NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjM5YmNkZDA2MzRhZTRlOTU1MmI2MTM5NGMwNjQ5NGFmZGVmOTA1ZjdjN2YzZDVlMDk2ZDA5MWY5YzI2OWE4NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDA5YzFkM2Q1ZDJhZDdmMTQ2ZjA0MmJhODk4YWVkOWYxOGIwN2M3MjQwNTI0ODFkZTk0NTFmNjVhYzFhYjgyNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmVhMjliZWNkYTAxYzM4Y2RkNGIyM2RhNDU0ZDIwMjJkNzk0Yzc5ODdhMGI3ZWVmODM4NzY4N2ViMzAwZGE0NyJ9"
-        },
-        {
-          "resource": "repo://src/platform/ocean-firebase.ts#L87-L87",
-          "version": "repo-lines-v1:sha256:b2f91675b11df09a3f18eb1862a7d601178f2155d3df9e07a3d893122fac1a70:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjJmOTE2NzViMTFkZjA5YTNmMThlYjE4NjJhN2Q2MDExNzhmMjE1NWQzZGY5ZTA3YTNkODkzMTIyZmFjMWE3MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjJmOTE2NzViMTFkZjA5YTNmMThlYjE4NjJhN2Q2MDExNzhmMjE1NWQzZGY5ZTA3YTNkODkzMTIyZmFjMWE3MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjgzZDQ0NGE5ZDAxZjFhYzFhYzIyZDFmYzY1Mjc2NTRkNWFiMDQxZDg4ZTg2YWE0OWU1MzQxNDJhZGJmYmM1MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGQ0MGFjYTU4NzBiZTg2NjQ3YjhkNGRkOWFlOGFhYzExZTBkMThiM2VlYjg1YjgxN2Y1YTNkOWVmZDM1ZTkyZiJ9"
+          "resource": "repo://src/app/ocean.ts#L872-L890",
+          "version": "repo-lines-v1:sha256:e7d9916bf054fcdfc5b9424d8686a3b605c68e36a21abbd91339af7d4e5d57c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkNjFlM2I0OTkwZGFhZmI0YzFlYWVjODMyZDA1ZDI3ZjdiMjI3ZjY3YjA2ZTE5YTJmZDA3MzFiYWMxMjY1ZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3NzY3MzNiYjlmYzQ5NDFkOGUwM2M4ZDM3MzhlYTVmMGZkOTdjNTdiZTJlNjI3NjNlNzk4ZjZhNWYzMjM2YTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE3YzMwYzcyZWJhNWQyOTMyZjYxMGEwYjM5ZjY5MWM0MWVhNGZjNTI3M2ExMjM3MDEyNjBjZTY0MTM5ZjdiYmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
         }
       ]
     },
     {
-      "id": "claim_a135cddee1ba44ada40b77f929048e15",
-      "statement": "Unit tests, Socket.IO thật, trình duyệt với Firebase emulator (tests/ocean-browser.mjs) và full-stack Supabase (scripts/test-supabase.mjs) kiểm tra biển chung; kiểm chứng local không thay thế triển khai API, rules hoặc thiết bị thật.",
+      "id": "claim_f8d59d7983174d0fb6d56d4aa201c42b",
+      "statement": "Trên mỗi khung, tiến trình được lưu trên thiết bị mỗi 5 giây và ngay khi tab ẩn; khi tab ẩn cũng nhả phím và thu cá đang câu.",
       "evidence": [
         {
-          "resource": "repo://scripts/test-supabase.mjs",
-          "version": "repo-file-v1:sha256:b4066a39a2403ae2231ec3e182fdd8d81015c798e3f9b21dba847a9498bd8812"
+          "resource": "repo://src/app/ocean.ts#L522-L525",
+          "version": "repo-lines-v1:sha256:935d3aa8a243aa08eb4cdd05d7064e4d6fa31acc038b02ce3f3b9f79ffdfddc5:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmFkNzNkOTlmMDZkNTE2YzVmZmRkODIzYzViOWRkM2EyY2I0MzgxZmRmYWJhYmYxYzgwNmIxMmNjZWE2NzU2ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWI2MmY2MGQ4NTkwYTU3OWNmNDZmOGQ2NzM3OGM0YzU3MmI5NjJjZWNjZGI5MGM3YTVmN2I0MmI5NjA3ODJhNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjQ4Y2NlNmQ4ZTQ3YjVlYWM0ODk4MzVjOWZhZTZmNzYzOWYxNGViY2QzMTMyNDFjZjBhYTgxYTdlOTUwMmE5NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTU3ZjBjNTk5NjQ0OTFkNGFiZWE5MzY2N2MzODUzYjU0Yzk0OGZlODcxNjJmYmY3MjllZTJlYTVmNDMzMmQ0ZiJ9"
         },
         {
-          "resource": "repo://tests/ocean-browser.mjs",
-          "version": "repo-file-v1:sha256:126eea2d384732a9da0498e9855470579274cc3111fb582a6dc560840d9778a6"
+          "resource": "repo://src/app/ocean.ts#L743-L752",
+          "version": "repo-lines-v1:sha256:f43136d079fff2de15b4208c95faf5c637f28e4bfcdbd2d90db3f9e82dd0f8fc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwNjI5ZTY2ZGIxMDc3NDEyZTEzZDYxMDRjNGJhYTExZTQ1NWQ5NTBlNWMzZDQ5MzkwMGQ4NjQzYjI2MjNiYTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliNjJmNjBkODU5MGE1NzljZjQ2ZjhkNjczNzhjNGM1NzJiOTYyY2VjY2RiOTBjN2E1ZjdiNDJiOTYwNzgyYTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiOGE2MGQ4ZjhmZGVhNDNlNzk3ZmM5OWMzYzAxZDUwYTI3NDJiODg4OWY2MWZmODk5N2Q5ODA5YmI4YTVmYTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY5ZWI0ZTM1ODkxZmJmMjk5MmU0MGE2MmMwMGFlNjU1MjUxNDQ0MmYzNGI4Y2QwYWQwNjdiODFlZTEzZTM0NmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cf8c6e193b214edc82aea16385b1e6d7",
+      "statement": "Biển có bộ test trình duyệt với Supabase giả và Socket.IO thật; các kiểm tra này chứng minh mã và mô phỏng trình duyệt, không thay thế triển khai API, Supabase thật hoặc thiết bị thật.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/test-browser.mjs#L18-L22",
+          "version": "repo-lines-v1:sha256:338f18dadb7822200b17bbe65923688096eb3e91a3c440a0e67e140f6d91db38:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjViM2ZiYmFlZDZmOGZmM2ExOTMyNzI5ZTIwMTk4NWVjMDllNDA2YjM2MGQxYjZjOTkwZmJjOGQwMzhhYTliNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjZmNWI0MGIxNTg0NTdkMTc4NjRmMjE3OTA3ODZkZDVhMmVjZGI2NGI2NmE2NTFmNzg4ZDRlMjVjZDMzMDNkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmQwZjJkM2EzYWFkYTI3NTg2NDU3OGQwYTQzOTE1NjM4ZDU0M2ZlY2EyYzk0ODU4ZGI5NDEyMTFlODZjZWYyYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmI0OGJlNWQwMjk1ZjY3YmJkZDVhMDk2YzVkNGI3MzE3NzBlYjk1Y2I0YWUzYmYwZjNmN2VmN2M2MmEwMGRkNCJ9"
         },
         {
           "resource": "repo://tests/ocean-socket.test.mjs",
-          "version": "repo-file-v1:sha256:43d20fd869319838ccc2d882702c4d23ab9b9e2a681be07e2b81bc3d48144e13"
+          "version": "repo-file-v1:sha256:c1546f2a6f6c2afe05de52c02e8076bad4653756d67184c3bd2ac3ce93861bc6"
         }
       ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.8.0",
-    "at": "2026-11-13T03:02:54.827Z"
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-17T08:18:15.877Z"
   }
 }

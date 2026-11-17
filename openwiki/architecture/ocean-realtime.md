@@ -1,75 +1,82 @@
 ---
 type: "Tham khảo"
-title: "Realtime biển: Socket.IO, Firestore và đồng bộ thuyền"
+title: "Biển realtime: Socket.IO, server và đồng bộ"
 openwiki_generated: true
 verified:
-  - by: openwiki/0.8.0
-    at: 2026-11-13T03:02:54.827Z
+  - by: openwiki/0.7.3
+    at: 2026-11-17T08:18:15.877Z
 sources:
   - id: openwiki-source-944d53aebcc6e3bbdfcd09de
     resource: repo://server/ocean.mjs
   - id: openwiki-source-dab8aa5276e2d1b695c803a7
     resource: repo://src/app/ocean.ts
-  - id: openwiki-source-d9571426a00d5a5ac9f9c54c
-    resource: repo://src/platform/ocean-firebase.ts
   - id: openwiki-source-da299de568c1622268f94e39
     resource: repo://src/platform/ocean-socket.ts
-generated: { by: "claude-code", at: "2026-11-13T03:02:54.827Z" }
+generated: { by: "claude-code", at: "2026-11-17T08:18:15.877Z" }
 ---
 
 
-# Realtime biển: Socket.IO, Firestore và đồng bộ thuyền
+# Biển realtime: Socket.IO, server và đồng bộ
 
-## Phạm vi
+Biển chung là một Socket.IO server trên API Render. Mỗi người chơi có một thuyền; client mô phỏng thuyền của mình và gửi tư thế (`pose`), server chỉ chuyển tiếp. Trạng thái nằm trong bộ nhớ của **một** tiến trình API, nên khởi động lại hay deploy sẽ xóa biển và người chơi vào lại. Không có PostgreSQL hay Firebase nào tham gia vào biển.
 
-Biển chung cần đồng bộ vị trí thuyền giữa các tài khoản. Trang này mô tả đường đi của một pose: từ thiết bị của người chơi, qua server hoặc Firestore, tới thiết bị khác. Luật câu cá và kinh tế nằm ở [câu cá](ocean-fishing.md) và [kinh tế](ocean-economy.md).
+## Ranh giới file
 
-Adapter được chọn bởi `src/platform/ocean.ts`: nếu `useSupabase` đúng thì dùng `ocean-socket.ts`, còn không thì `ocean-firebase.ts`. Cả hai cùng trả về `onBoats(boats, serverTime)`.
+| Phần | File | Vai trò |
+| --- | --- | --- |
+| Khởi động | `server/index.mjs` | Đọc `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `ALLOWED_ORIGINS`, lắng nghe `PORT`, xử lý `SIGTERM`. |
+| HTTP và CORS | `server/app.mjs` | `createApi`: `/health`, từ chối origin lạ, gắn `attachSockets` và `attachOcean`. |
+| Xác thực kết nối | `server/socket.mjs` | Middleware Socket.IO: token bắt buộc, tối đa 8192 ký tự, xác thực qua Supabase. |
+| Biển | `server/ocean.mjs` | Trạng thái thuyền, tick gửi, giới hạn tốc độ, kiểm tra lại phiên, giao thức 1 và 2. |
+| Client | `src/platform/ocean-socket.ts` | Kết nối WebSocket, lệnh `join`, gửi tư thế, nhận snapshot và delta. |
+| Kết nối và kết nối lại | `src/ocean/connect.ts`, `src/app/ocean.ts` | Phân loại lỗi, thử lại trong tối đa 90 giây. |
+| Nội suy thuyền khác | `src/ocean/remote.ts` | Lưu tối đa 12 mẫu mỗi thuyền và phát lại trễ một chút. |
 
-## Server Socket.IO (`server/ocean.mjs`)
+## Xác thực
 
-`attachOcean(io, { authenticate, ready, now })` được gọi từ `server/app.mjs`. Phần server chạy trong bộ nhớ của **một** tiến trình API; trạng thái thuyền (`boats` là một `Map`) mất khi deploy hoặc restart và không được ghi xuống database.
+- `server/socket.mjs` từ chối kết nối nếu token không phải chuỗi, quá 8192 ký tự, hoặc Supabase không xác nhận. Lỗi có mã `AUTH_REQUIRED` (token sai hoặc hết hạn) hoặc `SERVICE_UNAVAILABLE` (API chưa sẵn sàng, hoặc nhà cung cấp Auth lỗi).
+- `server/app.mjs` gọi `/auth/v1/user` và coi người dùng ẩn danh là chưa đăng nhập. `socket.data.uid` lấy từ kết quả xác thực, không lấy từ client.
+- Khi đã vào biển, server kiểm tra lại phiên mỗi 60 giây (`authRecheckMs`). Nếu token bị thu hồi, server gửi `ocean:error` rồi ngắt. Lỗi tạm của nhà cung cấp Auth không làm kết thúc trò chơi.
+- Token mới được gửi trên kết nối đang mở qua `ocean:token`, giới hạn một lần mỗi 2 giây, để phiên sống quá thời hạn token đầu (khoảng một giờ).
 
-Giao thức 2 (`OCEAN_PROTOCOL = 2`):
+## Vào biển
 
-- `ocean:command` với `action: "join"`: xác thực token, kiểm tra UID trùng với token, cấp pose bắt đầu và đưa socket vào phòng `ocean:v2`. Số thuyền tối đa là 100; khi một tài khoản mở thuyền ở cửa sổ khác, phiên cũ nhận `ocean:error` và bị rời phòng (phiên mới thắng).
-- `ocean:move` với `{x, z, heading, fishing}`: không có ack và không chờ phản hồi. Mỗi socket được nhận tối đa một lần cập nhật trong `minMoveMs` (100 ms); pose phải đủ bốn khóa, số hữu hạn, `|x|, |z| ≤ 180`, `|heading| ≤ π`. Pose lỗi bị bỏ; chỉ lỗi mất phiên mới gửi `ocean:error`.
-- `ocean:token`: nhận access token mới cho kết nối đang mở, tối đa một lần mỗi 2 giây và tối đa 8192 ký tự. Nhờ đó phiên không đứt khi token đầu (khoảng một giờ) hết hạn.
-- Mỗi phiên được kiểm tra lại với Auth mỗi `authRecheckMs` (60 giây). Lỗi tạm thời của Auth không kết thúc phiên; kết quả không hợp lệ thì gửi `ocean:error` và ngắt kết nối.
+Client gửi `ocean:command` với `action: "join"` và `proto: 2`. Server:
 
-Tick: `flush()` chạy mỗi `tickMs` (200 ms) khi có thuyền. Chỉ các thuyền đổi kể từ tick trước được gửi: thuyền mới và rời phòng gửi ngay (`flush()` khi join/leave), còn thay đổi vị trí gửi `ocean:delta` với `{t, add, up, gone}`. Mỗi dòng `up` là bộ giá trị gọn `[uid, x, z, heading, fishing, updatedAt]`, làm tròn 2 chữ số thập phân. Timer dừng khi không còn thuyền.
+1. Kiểm tra `ready()`; nếu chưa sẵn sàng thì trả lỗi “đang kết nối lại”.
+2. Xác thực lại token một lần khi vào; người dùng khác với `socket.data.uid` bị ngắt.
+3. Từ chối khi biển đã đủ `MAX_BOATS` = 100 thuyền và tài khoản chưa có thuyền.
+4. Nếu tài khoản đã có thuyền ở cửa sổ khác, thuyền cũ nhận `ocean:error` rồi rời phòng: một tài khoản chỉ có một thuyền.
+5. Tạo tư thế bắt đầu bằng `spawn(uid)` (`src/ocean/model.ts`), tên hiển thị được cắt tối đa 24 ký tự.
+6. Gửi `ocean:state` đầy đủ cho giao thức 2, rồi trả về `pose`, `sendMs` (= `tickMs`, 200 ms) và `delayMs` (= 2,5 chu kỳ tick).
 
-Giao thức cũ (không khai báo `proto: 2`) vẫn nhận `ocean:state` đầy đủ và lệnh `move` có ack, với khoảng tối thiểu 400 ms, để client cũ đang cache không gãy khi triển khai.
+Giao thức 1 (client cũ đã cache) vẫn được hỗ trợ: nhận `ocean:state` đầy đủ và lệnh `move` có xác nhận, với khoảng cách tối thiểu 400 ms. Client không báo giao thức 2 sẽ không nhận `ocean:delta`.
 
-## Client Socket.IO (`src/platform/ocean-socket.ts`)
+## Gửi và nhận
 
-Client kết nối bằng WebSocket (`transports: ["websocket"]`), không tự reconnect (`reconnection: false`); token được lấy qua hàm `auth` từ phiên Supabase hiện hành và chỉ gửi khi UID khớp. Thuyền của người chơi do Havok mô phỏng trên thiết bị; client publish pose bằng `ocean:move`, và nhận `ocean:state` hoặc `ocean:delta` để cập nhật thuyền khác. Dữ liệu được đọc qua `readBoat` và giới hạn 100 thuyền.
+- Giao thức 2: `ocean:move` không có xác nhận; tư thế đến quá nhanh bị bỏ, tư thế mới hơn sẽ thay. Khoảng cách tối thiểu giữa hai lần chấp nhận là 100 ms (`minMoveMs`).
+- Mỗi tick (200 ms) server gửi `ocean:delta` cho phòng `ocean:v2` chỉ gồm thuyền mới (`add`), thuyền đã đổi (`up`, dạng mảng `[uid, x, z, heading, fishing, updatedAt]`) và thuyền rời biển (`gone`). Client giữ bản đồ thuyền và gọi `onBoats` với toàn bộ bản đồ.
+- Tư thế được kiểm tra: đúng bốn khóa `fishing, heading, x, z`; `x` và `z` là số hữu hạn với `|x|, |z| ≤ SEA_BOUND` (1500); `|heading| ≤ π`; `fishing` là boolean. Vị trí không hợp lệ bị bỏ hoặc trả lỗi.
+- Phòng `ocean:shared` nhận `ocean:state` đầy đủ cho client giao thức 1.
 
-Lỗi và kết nối lại nằm ở `src/app/ocean.ts`: `connectionLost` gọi `reconnect()` cho mọi lỗi trừ khi phiên bị từ chối thật (`fatalConnectionMessage`) và không phải lỗi token có thể làm mới (`renewableSessionMessage`). Khi reconnect, bộ phím, cần lái và câu cá được dừng trước rồi vào lại.
+Tick chạy khi có thuyền và dừng khi biển trống, nên một instance rảnh không chạy vòng lặp gửi.
 
-## Adapter Firestore (`src/platform/ocean-firebase.ts`)
+## Ngắt kết nối và kết nối lại
 
-Adapter này dùng Cloud Firestore `(default)`, đường dẫn `monopolyHub/v1/oceanBoats`, không dùng Realtime Database. Mỗi tài khoản có một tài liệu thuyền với mã phiên ngẫu nhiên. Client ghi bằng transaction, còn danh sách được theo dõi bằng `onSnapshot` với `orderBy("updatedAt", "desc")` và `limit(100)`, bật `includeMetadataChanges`. Khi tab đóng hoặc mạng rớt đột ngột, mã nguồn ghi chú rằng phiên được xử lý bởi presence lease; `dispose()` cố xóa phiên của chính mình nhưng không dựa vào việc đó.
+- `connect.ts` và `ocean-socket.ts` tắt kết nối tự động của Socket.IO (`reconnection: false`) để việc thử lại được kiểm soát ở đúng một chỗ. Khi mất kết nối, `ocean-socket.ts` báo “Mất kết nối biển chung” và trả lỗi qua `onError`.
+- `src/app/ocean.ts` tự kết nối lại khi rớt giữa chừng, cùng một thuyền và vị trí, trong tối đa 90 giây (`deadlineMs`). Các lỗi không thể thử lại (đăng xuất, biển đủ người, bị giành chỗ ở cửa sổ khác) hiện ngay với lý do.
+- `AUTH_REQUIRED` của handshake và token hết hạn không được thử lại theo cách mù quáng: phiên phải được làm mới trước.
+- Khi client vào lại từ hub, `reconnecting` được đặt lại và biển mới được tạo; không có trạng thái cũ nào được lưu trên server.
 
-Transaction không xếp hàng khi offline, nên chuyển động cũ không được gửi sau khi mạng quay lại. Rules và cấu hình riêng của Firebase vẫn cần được kiểm tra trước khi coi đây là đường online đang hoạt động.
+## Giới hạn và rủi ro
 
-## Nội suy thuyền khác (`src/ocean/remote.ts`)
+- Biển chỉ tồn tại trong một tiến trình. Scale ngang sẽ làm người chơi trên các instance khác không thấy nhau; không được scale khi chưa có trạng thái và phát sóng dùng chung.
+- Free instance của Render có thể ngủ và cắt mọi kết nối; xem [hạ tầng](infrastructure-transition.md).
+- Không có tiền thưởng hay trạng thái bền vững trong biển: kinh tế đi qua RPC riêng (xem [kinh tế biển](ocean-economy.md)).
+- Độ trễ và độ mượt trên mạng thật chưa được đo trên điện thoại thật.
 
-Các thuyền khác đến vài lần mỗi giây. `remote.ts` giữ một lịch sử ngắn cho mỗi thuyền và phát lại trễ một khoảng; server gửi khoảng trễ `delayMs = 2.5 × tickMs` trong ack của lần join, và client nội suy giữa hai mẫu quanh thời điểm đó. Nhờ vậy chuyển động liên tục dù tốc độ gửi khác nhau, và thuyền không bị giật hay trượt quá nhanh.
+## Kiểm thử
 
-## Ranh giới và giới hạn
-
-- **Một instance**: sea state chỉ có trong bộ nhớ của một API; scale ngang sẽ tách người chơi thành các biển khác nhau. Không scale cho tới khi có trạng thái mô phỏng dùng chung.
-- **Không tin client về luật**: server chỉ kiểm tra pose có đúng dạng, tốc độ gửi và phiên. Nó không kiểm tra thuyền có đi qua đảo hay không.
-- **Database không đồng bộ biển**: LISTEN/NOTIFY chỉ phục vụ phòng (`hub:changed`), không gửi dữ liệu thuyền.
-- **Bảo mật**: token không được ghi log; origin được giới hạn bằng `ALLOWED_ORIGINS`; payload Socket.IO tối đa 4096 byte cho hub.
-
-## Kiểm chứng
-
-- `npm run test:api` (`tests/ocean-socket.test.mjs`, `tests/socket.test.mjs`): giao thức 2, di chuyển đồng bộ, giới hạn tốc độ, làm mới token và kiểm tra phiên định kỳ.
-- `tests/ocean.test.mjs`, `tests/ocean-multiplayer-browser.mjs`: thuyền khác xuất hiện và rời đi trong trình duyệt.
-- `tests/ocean-resume-browser.mjs`: khôi phục vị trí khi quay lại biển.
-
-Các test này dùng server và Auth thử nghiệm. Chúng không chứng minh độ trễ trên mạng di động thật hay hành vi của Render trong vận hành.
-
-Xem [kiến trúc biển](ocean.md), [chuyển đổi hạ tầng](infrastructure-transition.md) và [vận hành phát triển](../operations/development.md).
+- `npm run test:api` chạy `tests/api.test.mjs`, `tests/socket.test.mjs` và `tests/ocean-socket.test.mjs`: kiểm tra `/health`, từ chối origin, cổng xác thực Socket.IO và giao thức biển với Socket.IO client thật.
+- `tests/ocean.test.mjs` kiểm tra logic biển thuần; việc nội suy thuyền khác (`src/ocean/remote.ts`) không có file test riêng trong `tests/`.
+- Browser test của biển dùng Supabase giả (`scripts/test-browser.mjs` đặt `VITE_SUPABASE_URL` giả).

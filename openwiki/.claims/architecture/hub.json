@@ -1,302 +1,202 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:0987b5a99f94a9c83b4774eecc0dd9b60e9a7601232546a8fd218b2ddce87736",
+  "pageVersion": "sha256:2c42257bdc2d0f31da73c5fd83a87037eb74de3890fe21312167a0be1527b055",
   "claims": [
     {
-      "id": "claim_c48c88a21cf14dd39b37deb5ae6894ff",
-      "statement": "Model phòng xử lý join, ready, start và leave độc lập Firebase/DOM trên bản sao; bắt đầu đòi host, ít nhất hai người và mọi người sẵn sàng.",
+      "id": "claim_1b9ad427ade64d6abbe2c24183c47ab6",
+      "statement": "Hub khởi động bằng startHarbor, vẽ màn hình vào ngay mà không tải động cơ biển; biển chỉ được import khi người chơi bấm Ra khơi và đã có phiên đăng nhập.",
       "evidence": [
         {
-          "resource": "repo://src/hub/model.ts",
-          "version": "repo-file-v1:sha256:9e909358c283e76d69e75481564ca9eaee9630952213017a0ff3f22d90493807"
+          "resource": "repo://src/app/harbor.ts#L38-L44",
+          "version": "repo-lines-v1:sha256:ce78865bf8b3cbd1edda7a469c48d923726b31f61b5e50882e4461856119c71c:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjEzOThjYzY0MzM3NjEwMWQ0OTk0ODIwYTdjMzhmNWJjYWRlM2VlMGE5NzFlNjBiY2Y1NDA3YjA2NzA1YmM3MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDBmYTgyM2NkZGM4ZTNkZWViMWFmNzZhZWYxOGNhMGZiNGQ0ZjJiNzdhYTU5ZWRlM2ZlMGY4YzAzMDZkZTU1YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODQ0MDUzYmM5YWVhNTI0NjQzNGY2OWM5YzI3OGUwOTM3NjU2NWJhMWExNjM0NzVkMjJmY2Y3NTllYjQ4MDIxOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjE2NDlmZTFiNjYyM2M1YTJmYzM5NjVjYmZiZGYwMzNkMjUyZDBlYTYwMmY4NDVkZjZhZjIzMmYzMDE4MTJlZSJ9"
+        },
+        {
+          "resource": "repo://src/app/harbor.ts#L71-L90",
+          "version": "repo-lines-v1:sha256:07268dc51402271d28909eeb45d402eaf651d366b7d9e03c136e482f494b01eb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3YjFkMDYxMWM2MGI5YmEyMGI3MGQyY2UyYThjM2EwYmUxNjZjZjhiNzRjMWRmYmU4MTQzN2E3ZDU5MzA2MjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExY2JhNGRiNDkwNzE3MTczOWVhMTZlMGEzMTU2ZDEyYWRiZWNkNWExNjIzMjdlNzVlODFmMzNmYzZhNTQ3YTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyNWFlMWQ4NzZmYWEyZDdiYjZlNjRhZGYwMjJiZDYwMDlkNTUwZjUzODMyZDM0YTRiMjFlMTM0MjJjOGFkMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwNGQ5NTUzNWUzNzdjNmRlYjQ1MDhlNWNmZDUxNDMwZWQwMWVlYzk2OTNkZWZjZDAwODVkNWVmYjBhMTc4ZmEifQ"
         }
       ]
     },
     {
-      "id": "claim_bebc199be37647b28862073bf0ef9c39",
-      "statement": "Adapter online dùng Email/Password Auth, own Firestore profile, onSnapshot và runTransaction với tối đa năm lần thử lại contention; không còn REST ETag/RTDB.",
+      "id": "claim_a22666bf71dc4ab9b622ad05c2371f51",
+      "statement": "Mở trực tiếp ?view=ocean sẽ tự chạy enter(), nên tải lại trang vẫn vào thẳng biển khi phiên đăng nhập còn hợp lệ.",
       "evidence": [
         {
-          "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:d32270d2c3599a3d843e114dfe5b033a338a78aafaf49a8524ee5346e92d903d"
-        },
-        {
-          "resource": "repo://src/platform/firestore-client.ts",
-          "version": "repo-file-v1:sha256:1d47abaae2947e122c2630ff683bf35f43bf26ce479a0f54de7bd8ee6d46ff96"
-        },
-        {
-          "resource": "repo://src/platform/profile.ts",
-          "version": "repo-file-v1:sha256:dd7bf6cc24393e65416e9c4c441e68e0da79db60f3086afe19bcd6dc76264eb0"
+          "resource": "repo://src/app/harbor.ts#L161-L162",
+          "version": "repo-lines-v1:sha256:5b8dcf4f5d4cfe1a1608024617eee0007ca1ad66d679b5386a941df200e4d3ae:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2IyZmU0NDc5NzI5Y2FjZGM1OTI4NGViYjI1NjEwOTg5NjcwZWVjNWRkYWFmNWE0N2YwZTVkZGI1N2JkMzkwMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWNiNDk0NzkwODQ3YzY0OTQ0NmQ0MTFjZWVjZWQ1MjYxODE4ODU0OTQ5OWI0NjMyMmU5MGU2OTk0YjAwYmRjZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTk5ZWUyZDVkZjY3ZDBkNzIxOTk4MWY1ZmI2YzRjZDBmYTRmYmMzMjYyNzNkYWI0MzFmOWU3ODYzYTg4Zjc2MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjNkMGY0MDI2NzNkNTA1MzY5MzI5YzQ1MWZjODcyMWQ3ODExMTk1NjMyNmViYmI2Yjg1NzkyYmVlOThjOGE0MyJ9"
         }
       ]
     },
     {
-      "id": "claim_503f22e87942497e96c77f3e88dfb0c1",
-      "statement": "Bản thử được lựa chọn rõ ràng và chỉ đồng bộ cùng origin bằng localStorage, Web Locks và storage event.",
+      "id": "claim_a43563c76d1c476b80dacdf2ce4c850e",
+      "statement": "Thiếu VITE_SUPABASE_URL hoặc VITE_SUPABASE_PUBLISHABLE_KEY khiến supabase() ném HubError với thông báo cho người chơi; client không có fallback hay tài khoản thử nghiệm.",
       "evidence": [
         {
-          "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:f9a4e81915ee32dd395a1c188ffc5e4d26c6c53a1795ed445c8024114a0d7ed6"
-        },
-        {
-          "resource": "repo://src/platform/demo.ts",
-          "version": "repo-file-v1:sha256:1cb64af9d1bf361cdb72aec0cb4fb5c3cc8401cdf7b7d3a3551990236ed72f47"
+          "resource": "repo://src/platform/supabase-client.ts#L5-L16",
+          "version": "repo-lines-v1:sha256:7151ed83868bc1f19dd690e0f0cbbf58e5ffd9e0be9a0bb56449bcd4e7026c2a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwZjIzNTE2NjgxOTgyZjIzMjcyMzQ5MGE3ZWU1NjAwNDUyOTk2MGNiMGNmOGU4Y2I0YzVhNzQwOGExOTk4YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0M2I1YTgyMmRmNTE4MDM1ZTFhOWEyYmZhNzk1M2FjOTE3MThlODQ5MzJhZmM1ZDQyOThkZDg1YjRlMWQ2YTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1NGRmMGFhZDhkYjU3MTdkYjQ1MzkwNDQ1NjYwYjNlOWY2NmZmMWJjNjNhZDNmMjc1OWY0ZWU3OGQwMjgxOGMifQ"
         }
       ]
     },
     {
-      "id": "claim_9725df536e7f44beba9f99e798857799",
-      "statement": "Rules và emulator tests chặn thay host, vượt capacity, xóa người khác và bắt đầu trực tiếp khi người chơi chưa sẵn sàng.",
+      "id": "claim_59f36d56bced43d5bb89c44720e9ba1c",
+      "statement": "Đăng ký có tên người chơi và mật khẩu tối thiểu 6 ký tự; nếu Supabase trả về phiên ngay thì hộp thoại đóng, còn nếu chưa có phiên thì chuyển sang bước chờ xác nhận email.",
       "evidence": [
         {
-          "resource": "repo://firestore.rules",
-          "version": "repo-file-v1:sha256:41dfb9cf357448a1b89fcaecc1128761d2817f407eefebad6d473fa5c22afaab"
+          "resource": "repo://src/app/account.ts#L161-L174",
+          "version": "repo-lines-v1:sha256:35e4a3cdac2a69a24d5ee3cc2200e2f299535b93a5ad0feb4fce185e0a5c56b1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ4ZjY2ODM2NDkwYzA4NThmZTQzZjc1MjFkOWY5ZWRhNTdiODQxMWJhNTdiZTA0MWQyYmEzOTY4ODNmZGU0YmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkOWRmNThkNDdjOWE2MGQxNjA0YjNjNjg3YWMwMTNiMThlYmY2NmMwYTVhNGI1YjViMmQ2NGRjMTViMDc2NzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliNzhkYzgxMGE2YjJjOGQ0YjFlOTk2MmU5ZDU5ZThmNzRlYmE4ZTk0NWZkODZiZjJiODlkMGU5ZDc2YWM1NzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxYjA5ODAwNDhmZjljNzI0ODhjMmY2OGY3MDY4NzEwMWFkZDExYzQxMmU3YmE1MWM0YWIxZWU5YmJmNWUwZDUifQ"
         },
         {
-          "resource": "repo://tests/rules.test.mjs",
-          "version": "repo-file-v1:sha256:7a89519a22165ba0f70bcd5fa6920db5a76c780623f81349370cd04feb1d633c"
+          "resource": "repo://src/platform/account.ts#L28-L57",
+          "version": "repo-lines-v1:sha256:17553177f97dea1d08debad49e650883df5297bf8d994eb5dc8f52079742eaea:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0NTNkZGFjMjAzMzI2NDJmNmJkODQxMjdiYzk0OWU2YTlhYzY3ZDBlYjI0ZTk4MWZiOGI2NGFkYmI2NTZjM2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0ZWNlZDJhM2UyODgzYzllYTFmYzM1MTE3NDE3M2E5MWJlNDA4OWFmMDAzNjMxMjljNGEwNDQ0ZTdhYTRhYjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU1MmE4NTViNTVjZTFmNmVlZTRiYmNkOTliM2JkMGZlYmU0NmUyYzhkZWRiNjIwNmE1MWFkOGVmMTcxNjIzN2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJjYjc1M2Y0OGI5NWM5Mjc0YzRkOTNkYmM3MTU2OThhYmI0ODJiNDA5ZDFlYzEwYTkyYTAzNGI3MWFhYWViZjYifQ"
         }
       ]
     },
     {
-      "id": "claim_c39e0fa92b22416485c5cf4193c44082",
-      "statement": "Firestore rules yêu cầu password identity, bảo vệ own profile và cho directory query theo waiting-status với limit tối đa 50; index phục vụ thứ tự createdAt giảm dần.",
+      "id": "claim_914bffdac3c4483484e6ecc08d99fede",
+      "statement": "Mật khẩu trong lúc chờ xác nhận email chỉ được giữ trong bộ nhớ của hộp thoại (biến waiting) để đăng nhập lại khi người chơi bấm xác nhận; không được ghi vào storage hay cơ sở dữ liệu.",
       "evidence": [
         {
-          "resource": "repo://firestore.indexes.json",
-          "version": "repo-file-v1:sha256:cc75f777d5ebe7b545878ceff725a4a077cf26d4b27cf8038eeb01319baf95dd"
-        },
-        {
-          "resource": "repo://firestore.rules",
-          "version": "repo-file-v1:sha256:41dfb9cf357448a1b89fcaecc1128761d2817f407eefebad6d473fa5c22afaab"
-        },
-        {
-          "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:d32270d2c3599a3d843e114dfe5b033a338a78aafaf49a8524ee5346e92d903d"
+          "resource": "repo://src/app/account.ts#L11-L40",
+          "version": "repo-lines-v1:sha256:6c17bf40eaad9a21140629a9433faa9d2f68d566cfa6ecf7b9220cf00282460c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxNjBiOTA5ZDEyY2RiNWI4ZjQyMTc4YzNjNzM0ZTExNjFlMzUyMGZjYTg2NmYyNjNhZmY3MGVmMjkwNTg5MGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjN2NiNmNhM2U3Y2VlMmVlMzI5MzcwOWMyYWU2OTk3MmI5MDI4MzNlOGY2YWExZGM0MjRkZDgzMDFiZjAyY2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM1MTA5M2FmN2E2NzgxZDQ4ZmI4NTk2NGZkOGVlNzViYmQ1NDUyZWMzZjVmNTc4MjlmN2M3ZWMxNDViMGE0NDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYjk3MTc1MjFlZmU4OWJiYThhMWVhZmY4NTc4NGY3NmI0MjEyNzBmNzZmY2M3YjA4MjM0NjI4OTlkMGMzZTQifQ"
         }
       ]
     },
     {
-      "id": "claim_f6c43c43a2624ce5b82f9912d685240a",
-      "statement": "Account dialog dùng facade Email/Password theo provider (Firebase hoặc Supabase), không lưu bảng mật khẩu local; hub phòng quan sát Auth để hủy store khi UID đổi, còn hub biển tái sử dụng dialog và password recovery.",
+      "id": "claim_6e4e37efa32640fa90c61cb6f0d0d997",
+      "statement": "Đăng nhập thành công là bằng chứng đã xác nhận email, vì nút Tôi đã xác nhận gọi lại loginPlayer với mật khẩu đã giữ trong bộ nhớ.",
       "evidence": [
         {
-          "resource": "repo://src/app/account.ts",
-          "version": "repo-file-v1:sha256:682335fb3498baf604e5dc72cf0d54655c8c1f1add21bbcc146dee0fc9e1de7a"
+          "resource": "repo://src/app/account.ts#L11-L40",
+          "version": "repo-lines-v1:sha256:6c17bf40eaad9a21140629a9433faa9d2f68d566cfa6ecf7b9220cf00282460c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxNjBiOTA5ZDEyY2RiNWI4ZjQyMTc4YzNjNzM0ZTExNjFlMzUyMGZjYTg2NmYyNjNhZmY3MGVmMjkwNTg5MGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjN2NiNmNhM2U3Y2VlMmVlMzI5MzcwOWMyYWU2OTk3MmI5MDI4MzNlOGY2YWExZGM0MjRkZDgzMDFiZjAyY2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM1MTA5M2FmN2E2NzgxZDQ4ZmI4NTk2NGZkOGVlNzViYmQ1NDUyZWMzZjVmNTc4MjlmN2M3ZWMxNDViMGE0NDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYjk3MTc1MjFlZmU4OWJiYThhMWVhZmY4NTc4NGY3NmI0MjEyNzBmNzZmY2M3YjA4MjM0NjI4OTlkMGMzZTQifQ"
         },
         {
-          "resource": "repo://src/app/harbor.ts",
-          "version": "repo-file-v1:sha256:e090d518b3ab0d84ff12391e82f434199083e73a5a79eb5830585b6750bf1023"
-        },
-        {
-          "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:f9a4e81915ee32dd395a1c188ffc5e4d26c6c53a1795ed445c8024114a0d7ed6"
-        },
-        {
-          "resource": "repo://src/platform/account.ts",
-          "version": "repo-file-v1:sha256:945e8bc5e1e4c277c7ce711d7fd2460e9456156bccb9a2dfd1c3856408a43c8b"
+          "resource": "repo://src/platform/account.ts#L59-L66",
+          "version": "repo-lines-v1:sha256:7d22fc5f41b0096ca655d2e2691d8b7961f204fdfdda4c2d653628b9e709eac4:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWZhNTQ0NDI4YTU5MTc0OGVjMDE0MTg5YTExNDRjNTUxMjdkYTUyMTY5YmJjNzU0NTM0OWUwYzQ3NmE0NWE1ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzRlY2VkMmEzZTI4ODNjOWVhMWZjMzUxMTc0MTczYTkxYmU0MDg5YWYwMDM2MzEyOWM0YTA0NDRlN2FhNGFiNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTJjZGU5MzcxMjE1MWNlMjg5NDM0OTM2MTg5YjExZDMzNzQ4OGZmODZjZDU1MjZiMjc2MTE1N2NiZjEyOWRjNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjIxMDc1NGVkYWJmOGEwMGM5YWRjMjliYmFmZWQ2ZjMzMzg0NzFlMjQyNzBjMWJlYTY5NjUyYjFjZGFhYzE1NCJ9"
         }
       ]
     },
     {
-      "id": "claim_f895579939f6449a86385357c2a9e816",
-      "statement": "Timestamp được tạo phía server và giữ bất biến trong storage; adapter chuyển createdAt sang milliseconds cho model thuần.",
+      "id": "claim_e012874e703f42679ed283196f9a34c3",
+      "statement": "Sự kiện PASSWORD_RECOVERY của Supabase được chuyển thành sự kiện window account-password-recovery; hub nghe sự kiện này và tải động hộp thoại đặt mật khẩu mới.",
       "evidence": [
         {
-          "resource": "repo://firestore.rules",
-          "version": "repo-file-v1:sha256:41dfb9cf357448a1b89fcaecc1128761d2817f407eefebad6d473fa5c22afaab"
+          "resource": "repo://src/app/harbor.ts#L44-L54",
+          "version": "repo-lines-v1:sha256:13cacf70f1e06e128f7816d27b92d853df66019cb60a9fa26892f12096669467:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwZmE4MjNjZGRjOGUzZGVlYjFhZjc2YWVmMThjYTBmYjRkNGYyYjc3YWE1OWVkZTNmZTBmOGMwMzA2ZGU1NWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1ZWYwMWJjMDhkYmMzYjYzZTRlNzVlYTNkMjZhNWI5NDE4OTE4NzdlMjdhZDg5MTMyOWM4NDExZDdkOGRjNGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwNzY3MTcwZGEzNWZkOGU1Y2U2N2Q1MDEwODVjOTVhMmEyM2FjZThjMzg5MDhkYTYxZGQwNzFkZTk2Nzc4NWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkMzc0YWEzYTA0NzkyMjVmZjMwOGY1Y2ZkY2E2MjhhY2U1MTQzOTg5M2ZhNDYwZjZjOGIyYzU2MzI4NDY0NTUifQ"
         },
         {
-          "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:d32270d2c3599a3d843e114dfe5b033a338a78aafaf49a8524ee5346e92d903d"
-        },
-        {
-          "resource": "repo://src/platform/profile.ts",
-          "version": "repo-file-v1:sha256:dd7bf6cc24393e65416e9c4c441e68e0da79db60f3086afe19bcd6dc76264eb0"
+          "resource": "repo://src/platform/account.ts#L103-L120",
+          "version": "repo-lines-v1:sha256:6ff8cb783ab07becd957e08a17f318acb938db84d7ea48cb2932df63f67ac41e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjZTgwNDZiMWUxNzQzNDU1ZmYxY2IyNGUyN2U4Y2ZhZTNlZTViYmNhNTJkNjJkZmVkYWJkODZiZDk5MTBmMTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyZDExY2FmNDNlOTdlZjM2OWU2YmVlZDFhMjY4YmQwNTgzOGYyOWI5ZGQyNTRiZjY5YmE2NDg4NDE0NzIzNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZjMDdhMTUwOGE1NTk5MWM4YTNkODc3YTYwNzlhODdlMGI0MWJlMjgzMTExNDQxNDg1MmIzOWZlNTI4MDEwMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZlNzZlYjc3NmU2NDVhNGE4MTQyMTYzYTU1NmM0MDBhZjg4NzM0OWVkMjcwNWY3ZDY3OTZkOWU3YjU5MGU4NjkifQ"
         }
       ]
     },
     {
-      "id": "claim_cad48d26384541fcb72458b23c41d49e",
-      "statement": "Rules bảo vệ monopolyHub và bảo toàn allowance Test mode trước đó ở collection khác đến 2026-12-03; test xác nhận path legacy giữ quyền còn hub unauth bị từ chối.",
+      "id": "claim_65719c88afa0474da93c3e4ce37e370a",
+      "statement": "Hộp thoại đặt mật khẩu mới kiểm tra hai ô nhập trùng nhau trước khi gọi updatePassword và chỉ mở một lần tại một thời điểm.",
       "evidence": [
         {
-          "resource": "repo://firestore.rules",
-          "version": "repo-file-v1:sha256:41dfb9cf357448a1b89fcaecc1128761d2817f407eefebad6d473fa5c22afaab"
+          "resource": "repo://src/app/password-recovery.ts#L1-L90",
+          "version": "repo-lines-v1:sha256:15c9444965ddf4b70c816ed92ea9ec83327acca78350f9fae5ce50773bdf66fc:eyJzZWxlY3RlZExpbmVDb3VudCI6OTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYWIwZjY0MjY4MzVkMmZjNDczNDYzODA3MjdkOGVhOTJmZDFlZGM5ODA5MmZiZWYwZWMxMzZkNTI3MzkyMDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://tests/rules.test.mjs",
-          "version": "repo-file-v1:sha256:7a89519a22165ba0f70bcd5fa6920db5a76c780623f81349370cd04feb1d633c"
+          "resource": "repo://src/app/password-recovery.ts#L2-L6",
+          "version": "repo-lines-v1:sha256:a19c120a3870a1e2a30cfd8f2a19ca97f1a21826b2888e827f4ee1c6f443a5f8:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTAwYzgyYTIxYmRjMWY5YTdjYzY2MTA0ZWJlN2E2OWI2YjUxYWNjYjE4NDQ1OTNkZjdiZWRhZmY0NDY4MmI4YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTc4MzgxZDY2Y2RhOWZjNTYzMWQ5MWRiODE0M2NhMzQ2OWJhYmMyMmRlZTBjZTU0NTY2NWE4NTg4YWFjOTdmZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjEsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2VhYjBmNjQyNjgzNWQyZmM0NzM0NjM4MDcyN2Q4ZWE5MmZkMWVkYzk4MDkyZmJlZjBlYzEzNmQ1MjczOTIwMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGZjYmRhYmRiMmEzNmU2MmZhMGYzMDVlMDMxMDBkZDI1NGE3ZDM4ZWE3YWQ1ZjNlMzZmN2FiMTJmMjk0NWYxMSJ9"
         }
       ]
     },
     {
-      "id": "claim_c8ee127b54f649a0a64242baaaafa353",
-      "statement": "Directory/resume không chờ profile; create/join đồng bộ profile cùng room trong một commit, đọc song song và chỉ cache tên sau thành công.",
+      "id": "claim_8e84bc26ff7a49738beb0b813bc5ce4d",
+      "statement": "Lỗi Supabase được dịch sang thông điệp tiếng Việt theo mã như invalid_credentials, email_not_confirmed và các mã giới hạn tần suất; mã không biết được thay bằng thông điệp chung.",
       "evidence": [
         {
-          "resource": "repo://firestore.rules",
-          "version": "repo-file-v1:sha256:41dfb9cf357448a1b89fcaecc1128761d2817f407eefebad6d473fa5c22afaab"
-        },
-        {
-          "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:d32270d2c3599a3d843e114dfe5b033a338a78aafaf49a8524ee5346e92d903d"
-        },
-        {
-          "resource": "repo://src/platform/profile.ts",
-          "version": "repo-file-v1:sha256:dd7bf6cc24393e65416e9c4c441e68e0da79db60f3086afe19bcd6dc76264eb0"
+          "resource": "repo://src/platform/account.ts#L87-L102",
+          "version": "repo-lines-v1:sha256:36a9702ab0a4c236017e44dc8f5ded1ea2dadb07b600d7a89fa3c889c4150225:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiMDkxNDYzYWIxNTA1NWEyY2FiYWFkOGQxM2E2YWJmZjg3ZjE5MDgxZmE5MjFhMmZkZDU3YmQwMjk4MjdhNTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgxZTE1MGY3YTM3ZDI1OWQ5NjMyMjdkMjYwYzdmZmFiYTk5NTExZDMwYjI2MzU0NzdhYTExZGJlZTFmODRjMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNjOTdhMTIyZjllODA0OTBkYjg4YTMxYWQyNzFjYjY3ZGZiNTA1NjFmYjk2NzA3ZTgwOTA4NzNkYTc4NzMyZjQifQ"
         }
       ]
     },
     {
-      "id": "claim_f0a40257de794b5b83fd1db6a96e7b3a",
-      "statement": "Chẩn đoán opt-in lưu tối đa năm báo cáo trong RAM, giới hạn 100 samples, ghi span tạo/vào phòng và không tự upload dữ liệu.",
+      "id": "claim_9097986b9b0d4583b30d9d5d70b5a25a",
+      "statement": "Yêu cầu quên mật khẩu luôn hiển thị cùng một thông điệp, không tiết lộ email có tài khoản hay không.",
       "evidence": [
         {
-          "resource": "repo://docs/diagnostics.md",
-          "version": "repo-file-v1:sha256:bff633ca4f9cf37ae0924036e0f9769f9e96b9b4daf79295f574096cfedd8da7"
-        },
-        {
-          "resource": "repo://src/app/diagnostics.ts",
-          "version": "repo-file-v1:sha256:42056d313e455c9d90502be811f3a625ee50e53dbe093013b7f1664af5f20bfe"
-        },
-        {
-          "resource": "repo://src/hub/diagnostics.ts",
-          "version": "repo-file-v1:sha256:4108ffaff4df02a7389615c62b4bb4d6e28d4c70f532156b186c6e9c27b220eb"
+          "resource": "repo://src/app/account.ts#L156-L160",
+          "version": "repo-lines-v1:sha256:c5f15153fbeb3a1ccc00a0eed09012d4ea599bd71a5c9fa1cb2a71bbc5fa65d8:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzBmNWI1MDJlNDljYzBhNmNiMTA0NzY1NzIwMWM3ZThjNjNlYjgxMWVmNjg3NzBmNGZmZDBhYjA1ODA4MTJiMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGQ0ZmQ5OGZkOGI4OGMzMjk1MDJmMTRjYzgzNWY1NGM1MDZkOGVlMzRhZTcyNmM4NDBjMjQ2ZWNjZDFhYzlmMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDNiYjk2MWUwMzNiYzViMDliMmIyYmE1ZWE5ZDIxZTJlNjZlMDQ2MTkwNDQyZjQ1ZGVkMGMyZWMxM2M4NzZiMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzVhNmRhZDkzZjZmNDY3ZDBkOGFiZmZlZGQ5ODA4ZGYwNGNiNjNiNjY5ODI3YmJkOWE0ZDVlZDk0YzEzM2NmMyJ9"
         }
       ]
     },
     {
-      "id": "claim_0ed98aced9264da38e4b07bf92c1bd42",
-      "statement": "Room watch không evict player chỉ từ cached first snapshot thiếu membership; includeMetadataChanges cho phép xử lý server-confirmed absence dù data không đổi.",
+      "id": "claim_a880bbf0bfbd44769c27c6abdf30c9c8",
+      "statement": "API xác thực mọi token bằng cách gọi /auth/v1/user của Supabase, coi 401 và 403 là chưa đăng nhập, và từ chối người dùng ẩn danh; client không được tin danh tính tự khai.",
       "evidence": [
         {
-          "resource": "repo://src/app/start.ts",
-          "version": "repo-file-v1:sha256:f9a4e81915ee32dd395a1c188ffc5e4d26c6c53a1795ed445c8024114a0d7ed6"
-        },
-        {
-          "resource": "repo://src/platform/firebase.ts",
-          "version": "repo-file-v1:sha256:d32270d2c3599a3d843e114dfe5b033a338a78aafaf49a8524ee5346e92d903d"
-        },
-        {
-          "resource": "repo://tests/auth-browser.mjs",
-          "version": "repo-file-v1:sha256:c5eea22b378230593f6decb8a06d54f6e6291ccd712c8a2e5e9e4e3a140472f5"
+          "resource": "repo://server/app.mjs#L28-L36",
+          "version": "repo-lines-v1:sha256:3745a34fb5fd27fe3b6a7333880843793b51fc542bd81e9440ba400a0ef17eca:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzFjNzQxMmIwYTEwZWQxZDRjZThiM2NlNGRmZDAxMzQzNjk5YWUyMTc3ZWRkMWFlODAyOTNmMThkZTI3ZDBjOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjdlNTc4OGQ1ZDlkNzNkMjRhODFkYmMwYTVhNzRiZmE4MmM5YzNiM2FmOTllNTJhZjc5NmU5MGI0NjhhOGEzZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGIxYTBmMDk2MjE4MTE1YWRkYzg0YjE1NjM4ODY5ZTAyZjJkNTBhZGU1NDg3NmFjMTM0OGNkMjAxMWViZGNhMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWEzMmQyMjkzY2JhM2M4ZjdmMmFlMmFiMTIxZWZiZGJhODM0OTYyODVhMmI3YzgyNGExZTZlZGE3YzgzNzIzZiJ9"
         }
       ]
     },
     {
-      "id": "claim_2316197019d34092a8503a545850fbfa",
-      "statement": "Browser suite có test PWA trên production build/subpath kiểm tra manifest/icons, install handler, offline reload và waiting update; cài OS trên Android/iOS còn cần real-device verification.",
+      "id": "claim_a2bb229f377b42c69cf50bcc297d1902",
+      "statement": "Mọi kết nối Socket.IO phải mang token Supabase hợp lệ trong handshake; thiếu token, token quá dài hoặc không xác thực được đều bị từ chối với AUTH_REQUIRED.",
       "evidence": [
         {
-          "resource": "repo://docs/pwa.md",
-          "version": "repo-file-v1:sha256:db7aefaf701449c62888b6b335bc14227265e1647503b9183785a04eb77a0661"
-        },
-        {
-          "resource": "repo://package.json",
-          "version": "repo-file-v1:sha256:d5f989349a224315e3933d02356feabbd1148247c99435103e9ac4f37f774ffb"
-        },
-        {
-          "resource": "repo://tests/pwa-browser.mjs",
-          "version": "repo-file-v1:sha256:0e3e51cf3cacf7117316fe25c40d8d247f71865a39e68c8c8422cba22fd097c5"
+          "resource": "repo://server/socket.mjs#L28-L36",
+          "version": "repo-lines-v1:sha256:85f9404f2719c4a53819810ff4f3078762f5a0372e4024dfc47eb2c8d42e81be:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTFkZjg3YTQ3MzE2YzcwOGM1NTAyMDk4ZTlhZjZjNDQ1MzRlYjgwYmVhZGNmNjA2MzAyOGVmY2E4NTkzN2FiZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWYzYmU3OTU2NmQ5MTViMjdiNzhhZjFjYTJhYTdmYmU3ZDY0MWYzMDk5YmZhOWI3ZWRlZjQwMjYyYjdlMDIxZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmUwYTkwZjhjNzc2YzhiMjg4ZGRmYzNjY2U2YjA2MTA1YjUwYWZhZjUxNTVhNmNlMTA3NTY5ZmEzNGY2ZjA5ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmE2MDUzNTU2MDdlNWJhOTg4NjFkNTM3N2JkMWQ4YTZmNzNkYjczNGM0ZjQ1NGEyNmNiZmY0NTkzYzgxYWY0ZSJ9"
         }
       ]
     },
     {
-      "id": "claim_3169332a91b24bf598910bb027e06a43",
-      "statement": "HUD shares one safe-area container and scrollable landscape task/action regions; dev/production tests simulate cutouts across24 states, without claiming real-device verification.",
+      "id": "claim_a31044d4368d4d6db2ceb765ff1e9f69",
+      "statement": "Hub gửi một yêu cầu no-cors tới /health khi người chơi bấm vào hub để đánh thức API đang ngủ; phản hồi bị bỏ qua và không được đọc.",
       "evidence": [
         {
-          "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:0494f441f7e6ae2adeec70853b8248f0e5eb4409287bb76ce51307a5c7b43d8a"
-        },
-        {
-          "resource": "repo://src/game-ui/render.ts",
-          "version": "repo-file-v1:sha256:d8f84dc971532046032a05311f549d86400a9d8992e665bc28b5911a22612d9e"
-        },
-        {
-          "resource": "repo://src/game-ui/style.css",
-          "version": "repo-file-v1:sha256:6f8026ae157c86b147b5dfc5297e502ebbab5baaaa3ef40763b824ad9529ffaa"
-        },
-        {
-          "resource": "repo://src/style.css",
-          "version": "repo-file-v1:sha256:e8bd4e646b9a542bd0fae5337e4b1797cff5527fb464466b632074829144003c"
-        },
-        {
-          "resource": "repo://tests/safe-area-browser.mjs",
-          "version": "repo-file-v1:sha256:ee8ae0f23f771c78acb7811493d39647007951a6f456b2c4247c89cd019bd0d1"
+          "resource": "repo://src/platform/wake.ts#L5-L15",
+          "version": "repo-lines-v1:sha256:48cbe7e14034172d284da965df21296132da1b5b088dd8b74de86caa9312259f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0NDQ3MTBhZmU2NWI1ZTIxNDcyNjY1MmUyZTAwMDdhODUyOWRjYzljYmRmNzJkNmUyYWU1ZTExYzQzNGJjYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ4ZThkMTE0ZTFkZmY4MWM1MTZlMGIyZjRkMjQzNzc0YWZjYTA4YjZlYzM3MzVhZTUzZTlhYzllNGI5ZWU3NzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
     {
-      "id": "claim_35ecc566c8a942298ea98b6c16d13614",
-      "statement": "The local ?view=game preview uses one Three.js renderer across HUD redraws, a shared40-space grid with2.2-deep tiles, outward-readable labels and buildings on inner property stripes. Focus follows the active fixture token; Overview supports orbit/pan/zoom. WebGL fallback preserves a flat board. No authoritative economy or multiplayer gameplay is added.",
+      "id": "claim_058877c25ed04ee891be478dce56de68",
+      "statement": "tests/account-signup-browser.mjs kiểm tra đăng ký với Supabase giả trong cả hai thiết lập: bật xác nhận email (bước kiểm tra email, gửi lại, đăng nhập sau xác nhận) và tắt xác nhận (đăng nhập ngay).",
       "evidence": [
         {
-          "resource": "repo://src/board/layout.ts",
-          "version": "repo-file-v1:sha256:707a5ca84d90e0f049dc1698900f17dfd1a947e7c1c3249701fefacb2abf0292"
+          "resource": "repo://tests/account-signup-browser.mjs#L1-L8",
+          "version": "repo-lines-v1:sha256:88338e41b8387dac555883f725165780ea40e6f9ea9f22c7af078da8e124e6a1:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzZjN2NjZTBhNzBiMzRlZmEzYWUzODBlYTEyMDZlNGZmMDAzM2ZmMmY3NmU3YzZkZmU0Y2UzZjdkY2QwODYyMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmUyMzQ0NGYxN2MwYTA2MGNkMTRmMjJkMzU3OTI5NGNlYWU5MmI5NzRlNWU2NWVlZDE2OTBkOWQxNWFkY2IzNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDcwZGI2MmQ4MWI2ODZmNzEyYmYzMjA2YjgyM2FkM2YzMzE4NGE3NTY4ZDQyOGQ0NGFmYzI1MmE1NzVlNjRmNyJ9"
         },
         {
-          "resource": "repo://src/board/scene.ts",
-          "version": "repo-file-v1:sha256:ea08534ead1252304514aa5984e08ab962e64fd76342c1a276a617f5e8890641"
+          "resource": "repo://tests/account-signup-browser.mjs#L115-L160",
+          "version": "repo-lines-v1:sha256:4a06427c58461f680592727394f940ce01836e9e288e7ba054fd5e93c6fb8a72:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NzljNjQ3NDYxNDM3MGM2NDAzMDk0OTU2ZTU5MDEzMzIxN2I1Y2ZhMTUxNDA4OTI2NGYxMjRjZGJlYTk0YmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1OTcwOTA5NTUyM2FlMWNkYjM1MGQyOWI0MGY5YmNhZjJiN2ZiNGM5YWNiM2IyNzg3MzU3ZDRmMmQ2NGM1M2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM3M2I5ZjM3YmJlM2NlYzYxYmZkZDFlNDJkYjM0MjBjNWUwZmZlZWUwZDc2YTY3YzI1NWExMjgzMmJlNmMxMWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1ZWVjYjdmNzY4NmVjOGRhZDcxYjk4NmNmMzk1ZDVkYWVmY2UzZGMwMzRmOWNjNzVkODRhMDViN2NiMTc3MTYifQ"
         },
         {
-          "resource": "repo://src/board/stage.ts",
-          "version": "repo-file-v1:sha256:e3b3a580fb9ba2a5d83c25a1ab0a037e7dc53165d9af3014def9480b389cb29f"
-        },
-        {
-          "resource": "repo://src/game-ui/board-preview.ts",
-          "version": "repo-file-v1:sha256:d75d3f96ce1ef1965aa7fa409f869a31778a17bd1cd3f3d85e53589bc8f68dff"
-        },
-        {
-          "resource": "repo://tests/board-browser.mjs",
-          "version": "repo-file-v1:sha256:e5835f8eccc6c04ce686fe546849551867419fe6f21b1ae66309192be9f6765d"
-        },
-        {
-          "resource": "repo://tests/board-layout.test.mjs",
-          "version": "repo-file-v1:sha256:f6d0c2e39a7a80adbd96b947ce776b3ca0b09a5be66349a3231e0bc16057c445"
+          "resource": "repo://tests/account-signup-browser.mjs#L219-L230",
+          "version": "repo-lines-v1:sha256:d8a9614cb83a8b9687a350ceddddba61ca8884c48012d2c48bd18a06d66e7cd3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlZmZhYjVhM2EzYzI4MGYxYWUzNTQ3Mzg4OTQ5YmU4MzNmZmIwNjdjNzU0MjgxZGRmNWRhYTUwNmQzZWVkZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwODdkNDg0N2Q1ZTE5ZDcwNzhlM2M0MGZjMDdmNmEwYTg4NDllODI2OTM2MWFmYTg2ZjQ3YjBlMDc1MmViMWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFlYTRhZmQ2MDc0ZWIxMzgwMTNmYjQ3NjBhNTI4ZWQ5OGY5NThlOTdmOGE2MDY0MjcwMjliZTgzNjkwOGQ3YjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhMDRkNzk3NDQzMGY5NDI5MGQ5Mzk2ZGY4MDMxOGEwNDM2MjFkZGYzZDc0MDY3MWQ0MzVlZGY4YWU5ZjNiNGMifQ"
         }
       ]
     },
     {
-      "id": "claim_273beb55a48e47138186554369628fd4",
-      "statement": "Runtime Supabase opt-in có facade Auth Email/Password, trạng thái chờ xác nhận email và màn đặt mật khẩu mới; phòng gửi HTTP mutations kèm Bearer access token, nhận Socket.IO snapshots và dùng khóa sessionStorage tách theo provider; kiểm thử Docker cô lập trong scripts/test-supabase.mjs dùng GoTrue, PostgREST và PostgreSQL thật với hai browser context.",
+      "id": "claim_bae9ad2798a146c2ad079e264f30a442",
+      "statement": "Các kiểm tra tự động không xác minh đăng nhập với Supabase thật, email xác nhận thật hay liên kết khôi phục thật; những mục này cần kiểm tra trên dịch vụ thật và trên điện thoại.",
       "evidence": [
         {
-          "resource": "repo://scripts/test-supabase.mjs",
-          "version": "repo-file-v1:sha256:b4066a39a2403ae2231ec3e182fdd8d81015c798e3f9b21dba847a9498bd8812"
-        },
-        {
-          "resource": "repo://src/app/password-recovery.ts",
-          "version": "repo-file-v1:sha256:15c9444965ddf4b70c816ed92ea9ec83327acca78350f9fae5ce50773bdf66fc"
-        },
-        {
-          "resource": "repo://src/app/start.ts#L49-L49",
-          "version": "repo-lines-v1:sha256:53922c0bdad10780a9bf88f599b0d776f47183dc93df4e0e67bf0f4b2a7acaac:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTM5MjJjMGJkYWQxMDc4MGE5YmY4OGY1OTliMGQ3NzZmNDcxODNkYzkzZGY0ZTBlNjdiZjBmNGIyYTdhY2FhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTM5MjJjMGJkYWQxMDc4MGE5YmY4OGY1OTliMGQ3NzZmNDcxODNkYzkzZGY0ZTBlNjdiZjBmNGIyYTdhY2FhYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzcyOGRlNGRhYTI0MzFhYWY3YjM3MjhhYjY2NWQ3NDAxNDg5NWM1NTEyOTI2MDllOTRiOGZlYjFiNjEzZGQ0YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjgwNDVkMWFkMWIyMzgwNTdhMDc3N2E3MTBmNzhhYWIxN2E5YzA4YzFiMWI2YzgwNzkzM2FiYzIxZDMzYWE2YSJ9"
-        },
-        {
-          "resource": "repo://src/platform/api.ts#L27-L27",
-          "version": "repo-lines-v1:sha256:6ebf9fddadc301a999b593dc87a9d8852698a5ee13a987ef524a2f5876fdb9c6:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViZjlmZGRhZGMzMDFhOTk5YjU5M2RjODdhOWQ4ODUyNjk4YTVlZTEzYTk4N2VmNTI0YTJmNTg3NmZkYjljNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViZjlmZGRhZGMzMDFhOTk5YjU5M2RjODdhOWQ4ODUyNjk4YTVlZTEzYTk4N2VmNTI0YTJmNTg3NmZkYjljNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjdhY2Q4NzE5Y2RlMTg2NTU1YTE5YjhjM2M2NWVlNjk0NzdlNWRhODkxNzkyYWFmNDE5NWI0OGM3MmNmYTIzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmUwZDZhNzdhZmNmNTIzNTNlY2Q2NjhiODI1Y2M4NThhMmZkODRmMTZkYjQ1MmUzZmQ3ZmUzOTQwMDBlYjczMyJ9"
+          "resource": "repo://tests/account-signup-browser.mjs#L1-L8",
+          "version": "repo-lines-v1:sha256:88338e41b8387dac555883f725165780ea40e6f9ea9f22c7af078da8e124e6a1:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzZjN2NjZTBhNzBiMzRlZmEzYWUzODBlYTEyMDZlNGZmMDAzM2ZmMmY3NmU3YzZkZmU0Y2UzZjdkY2QwODYyMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmUyMzQ0NGYxN2MwYTA2MGNkMTRmMjJkMzU3OTI5NGNlYWU5MmI5NzRlNWU2NWVlZDE2OTBkOWQxNWFkY2IzNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDcwZGI2MmQ4MWI2ODZmNzEyYmYzMjA2YjgyM2FkM2YzMzE4NGE3NTY4ZDQyOGQ0NGFmYzI1MmE1NzVlNjRmNyJ9"
         }
       ]
     },
     {
-      "id": "claim_5159c07b65ba4fb988cf1143b751a6ba",
-      "statement": "Route mặc định là hub biển chung không có phòng/sẵn sàng; hub Monopoly cũ được giữ ở ?view=monopoly-hub và preview board/HUD ở ?view=game.",
+      "id": "claim_aeb38cb36a3d462a8c955bd1262663a0",
+      "statement": "Các phòng, lobby, sẵn sàng và Firebase đã được gỡ khỏi game theo decision 0012; hub hiện tại không còn route ?view=monopoly-hub hay ?view=game.",
       "evidence": [
         {
-          "resource": "repo://docs/ocean.md",
-          "version": "repo-file-v1:sha256:86e7c3b7e211db494559f76f09a3b1d7bdfc235488f74c7d4f00fd4f6796750c"
+          "resource": "repo://docs/decisions/0012-remove-firebase-and-monopoly.md",
+          "version": "repo-file-v1:sha256:a3e05e73e9f735bd5e8cfcfa7fe329dece498d0e0ee99064e9a610cfa44af92d"
         },
         {
-          "resource": "repo://src/main.ts",
-          "version": "repo-file-v1:sha256:b27c774d57891b76b3f7de63050b96d2bcda09a6efc119e9c57e504645d6232f"
+          "resource": "repo://src/main.ts#L1-L21",
+          "version": "repo-lines-v1:sha256:e0dfde31f04b89a813d5a863ed6651bf486e8c20cd7d519ff9903659710cf866:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzNGJiYjA3ZGQzYjA3YzMzNjIxNTg2YzlhNzdmZTFhZmUwNmVlNDJiNWQzNjkzNDg5OTJlNGM3MWM0MTJhM2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhM2U0NmY5NDI3NmI2ZjZmNGVkMWYwMmFmNzhiZWY2YTJlZTFjNDM5ZGQ1NTg0Yjk3Mzk0ODMxMzIxNGQyYjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.8.0",
-    "at": "2026-11-13T03:02:54.827Z"
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-17T08:18:15.877Z"
   }
 }
