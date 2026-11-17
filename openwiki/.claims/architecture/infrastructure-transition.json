@@ -1,50 +1,128 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:f074124e4e6924b50520d9e05732fa80182f7de5d6206c1455e2edb96c19a9a4",
+  "pageVersion": "sha256:97e8a47e3ec54f1ecf6fee3caf3e8774444fe2821f5e3dfaac00aea609c3074e",
   "claims": [
     {
-      "id": "claim_cb9f461bae9f49ba941f3364da33567f",
-      "statement": "Runtime Supabase là opt-in: facade Auth có xác nhận email và đặt mật khẩu mới; phòng dùng HTTP mutations kèm Bearer access token và Socket.IO snapshots; Firebase/Pages giữ làm fallback; kiểm thử Docker cô lập trong scripts/test-supabase.mjs chạy GoTrue, PostgREST và PostgreSQL thật.",
+      "id": "claim_ec80d024d30e4143911af5b54cb41bf0",
+      "statement": "Vercel chạy build Vite và giữ Cache-Control no-cache cho /sw.js, /index.html và /, còn Render chạy API Socket.IO qua npm run start:api.",
       "evidence": [
         {
-          "resource": "repo://scripts/test-supabase.mjs",
-          "version": "repo-file-v1:sha256:b4066a39a2403ae2231ec3e182fdd8d81015c798e3f9b21dba847a9498bd8812"
+          "resource": "repo://package.json#L18-L24",
+          "version": "repo-lines-v1:sha256:377869b48209eecd316482550e327846dabc5f328ce3035c7620ec27ce461c1b:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTIyMjE0MzU5ZmNlZWY3NWMzZjM4YzdhYWMxZTVlNGE3MGZhMTMxOGYzZmExNzhmNWRlOWMzZTU3OGVmMDM3MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTU4NTc2OThhOTFlNTNhYjU5MjFkODg4MmUwZjM1MjY5NDdjZjI1MzYxNjY5ZmU0YmM1OTAwODA5YjI2MDEzMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmQ4ZTZhNGIzM2Y1ZDhiMDQ0NDRjYzg1OTZlMDdiZDU4ZmU5M2QwZGY2MjAxNDRjODE4ZDMyMDdkMmRmNzI0ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODk1MmNkY2QxOTQ3MzUxMmM0YmVlNzYzZmVjYmQ4Y2UyOTA2MGU4NmZhMGIwNjczMTM0MWYwNmRkODkzZWU5MiJ9"
         },
         {
-          "resource": "repo://src/app/password-recovery.ts",
-          "version": "repo-file-v1:sha256:15c9444965ddf4b70c816ed92ea9ec83327acca78350f9fae5ce50773bdf66fc"
-        },
-        {
-          "resource": "repo://src/app/start.ts#L49-L49",
-          "version": "repo-lines-v1:sha256:53922c0bdad10780a9bf88f599b0d776f47183dc93df4e0e67bf0f4b2a7acaac:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTM5MjJjMGJkYWQxMDc4MGE5YmY4OGY1OTliMGQ3NzZmNDcxODNkYzkzZGY0ZTBlNjdiZjBmNGIyYTdhY2FhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTM5MjJjMGJkYWQxMDc4MGE5YmY4OGY1OTliMGQ3NzZmNDcxODNkYzkzZGY0ZTBlNjdiZjBmNGIyYTdhY2FhYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzcyOGRlNGRhYTI0MzFhYWY3YjM3MjhhYjY2NWQ3NDAxNDg5NWM1NTEyOTI2MDllOTRiOGZlYjFiNjEzZGQ0YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjgwNDVkMWFkMWIyMzgwNTdhMDc3N2E3MTBmNzhhYWIxN2E5YzA4YzFiMWI2YzgwNzkzM2FiYzIxZDMzYWE2YSJ9"
-        },
-        {
-          "resource": "repo://src/platform/api.ts#L27-L27",
-          "version": "repo-lines-v1:sha256:6ebf9fddadc301a999b593dc87a9d8852698a5ee13a987ef524a2f5876fdb9c6:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViZjlmZGRhZGMzMDFhOTk5YjU5M2RjODdhOWQ4ODUyNjk4YTVlZTEzYTk4N2VmNTI0YTJmNTg3NmZkYjljNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViZjlmZGRhZGMzMDFhOTk5YjU5M2RjODdhOWQ4ODUyNjk4YTVlZTEzYTk4N2VmNTI0YTJmNTg3NmZkYjljNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjdhY2Q4NzE5Y2RlMTg2NTU1YTE5YjhjM2M2NWVlNjk0NzdlNWRhODkxNzkyYWFmNDE5NWI0OGM3MmNmYTIzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmUwZDZhNzdhZmNmNTIzNTNlY2Q2NjhiODI1Y2M4NThhMmZkODRmMTZkYjQ1MmUzZmQ3ZmUzOTQwMDBlYjczMyJ9"
+          "resource": "repo://vercel.json",
+          "version": "repo-file-v1:sha256:9703777ceb65428c6f652c558acfb8fd72393c4cc33e7ecc5172088969d5b387"
         }
       ]
     },
     {
-      "id": "claim_2ef670031a4348e0ab74c56fd6b7f2af",
-      "statement": "Biển chung chọn cùng provider với tài khoản; Socket.IO giữ thế giới tạm thời trên một API instance và chỉ push tới socket đã vào biển, tách biệt PostgreSQL đồng bộ phòng; Firebase dùng lease riêng và rules riêng.",
+      "id": "claim_5e3ad20f863342ae90b2e3700b23d009",
+      "statement": "API Render đọc SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY và ALLOWED_ORIGINS từ môi trường, lắng nghe 0.0.0.0 trên PORT, và createApi từ chối khởi động nếu thiếu url, key hoặc origin.",
       "evidence": [
         {
-          "resource": "repo://docs/ocean.md",
-          "version": "repo-file-v1:sha256:86e7c3b7e211db494559f76f09a3b1d7bdfc235488f74c7d4f00fd4f6796750c"
+          "resource": "repo://server/app.mjs#L12-L13",
+          "version": "repo-lines-v1:sha256:fe2060f57a9fb4f5b9544805bbb4576092e05333e131a04cdecd160f91aa8bff:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmIxN2FjNGNkNTRiMzA2YzFkNzc2MWZmNGI4Mzg1MTdkZjA1ZTZiYmJlZDMzZGMzZGE3MjZhOTRlYmQ5YTljNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWE5MDEzODVlOGNjMDVjZDZmOGFiY2VjMjUyMmE2ZTRlYWE0MTAxNDkzMmQ4NmZmMWU5ZGRmNWViOTA5N2FiNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmUxMjIxZWJjMDAxMTA2NWVmOTc1NjU3YmJjZGVkMDg2YzJhYzBjYTlkZWUwN2U4M2MwMjc2MTMwY2NmOTEzNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDQxOGViNzk3NjE1ZGNiNDNhYzY0NWFmYzNjNjQ2YjU0YTViNjI0OWM3MTNiNjEwZWNiYjNjMWFlMWRmZDMyYiJ9"
         },
         {
-          "resource": "repo://server/ocean.mjs",
-          "version": "repo-file-v1:sha256:aecc62f2d11d7abc4757c68456666b1b138b6155cf19fdf250b2121adf035bbe"
-        },
+          "resource": "repo://server/index.mjs#L3-L12",
+          "version": "repo-lines-v1:sha256:ab84d6505a62c454085d5ffd34c067038f302f6d2dc3ebd81efd65e1d4d236e9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5ZWJkOWRhNmU3MGFkODQ2ZWFhZjJiY2NjZjVkODAxMmNlZWI2ZTE1ZmIzOTQ5OTZkNWE0MzAwZTJhMDMxNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkYTQzNjc5ZWM2NzhjMjRlZjQ0Yzg0NjI4NTE3NzU3NmI1ZDQ1MDM4ODM4OGZiMDFmMDgyZmFlY2JiNjdmOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzMmYxYjZhNGMwYTA3MzMxNDlmNTdhMDEzYjE4ZTcyMjA2ZWFkYjJlNGJhNGVmZWRlNTBhNzNiOWFkMDM0NTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2YmUyNjc0ZmU2YTE0NDk5MjI5Yzg1OTYxZjdkMGFjOTNlYjgzNmUwZTdhYzI1YjZjMjUwMTk4N2RkOGQ4MjEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9bef07b55eea40cfb1f5c6c6528bf88b",
+      "statement": "Server API từ chối mọi request có Origin không nằm trong ALLOWED_ORIGINS bằng 403, và trả /health 200 khi sẵn sàng, 503 khi chưa sẵn sàng.",
+      "evidence": [
         {
-          "resource": "repo://src/platform/ocean.ts",
-          "version": "repo-file-v1:sha256:92b1d25b4a88f2981fdee20b7038b36febec61457005619f3b8137e0d5e3f3e7"
+          "resource": "repo://server/app.mjs#L37-L58",
+          "version": "repo-lines-v1:sha256:5bff1efd8a96d3bc1bbcbf4398d3d8a2c588b5eec0f7d7b85af4bb4fac631d23:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3MTczNjIzNGRkNjcwYjEwMWY1MTM3NzdhNTZlODI2OGJlZDdhODVmNTIzMjQ4ZGZjNWM3YWRiZmNmZWUzMWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0MjUyOWNiNTQwYmY3ODY2N2U3OTMwNTUzZTUxNDEzMWI2NTRhOWI0MGE2OTcxMDE4MzZhOWM4NGQ3YzQ0MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhNzI1ZmQ1NjVlNTQ3YTA4YTk0NGIwYjhhZTJhZGMzMjVlMzZhZDQwNGMzMDQ5OGQyZWZjNGM0ODQ5NTAxMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3NmQ4ZjhlOWJkMTY0OWUxMWUyOTY2ZjkzM2M1Yzc1YzU0MTdiZjI4YTliMWVlYTJjZDQ5MjZhZDkxYjgyZjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_17c662994bc748debe3aeed1c319a9f1",
+      "statement": "Khi nhận SIGTERM, API đóng socket và HTTP rồi thoát, và tự thoát cưỡng bức sau 25 giây nếu còn treo.",
+      "evidence": [
+        {
+          "resource": "repo://server/index.mjs#L13-L16",
+          "version": "repo-lines-v1:sha256:96c60978313d240d8e8f558c2f6dff21d44aadb3a974c3d800db52368eb623bb:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGIwY2E2MTExNGQ2ZTEyM2Q3ODRhOWY0ZDM5YzIwNzJmYTc2MDI2MDk5MTc2YjRjYTZhZmYxMWZlMDgyOWYxZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzU3MjI1MmQyZDUyZmZkODQ4ZGE2NWE1M2FiZDNjNzA1NDM5YWM2ZDhmNmIwMzYxMzk4NjFjZTg3OWU0Njg1MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDg3MjgyNzNiZmQyYjRmNmY1YmJmYzllNmI2ODMzNjFkYzlmMWE0YjBjZTE5ZWZmNjVjNTE1OTJhMzYxNjMxNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjZmNWI0MGIxNTg0NTdkMTc4NjRmMjE3OTA3ODZkZDVhMmVjZGI2NGI2NmE2NTFmNzg4ZDRlMjVjZDMzMDNkMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_3ceb9d4142c348b9a0d6f2fd8a8ce371",
+      "statement": "Trạng thái biển chung là bộ nhớ của một instance API và không được ghi xuống cơ sở dữ liệu; khởi động lại sẽ xóa trạng thái.",
+      "evidence": [
+        {
+          "resource": "repo://server/ocean.mjs#L3-L5",
+          "version": "repo-lines-v1:sha256:393fcad20ac78fc44f0fc012f950b2e918f91a2eb51accb6bb071818f696bd70:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWFmMjJjZjA3MzI1OTJjMjQ3MTQxY2JlNjFlZmExMTAxMjYxMmY1YTMxMjJiOWFmOWJiYWY1MmY1NzI0ZDE5NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjIzY2I0YzEzZDY3NzU5ZDU0Zjc2NzFkNDQwMzQ5NzJkMDkwM2EzOWQwOGFmYWU3M2JiOTgxZWI5YWIwZGNmMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGM3Mjk4MWEyOTc2Y2VhNDgxZTdmYmYxZDdjM2I2ZjJiZTAzZTgxNWVkYmI5YzlhYmE2NmRiMzAzYjA1MzYyYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmNiOGFmMzBlNjZlNjcyODY4NTY1YjEyYTcwMmFlNTBiYmNjNjYwNDEzZmMxZmI5ODAxMmNkMGFlM2QxMzBjYSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d68190288a57402087755acb4fb841c1",
+      "statement": "Workflow keep-api-awake gọi /health mỗi 5 phút theo lịch như biện pháp nỗ lực tốt nhất, vì GitHub có thể trễ hoặc tắt lịch; không có cam kết nguồn lực hay độ trễ.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/keep-api-awake.yml#L1-L30",
+          "version": "repo-lines-v1:sha256:bc3ffddf1128ecb5ebd73c3f600bcf2f012a72115508d9a8eed3aba5f9542762:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ZWNjMTZhMDZiYmE5N2NiZTZhNThmODBlZjU2NzdkMjQwOWRkYjU0MTgyZmRjMzJlOTg0MjZmZjlhYWIyZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4OTk5MTEwM2Y2YmE4ODhlM2RlNzY1MWM1YTMwNWM3N2U1NTQ3Njc3M2FiYTgzOTU5MWVjYzViZDBmMmFiMWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlOGM3MTk5NTE2NzgxOGFlOWE0MzAyMTQ5NjA4MWE5ZWRlOTg5OTJmMDNmYTg5NmNhM2E3ZDM5N2RiNjQ3OWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e4d8ef9f916f47359df87af249a0124c",
+      "statement": "Client chỉ gọi VITE_API_URL/health một lần mỗi phút với chế độ no-cors để đánh thức API, và bỏ qua phản hồi.",
+      "evidence": [
+        {
+          "resource": "repo://src/platform/wake.ts#L5-L15",
+          "version": "repo-lines-v1:sha256:48cbe7e14034172d284da965df21296132da1b5b088dd8b74de86caa9312259f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0NDQ3MTBhZmU2NWI1ZTIxNDcyNjY1MmUyZTAwMDdhODUyOWRjYzljYmRmNzJkNmUyYWU1ZTExYzQzNGJjYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ4ZThkMTE0ZTFkZmY4MWM1MTZlMGIyZjRkMjQzNzc0YWZjYTA4YjZlYzM3MzVhZTUzZTlhYzllNGI5ZWU3NzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8c66ae4a68de4c03bc5849331ab44fc3",
+      "statement": "Thiếu VITE_SUPABASE_URL hoặc VITE_SUPABASE_PUBLISHABLE_KEY thì client Supabase ném lỗi cho người chơi thay vì dùng provider dự phòng.",
+      "evidence": [
+        {
+          "resource": "repo://src/platform/supabase-client.ts#L5-L16",
+          "version": "repo-lines-v1:sha256:7151ed83868bc1f19dd690e0f0cbbf58e5ffd9e0be9a0bb56449bcd4e7026c2a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwZjIzNTE2NjgxOTgyZjIzMjcyMzQ5MGE3ZWU1NjAwNDUyOTk2MGNiMGNmOGU4Y2I0YzVhNzQwOGExOTk4YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0M2I1YTgyMmRmNTE4MDM1ZTFhOWEyYmZhNzk1M2FjOTE3MThlODQ5MzJhZmM1ZDQyOThkZDg1YjRlMWQ2YTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1NGRmMGFhZDhkYjU3MTdkYjQ1MzkwNDQ1NjYwYjNlOWY2NmZmMWJjNjNhZDNmMjc1OWY0ZWU3OGQwMjgxOGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8baf3771fd9a45c39e74352af489059a",
+      "statement": "Kinh tế chỉ bật khi VITE_ECONOMY có giá trị on.",
+      "evidence": [
+        {
+          "resource": "repo://src/platform/economy.ts#L12-L13",
+          "version": "repo-lines-v1:sha256:f9f2f293fcde72a621007e3d226b07b6d935404aa743f0176481ffb681d9503a:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDkyZGI3NGY2YjMwNDAxOGM4ODEyYzM3MGQ3NWMzOGZkMDhiN2VhM2YxYTc0ZDI0Yzc0NWVkOGRmNDQxMjBiYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTFmNGY5YTE5MmI5MzNhZmE1OWI3YzM4YWQ4M2FiY2Q3ZmRjMGVmNGQzN2U4NWY1YjlmYzhiZjM0YTkyYWFkYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDExNjk3NThhODU2MGJiMWRkZGE4N2Y0ZjE3ZTU1NmM2ZmUxZDc3OTgzYWZkNjdkNDdlOTNjYjhjM2MyN2E5OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDRkNmM3YzQzYzA3YzYxOWJhYzQ1MjZlMjU4NjZjNDYzN2IxYjQzMDY0ZDM5MTJjNTVhZTVkMThhNTFmOWM2OCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_03f4fa8eb4c447528ce49df7ce3cd130",
+      "statement": "Lệnh npm run test:api chạy kiểm tra API, Socket.IO và giao thức biển, còn việc đã triển khai API trên Render và xác thực Auth thật chưa được kiểm chứng từ repository.",
+      "evidence": [
+        {
+          "resource": "repo://package.json#L23-L23",
+          "version": "repo-lines-v1:sha256:74cc8fee97712d3698e8158a87b2a4ad50293e4e2558209f63d1fd19dacb4fa3:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzRjYzhmZWU5NzcxMmQzNjk4ZTgxNThhODdiMmE0YWQ1MDI5M2U0ZTI1NTgyMDlmNjNkMWZkMTlkYWNiNGZhMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzRjYzhmZWU5NzcxMmQzNjk4ZTgxNThhODdiMmE0YWQ1MDI5M2U0ZTI1NTgyMDlmNjNkMWZkMTlkYWNiNGZhMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmYxYjNmYThkYTc3ZmEyNTIwMzY4ZDM0YWE1Mjg0MDc4MzViY2YyMmIwM2U0NjJiOTlhNjZiZWZlOWRlNzA0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTMzN2QxYzkyZjU0NDliY2U5MDM2ZDAwZGRmM2NkMzBiMjZlNjgyYTQ5N2EwOTgxZTcyNjEzOWU2ZGFiMzQwMyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_81f27a700e8b4d8dac3f2127b0c40453",
+      "statement": "Firebase và game cờ tỷ phú đã được gỡ khỏi repository theo decision 0012, nên tài khoản Firebase cũ không đăng nhập được trong app.",
+      "evidence": [
+        {
+          "resource": "repo://docs/decisions/0012-remove-firebase-and-monopoly.md",
+          "version": "repo-file-v1:sha256:a3e05e73e9f735bd5e8cfcfa7fe329dece498d0e0ee99064e9a610cfa44af92d"
         }
       ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.8.0",
-    "at": "2026-11-13T03:02:54.827Z"
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-17T08:18:15.877Z"
   }
 }

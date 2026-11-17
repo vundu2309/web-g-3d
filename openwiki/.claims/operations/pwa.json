@@ -1,48 +1,40 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:2d47a06be7c7835347250bb7ac34832fc51525590915f254685f82c82d6fb446",
+  "pageVersion": "sha256:9a440386edd203b5eb64527acec03b36f086c4647ffdec6250615095ceb17ac0",
   "claims": [
     {
       "id": "claim_36eb6868133740c2b9b12b0cfa109cc8",
-      "statement": "PWA có manifest/icon và install UI dùng native prompt khi khả dụng, fallback hướng dẫn Chrome/Safari; standalone/appinstalled ẩn nút, synthetic event chưa là kiểm chứng OS install.",
+      "statement": "PWA có manifest và icon; nút cài dùng prompt gốc khi có sẵn, nếu không hiện hướng dẫn; chế độ standalone hoặc appinstalled ẩn nút. Sự kiện tổng hợp không chứng minh cài đặt thật trên hệ điều hành.",
       "evidence": [
         {
-          "resource": "repo://index.html",
-          "version": "repo-file-v1:sha256:eecca9e686f913f2a2a287da209704b277a03c9c6cecad72970aff8eb31b1b2f"
-        },
-        {
           "resource": "repo://public/manifest.webmanifest",
-          "version": "repo-file-v1:sha256:51bd19dc9acebad38867c37f1a751ba710352bb325bbfe1700c7f0b4a6c33397"
+          "version": "repo-file-v1:sha256:1756a83cfad49af7bc301f67200efb247b81399b310a3f83a4cf52fd7851391d"
         },
         {
-          "resource": "repo://src/app/pwa.ts",
-          "version": "repo-file-v1:sha256:4cc5ba7c3cbd8dc6568161d333a6cc74daa4645afe6af251777e48a5680d758b"
+          "resource": "repo://src/app/pwa.ts#L51-L63",
+          "version": "repo-lines-v1:sha256:1857d634d8143d598f1c11c3e4fa02345f07ceae4e5febc03ab635b2ed9c4d8e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjYWRkYTBjNzhmZGJjODllNGFkZjdkNTU2ODlkNzc1NDVjYzQ0YTc3NjhhMGE1OTNmYzRlYjk4ZGYxYWVmNjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3YTU5MjVlZTkxZDlkMjk3MzVjZDc3ODYxODIzY2MxZGQ3MWViMzk5OGI1ODg1ZjcxNTViODMyNDEyZWU0ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0NTUwMDNlMGM1ZjM0Mjc2NzgwYTVkN2Q2NjFmMDIzMmU3ODZlNWMwOTgyY2RiYTk5OWYxMzg3ZDZkMWFmOTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2MjllZWIzMTk2ZTViYTE3NzJmMDEyNjAwNzM5Y2ViY2UzMTBlN2I5NDViM2I3NmUxYjFhMmRiOGFhOWMxZDYifQ"
         },
         {
-          "resource": "repo://tests/pwa-browser.mjs",
-          "version": "repo-file-v1:sha256:0e3e51cf3cacf7117316fe25c40d8d247f71865a39e68c8c8422cba22fd097c5"
+          "resource": "repo://src/app/pwa.ts#L77-L90",
+          "version": "repo-lines-v1:sha256:f23c88db13b273301d9e1603f8b13de70343cb0d920e4f1e3c5b52b6415c295c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhNDIyMGJlMjhjZWI1NWVmMzc3MzVhMGY5YmYzMzZiMTViZDVkYTNmMDA5YzYyYTVmNWYwYjdiN2E4N2RhMGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmMGNkYjk3MmE3YmZiN2VkMjQ2ZjlmZjY3MjM4NWU1NWY0OTY4ZmMxMTA0M2RjNWI2ODRkNTFkZmEzMWRiY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlZDE1N2NiZDgyNGVmOWI0N2VhMDA1YjM0ZGVjYzk0OGIxMTljY2E2MzI0NjlmYmUwODU0NDRlNjMyODg3YWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkyYTNlMzE2YTJhNzViNjViYjE3NjEzYjRmOWQ1NDQwYzIwM2Y0NTgxZDlhYTBlYTc5OWFlYzY5NzIzNDRlYTQifQ"
+        },
+        {
+          "resource": "repo://tests/pwa-browser.mjs#L1-L12",
+          "version": "repo-lines-v1:sha256:8dc57a43a6451ef62a7b2c642366eeb12325144160579c6eee6dc57e83b56e75:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2YzdjY2UwYTcwYjM0ZWZhM2FlMzgwZWExMjA2ZTRmZjAwMzNmZjJmNzZlN2M2ZGZlNGNlM2Y3ZGNkMDg2MjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlNWNlY2Y0NzBlOWNlZDc2OWY5OGVkZTlkYzM0ZjIwZGU3MzNlMTY4YThjZjQ5YzVmYjRlYWMyZGJmYjU0OGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljMzJhNmNkMDg1NjFhOGVmNTExYjFlNGM2ZmRlODllMmIzNWUxOGFlYmE1YzQ2NjQ4ZWZkMjQwNTYwOTRkY2QifQ"
         }
       ]
     },
     {
       "id": "claim_e643b54ab1fd4cd790b705423b9e287e",
-      "statement": "Worker production cache allowlist shell tĩnh theo repo scope/version, bỏ API/cross-origin/POST; home và lazy HUD có thể reload offline sau precache, không bổ sung multiplayer offline.",
+      "statement": "Service worker cache allowlist shell tĩnh theo scope và phiên bản build; chỉ xử lý GET cùng origin, bỏ URL có query và mọi URL ngoài danh sách; điều hướng tới trang chính được trả index.html đã cache.",
       "evidence": [
         {
-          "resource": "repo://scripts/pwa-build.mjs",
-          "version": "repo-file-v1:sha256:ce4e7bac6c7d9d4d0c046d267d1b352bb79386eea8a77f8f98bb24afdb4cfd99"
+          "resource": "repo://scripts/service-worker.js#L1-L9",
+          "version": "repo-lines-v1:sha256:37de6243a9a0b58a12f9299fe1aa81afb1eef943f1fc2c232bae6622e37e6e44:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzI4MjM4MzYyMDI0OTE0ZTI0OGJjNDEyNDQxMGZiMGVhMzhiNGMwMWE0NjlkZTY2NDU2NjEzNGRkNDdiNGFlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzczOTRlMjM3ZDdhNGZlZjIyY2U4OGY5M2M2MWYyMDRiYmJlNDAxZTZiNTEwMjEwZjQ1YTU1ZTMxMjVlOTY3MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTQyOWQ4ZjA3MjIzNWM1Zjk5ZTc5NDY5MWE1N2Q3Njg3MjA5NTc0OGFmODgzOWJjMTNmZTZmZTY4MjhlOTg4MiJ9"
         },
         {
-          "resource": "repo://scripts/service-worker.js",
-          "version": "repo-file-v1:sha256:90202903ed4a9b33d0b5fcb4cfe920f0cd3f2f1d5c10870f2fc5f831121436f7"
-        },
-        {
-          "resource": "repo://src/platform/pwa.ts",
-          "version": "repo-file-v1:sha256:95202f3bd0b6b4cb20fd63f7c5bbd3fc5dcb5fb7726872a961730a4b26b0a59c"
-        },
-        {
-          "resource": "repo://tests/pwa-browser.mjs",
-          "version": "repo-file-v1:sha256:0e3e51cf3cacf7117316fe25c40d8d247f71865a39e68c8c8422cba22fd097c5"
+          "resource": "repo://scripts/service-worker.js#L38-L56",
+          "version": "repo-lines-v1:sha256:318304a34b7d29cf667ee522f8d485d7c7def2323a9ea050b928daf68253baf8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlODgyODNkMTE1NzJmZjkwNmY3MTAxY2ZiZjAyNGFmYWY4NzhhOTNmMGJjYTVmNTdlNmQxZDQ4ZjNkY2ZiMzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMwMjIyMDI4N2JkNWZmOTg4MmE2ZjAxNzc2ZTNkMDEyNWM4NzQyZGIxYjZhYzQzZjhmODA4OGM4MDkzYjVmZWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlZGFlOWUzMGYwMmMzZTBlZTEzNGE5ODEzOGU3MGNkYTcxM2NkNjA5NDA1ZjI5NTExYjgyNGQzNWI3ODcwNjgifQ"
         }
       ]
     },
@@ -59,106 +51,46 @@
           "version": "repo-lines-v1:sha256:df315cadc7db4f2863c91cae92d7eadb6613ecc0a2842a27f3ef36aa19a97e87:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4YzgzOWFmMjIxZGFkM2ZhNDMyYjk1NGQ1NDlkNTczMzdiZTVmMmY4MTdkNDJmZDk3OTYxYmNmODU2ZGY4ZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwMGM1YTJhOTlhYTEwYmRlOGUwZjZlYTRhZTQxZjljNTg2MjIxNjEwZmRkNzExNjllMGU1NDkzNjA0ZDBhNjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhNDJjZDM5NThlODM3NDJlZTlhZDFhZDJiNmI2NWYzN2U1Yzk0ODM0ZWRmYTI2ODI3YjgxMWQ3MjJhZTI3ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ2MmMxMjY3ODBjYTdmNzQwMGIyNDMzNmNmZDYyOThhMzNkYzY1N2I3ZTZhYmVlZDRhZDhiNzU3ODNkYmMxYWUifQ"
         },
         {
-          "resource": "repo://src/platform/pwa.ts#L1-L20",
+          "resource": "repo://src/platform/pwa.ts#L40-L59",
           "version": "repo-lines-v1:sha256:f4ee1c0184cd0a1bab3fbd51d253e00dfa9c445e261e5c234bd3e4b498b128cb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmZDkwMGQ3ZmRiMDE0OGUxNGIwN2NjYWViODBmOWI2YzkwMzc1OTQ3ZjVmMTEyZDcxNGJhODAzN2E3MGEyZmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIzMzg0ODgzNGVlMjE3MzM0MDBkYWVhNTM0N2JhZGQyMWE3ZWJlMGIzZGU5ZDY0YWIzZjdiMjFlMzYxYTkyMTQifQ"
         },
         {
-          "resource": "repo://tests/pwa-browser.mjs#L187-L205",
+          "resource": "repo://tests/pwa-browser.mjs#L208-L226",
           "version": "repo-lines-v1:sha256:a13e69d9f397bb1a00601bab71dff7a9058dc41bf7decf10d005efa4245ca050:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2Yzc4MzhiMmViMDllZjQ4YzU4MTVlNGI5YzUwOTkwZDRkOWI2YWE5MGI2NDI2MDBhYTMxZTVkMWIyMjA0ZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiZmQ4MjZiZmI2ZjI3YzIzYzIzMzg0MmU1Y2E4MzVlYjBjNTZiYTcwZjVhNGU0ODAyNTAwY2UxZjQ2NWVjM2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2ZWQ4YjMyMGI1ZDZiYzFjNjVjMTQwYzY0ODg2NjY1YjE4MGIzODRmMWRmYWUyM2RhZTczNzJmZDY1MDdhMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlNTQxY2QzZjFlNzQyNTU4MzUxODBhN2YwNWQyOWZmYmM3ZGM2NmZjYmRmNzVmZGY0MjE5NWNlYThkOWE1ZWUifQ"
         }
       ]
     },
     {
-      "id": "claim_0f229a2f49ba4c8f9de818c096df8991",
-      "statement": "HUD shares one safe-area container and scrollable landscape task/action regions; dev/production tests simulate cutouts across24 states, without claiming real-device verification.",
-      "evidence": [
-        {
-          "resource": "repo://scripts/test-browser.mjs",
-          "version": "repo-file-v1:sha256:0494f441f7e6ae2adeec70853b8248f0e5eb4409287bb76ce51307a5c7b43d8a"
-        },
-        {
-          "resource": "repo://src/game-ui/render.ts",
-          "version": "repo-file-v1:sha256:d8f84dc971532046032a05311f549d86400a9d8992e665bc28b5911a22612d9e"
-        },
-        {
-          "resource": "repo://src/game-ui/style.css",
-          "version": "repo-file-v1:sha256:6f8026ae157c86b147b5dfc5297e502ebbab5baaaa3ef40763b824ad9529ffaa"
-        },
-        {
-          "resource": "repo://src/style.css",
-          "version": "repo-file-v1:sha256:e8bd4e646b9a542bd0fae5337e4b1797cff5527fb464466b632074829144003c"
-        },
-        {
-          "resource": "repo://tests/safe-area-browser.mjs",
-          "version": "repo-file-v1:sha256:ee8ae0f23f771c78acb7811493d39647007951a6f456b2c4247c89cd019bd0d1"
-        }
-      ]
-    },
-    {
-      "id": "claim_4fb93c9c0a2b4d269f82fe44537d7b99",
-      "statement": "The local ?view=game preview uses one Three.js renderer across HUD redraws, a shared40-space grid with2.2-deep tiles, outward-readable labels and buildings on inner property stripes. Focus follows the active fixture token; Overview supports orbit/pan/zoom. WebGL fallback preserves a flat board. No authoritative economy or multiplayer gameplay is added.",
-      "evidence": [
-        {
-          "resource": "repo://src/board/layout.ts",
-          "version": "repo-file-v1:sha256:707a5ca84d90e0f049dc1698900f17dfd1a947e7c1c3249701fefacb2abf0292"
-        },
-        {
-          "resource": "repo://src/board/scene.ts",
-          "version": "repo-file-v1:sha256:ea08534ead1252304514aa5984e08ab962e64fd76342c1a276a617f5e8890641"
-        },
-        {
-          "resource": "repo://src/board/stage.ts",
-          "version": "repo-file-v1:sha256:e3b3a580fb9ba2a5d83c25a1ab0a037e7dc53165d9af3014def9480b389cb29f"
-        },
-        {
-          "resource": "repo://src/game-ui/board-preview.ts",
-          "version": "repo-file-v1:sha256:d75d3f96ce1ef1965aa7fa409f869a31778a17bd1cd3f3d85e53589bc8f68dff"
-        },
-        {
-          "resource": "repo://tests/board-browser.mjs",
-          "version": "repo-file-v1:sha256:e5835f8eccc6c04ce686fe546849551867419fe6f21b1ae66309192be9f6765d"
-        },
-        {
-          "resource": "repo://tests/board-layout.test.mjs",
-          "version": "repo-file-v1:sha256:f6d0c2e39a7a80adbd96b947ce776b3ca0b09a5be66349a3231e0bc16057c445"
-        }
-      ]
-    },
-    {
-      "id": "claim_53d6ddc4ee394aff91c762ad8f60fc23",
-      "statement": "Runtime Supabase là opt-in: facade Auth có xác nhận email và đặt mật khẩu mới; phòng gửi HTTP mutations kèm Bearer token và nhận Socket.IO snapshots; Firebase/Pages giữ làm fallback; test Docker cô lập chạy GoTrue, PostgREST và PostgreSQL thật.",
-      "evidence": [
-        {
-          "resource": "repo://scripts/test-supabase.mjs",
-          "version": "repo-file-v1:sha256:b4066a39a2403ae2231ec3e182fdd8d81015c798e3f9b21dba847a9498bd8812"
-        },
-        {
-          "resource": "repo://src/app/password-recovery.ts",
-          "version": "repo-file-v1:sha256:15c9444965ddf4b70c816ed92ea9ec83327acca78350f9fae5ce50773bdf66fc"
-        },
-        {
-          "resource": "repo://src/platform/api.ts#L27-L27",
-          "version": "repo-lines-v1:sha256:6ebf9fddadc301a999b593dc87a9d8852698a5ee13a987ef524a2f5876fdb9c6:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViZjlmZGRhZGMzMDFhOTk5YjU5M2RjODdhOWQ4ODUyNjk4YTVlZTEzYTk4N2VmNTI0YTJmNTg3NmZkYjljNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViZjlmZGRhZGMzMDFhOTk5YjU5M2RjODdhOWQ4ODUyNjk4YTVlZTEzYTk4N2VmNTI0YTJmNTg3NmZkYjljNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjdhY2Q4NzE5Y2RlMTg2NTU1YTE5YjhjM2M2NWVlNjk0NzdlNWRhODkxNzkyYWFmNDE5NWI0OGM3MmNmYTIzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmUwZDZhNzdhZmNmNTIzNTNlY2Q2NjhiODI1Y2M4NThhMmZkODRmMTZkYjQ1MmUzZmQ3ZmUzOTQwMDBlYjczMyJ9"
-        }
-      ]
-    },
-    {
       "id": "claim_620874bc137c4260ab820f152141a880",
-      "statement": "Biển không có thuyền mẫu; khi mất mạng biển tự kết nối lại và báo lỗi nếu không được; service worker chỉ cache GET cùng origin trong allowlist tĩnh và không lưu dữ liệu cá hay phiên.",
+      "statement": "Service worker chỉ phục vụ từ cache các URL GET cùng origin trong danh sách tĩnh; dữ liệu cá, phiên và kết nối biển không được cache, và kết nối lại của biển thuộc app/ocean.ts.",
       "evidence": [
         {
-          "resource": "repo://scripts/service-worker.js#L38-L53",
-          "version": "repo-lines-v1:sha256:804ae88994241bb7d1ff7bbb6fc2c0344a37d3f73c67e6535c03cf2684b90754:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlODgyODNkMTE1NzJmZjkwNmY3MTAxY2ZiZjAyNGFmYWY4NzhhOTNmMGJjYTVmNTdlNmQxZDQ4ZjNkY2ZiMzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkYzk3NjE0MDRjODQ1MTU0OGZlOTQ3YzgwM2Q3NGFiMjkxOGQ1OTVkM2Y1MThkMjU1YTVlMzNmYmQxMTQyMDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMwMjIyMDI4N2JkNWZmOTg4MmE2ZjAxNzc2ZTNkMDEyNWM4NzQyZGIxYjZhYzQzZjhmODA4OGM4MDkzYjVmZWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwMjIyMDI4N2JkNWZmOTg4MmE2ZjAxNzc2ZTNkMDEyNWM4NzQyZGIxYjZhYzQzZjhmODA4OGM4MDkzYjVmZWQifQ"
+          "resource": "repo://scripts/service-worker.js#L38-L56",
+          "version": "repo-lines-v1:sha256:318304a34b7d29cf667ee522f8d485d7c7def2323a9ea050b928daf68253baf8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlODgyODNkMTE1NzJmZjkwNmY3MTAxY2ZiZjAyNGFmYWY4NzhhOTNmMGJjYTVmNTdlNmQxZDQ4ZjNkY2ZiMzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMwMjIyMDI4N2JkNWZmOTg4MmE2ZjAxNzc2ZTNkMDEyNWM4NzQyZGIxYjZhYzQzZjhmODA4OGM4MDkzYjVmZWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlZGFlOWUzMGYwMmMzZTBlZTEzNGE5ODEzOGU3MGNkYTcxM2NkNjA5NDA1ZjI5NTExYjgyNGQzNWI3ODcwNjgifQ"
         },
         {
-          "resource": "repo://src/app/ocean.ts#L268-L290",
-          "version": "repo-lines-v1:sha256:691b41943dbdb93255b429b25aa67fd4fa374e8296f3ced05676358cac251996:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3N2UwNGFhZjY1M2ZkZmRkYWY5NjRlZjk5YTBmYmY3ZWIxY2Q3NGYxZTA1YjUzYTc4NDU1NWZjYmI3MGI0MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1N2JmM2MzNDJiZGUzNDU3YzVlYWM5NDdjZmNkZmY0OGIyNDI5ZTI3NzU4ZmE4MjE1ZWY4OTdhMWU2M2QyYTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzN2MyNjIyNDZjZTFmYWU0MDA3NTdhODg0NmVjODEyYmRkZDA3NzczNmFjMzIzZGFkMGRjY2VjMmI1ZDRiMTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlMDQ3YTRiZGI5YTVmODExNWQ1ZTY5MWMzMWQ3OTAwYzJhZmU5MDFjMWJjYjg2NTgzZGZiODcyYzk4NTBhMzEifQ"
+          "resource": "repo://src/app/ocean.ts#L282-L296",
+          "version": "repo-lines-v1:sha256:046d77781ef3b61654df19b2fe2044d5c950ecd0875d9434ac628360baabf504:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3N2UwNGFhZjY1M2ZkZmRkYWY5NjRlZjk5YTBmYmY3ZWIxY2Q3NGYxZTA1YjUzYTc4NDU1NWZjYmI3MGI0MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3MTcyMTJjOTIzNjM2OTFlYzViYjZkNmYwNmJkMTU4ODQ5NDYyNjlmMWFjMjFkMTRjNjVlMzM2ZjIwNGMzODkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzN2MyNjIyNDZjZTFmYWU0MDA3NTdhODg0NmVjODEyYmRkZDA3NzczNmFjMzIzZGFkMGRjY2VjMmI1ZDRiMTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhOTZmNDNlM2FlM2NkYjAwNmRmOGJiZmMwYTZmNzMyZTlmNTgyYzEyMWM0ZTQ2OGUxMGU4Yjk0NzM5NTA3NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c62d5b42230a43fab9727ad259c4de06",
+      "statement": "Sau khi cài xong, worker mới gọi skipWaiting nhưng không tự reload trang; cập nhật chỉ được áp dụng khi người chơi bấm “Cập nhật ngay”.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/service-worker.js#L10-L26",
+          "version": "repo-lines-v1:sha256:a3d2ed0748ab35e6752a02a5af97f4a77d39aa05fc899f0329f07bcdc5be7183:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzYjQyYmQ3M2Q1YmQ0MGViNmQ1ZjczMjkyMWUwZWZjYzY4NjAwMjQwZmJmYWFiMmJmMzAwYjRkMThiZGU3NjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVmZDQyY2Q3ZjkyMmVkZGZmYjExNjdhYmQ5NGNlOTI3MGU4N2RmMmJlNzhkYjc3MDkyMGFkYjRkNmU2NWM4ZDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjMDk4N2YzZjMxOWY4MGRkN2FlMDdmZWFjYTMwODIzNDM2YmQ4YWM3NmQ4MWMwNDY2MTdkMGQ3ZWJjY2VkYTQifQ"
+        },
+        {
+          "resource": "repo://src/platform/pwa.ts#L1-L12",
+          "version": "repo-lines-v1:sha256:ecf8c9323a39508b4aaa4fb459c0dee207fb42f6441b69f31343e85bde54a6ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViNTU1ZDgyYWM4Y2E2ZWM0NjM5MWUwY2U1YzYyYTE0MDE5OGI5ZTlmOTkzMWM4YzQxNzZkZTZhY2ZjZmFmOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3ZjYwZWFlZjllOWRjYzQzNmJkYjQwZDUzNGI0ZTU2MTk5YjIyYWQ2YWY3Yjg2NjE4NGY4MDY4MzhlZjc4ZWQifQ"
         }
       ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.8.0",
-    "at": "2026-11-13T03:02:54.827Z"
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-17T08:18:15.877Z"
   }
 }

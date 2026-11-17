@@ -1,77 +1,75 @@
 ---
 type: operations
-title: Pipeline Blender cho người bán và tài nguyên biển
-description: Cách tools/blender dựng năm GLB người bán trong public/models từ bảng màu của game, kiểm tra ngân sách tam giác và bù bảng màu; ranh giới với build thường, và ảnh concept không phải bằng chứng render.
+title: Quy trình mô hình 3D và bảng màu
+description: Cách tools/blender dựng các GLB trong public/models (thuyền, đảo, cá, mèo người bán, người), bảng màu của game được xuất sang Blender, cách model-loader nạp GLB, các kiểm tra ngân sách và ranh giới với build thường.
 tags:
   - blender
-  - assets
   - glb
+  - assets
   - palette
   - operations
 verified:
-  - by: openwiki/0.8.0
-    at: 2026-11-13T03:02:54.827Z
+  - by: openwiki/0.7.3
+    at: 2026-11-17T08:18:15.877Z
 sources:
   - id: openwiki-source-89372b3bc3c28e014fbf67ee
     resource: repo://scripts/export-palette.mjs
-  - id: openwiki-source-b74a0148e8da645da45494f8
-    resource: repo://src/ocean/market-vendor.ts
+  - id: openwiki-source-5a3dfce016106efb1ef48a0d
+    resource: repo://src/ocean/art/colors.ts
   - id: openwiki-source-7e4a998fc02d8f0c2ddb4985
     resource: repo://src/ocean/model-loader.ts
   - id: openwiki-source-1e9fadd0f4cce9ee570e368a
     resource: repo://tests/models.test.mjs
   - id: openwiki-source-e6323877f09e8aa1601235a3
     resource: repo://tools/blender/build.py
-  - id: openwiki-source-7cf57e730d079e8b6775cc81
-    resource: repo://tools/blender/palette.json
   - id: openwiki-source-fd1644d9b31ac8bb776042a7
     resource: repo://tools/blender/people.py
-generated: { by: "claude-code", at: "2026-11-13T03:02:54.827Z" }
+generated: { by: "claude-code", at: "2026-11-17T08:18:15.877Z" }
 ---
 
-# Pipeline Blender cho người bán và tài nguyên biển
+# Quy trình mô hình 3D và bảng màu
 
-## Phạm vi
+Mô hình 3D của biển được làm bằng Blender và commit thành GLB trong `public/models`. Build thường và CI không cần Blender: các GLB đã nằm trong repository. Blender chỉ cần khi dựng lại tài nguyên.
 
-<!-- openwiki: broken internal link [ocean.md] file "ocean.md" does not exist. Fix the href or restore the target, then delete this comment. -->
-Pipeline này tạo các model người bán ở chợ cá (`people-1.glb` đến `people-5.glb`) cho [biển đánh cá](ocean.md). Model được commit sẵn trong `public/models`, nên build thường và CI không cần Blender. Chỉ khi chỉnh sửa hình thể, cần chạy lại pipeline.
+## Các thành phần
 
-## Thành phần
+| Phần | File | Vai trò |
+| --- | --- | --- |
+| Bảng màu nguồn | `src/ocean/art/colors.ts` (`PAL`) | Một nơi duy nhất cho màu theo vai trò; thuyền, đảo, prop, cần câu lấy màu từ đây. |
+| Xuất bảng màu | `scripts/export-palette.mjs` → `tools/blender/palette.json` | Sao chép `PAL` để Blender dùng đúng màu của game, không có bảng hex thứ hai. Chạy qua `npm run assets:palette`. |
+| Dựng tài nguyên | `tools/blender/build.py` cùng `lib.py`, `boat.py`, `fish.py`, `props.py`, `people.py`, `vendors.py` | Script headless bằng `bpy`; xuất GLB vào `public/models`. |
+| Tệp GLB | `public/models/*.glb` (37 tệp) | Thuyền `boat.glb`; đảo `bush-*`, `palm-*`, `rock-*`, `hut.glb`; cá `fish-*.glb` (18 tệp); mèo người bán `cat-*.glb` (3 tệp); người `people-1..5.glb`. |
+| Nạp trong trình duyệt | `src/ocean/model-loader.ts`, `src/ocean/glb-parts.ts` | `loadMergedModel` gộp mesh thành một; phần GLB có thể hoạt hình được giữ tách. |
+| Ảnh thử | `tools/render-harness/` (`preview.html`, `shoot.mjs`) | Trang xem trước và script chụp ảnh để kiểm tra bằng mắt. |
 
-| File | Trách nhiệm |
-| --- | --- |
-| `tools/blender/build.py` | Điểm vào headless (cần `bpy`): dựng từng người, gộp phần tay vẫy, xuất GLB vào `public/models` |
-| `tools/blender/people.py` | Dựng hình người bằng script (1273 dòng): thân, tay, đầu, tóc, giày; quần áo là màu của lớp phủ theo từng vòng |
-| `tools/blender/lib.py` | Tiện ích chung: reset cảnh, đếm tam giác, `finish` (ngân sách), vật liệu theo `PAL` |
-| `tools/blender/palette.json` | Bảng màu sao chép từ `src/ocean/art/colors.ts`, không phải nguồn độc lập |
-| `scripts/export-palette.mjs` | Ghi `palette.json` từ `PAL` bằng resolver TypeScript của unit test |
-| `src/ocean/model-loader.ts` | Nạp GLB bằng Babylon `LoadAssetContainerAsync`, bỏ vật liệu gốc và áp màu đỉnh của game |
+## Lệnh
 
-Mỗi người có hai mesh: `vendor_body` (mọi phần trừ tay phải) và `arm_wave` (trục xoay ở vai phải để vẫy tay). Chiều cao được đặt theo độ cao của quầy hàng; thân người 1,70 m trước khi co giãn.
+- `npm run assets:palette`: ghi `tools/blender/palette.json` từ `PAL`. Chạy trước khi dựng lại.
+- `npm run assets`: chạy `assets:palette` rồi `.blender-venv/bin/python tools/blender/build.py`. Môi trường `.blender-venv` phải được tạo trước bằng Python 3.13 và gói `bpy`. Đây là bước thủ công của người dựng tài nguyên, không nằm trong CI.
+- `build.py` nhận danh sách tùy chọn (ví dụ `people-1`) để chỉ dựng một phần.
 
-## Quy trình
+Chưa có kiểm chứng trong repository rằng môi trường Blender cục bộ đang hoạt động; các lệnh trên được ghi theo script.
 
-1. Đổi màu trong `src/ocean/art/colors.ts`.
-2. `npm run assets:palette` ghi `tools/blender/palette.json` từ `PAL`.
-3. `npm run assets` (gồm bước trên) chạy `.blender-venv/bin/python tools/blender/build.py`. Có thể truyền danh sách tên như `people-1` để chỉ dựng một người. Môi trường cài một lần bằng `uv venv .blender-venv --python 3.13` và `uv pip install bpy`.
-4. Kiểm tra các GLB được commit.
-5. Commit cả palette và GLB khi thay đổi hình thể.
+## Ngân sách và kiểm tra
 
-Biến môi trường `PEOPLE_STATS` in số tam giác từng phần; `PEOPLE_RAW` bỏ ngân sách để xem mô hình chưa tối ưu.
+- `build.py` định nghĩa ngân sách tam giác cho người bán: thân `vendor_body` ≤ 4800, tay `vendor_arm` ≤ 500.
+- `tests/models.test.mjs` đọc các tệp `people-N.glb` và kiểm tra: header glTF phiên bản 2, độ dài khai báo khớp, mỗi người có nút `vendor_body` và `arm_wave`, mọi primitive có `COLOR_0`, và số tam giác nằm trong ngân sách. Kiểm tra này không đọc các tệp mèo hay thuyền.
+- `tests/cats.test.mjs` kiểm tra mỗi chợ trong `MARKETS` có một mèo người bán (`vendor.look`); người bán của chợ là mèo, không phải người trong `people-*.glb`.
+- `tests/models.test.mjs` cũng kiểm tra “palette Blender là palette của game”. `tests/art-palette.test.mjs` kiểm tra các file hình ảnh lấy màu từ bảng dùng chung, không có màu trùng dưới hai tên, và vật liệu, hình khối, ánh sáng đi qua các helper dùng chung.
+- `tests/props-models.test.mjs` và `tests/fish-models.test.mjs` kiểm tra prop và cá.
 
-## Ngân sách và kiểm chứng
+## Nạp trong trình duyệt
 
-`build.py` đặt ngân sách `vendor_body` 4800 tam giác và `vendor_arm` 500. `tests/models.test.mjs` kiểm tra mỗi GLB: đúng header `glTF` phiên bản 2, có màu đỉnh, nằm trong ngân sách của test (4900 thân và 600 tay), có animation tương ứng, và có người cho từng chợ trong `MARKETS`. Ngân sách trong test lỏng hơn một chút so với build; test là chốt kiểm tra đầu vào cho file đã commit.
+`src/ocean/model-loader.ts` nạp GLB bằng `LoadAssetContainerAsync` (phần loader Babylon). Với mỗi tệp:
 
-`tests/art-palette.test.mjs` kiểm tra các file hình đã di chuyển không được thêm mã màu hex riêng; màu phải đến từ `colors.ts` theo vai trò.
+- Mesh nhận chất liệu satin dùng chung (`useSolid(mesh, "satin")`) và màu đỉnh đã được nướng từ bảng màu.
+- Vật liệu gốc của GLB bị hủy, nên màu chỉ đến từ bảng màu của game.
+- `loadMergedModel` gộp các mesh thành một mesh để giảm số lời gọi vẽ (dùng cho đảo và prop). Các mô hình cần hoạt hình, như người vẫy tay, được tách thành từng phần.
 
-Các test này chỉ chứng minh file hợp lệ và trong ngân sách. Chúng không chứng minh model trông đúng trên điện thoại thật hay đủ nhanh trên thiết bị yếu.
+Quy ước hệ tọa độ: GLB xuất theo Y-up và scene là bàn tay phải; điểm Blender (x, y, z) thành (x, z, −y) trong khung của mô hình. Cửa nhà gỗ (`hut.glb`) hướng về −Z.
 
 ## Ranh giới
 
-- Ảnh trong `docs/design/sea-creatures-*.png` và `docs/design/theme.md` là concept đã duyệt, không phải render từ game. Không dùng chúng làm bằng chứng về hình dạng cuối cùng.
-- Người bán không có tác dụng luật; chúng chỉ trang trí và chào người chơi khi mở chợ.
-- Nếu file không nạp được, quầy hàng vẫn chạy mà không có người bán.
-- Pipeline không chạy trong CI; cần máy có Blender khi chỉnh sửa.
-
-Xem thêm [phát triển và kiểm tra](development.md) và [kiến trúc biển](../architecture/ocean.md).
+- Ảnh concept trong `docs/design` là đề xuất thị giác, không phải bằng chứng render; ảnh chụp từ `tools/render-harness` là ảnh phần mềm, không phải số liệu trên thiết bị.
+- Số liệu GPU, bộ nhớ và tốc độ khung hình trên điện thoại thật không có trong repository.
+- Đường dẫn Blender cục bộ và cấu hình máy phát triển không được ghi vào tài liệu hay mã nguồn.

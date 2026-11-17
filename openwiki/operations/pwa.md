@@ -1,106 +1,69 @@
 ---
-type: operations
-title: Cài PWA, offline shell và cập nhật
-description: Cách cài game trên điện thoại, scope/cache PWA và kiểm chứng cập
-  nhật không reload phiên.
-tags:
-  - pwa
-  - install
-  - offline
-  - caching
-  - mobile
+type: "Tham khảo"
+title: "PWA: cài đặt, offline shell và cập nhật"
+openwiki_generated: true
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-17T08:18:15.877Z
 sources:
-  - id: openwiki-source-f8d10828394c4129061d5b0e
-    resource: repo://index.html
   - id: openwiki-source-e21de4e070e82eb7a1025ce0
     resource: repo://public/manifest.webmanifest
-  - id: openwiki-source-f80c1cea1464f35b86fec884
-    resource: repo://scripts/pwa-build.mjs
   - id: openwiki-source-e40960a4e3d6b8d6193113c1
     resource: repo://scripts/service-worker.js
-  - id: openwiki-source-3515d68bed1b916f693296ec
-    resource: repo://scripts/test-browser.mjs
-  - id: openwiki-source-9d81102c99fa0be75f0562d6
-    resource: repo://scripts/test-supabase.mjs
   - id: openwiki-source-dab8aa5276e2d1b695c803a7
     resource: repo://src/app/ocean.ts
-  - id: openwiki-source-32d34de3adc601eacf7364ad
-    resource: repo://src/app/password-recovery.ts
   - id: openwiki-source-fdc97d585e693e9f422ad7ae
     resource: repo://src/app/pwa.ts
-  - id: openwiki-source-49557827443d53e9eeae17f4
-    resource: repo://src/board/layout.ts
-  - id: openwiki-source-1475654f7d7ee4e91ea6389a
-    resource: repo://src/board/scene.ts
-  - id: openwiki-source-e10546cfd06c4716552b2c32
-    resource: repo://src/board/stage.ts
-  - id: openwiki-source-d151d0d577d3bf13071b48d2
-    resource: repo://src/game-ui/board-preview.ts
-  - id: openwiki-source-25f090f2d86f09b560443170
-    resource: repo://src/game-ui/render.ts
-  - id: openwiki-source-a09d1fc6a11ce8c081c67432
-    resource: repo://src/game-ui/style.css
-  - id: openwiki-source-2a80fab523f1197e079cba62
-    resource: repo://src/platform/api.ts
   - id: openwiki-source-77110d1e1f1125ab5211f920
     resource: repo://src/platform/pwa.ts
-  - id: openwiki-source-554339f52225d7d8edff3ed0
-    resource: repo://src/style.css
-  - id: openwiki-source-956a523ed721749c7e5f092a
-    resource: repo://tests/board-browser.mjs
-  - id: openwiki-source-df13702d635f30aac30177fb
-    resource: repo://tests/board-layout.test.mjs
   - id: openwiki-source-a875da0e301868b8784bbae3
     resource: repo://tests/pwa-browser.mjs
-  - id: openwiki-source-489032183ad2ac8548be7b60
-    resource: repo://tests/safe-area-browser.mjs
-generated: { by: "claude-code", at: "2026-11-13T03:02:54.827Z" }
-verified:
-  - by: openwiki/0.8.0
-    at: 2026-11-13T03:02:54.827Z
+generated: { by: "claude-code", at: "2026-11-17T08:18:15.877Z" }
 ---
 
-# PWA của Phố Tỷ Phú
 
-## Cài trên điện thoại
+# PWA: cài đặt, offline shell và cập nhật
 
-Home có nút cài: khi có beforeinstallprompt, click gọi native prompt; khi không có thì mở hướng dẫn Chrome Android/Safari iOS. Không tự gọi prompt trước thao tác của user, không coi dismiss/accepted promise là xác minh đã cài OS. Appinstalled/standalone ẩn nút. Trong browser của ứng dụng chat cần mở Chrome/Safari trước. Manifest dùng name/id/scope/start_url tương đối, standalone và orientation landscape; OS có thể bỏ qua orientation hint.
+Game là một PWA với `display: standalone`, `orientation: landscape` và `start_url` là `./`. Service worker chỉ giữ phần **shell tĩnh** để trang chính mở được khi mạng chập chờn. Biển chung, đăng nhập và mọi dữ liệu của người chơi luôn đi qua mạng.
 
-## Ownership
+## Manifest và icon
 
-public/manifest.webmanifest và icons cung cấp192/512 any,512 maskable có padding và apple-touch180. index.html liên kết manifest và metadata iOS. src/app/pwa.ts sở hữu UI, event prompt, dialog/listeners/observer; src/platform/pwa.ts đăng ký worker production và theo dõi update, không xây DOM. Main dispose cả app lẫn installer khi HMR. Không có dependency PWA mới.
+`public/manifest.webmanifest` khai báo tên “Ra khơi cùng bạn”, tên ngắn “Ra khơi”, `lang: vi`, màu chủ đề `#4b3a8f`, và ba icon: `icon-192.png`, `icon-512.png`, và `maskable-512.png` (purpose `maskable`). `index.html` cũng có `apple-touch-icon`, `apple-mobile-web-app-capable`, và `manifest` link. Icon và manifest được kiểm tra trong `tests/pwa-browser.mjs` trên bản build production.
 
-## Cache tĩnh và privacy
+## Nút cài đặt
 
-Build-only plugin scripts/pwa-build.mjs băm nội dung shell rồi sinh dist/sw.js từ scripts/service-worker.js. Precache gồm index, manifest, icons, font và lazy chunks, không cần user đã mở HUD mới cache HUD. Worker scope là registration scope của repo Pages; cache prefix bao gồm scope URL và version.
+`src/app/pwa.ts` gắn một nút cài trên hub:
 
-Chỉ GET của allowlist tĩnh chính xác và navigation root/index trong scope được phục vụ từ cache. Navigation query view=game/state vẫn dùng cached index. Cross-origin, API, POST, asset query không nhận diện và URL/repo khác không bị cache. Không lưu token/account/profile/room API response trong Cache Storage. Có thể mở home/HUD offline sau shell đã tải, nhưng Auth/phòng/multiplayer cần mạng; không thêm game engine hoặc fallback online sang demo.
+- Khi trình duyệt phát `beforeinstallprompt`, nút giữ sự kiện và gọi `prompt()` khi người chơi bấm. Nhãn là “Cài game”.
+- Khi chưa có sự kiện đó (ví dụ iOS Safari), nút mở hướng dẫn và nhãn là “Cài lên điện thoại”.
+- Ở chế độ standalone (`display-mode: standalone` hoặc `navigator.standalone`) hoặc sau `appinstalled`, nút bị ẩn.
 
-## Cập nhật không phá phiên
+Một sự kiện tổng hợp trong trình duyệt không chứng minh việc cài đặt thật trên hệ điều hành. Cài đặt trên Android và iOS cần kiểm tra trên thiết bị thật; chưa có bằng chứng như vậy trong repository.
 
-Worker mới tự `skipWaiting` sau khi precache xong; khi activation, worker dọn cache cũ cùng prefix/scope rồi claim clients. Precache lỗi thì xóa cache đang làm dở và không activate phiên bản hỏng. Trang chỉ tự tải lại khi ở màn chính (không có `view=`), không có dialog mở và không đang nhập form; trong `?view=ocean`, `?view=game` hoặc hub phòng cũ, trang không bị tải lại giữa phiên. Nút Cập nhật ngay chỉ hiện khi trình duyệt giữ một worker đang chờ, và yêu cầu xác nhận trước khi tải lại. Không xóa localStorage/IndexedDB hay cache repo khác. Kiểm tra update khi foreground được throttle 60 giây; browser cũng quản lý vòng đời update.
+## Service worker
 
-## Kiểm chứng
+`scripts/service-worker.js` là file được build thay hai hằng số: `VERSION` và `FILES`. Phạm vi là `registration.scope` của ứng dụng.
 
-Tests/pwa-browser.mjs dùng build thật trên server loopback có subpath /web-g-3d/: manifest start/scope, PNG dimensions, synthetic install handler và guide, offline cold navigation vào home/HUD lazy route và reload, API cache exclusion, waiting update không reload và cleanup sau đóng client. Suite thuộc npm run test:browser và npm run check. Synthetic event không là test cài ở cấp OS; cần người dùng xác nhận Android/iOS thực tế.
+- **install**: mở cache có tên `photyphu-shell:<scope>:<version>` và nạp mọi file trong `FILES` với `cache: "reload"`. Nếu nạp lỗi thì xóa cache đó và ném lỗi, nên không có shell dở dang. Sau khi đủ, worker gọi `skipWaiting()`.
+- **activate**: xóa các cache cũ có cùng tiền tố nhưng khác phiên bản, rồi `clients.claim()`.
+- **fetch**: chỉ xử lý `GET` cùng origin. Điều hướng tới trang chính được trả về `index.html` đã cache. Các request khác chỉ được phục vụ từ cache khi URL nằm trong danh sách tĩnh và không có query. Mọi thứ khác (API, Supabase, URL ngoài, POST, URL có query) đi thẳng tới mạng.
+- **message**: `VERSION` trả phiên bản cho màn hình cài đặt; `APPLY_UPDATE` cho phép kích hoạt worker đang chờ, nhưng chỉ dành cho bản cũ.
 
-Xem [hướng dẫn authored](../../docs/pwa.md), [workflow](development.md), [HUD](../architecture/gameplay-ui.md).
+Vì vậy service worker không cache dữ liệu biển, phiên đăng nhập hay phản hồi từ API. `docs/pwa.md` và trang này dùng cùng quy tắc đó.
 
-## Shared mobile safe area
+## Cập nhật không tự reload
 
-HUD foreground uses one `.game-safe` inset container with shared `--safe-*` tokens mapped to CSS env values; background remains full bleed. Cards size against container units, while landscape action/task regions scroll when height is constrained. Do not double-apply insets on HUD children. Browser tests simulate asymmetric cutouts and home indicators over all 24 states on dev/production; this is not physical-device verification.
+`src/platform/pwa.ts` và `src/platform/update-check.ts` cung cấp `shellUpdates()`: `check()` chỉ báo kết quả (`latest`, `ready`), và `apply()` chỉ được gọi khi người chơi bấm “Cập nhật ngay”. Không có lệnh reload nào tự chạy khi phiên đang diễn ra; `registerShell` chỉ hiển thị trạng thái cập nhật chờ. Đây là yêu cầu của dự án: không ép reload phiên đang hoạt động.
 
-## Local 3D board preview
+`tests/update-check.test.mjs` kiểm tra logic kiểm tra cập nhật thuần; `tests/pwa-browser.mjs` kiểm tra cài đặt, offline reload và cập nhật chờ trên bản build.
 
-The local ?view=game preview uses one Three.js renderer across HUD redraws, a shared40-space grid with2.2-deep tiles, outward-readable labels and buildings on inner property stripes. Focus follows the active fixture token; Overview supports orbit/pan/zoom. WebGL fallback preserves a flat board. No authoritative economy or multiplayer gameplay is added. Tests/board-layout.test.mjs and tests/board-browser.mjs cover geometry and real WebGL camera/lifecycle/fallback behavior on dev/production. Mobile physical-device verification remains pending.
+## Ranh giới
 
+- Service worker không lưu auth, API, Socket.IO hay dữ liệu cá. Dữ liệu biển được giữ trên thiết bị bởi `localStorage` (xem [biển chung](../architecture/ocean.md)), không bởi cache của worker.
+- Kết nối lại của biển là việc của `src/app/ocean.ts` và `src/ocean/connect.ts`, không phải của service worker (xem [realtime](../architecture/ocean-realtime.md)).
+- Chuyển origin làm mất trạng thái PWA cũ; xem [hạ tầng](../architecture/infrastructure-transition.md).
 
-## Frontend Auth và kiểm thử full stack
+## Giới hạn
 
-Runtime Supabase là opt-in: facade Auth có xác nhận email và đặt mật khẩu mới; phòng dùng HTTP mutations kèm Bearer token và Socket.IO snapshots; Firebase/Pages vẫn là fallback. Kiểm thử Docker cô lập (`scripts/test-supabase.mjs`) dùng GoTrue, PostgREST và PostgreSQL thật với hai browser context; không gửi email hay ghi fixture lên production.
-
-Cấu hình email redirect được giới hạn về origin Vercel đã duyệt qua VITE_AUTH_REDIRECT_URL; CA công khai của Supabase được pin cho listener trong khi giữ xác minh TLS/hostname. `npm run test:supabase` chạy stack dùng một lần và CI cũng gọi bài kiểm thử này. Kiểm thử local không tự chứng minh email thật đã đến hộp thư bên ngoài.
-
-## Biển online và shell offline
-
-Home hiện mở [biển chung](../architecture/ocean.md) sau Auth theo provider; PWA vẫn dùng cùng installer và shell tĩnh. Khi mất mạng, biển tự thử kết nối lại và báo lỗi nếu không được; không có thuyền mẫu. Không lưu cá/phiên multiplayer vào cache. Màn Monopoly local vẫn giữ tại `?view=game`; trạng thái API/triển khai được kiểm chứng riêng với cache frontend.
+- Cài đặt, rung và hành vi offline thật trên Android và iOS: chưa xác minh trong repository.
+- Hành vi của service worker phụ thuộc trình duyệt; trình duyệt mô phỏng không phải thiết bị thật.
