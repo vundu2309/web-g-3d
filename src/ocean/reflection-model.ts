@@ -19,7 +19,13 @@ export const REFLECT_BLUR_WOBBLE = 0.35;
 export const REFLECT_TAPS = 9;
 
 /** Meshes that lie on or in the water and are never mirrored: the water itself and the white water. */
-const NEVER = new Set(["sea", "wake-foam", "gear-marker", "gear-shadow"]);
+const NEVER = new Set([
+  "sea",
+  "wake-foam",
+  "foam-puffs",
+  "gear-marker",
+  "gear-shadow",
+]);
 const NEVER_PREFIX = ["swash-", "gear-ring-"];
 /** The material of the fish and the line while they are under the water (underwater.ts): they lie below y = 0. */
 export const UNDER_THE_SEA = "underwater-skin";

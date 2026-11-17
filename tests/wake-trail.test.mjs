@@ -385,23 +385,29 @@ test("the arms are broad soft bands, not hairlines", () => {
     assert.ok(width(g, 1, i) > 0.8, `arm width at ${i}`);
 });
 
-test("the mesh draws the strips with the soft cut, two foam taps, the across coordinate and no work for a still boat", () => {
+test("the white water behind a boat is no longer a mesh of strips: the mesh keeps the bow wave and the foam material's soft cut", () => {
   const mesh = readFileSync(
     new URL("../src/ocean/wake-mesh.ts", import.meta.url),
     "utf8",
   );
-  // The strips have TRAIL_ACROSS vertices across and the vertex colour carries where each one is.
-  assert.ok(mesh.includes("TRAIL_ACROSS"));
-  assert.ok(mesh.includes("geometry.across"));
-  assert.ok(mesh.includes("vAcross = color.r"));
-  // Two taps of the texture at different sizes (no lattice or tile shows) and a wide soft cut.
+  // The strips (one mesh per boat, TRAIL_ACROSS vertices across, a vertex colour for the across
+  // coordinate) are gone; the sea's shader draws the wake from the foam buffer instead.
+  assert.ok(!mesh.includes("TRAIL_ACROSS"));
+  assert.ok(!mesh.includes("layTrail"));
+  assert.ok(!mesh.includes("geometry.across"));
+  assert.ok(mesh.includes("BowWaveMesh"), "the bow wave is still drawn here");
+  const water = readFileSync(
+    new URL("../src/ocean/water.ts", import.meta.url),
+    "utf8",
+  );
+  assert.ok(water.includes("uniform sampler2D foamMap;"));
+  assert.ok(water.includes("texture2D(foamMap, fuv)"));
+  // The bow crest shares the foam material: two taps of the texture at different sizes (no
+  // lattice or tile shows) and a wide soft cut.
   assert.equal(mesh.match(/texture2D\(foam,/g).length, 2);
   assert.ok(
     /coverage = smoothstep\(0\.35, 0\.75,/.test(mesh),
     "a wide, soft cut",
   );
   assert.ok(!mesh.includes("cut - 0.05"), "the old narrow threshold is gone");
-  // A boat that lies still leaves nothing to draw: the mesh is hidden and its buffers untouched.
-  assert.ok(mesh.includes("this.mesh.isVisible = this.shown"));
-  assert.ok(mesh.includes("if (faint) return;"));
 });
