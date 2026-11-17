@@ -22,6 +22,7 @@ export const REFLECT_TAPS = 9;
 const NEVER = new Set([
   "sea",
   "wake-foam",
+  "foam-puffs",
   "gear-marker",
   "gear-shadow",
   "rain",

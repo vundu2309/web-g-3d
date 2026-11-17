@@ -44,6 +44,8 @@ import { preloadFishModels } from "./fish-models.ts";
 import { placeVendors } from "./market-vendor.ts";
 import { WakeMesh } from "./wake-mesh.ts";
 import { WakeTrail } from "./wake-trail.ts";
+import { FOAM_LIFE, FOAM_STEP } from "./foam-buffer.ts";
+import { createFoamBuffer, type FoamBuffer } from "./foam-buffer-pass.ts";
 import { islands, lighthouseIslands, type Boat, type Pose } from "./model.ts";
 import { FishingGear, type GearInput } from "./fishing-gear.ts";
 import { paletteIndex } from "./palette.ts";
@@ -146,8 +148,10 @@ export class OceanScene {
   /** The visible wake (white water) of each boat, yours under "self". */
   private readonly trails = new Map<
     string,
-    { trail: WakeTrail; mesh: WakeMesh }
+    { trail: WakeTrail; foamTrail: WakeTrail; mesh: WakeMesh }
   >();
+  /** Where the foam of all the wakes is drawn for the sea to read (foam-buffer.ts). */
+  private readonly foamBuffer: FoamBuffer | undefined;
   private gearInput: Omit<GearInput, "tip" | "time"> | undefined;
   private readonly canvas: HTMLCanvasElement;
   /** Settles once the island models are in place (or failed and the fallback stays). */
@@ -209,6 +213,8 @@ export class OceanScene {
     createSeaReflection(this.scene, this.water, this.sky);
     // The sea is see-through: hulls, piles, rocks, the fish and the line show through it. Slow
     // frames switch it off again (the opaque sea), before the render scale is coarsened.
+    this.foamBuffer = createFoamBuffer(this.scene);
+    this.water.setFoam(this.foamBuffer?.texture);
     this.clearWater = createClearWater(this.scene, this.water);
     this.clearGovernor = new ClearWaterGovernor(
       this.clearWater !== undefined && !clearWaterRefused(),
@@ -380,10 +386,15 @@ export class OceanScene {
   private leaveTrail(id: string, x: number, z: number) {
     let entry = this.trails.get(id);
     if (!entry) {
-      entry = { trail: new WakeTrail(), mesh: new WakeMesh(this.scene) };
+      entry = {
+        trail: new WakeTrail(),
+        foamTrail: new WakeTrail(FOAM_LIFE, FOAM_STEP),
+        mesh: new WakeMesh(this.scene),
+      };
       this.trails.set(id, entry);
     }
     entry.trail.push(x, z, this.clock);
+    entry.foamTrail.push(x, z, this.clock);
     entry.mesh.update(entry.trail, this.clock, { x, z });
   }
 
@@ -626,6 +637,15 @@ export class OceanScene {
       this.clock,
     );
     this.clearWater?.update(this.clock, this.camera.position);
+    if (this.foamBuffer) {
+      const view = this.foamBuffer.update(
+        [...this.trails.values()].map((entry) => entry.foamTrail),
+        this.clock,
+        this.camera.position.x,
+        this.camera.position.z,
+      );
+      this.water.setFoamWindow(view.cx, view.cz, view.size);
+    }
     this.engine.beginFrame();
     this.scene.render();
     this.engine.endFrame();
@@ -868,6 +888,7 @@ export class OceanScene {
     for (const craft of this.fleet.values()) craft.label.remove();
     this.gear?.dispose();
     this.clearWater?.dispose();
+    this.foamBuffer?.dispose();
     this.seaProps.dispose();
     for (const market of this.markets) market.dispose();
     for (const id of [...this.trails.keys()]) this.forgetTrail(id);

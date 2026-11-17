@@ -1,24 +1,10 @@
 import { Constants } from "@babylonjs/core/Engines/constants";
-import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
 import { Effect } from "@babylonjs/core/Materials/effect";
 import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
-import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Scene } from "@babylonjs/core/scene";
-import {
-  TRAIL_ACROSS,
-  TRAIL_SAMPLES,
-  TRAIL_STRIPS,
-  foamPixels,
-  layTrail,
-  trailGeometry,
-  vertexAt,
-  type WakeTrail,
-} from "./wake-trail.ts";
-import { waveHeight } from "./waves.ts";
+import { foamPixels, type WakeTrail } from "./wake-trail.ts";
 import { BowWaveMesh } from "./bow-wave-mesh.ts";
 
 /**
@@ -114,53 +100,23 @@ function material(scene: Scene) {
   return found;
 }
 
-/** How far above the waves the foam lies (m): over the water, under the boat's hull. */
-const LIFT = 0.16;
-
+/**
+ * What is drawn at a moving boat's bow (the crest and the spray, bow-wave-mesh.ts). The white
+ * water behind the boat is not a mesh any more: it is the foam buffer (foam-buffer.ts) that the
+ * sea's shader reads. The material below is still the wake foam's: the bow crest shares it.
+ */
 export class WakeMesh {
-  private readonly mesh: Mesh;
   private readonly bow: BowWaveMesh;
-  private readonly scene: Scene;
-  private readonly geometry = trailGeometry();
-  private readonly positions: Float32Array;
-  private readonly colors: Float32Array;
-  private shown = true;
 
   constructor(scene: Scene) {
-    this.scene = scene;
-    const vertices = TRAIL_STRIPS * TRAIL_SAMPLES * TRAIL_ACROSS;
-    this.positions = new Float32Array(vertices * 3);
-    this.colors = new Float32Array(vertices * 4).fill(1);
-    // Red is where the vertex is across its strip, 0 to 1 (the shader fades the sides with it).
-    for (let i = 0; i < vertices; i++)
-      this.colors[i * 4] = this.geometry.across[i]!;
-    const indices: number[] = [];
-    for (let strip = 0; strip < TRAIL_STRIPS; strip++)
-      for (let i = 0; i < TRAIL_SAMPLES - 1; i++)
-        for (let k = 0; k < TRAIL_ACROSS - 1; k++) {
-          const a = vertexAt(strip, i, k);
-          const b = vertexAt(strip, i + 1, k);
-          indices.push(a, a + 1, b, a + 1, b + 1, b);
-        }
-    this.mesh = new Mesh("wake-foam", scene);
-    const data = new VertexData();
-    data.positions = Array.from(this.positions);
-    data.uvs = new Array(vertices * 2).fill(0);
-    data.colors = Array.from(this.colors);
-    data.indices = indices;
-    data.applyToMesh(this.mesh, true);
-    this.mesh.material = material(scene);
-    this.mesh.isPickable = false;
-    this.mesh.alwaysSelectAsActiveMesh = true;
     this.bow = new BowWaveMesh(scene, material(scene));
     this.bow.warm();
   }
 
   /**
-   * Lays the strips along the trail for time `now` (the scene clock, for the waves), and the bow
-   * wave at the boat's current position `at` (the trail's newest point when it is not given; the
-   * trail only records every few hundredths of a second, so the game passes the live position
-   * and the crest does not stutter against the hull).
+   * Draws the bow wave at the boat's current position `at` (the trail's newest point when it is
+   * not given; the trail only records every few hundredths of a second, so the game passes the
+   * live position and the crest does not stutter against the hull).
    */
   update(trail: WakeTrail, now: number, at?: { x: number; z: number }) {
     const newest = trail.samples[trail.samples.length - 1];
@@ -172,35 +128,9 @@ export class WakeMesh {
         newest.speed,
         now,
       );
-    layTrail(trail, now, this.geometry);
-    const { xz, uv, alpha } = this.geometry;
-    const count = alpha.length;
-    // Nothing to show (a boat that lies still): hide the mesh and skip the buffers and the waves.
-    let faint = true;
-    for (let i = 0; i < count && faint; i++)
-      if (alpha[i]! > 0.002) faint = false;
-    if (faint === this.shown) {
-      this.shown = !faint;
-      this.mesh.isVisible = this.shown;
-    }
-    if (faint) return;
-    for (let i = 0; i < count; i++) {
-      const x = xz[i * 2]!;
-      const z = xz[i * 2 + 1]!;
-      this.positions[i * 3] = x;
-      this.positions[i * 3 + 1] = waveHeight(x, z, now) + LIFT;
-      this.positions[i * 3 + 2] = z;
-      this.colors[i * 4 + 3] = alpha[i]!;
-    }
-    this.mesh.updateVerticesData(VertexBuffer.PositionKind, this.positions);
-    this.mesh.updateVerticesData(VertexBuffer.UVKind, uv);
-    this.mesh.updateVerticesData(VertexBuffer.ColorKind, this.colors);
-    const camera = this.scene.activeCamera?.position ?? Vector3.Zero();
-    (this.mesh.material as ShaderMaterial).setVector3("cameraPosition", camera);
   }
 
   dispose() {
     this.bow.dispose();
-    this.mesh.dispose();
   }
 }

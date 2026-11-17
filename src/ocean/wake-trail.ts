@@ -59,6 +59,14 @@ export class WakeTrail {
   /** Oldest first. */
   readonly samples: TrailSample[] = [];
   private travelled = 0;
+  private readonly life: number;
+  private readonly step: number;
+
+  /** `life` is how long a point is kept (s) and `step` the time between points (s). */
+  constructor(life = TRAIL_LIFE, step = TRAIL_STEP) {
+    this.life = life;
+    this.step = step;
+  }
 
   /** Records where the boat is; call it every frame (points are kept every TRAIL_STEP). */
   push(x: number, z: number, t: number) {
@@ -68,7 +76,7 @@ export class WakeTrail {
       return;
     }
     const dt = t - last.t;
-    if (dt < TRAIL_STEP) return;
+    if (dt < this.step) return;
     const dx = x - last.x;
     const dz = z - last.z;
     const d = Math.hypot(dx, dz);
@@ -96,7 +104,7 @@ export class WakeTrail {
       speed,
       yaw,
     });
-    while (this.samples.length > 1 && t - this.samples[0]!.t > TRAIL_LIFE)
+    while (this.samples.length > 1 && t - this.samples[0]!.t > this.life)
       this.samples.shift();
   }
 

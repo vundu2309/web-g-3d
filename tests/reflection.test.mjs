@@ -75,10 +75,11 @@ test("the water shader looks the picture up at its own screen position, capped, 
   const water = read("water.ts");
   assert.match(water, /uniform sampler2D reflectionMap;/);
   assert.match(water, /uniform mat4 viewProjection;/);
-  // (the clear-water layer's "underMap" joined the list, see clear-water.ts)
+  // (the clear-water layer's "underMap" joined the list, see clear-water.ts, and the wake's
+  // "foamMap", see foam-buffer.ts)
   assert.match(
     water,
-    /samplers: \["rippleMap", "coastMap", "reflectionMap", "underMap"\]/,
+    /samplers: \[\s*"rippleMap",\s*"coastMap",\s*"reflectionMap",\s*"underMap",\s*"foamMap",?\s*\]/,
   );
   assert.match(water, /\$\{glslReflection\(\)\}/);
   const code = glslReflection();
