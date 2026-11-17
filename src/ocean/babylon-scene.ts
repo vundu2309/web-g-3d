@@ -44,7 +44,7 @@ import { preloadFishModels } from "./fish-models.ts";
 import { placeVendors } from "./market-vendor.ts";
 import { WakeMesh } from "./wake-mesh.ts";
 import { WakeTrail } from "./wake-trail.ts";
-import { islands, type Boat, type Pose } from "./model.ts";
+import { islands, lighthouseIslands, type Boat, type Pose } from "./model.ts";
 import { FishingGear, type GearInput } from "./fishing-gear.ts";
 import { paletteIndex } from "./palette.ts";
 import { RodVisual } from "./rod-visual.ts";
@@ -217,7 +217,7 @@ export class OceanScene {
       const visual = createIsland(this.scene, {
         seed: islandSeed(index),
         radius: island.radius,
-        lighthouse: index === 0,
+        lighthouse: lighthouseIslands.includes(index),
       });
       visual.mesh.position.set(island.x, 0, island.z);
       visual.mesh.freezeWorldMatrix();

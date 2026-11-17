@@ -11,6 +11,8 @@ import { shoreShape } from "./shore.ts";
 export interface Market {
   id: string;
   name: string;
+  /** Which island (an index of `islands`) the pier serves. */
+  island: number;
   /** Who runs the stall: a person to greet the player (no gameplay effect). */
   vendor: Vendor;
   /** Centre of the pier on the water. */
@@ -59,8 +61,29 @@ const place = (
   vendor: Vendor,
 ): Market => {
   const island = islands[index]!;
-  const toHarbor = Math.atan2(HARBOR.z - island.z, HARBOR.x - island.x) + turn;
-  const coast = shoreShape(index).coast(toHarbor);
+  const shape = shoreShape(index);
+  // The pier goes on a headland where the coast reaches (almost) its farthest, the one nearest
+  // the harbor side: there the pier's solid circle clears the collision ring (the farthest
+  // headland plus 4 m) with its gangway still reaching the sand. A true local maximum of the
+  // coast has a flat slope, so the gangway, which runs along the radius, meets the beach square on.
+  const towards = Math.atan2(HARBOR.z - island.z, HARBOR.x - island.x) + turn;
+  const at = (k: number) => shape.coast((k / 629) * Math.PI * 2);
+  let toHarbor = towards;
+  let nearest = Infinity;
+  const farthest = island.ring - 4;
+  for (let k = 0; k < 629; k++) {
+    if (at(k) < at(k - 1) || at(k) < at(k + 1) || at(k) < farthest - 1.6)
+      continue;
+    const angle = (k / 629) * Math.PI * 2;
+    const away = Math.abs(
+      Math.atan2(Math.sin(angle - towards), Math.cos(angle - towards)),
+    );
+    if (away < nearest) {
+      nearest = away;
+      toHarbor = angle;
+    }
+  }
+  const coast = shape.coast(toHarbor);
   const reach = Math.max(
     coast + GANGWAY_REACH - GANGWAY_LANDING,
     islandCollisionRadius(island) + MARKET_BODY_RADIUS + RING_GAP,
@@ -72,6 +95,7 @@ const place = (
   return {
     id,
     name,
+    island: index,
     vendor,
     x,
     z,
@@ -94,6 +118,17 @@ export const MARKETS: readonly Market[] = [
     name: "Bà Sáu",
     look: "sau",
     greeting: "Trời ơi, con cá to quá! Lại đây bà cân cho.",
+  }),
+  place(4, 0, "giua-khoi", "Chợ Giữa Khơi", {
+    name: "Dì Bảy",
+    look: "lan",
+    greeting:
+      "Đi xa dữ vậy hả em? Nghỉ chân, bán cá cho dì rồi uống miếng nước.",
+  }),
+  place(6, 0, "cuoi-troi", "Chợ Cuối Trời", {
+    name: "Ông Năm",
+    look: "tu",
+    greeting: "Chà, ra tận đây rồi à! Cá khơi xa ông trả giá cao nhất vùng.",
   }),
 ];
 

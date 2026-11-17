@@ -34,22 +34,22 @@ export function noise(x: number, y: number, seed: number) {
   const d = hash(ix + 1, iy + 1, seed);
   return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
 }
-const fbm = (x: number, y: number, seed: number) =>
-  noise(x, y, seed) * 0.6 +
+export const fbm = (x: number, y: number, seed: number) =>
+  noise(x, y, seed) * 0.55 +
   noise(x * 2.1, y * 2.1, seed + 7) * 0.28 +
-  noise(x * 4.3, y * 4.3, seed + 13) * 0.12;
+  noise(x * 4.3, y * 4.3, seed + 13) * 0.17;
 export function smooth(a: number, b: number, x: number) {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
 }
 
 /**
- * The land itself: a low green island (like Lý Sơn or Cô Tô) rather than a cone. Two or
- * three overlapping low hills along a ridge make a gently rounded top about a fifth of the
- * radius high; a sandy apron rises from the water a few metres in; the coast has bays and
- * headlands and always stays between 0.85 and 0.99 of the radius, inside the ring boats
- * collide with (`islandCollisionRadius`, 1.08), so no boat sails through land and the
- * piers off each island keep their place. Seeded and pure: every client gets the same.
+ * The land itself: a green island (like Lý Sơn or Cô Tô), large and varied. Four to six hills
+ * along a ridge, ridged crests and gullies on the slopes and slow undulations make the relief;
+ * a sandy apron rises from the water a few metres in; the coast has bays and headlands from six
+ * harmonics and a crinkle, and always stays between 0.88 and 0.99 of the radius, inside the
+ * ring boats collide with (`islandCollisionRadius`, the radius plus 4 m), so no boat sails
+ * through land and the invisible wall never stands far off the beach. Seeded and pure: every client gets the same.
  */
 export interface IslandShape {
   /** The highest point of the land, in metres. */
@@ -60,7 +60,7 @@ export interface IslandShape {
   coast(angle: number): number;
 }
 
-export const COAST_MIN = 0.85;
+export const COAST_MIN = 0.88;
 export const COAST_MAX = 0.99;
 
 /**
@@ -100,18 +100,21 @@ export const drawnBed = (y: number) =>
   y >= 0 ? y : y - BED_DIP * (1 - Math.exp(y / 0.06));
 /** Where the hills start to rise behind the beach (m inland) and how far they take to arrive. */
 export const HILLS_FROM = 9;
-export const hillsReach = (radius: number) => Math.max(14, radius * 0.5);
+export const hillsReach = (radius: number) =>
+  Math.max(14, Math.min(radius * 0.5, 22));
 
 export function islandShape(seed: number, radius: number): IslandShape {
   const rng = random(seed ^ 0x51ed);
-  // Bays and headlands: three slow harmonics round the coast and a faint crinkle.
-  const harmonics = [
-    { k: 2, amp: 0.03 },
-    { k: 3, amp: 0.022 },
-    { k: 5, amp: 0.012 },
-  ].map((h) => ({ ...h, phase: rng() * Math.PI * 2 }));
+  // Bays and headlands: six harmonics round the coast and a crinkle.
+  const ks = [2, 3, 5, 7, 11, 17];
+  const amps = [0.018, 0.013, 0.009, 0.006, 0.004, 0.003];
+  const harmonics = ks.map((k, i) => ({
+    k,
+    amp: amps[i]!,
+    phase: rng() * Math.PI * 2,
+  }));
   const coast = (angle: number) => {
-    let f = 0.92;
+    let f = 0.935;
     for (const { k, amp, phase } of harmonics)
       f += amp * Math.sin(k * angle + phase);
     f +=
@@ -120,44 +123,57 @@ export function islandShape(seed: number, radius: number): IslandShape {
         0.5);
     return radius * Math.min(COAST_MAX, Math.max(COAST_MIN, f));
   };
-  // Two or three low hills along a ridge through the island.
+  // Four to six hills along a ridge through the island.
   const ridge = rng() * Math.PI;
-  const count = rng() < 0.6 ? 3 : 2;
-  const along = count === 3 ? [-0.4, 0, 0.36] : [-0.26, 0.3];
-  const hills = along.map((t) => {
-    const a = (t + (rng() - 0.5) * 0.12) * radius;
-    const b = (rng() - 0.5) * 0.16 * radius;
+  const count = 4 + Math.floor(rng() * 3);
+  const hills = Array.from({ length: count }, (_, i) => {
+    const a = (i / (count - 1) - 0.5) * radius * 0.8;
+    const b = (rng() - 0.5) * 0.5 * radius;
     return {
       x: Math.cos(ridge) * a - Math.sin(ridge) * b,
       z: Math.sin(ridge) * a + Math.cos(ridge) * b,
-      h: 0.6 + rng() * 0.4,
-      s2: 2 * (radius * (0.3 + rng() * 0.1)) ** 2,
+      h: 0.45 + rng() * 0.55,
+      s2: 2 * (radius * (0.27 + rng() * 0.12)) ** 2,
     };
   });
-  const peak = radius * (0.2 + rng() * 0.04);
+  const peak = Math.min(62, radius * (0.2 + rng() * 0.05));
   const base = 0.9;
-  // Inland relief in relative units: the hills plus slow undulations.
+  const slow = 0.04 / (1 + radius / 150);
+  // Inland relief in relative units: the hills, ridged crests and slow undulations.
   const relief = (x: number, z: number) => {
-    let sum = 0.12 * fbm(x * 0.05 + 3, z * 0.05, seed);
+    let sum = 0.2 * fbm(x * slow + 3, z * slow, seed);
+    const crest =
+      1 - Math.abs(2 * fbm(x * 0.012 + 40, z * 0.012 + 40, seed + 5) - 1);
+    sum += 0.1 * crest * crest;
     for (const hill of hills)
       sum +=
         hill.h * Math.exp(-((x - hill.x) ** 2 + (z - hill.z) ** 2) / hill.s2);
     return sum;
   };
-  // The sand apron rises from the water and the hills fade in behind it.
+  // The sand apron rises from the water, the grass takes over a few metres in (the same on every
+  // island, so the beach is always as wide), and the hills fade in slowly behind it, over a
+  // distance that grows with the island.
   const parts = (x: number, z: number) => {
     const d = coast(Math.atan2(z, x)) - Math.hypot(x, z);
     const shore = d >= 0 ? beachRise(d) : -shelfDepth(-d);
-    const inland = smooth(HILLS_FROM, HILLS_FROM + hillsReach(radius), d);
-    return { shore, inland, relief: inland > 0 ? relief(x, z) : 0 };
+    const grass = smooth(HILLS_FROM, HILLS_FROM + hillsReach(radius), d);
+    const inland = smooth(
+      HILLS_FROM,
+      HILLS_FROM + Math.max(14, radius * 0.8),
+      d,
+    );
+    return { shore, grass, inland, relief: inland > 0 ? relief(x, z) : 0 };
   };
   // Scale the relief so the highest point of the land is exactly `peak`.
   const samples: { a: number; b: number }[] = [];
-  for (let i = 0; i <= 40; i++)
-    for (let j = 0; j <= 40; j++) {
-      const p = parts(((i / 40) * 2 - 1) * radius, ((j / 40) * 2 - 1) * radius);
+  for (let i = 0; i <= 120; i++)
+    for (let j = 0; j <= 120; j++) {
+      const p = parts(
+        ((i / 120) * 2 - 1) * radius,
+        ((j / 120) * 2 - 1) * radius,
+      );
       samples.push({
-        a: p.shore + p.inland * base,
+        a: p.shore + p.grass * base,
         b: p.inland * p.relief,
       });
     }
@@ -171,7 +187,7 @@ export function islandShape(seed: number, radius: number): IslandShape {
   const scale = low;
   const height = (x: number, z: number) => {
     const p = parts(x, z);
-    return p.shore + p.inland * (base + scale * p.relief);
+    return p.shore + p.grass * base + p.inland * scale * p.relief;
   };
   return { peak, height, coast };
 }

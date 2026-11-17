@@ -454,7 +454,7 @@ export function addHut(ctx: PropContext): Structure | undefined {
     60,
     0.3,
     0.62,
-    (y) => y > 1.4 && y < 3.4,
+    (y) => y > 1.4 && y < Math.max(3.4, ctx.peak * 0.2),
   )) {
     const slope = slopeAt(ctx, x, z);
     if (!site || slope < site.slope) site = { x, y, z, slope };

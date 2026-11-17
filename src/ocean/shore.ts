@@ -1,5 +1,6 @@
-import { islands } from "./model.ts";
-import { BACKDROP } from "./sea-layout.ts";
+import { islands, islandSeed } from "./islands.ts";
+
+export { islandSeed };
 import {
   BEACH,
   BEACH_TOP,
@@ -22,9 +23,6 @@ import {
  * (`coastPixels`), so the water and the island are built from one source.
  */
 
-/** The seed of the play area's island `index` (its shape and props follow from it). */
-export const islandSeed = (index: number) => 11 + index * 7;
-
 export interface ShoreIsland {
   x: number;
   z: number;
@@ -32,7 +30,7 @@ export interface ShoreIsland {
   seed: number;
 }
 
-/** Every island the sea meets: the three of the play area, then the far backdrop ones. */
+/** Every island the sea meets: the islands of the play area. */
 export const SHORE_ISLANDS: readonly ShoreIsland[] = [
   ...islands.map((island, index) => ({
     x: island.x,
@@ -40,10 +38,9 @@ export const SHORE_ISLANDS: readonly ShoreIsland[] = [
     radius: island.radius,
     seed: islandSeed(index),
   })),
-  ...BACKDROP.map(({ x, z, radius, seed }) => ({ x, z, radius, seed })),
 ];
 
-/** Angles sampled round each coast (about 0.4 m apart on the largest island). */
+/** Angles sampled round each coast (about 3 m apart on the largest island). */
 export const COAST_SAMPLES = 512;
 
 const shapes = new Map<number, IslandShape>();
@@ -211,7 +208,7 @@ export const coastRows = () => {
   while (rows < SHORE_ISLANDS.length) rows *= 2;
   return rows;
 };
-/** A coast fraction is stored as 16 bits over this range (about 0.1 mm per step on a 39 m island). */
+/** A coast fraction is stored as 16 bits over this range (about 1 mm per step on a 257 m island). */
 const CODE_LOW = 0.75;
 const CODE_SPAN = 0.3;
 export const encodeCoast = (fraction: number) =>

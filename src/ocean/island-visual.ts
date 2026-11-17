@@ -86,7 +86,10 @@ export function createIsland(
   // coast is inside 0.99 of the radius); the sea's surface hides everything deeper than the
   // waves' troughs, so cells that lie wholly deeper than 0.9 m are left out.
   const extent = radius * 1.4;
-  const segments = distant ? 28 : 76;
+  // Cells about 3.5 m wide whatever the size, so a big island keeps the beach's detail.
+  const segments = distant
+    ? 28
+    : Math.min(240, Math.max(76, Math.round((extent * 2) / 3.5)));
   const floor = -0.9;
   const positions: number[] = [];
   const colors: number[] = [];
@@ -291,7 +294,7 @@ export function createIsland(
   const swapCtx = { ...ctx, geo: swapGeo };
   const keepOut: KeepOut[] = [];
   // Bigger islands get more of everything, but only up to a phone-sized budget.
-  const f = Math.min(1.25, radius / 18);
+  const f = Math.min(2, Math.max(1.25, radius / 60));
   const props: PropSummary = {
     grass: 0,
     flowers: 0,
@@ -339,8 +342,9 @@ export function createIsland(
     let bestX = 0;
     let bestZ = 0;
     let best = -Infinity;
-    for (let x = -radius * 0.7; x <= radius * 0.7; x += 0.5)
-      for (let z = -radius * 0.7; z <= radius * 0.7; z += 0.5) {
+    const step = Math.max(0.5, (radius * 1.4) / 240);
+    for (let x = -radius * 0.7; x <= radius * 0.7; x += step)
+      for (let z = -radius * 0.7; z <= radius * 0.7; z += step) {
         const y = height(x, z);
         if (y > best) {
           best = y;

@@ -5,7 +5,7 @@ const { NEAR_RADIUS, NEAR_RINGS, WATER_RADIUS, waterRingRadii } = await import(
   "../src/ocean/water-extent.ts"
 );
 const { FOG_DENSITY } = await import("../src/ocean/sea-style.ts");
-const { BACKDROP } = await import("../src/ocean/sea-layout.ts");
+const { SEA_BOUND, islands } = await import("../src/ocean/model.ts");
 
 const fogAt = (distance) =>
   1 - Math.exp(-FOG_DENSITY * FOG_DENSITY * distance * distance);
@@ -29,14 +29,16 @@ test("the rings only grow outward, and the far ones are not coarse enough to sho
   assert.ok(Math.abs(radii.at(-1) - WATER_RADIUS) < 1e-6);
 });
 
-test("the edge of the water is hidden by the fog, and lies beyond the backdrop islands", () => {
+test("the edge of the water is hidden by the fog, and lies beyond every island and the sea's edge", () => {
   assert.ok(
     fogAt(WATER_RADIUS) > 0.999,
     `fog at the edge ${fogAt(WATER_RADIUS)}`,
   );
-  for (const island of BACKDROP)
+  // The water follows the camera, so a boat at the sea's edge still has water out to the fog.
+  assert.ok(WATER_RADIUS > SEA_BOUND, "the disc reaches past the sea's edge");
+  for (const island of islands)
     assert.ok(
-      WATER_RADIUS > Math.hypot(island.x, island.z) + island.radius + 1000,
-      "the far islands stand well inside the water",
+      WATER_RADIUS > island.radius * 2,
+      "every island is far smaller than the water disc",
     );
 });

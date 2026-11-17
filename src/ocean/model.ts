@@ -1,4 +1,4 @@
-export const SEA_BOUND = 180;
+export const SEA_BOUND = 1500;
 export const BOAT_SPEED = 12;
 export const PRESENCE_MS = 30000;
 export interface Pose {
@@ -13,14 +13,16 @@ export interface Boat extends Pose {
   session: string;
   updatedAt: number;
 }
-export const islands = [
-  { x: -68, z: -65, radius: 31 },
-  { x: 95, z: -110, radius: 39 },
-  { x: 110, z: 70, radius: 26 },
-];
-/** Shoreline radius the hull collides at: just past the visible beach edge. */
-export const islandCollisionRadius = (island: { radius: number }) =>
-  island.radius * 1.08;
+export { islands, lighthouseIslands, type Island } from "./islands.ts";
+import { islands } from "./islands.ts";
+/**
+ * The ring the hull collides at: a circle that holds the whole coast of the island and stands
+ * only 4 m off its farthest headland (islands.ts).
+ */
+export const islandCollisionRadius = (island: {
+  radius: number;
+  ring?: number;
+}) => island.ring ?? island.radius + 4;
 /**
  * Everyone starts in one small harbor, all facing the open sea, so players see each
  * other from the first second. (They used to start up to 40 m apart facing random

@@ -37,6 +37,14 @@ const FILES = [
   "hut.glb",
 ] as const;
 
+/** How far from the camera each kind of prop is still drawn (m). */
+export const PROP_RANGE = {
+  palm: 260,
+  hut: 420,
+  rock: 180,
+  bush: 160,
+} as const;
+
 /** Loads the ten models, each merged into one hidden source mesh. All or none. */
 export async function loadIslandModels(scene: Scene): Promise<IslandModels> {
   const results = await Promise.allSettled(
@@ -54,12 +62,21 @@ export async function loadIslandModels(scene: Scene): Promise<IslandModels> {
     mesh.isVisible = false;
     mesh.isPickable = false;
   }
-  return {
+  const models = {
     palms: meshes.slice(0, 3),
     rocks: meshes.slice(3, 6),
     bushes: meshes.slice(6, 9),
     hut: meshes[9]!,
   };
+  // The islands are big and many: a prop is drawn only within its range of the camera (an
+  // instance follows its source mesh's level of detail; the null level hides it), farther out
+  // the island is its terrain, which the fog has already softened.
+  const hide = (mesh: Mesh, metres: number) => mesh.addLODLevel(metres, null);
+  for (const mesh of models.palms) hide(mesh, PROP_RANGE.palm);
+  for (const mesh of models.rocks) hide(mesh, PROP_RANGE.rock);
+  for (const mesh of models.bushes) hide(mesh, PROP_RANGE.bush);
+  hide(models.hut, PROP_RANGE.hut);
+  return models;
 }
 
 export interface PlacedProps {
@@ -67,6 +84,8 @@ export interface PlacedProps {
   rocks: number;
   bushes: number;
   hut: boolean;
+  /** Every hut placed (a village of several on a big island). */
+  huts: number;
   instances: InstancedMesh[];
 }
 
@@ -142,12 +161,13 @@ export function placeIslandProps(
   layout.bushes.forEach((spot, i) =>
     add(models.bushes[spot.variant]!, spot, `bush-${i}`),
   );
-  if (layout.hut) add(models.hut, layout.hut, "hut");
+  layout.huts.forEach((spot, i) => add(models.hut, spot, `hut-${i}`));
   const result: PlacedProps = {
     palms: layout.palms.length,
     rocks: layout.rocks.length,
     bushes: layout.bushes.length,
     hut: !!layout.hut,
+    huts: layout.huts.length,
     instances,
   };
   placed.set(visual, result);
