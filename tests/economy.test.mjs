@@ -14,18 +14,36 @@ const migration = readFileSync(
   "supabase/migrations/20261113032223_economy.sql",
   "utf8",
 );
+// Later migrations only add rows (the sea's species changed, decision 0013); old rows stay.
+const speciesMigration = readFileSync(
+  "supabase/migrations/20261118120000_sea_species.sql",
+  "utf8",
+);
 
-test("the database's price table is exactly the TypeScript one", () => {
-  const seed = [
-    ...migration.matchAll(/\('([a-z-]+)', (\d+), ([\d.]+), ([\d.]+)\)/g),
-  ].map(([, species, base, min, max]) => ({
-    species,
-    base: Number(base),
-    minKg: Number(min),
-    maxKg: Number(max),
-  }));
-  assert.deepEqual(seed, priceTable());
-  assert.equal(seed.length, SPECIES.length, "every species has a price");
+const rowsOf = (sql) =>
+  [...sql.matchAll(/\('([a-z-]+)', (\d+), ([\d.]+), ([\d.]+)\)/g)].map(
+    ([, species, base, min, max]) => ({
+      species,
+      base: Number(base),
+      minKg: Number(min),
+      maxKg: Number(max),
+    }),
+  );
+
+test("the database prices every species the game has, exactly as the TypeScript table does", () => {
+  const seed = [...rowsOf(migration), ...rowsOf(speciesMigration)];
+  assert.equal(
+    new Set(seed.map((row) => row.species)).size,
+    seed.length,
+    "no species is priced twice",
+  );
+  for (const row of priceTable())
+    assert.deepEqual(
+      seed.find((r) => r.species === row.species),
+      row,
+      `${row.species} has the same price row in the database`,
+    );
+  assert.ok(seed.length >= SPECIES.length, "every species has a price");
 });
 
 test("a heavier or rarer fish pays more, and a fish pays 0.6 to 1.5 times its base", () => {
@@ -38,11 +56,11 @@ test("a heavier or rarer fish pays more, and a fish pays 0.6 to 1.5 times its ba
     // Outside the range the weight is clamped, never extrapolated.
     assert.equal(priceOf(s, s.kg[1] * 10), priceOf(s, s.kg[1]));
   }
-  const tuna = SPECIES.find((s) => s.id === "ca-ngu");
-  assert.equal(priceOf(tuna, tuna.kg[0]), 128);
-  assert.equal(priceOf(tuna, tuna.kg[1]), 320);
-  const anchovy = SPECIES.find((s) => s.id === "ca-com");
-  assert.ok(priceOf(anchovy, anchovy.kg[1]) < priceOf(tuna, tuna.kg[0]));
+  const shark = SPECIES.find((s) => s.id === "ca-map");
+  assert.equal(priceOf(shark, shark.kg[0]), 265);
+  assert.equal(priceOf(shark, shark.kg[1]), 663);
+  const madeka = SPECIES.find((s) => s.id === "ca-madeka");
+  assert.ok(priceOf(madeka, madeka.kg[1]) < priceOf(shark, shark.kg[0]));
 });
 
 test("the migration enforces the same limits the app documents", () => {

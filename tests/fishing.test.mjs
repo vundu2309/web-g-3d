@@ -60,7 +60,8 @@ test("the species table is consistent and every zone has fish", () => {
         SPECIES.some((s) => s.zones[zone] > 0),
       zone,
     );
-  assert.equal(speciesById("ca-ngu").name, "Cá ngừ");
+  assert.equal(speciesById("ca-map").name, "Cá mập");
+  assert.equal(SPECIES.length, 10, "ten animals, one model file each");
 });
 
 test("zones follow the distance to the nearest island shore", () => {
@@ -128,11 +129,9 @@ test("what you catch depends on where, small fish are common and big ones rare, 
     deep.every((c) => speciesById(c.species).zones.deep > 0),
     "deep only gives deep fish",
   );
+  assert.ok(!shore.some((c) => ["ca-map", "ca-heo"].includes(c.species)));
   assert.ok(
-    !shore.some((c) => ["ca-ngu", "ca-kiem", "ca-duoi"].includes(c.species)),
-  );
-  assert.ok(
-    deep.some((c) => c.species === "ca-kiem"),
+    deep.some((c) => c.species === "ca-map"),
     "deep water has the big ones",
   );
   for (const c of [...shore, ...deep]) {
@@ -141,12 +140,12 @@ test("what you catch depends on where, small fish are common and big ones rare, 
     assert.ok(c.cm > 0);
   }
   // Within a species the weight is skewed to the light end.
-  const tuna = deep.filter((c) => c.species === "ca-ngu");
-  const [low, high] = speciesById("ca-ngu").kg;
-  const mean = tuna.reduce((a, c) => a + c.kg, 0) / tuna.length;
+  const sharks = deep.filter((c) => c.species === "ca-map");
+  const [low, high] = speciesById("ca-map").kg;
+  const mean = sharks.reduce((a, c) => a + c.kg, 0) / sharks.length;
   assert.ok(
     mean < low + (high - low) * 0.4,
-    `most tuna are modest (${mean.toFixed(1)} kg)`,
+    `most sharks are modest (${mean.toFixed(1)} kg)`,
   );
   const rareShare = (list) =>
     list.filter((c) => speciesById(c.species).rarity > 1).length / list.length;
@@ -405,32 +404,32 @@ test("fish nibble 1 to 3 times and sometimes lose interest; the sweet spot waits
 
 test("the fish store counts held fish, keeps records, releases one at a time and ignores empty releases", () => {
   let store = {};
-  let r = addCatch(store, { species: "ca-mu", kg: 3.2, cm: 54 });
+  let r = addCatch(store, { species: "tom-hum", kg: 3.2, cm: 54 });
   assert.equal(r.record, true);
   store = r.inventory;
-  r = addCatch(store, { species: "ca-mu", kg: 2.1, cm: 47 });
+  r = addCatch(store, { species: "tom-hum", kg: 2.1, cm: 47 });
   assert.equal(r.record, false, "lighter than the best");
   store = r.inventory;
-  r = addCatch(store, { species: "ca-com", kg: 0.1, cm: 11 });
+  r = addCatch(store, { species: "ca-madeka", kg: 0.03, cm: 7 });
   store = r.inventory;
   assert.equal(stockTotal(store), 3);
   assert.deepEqual(
     heldSpecies(store).map((s) => s.id),
-    ["ca-com", "ca-mu"],
+    ["ca-madeka", "tom-hum"],
     "table order, only what is held",
   );
-  store = releaseOne(store, "ca-mu");
-  assert.equal(store["ca-mu"].n, 1);
-  assert.equal(store["ca-mu"].best, 3.2, "the record stays after a release");
-  store = releaseOne(releaseOne(store, "ca-mu"), "ca-mu");
-  assert.equal(store["ca-mu"].n, 0);
+  store = releaseOne(store, "tom-hum");
+  assert.equal(store["tom-hum"].n, 1);
+  assert.equal(store["tom-hum"].best, 3.2, "the record stays after a release");
+  store = releaseOne(releaseOne(store, "tom-hum"), "tom-hum");
+  assert.equal(store["tom-hum"].n, 0);
   assert.deepEqual(
     heldSpecies(store).map((s) => s.id),
-    ["ca-com"],
+    ["ca-madeka"],
     "nothing held, no card",
   );
   assert.equal(
-    releaseOne(store, "ca-kiem"),
+    releaseOne(store, "ca-rong"),
     store,
     "unknown species untouched",
   );
@@ -439,9 +438,9 @@ test("the fish store counts held fish, keeps records, releases one at a time and
 test("a fish is drawn at a size that fits its species, never filling the boat", async () => {
   const { SPECIES, drawnLength } = await import("../src/ocean/fishing.ts");
   const by = (id) => SPECIES.find((s) => s.id === id);
-  const anchovy = drawnLength(by("ca-com"), by("ca-com").kg[0]);
-  const tuna = drawnLength(by("ca-ngu"), by("ca-ngu").kg[1]);
-  assert.ok(anchovy < tuna, "a small fish is drawn smaller than a big one");
+  const madeka = drawnLength(by("ca-madeka"), by("ca-madeka").kg[0]);
+  const shark = drawnLength(by("ca-map"), by("ca-map").kg[1]);
+  assert.ok(madeka < shark, "a small fish is drawn smaller than a big one");
   for (const species of SPECIES)
     for (const kg of species.kg) {
       const length = drawnLength(species, kg);
@@ -451,6 +450,6 @@ test("a fish is drawn at a size that fits its species, never filling the boat", 
       );
     }
   // A heavier fish of the same kind is never drawn smaller.
-  const s = by("ca-thu");
+  const s = by("tom-hum");
   assert.ok(drawnLength(s, s.kg[1]) >= drawnLength(s, s.kg[0]));
 });

@@ -19,6 +19,8 @@ import {
 } from "./bow-wave.ts";
 import { waveHeight } from "./waves.ts";
 
+const DRAW_CREST = false;
+
 /**
  * Draws the bow wave of bow-wave.ts: the foamy crest (one small sheet that shares the wake's
  * foam material, so it is the same white water) and the spray (one mesh of camera-facing
@@ -160,7 +162,9 @@ export class BowWaveMesh {
     const fz = -Math.cos(heading);
     const rx = Math.cos(heading);
     const rz = Math.sin(heading);
-    const crestOn = speed > CREST_FROM + 0.05;
+    // The foamy crest sheet is not drawn any more: the water simulation (ripple-sim.ts) raises the
+    // real bow wave and breaks it into foam; only the spray stays.
+    const crestOn = DRAW_CREST && speed > CREST_FROM + 0.05;
     if (crestOn !== this.crestShown) {
       this.crestShown = crestOn;
       this.crest.isVisible = crestOn;

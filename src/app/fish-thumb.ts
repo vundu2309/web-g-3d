@@ -1,45 +1,23 @@
-import { buildCreature } from "../ocean/creatures.ts";
 import { projectCreature } from "../ocean/creature-thumb.ts";
-import type { Creature } from "../ocean/creature-geometry.ts";
 import { cachedFishModel, loadFishModel } from "../ocean/fish-models.ts";
-import { fishColours, fishFile, paintFish } from "../ocean/glb-parts.ts";
+import { creatureOf, fishFile } from "../ocean/glb-parts.ts";
 import type { Species } from "../ocean/fishing.ts";
 
 /**
  * The picture of a species in the fish store: its 3D model drawn once to a small canvas
- * (no second WebGL context) and kept as a data URL. The model is the Blender one (the same
- * data the sea draws, see ocean/glb-parts.ts); the animal built from code is drawn only when
- * the file is not loaded (yet) or could not be had. Only table data goes in.
+ * (no second WebGL context) and kept as a data URL. The model is the same data the sea draws (see
+ * ocean/glb-parts.ts). A species whose file is not loaded (yet) has no picture until it is.
+ * Only table data goes in.
  */
 const cache = new Map<string, string>();
 
-/** The animal to draw for a species: the model when it has loaded, else the code-built one. */
-function creatureFor(species: Species): { creature: Creature; model: boolean } {
-  const template = cachedFishModel(fishFile(species.shape, species.id));
-  if (template)
-    return {
-      creature: paintFish(
-        template,
-        fishColours(species.shape, species.body, species.fin, species.look),
-      ),
-      model: true,
-    };
-  return {
-    creature: buildCreature(
-      species.shape,
-      species.body,
-      species.fin,
-      species.look,
-    ),
-    model: false,
-  };
-}
-
 export function fishThumb(species: Species, size = 120): string {
-  const { creature, model } = creatureFor(species);
-  const key = `${species.id}:${size}:${model ? "model" : "code"}`;
+  const template = cachedFishModel(fishFile(species.id));
+  if (!template) return "";
+  const key = `${species.id}:${size}`;
   const known = cache.get(key);
   if (known !== undefined) return known;
+  const creature = creatureOf(template);
   let url = "";
   try {
     const canvas = document.createElement("canvas");
@@ -84,9 +62,8 @@ export function fishThumb(species: Species, size = 120): string {
 
 /**
  * Puts a species' picture in an <img>. A loaded model is drawn at once; otherwise the file is
- * fetched first and the picture appears when it has arrived (the cell is empty for that moment
- * rather than showing a different animal that would then change). If the file cannot be had,
- * the code-built animal is drawn instead.
+ * fetched first and the picture appears when it has arrived (the cell is empty for that moment).
+ * If the file cannot be had the cell stays empty.
  */
 export function showFishThumb(
   picture: HTMLImageElement,
@@ -96,10 +73,10 @@ export function showFishThumb(
   // The picture's shape is known before it arrives, so the cell does not jump when it does.
   picture.width = size;
   picture.height = Math.round(size * 0.7);
-  if (cachedFishModel(fishFile(species.shape, species.id)))
+  if (cachedFishModel(fishFile(species.id)))
     picture.src = fishThumb(species, size);
   else
-    void loadFishModel(fishFile(species.shape, species.id)).then(() => {
+    void loadFishModel(fishFile(species.id)).then(() => {
       picture.src = fishThumb(species, size);
     });
 }

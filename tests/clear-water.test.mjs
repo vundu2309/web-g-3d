@@ -429,7 +429,7 @@ test("the headless scene: the layer is a texture the water reads, the meshes und
     nibbleAges: [],
     hurry: 0,
     landing: { x: 0, z: -20 },
-    species: "ca-thu",
+    species: "tom-hum",
     size: 0.4,
     fight: {
       mood: "surge",

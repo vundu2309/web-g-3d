@@ -40,7 +40,7 @@
       import { SeaProps } from "/src/ocean/sea-props.ts";
       import { CHASE } from "/src/ocean/chase-camera.ts";
       import { waveHeight } from "/src/ocean/waves.ts";
-      import { WakeField, sampleWake } from "/src/ocean/wake.ts";
+      import { RippleSim, SIM_N } from "/src/ocean/ripple-sim.ts";
       import { WakeTrail } from "/src/ocean/wake-trail.ts";
       import { WakeMesh } from "/src/ocean/wake-mesh.ts";
       import { Quaternion, Axis } from "@babylonjs/core";
@@ -234,7 +234,13 @@
       // water gets the boat (shadow and whatever it does at the hull).
       const speed = +(q.get("sp") || 0);
       const boatList = [];
-      const wakeField = new WakeField();
+      const sim = new RippleSim();
+      const simPixels = new Float32Array(SIM_N * SIM_N * 4);
+      // Plays the boat's last seconds into the water (20 steps a second).
+      const stir = (s, p) => {
+        sim.recentre(p.x, p.z);
+        sim.step(0.05, [{ x: p.x, z: p.z, heading: boatAt.h, speed }]);
+      };
       const wakeTrail = new WakeTrail();
       const wakeMesh = boatAt ? new WakeMesh(scene) : null;
       let boat = null;
@@ -250,9 +256,7 @@
         });
         boatAt.pose = (now) => {
           const p = at(now);
-          const h = (x, z) =>
-            waveHeight(x, z, now) +
-            sampleWake(wakeField.data, x, z, now).height;
+          const h = (x, z) => waveHeight(x, z, now) + sim.sample(x, z).height;
           const bow = h(p.x + fx * 3.5, p.z + fz * 3.5);
           const stern = h(p.x - fx * 3.5, p.z - fz * 3.5);
           const star = h(p.x + rx * 1.4, p.z + rz * 1.4);
@@ -267,9 +271,9 @@
             );
           return p;
         };
-        for (let s = Math.max(0, T - 5); s < T; s += 0.05) {
+        for (let s = Math.max(0, T - 14); s < T; s += 0.05) {
           const p = at(s);
-          wakeField.track("b", p.x, p.z, s);
+          stir(s, p);
           wakeTrail.push(p.x, p.z, s);
         }
       }
@@ -286,18 +290,13 @@
         for (const b of beacons) b.update(T);
         if (boatAt) {
           const p = boatAt.pose(T);
-          wakeField.track("b", p.x, p.z, T);
           wakeTrail.push(p.x, p.z, T);
           wakeMesh.update(wakeTrail, T, p);
           boatList[0] = { x: p.x, z: p.z, heading: boatAt.h };
         }
-        water.update(
-          cam.position.x,
-          cam.position.z,
-          T,
-          wakeField.data,
-          boatList,
-        );
+        sim.pack(simPixels);
+        water.setStirred(simPixels, sim.centreX, sim.centreZ);
+        water.update(cam.position.x, cam.position.z, T, boatList);
         sky.update(cam.position.x, cam.position.y, cam.position.z, T);
         props.update(T);
         for (const e of extras) e.update?.(T);

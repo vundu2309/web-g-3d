@@ -408,7 +408,10 @@ test("saved sea state restores a safe position and the catch count, and rejects 
   assert.equal(decodeSave(raw({ caught: 1e12 }), now).caught, 1_000_000);
   assert.equal(JSON.parse(encodeSave(make({ caught: -3 }), now)).caught, 0);
   // The fish store round-trips, and only known species with sane numbers come back.
-  const fish = { "ca-mu": { n: 3, best: 6.8 }, "ca-com": { n: 0, best: 0.2 } };
+  const fish = {
+    "tom-hum": { n: 3, best: 4.8 },
+    "ca-madeka": { n: 0, best: 0.05 },
+  };
   assert.deepEqual(decodeSave(encodeSave(make({ fish }), now), now).fish, fish);
   assert.deepEqual(
     decodeSave(encodeSave(make(), now), now).fish,
@@ -416,22 +419,24 @@ test("saved sea state restores a safe position and the catch count, and rejects 
     "old saves have none",
   );
   const dirty = {
-    "ca-mu": { n: 2.9, best: 7 },
-    "ca-ngu": { n: -4, best: 1e9 },
+    "tom-hum": { n: 2.9, best: 4.9 },
+    "ca-map": { n: -4, best: 1e9 },
     "ca-rong": { n: 5, best: 1 }, // not a species
-    "ca-chim": "many",
-    "ca-hong": { n: 1e9, best: "heavy" },
+    "ca-thu": { n: 1, best: 2 }, // a species the game used to have
+    sua: "many",
+    "ca-he": { n: 1e9, best: "heavy" },
   };
   const clean = decodeSave(raw({ fish: dirty }), now).fish;
-  assert.deepEqual(clean["ca-mu"], { n: 2, best: 7 });
+  assert.deepEqual(clean["tom-hum"], { n: 2, best: 4.9 });
   assert.deepEqual(
-    clean["ca-ngu"],
+    clean["ca-map"],
     { n: 0, best: 500 },
     "a record is capped, a negative count is none",
   );
   assert.equal(clean["ca-rong"], undefined);
-  assert.equal(clean["ca-chim"], undefined);
-  assert.deepEqual(clean["ca-hong"], { n: 9999, best: 0 });
+  assert.equal(clean["ca-thu"], undefined, "a removed species is dropped");
+  assert.equal(clean.sua, undefined);
+  assert.deepEqual(clean["ca-he"], { n: 9999, best: 0 });
   assert.deepEqual(decodeSave(raw({ fish: [1, 2] }), now).fish, {});
   assert.deepEqual(
     decodeSave(raw({ x: SEA_BOUND * 3, fish }), now).fish,

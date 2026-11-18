@@ -57,11 +57,11 @@ async function open(
       const money = memoryEconomy({ now: () => clock });
       // Five caught fish waiting in the ledger (a catch every 10 seconds of fake time).
       for (const [id, kg] of [
-        ["ca-ngu", 12.5],
-        ["ca-ngu", 20],
-        ["ca-thu", 3],
-        ["ca-com", 0.1],
-        ["ca-kiem", 40],
+        ["tom-hum", 2.5],
+        ["tom-hum", 4.5],
+        ["ca-heo", 100],
+        ["ca-madeka", 0.03],
+        ["ca-map", 100],
       ]) {
         clock += 10000;
         await money.recordCatch({ species: id, kg });
@@ -161,25 +161,25 @@ try {
     "the X is on screen",
   );
   await page.screenshot({ path: `${output}/market-hub.png` });
-  // Sell the tuna: the database prices them; the wallet shows exactly that.
-  const tunaPrice = await page.evaluate(async () => {
+  // Sell the lobsters: the database prices them; the wallet shows exactly that.
+  const lobsterPrice = await page.evaluate(async () => {
     const state = await window.money.state();
     return state.ledger
-      .filter((r) => r.species === "ca-ngu")
+      .filter((r) => r.species === "tom-hum")
       .reduce((s, r) => s + r.price, 0);
   });
-  const tuna = page.locator(".fish-cell", { hasText: "Cá ngừ" });
+  const tuna = page.locator(".fish-cell", { hasText: "Tôm hùm" });
   assert.ok(
     await inView(page, tuna.locator(".market-sell")),
     "the sell button is on screen",
   );
   await tuna.locator(".market-sell").click();
   await page.locator(".market-flash").waitFor();
-  assert.equal((await wallet()).replace(/\D/g, ""), String(tunaPrice));
+  assert.equal((await wallet()).replace(/\D/g, ""), String(lobsterPrice));
   assert.equal(
     await page.locator(".fish-cell").count(),
     3,
-    "the tuna are gone",
+    "the lobsters are gone",
   );
   // Sell everything that is left.
   const rest = await page.evaluate(async () => {

@@ -102,7 +102,7 @@ function material(scene: Scene) {
 
 /**
  * What is drawn at a moving boat's bow (the crest and the spray, bow-wave-mesh.ts). The white
- * water behind the boat is not a mesh any more: it is the foam buffer (foam-buffer.ts) that the
+ * water behind the boat is not a mesh any more: it is the water simulation (ripple-sim.ts) that the
  * sea's shader reads. The material below is still the wake foam's: the bow crest shares it.
  */
 export class WakeMesh {
