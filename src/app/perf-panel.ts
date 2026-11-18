@@ -23,7 +23,12 @@ export interface PerfSource {
 export function createPerfPanel(
   parent: HTMLElement,
   source: PerfSource,
-  options: { visible: boolean; signal: AbortSignal },
+  options: {
+    visible: boolean;
+    signal: AbortSignal;
+    /** Called when the player toggles it (F3 or a tap), to remember the choice. */
+    onToggle?: (shown: boolean) => void;
+  },
 ) {
   const window_ = new PerfWindow(2000);
   const el = document.createElement("pre");
@@ -49,20 +54,23 @@ export function createPerfPanel(
   parent.append(el);
   let shown = options.visible;
   let lastDraw = 0;
-  const show = (on: boolean) => {
+  const show = (on: boolean, notify = false) => {
     shown = on;
+    if (notify) options.onToggle?.(on);
     el.style.display = on ? "block" : "none";
     // Taps toggle it only while shown (a hidden panel must not catch touches).
     el.style.pointerEvents = on ? "auto" : "none";
   };
   show(shown);
-  el.addEventListener("click", () => show(false), { signal: options.signal });
+  el.addEventListener("click", () => show(false, true), {
+    signal: options.signal,
+  });
   document.addEventListener(
     "keydown",
     (event) => {
       if (event.key === "F3") {
         event.preventDefault();
-        show(!shown);
+        show(!shown, true);
       }
     },
     { signal: options.signal },
@@ -74,6 +82,8 @@ export function createPerfPanel(
     return memory ? memory.usedJSHeapSize / 1048576 : undefined;
   };
   return {
+    shown: () => shown,
+    show: (on: boolean) => show(on, true),
     /** Every animation frame (ms timestamp). */
     tick(now: number) {
       window_.tick(now);

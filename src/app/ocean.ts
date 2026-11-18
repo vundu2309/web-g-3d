@@ -18,6 +18,7 @@ import { stockTotal, type Inventory } from "../ocean/fishing";
 import { createFishingUi } from "./fishing-ui";
 import { createMarketUi } from "./market-ui";
 import { createWeatherTestSection } from "./settings-weather";
+import { createPerfSection, loadPerfPref, savePerfPref } from "./settings-perf";
 import { createUpdateSection } from "./settings-update";
 import {
   economyEnabled,
@@ -167,7 +168,11 @@ export function startOcean(
         },
       boats: () => boats.length,
     },
-    { visible: perfLog, signal: abort.signal },
+    {
+      visible: perfLog || loadPerfPref(),
+      signal: abort.signal,
+      onToggle: savePerfPref,
+    },
   );
   let lastControl = 0;
   const boatControl = createBoatControl();
@@ -497,6 +502,7 @@ export function startOcean(
     body.className = "fish-store-body settings-body";
     body.append(
       createWeatherTestSection(),
+      createPerfSection(perfPanel),
       createUpdateSection({ beforeApply: persist }),
     );
     const foot = document.createElement("footer");
