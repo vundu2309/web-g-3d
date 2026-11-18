@@ -17,8 +17,8 @@ import {
  */
 
 /** Schools round each island, and fish in each school. */
-export const SCHOOLS_PER_ISLAND = 3;
-export const FISH_PER_SCHOOL = 12;
+export const SCHOOLS_PER_ISLAND = 30;
+export const FISH_PER_SCHOOL = 10;
 /** Schools circling the harbour. */
 export const HARBOUR_SCHOOLS = 4;
 /** Metres off the coast the school swims (the middle of the range, and how far it drifts). */
@@ -74,7 +74,7 @@ export function makeSchools(): School[] {
       const circle = Math.max(40, island.radius + distance0);
       schools.push({
         island: index,
-        look: random() < 0.35 ? 1 : 0,
+        look: random() < 0.5 ? 1 : 0,
         angle0: random() * Math.PI * 2,
         rate: ((random() < 0.5 ? -1 : 1) * speed) / circle,
         distance0,

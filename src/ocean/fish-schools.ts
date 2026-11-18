@@ -102,9 +102,9 @@ export class FishSchools {
       fishTemplate(
         scene,
         "school-fish-template-0",
-        [0.3, 0.5, 0.62],
-        [0.88, 0.92, 0.93],
-        [0.55, 0.7, 0.78],
+        [0.2, 0.55, 0.85],
+        [0.95, 0.97, 0.98],
+        [0.4, 0.75, 0.95],
       ),
       fishTemplate(
         scene,
@@ -145,7 +145,8 @@ export class FishSchools {
       const dz = centre.z - camera.z;
       if (dx * dx + dz * dz > ACTIVE_RANGE * ACTIVE_RANGE) {
         // Parked far below: never drawn, never tested against the camera's view.
-        for (const mesh of list) mesh.position.y = -50;
+        if (list[0]!.position.y !== -50)
+          for (const mesh of list) mesh.position.y = -50;
         return;
       }
       scatterTarget(school, time, boats, this.target);
@@ -157,7 +158,7 @@ export class FishSchools {
         const pose = this.poses[i]!;
         mesh.position.set(pose.x, pose.y, pose.z);
         mesh.rotation.set(0, pose.yaw, pose.roll);
-        mesh.scaling.setAll(0.85 * pose.size);
+        mesh.scaling.setAll(1.2 * pose.size);
       }
     });
   }
