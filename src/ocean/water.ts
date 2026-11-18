@@ -451,28 +451,42 @@ void main() {
   vec3 incident = skyIrradiance * 0.55 + sunColor() * SUN_RADIANCE * nl * 0.55 * sunlit + nightGlow;
   vec3 refracted = refract(-view, n, 0.75);
   // The water is a little murky (1.7 x the clear-water path), so the sand fades to turquoise.
-  float path = depth * 1.7 * (1.0 + 1.0 / max(-refracted.y, 0.25));
+  // How deep the floor LOOKS (paint only: the physics and the island floors keep seabedDepth): a
+  // wide, gently shelving shallows round every island with sandbanks (shallower, paler) and
+  // channels (deeper, bluer) wandering through it, so the floor shows far beyond the beach and
+  // falls into deep blue only a few hundred metres out.
+  float bank = noise(q * 0.011 + 3.0) * 0.65 + noise(q * 0.04 - 7.0) * 0.35;
+  float lookDepth = (3.0 + 16.0 * smoothstep(20.0, 320.0, d) + 40.0 * smoothstep(320.0, 950.0, d)) * mix(0.4, 1.3, bank);
+  float seeDepth = mix(depth, lookDepth, smoothstep(10.0, 40.0, d));
+  float path = seeDepth * 1.35 * (1.0 + 1.0 / max(-refracted.y, 0.25));
   vec3 transmit = exp(-absorb * path);
   // The sea floor where it can be seen: sand with ripples and darker weed patches, seen through
   // the surface (shifted by the refracted view), lit by caustics in the shallows.
   vec3 floorColor = vec3(0.0);
   float seeFloor = transmit.g;
   if (seeFloor > 0.004) {
-    vec2 b = q + refracted.xz / max(-refracted.y, 0.3) * depth;
+    vec2 b = q + refracted.xz / max(-refracted.y, 0.3) * seeDepth;
     float sandRipple = noise(vec2(dot(b, toSea) * 1.7, dot(b, vec2(-toSea.y, toSea.x)) * 0.25)) - 0.5;
-    float weed = smoothstep(0.62, 0.8, noise(b * 0.09 + 11.0)) * smoothstep(3.0, 8.0, depth);
+    float weed = smoothstep(0.62, 0.8, noise(b * 0.09 + 11.0)) * smoothstep(3.0, 8.0, seeDepth);
     vec3 bed = toLinear(sand) * (0.92 + 0.22 * sandRipple);
     bed = mix(bed, toLinear(sand) * vec3(0.32, 0.42, 0.26), weed * 0.7);
-    float causticWeight = smoothstep(0.05, 0.9, depth) * (1.0 - smoothstep(3.0, 8.0, depth)) * (1.0 - smoothstep(14.0, 70.0, dist));
+    // Reef: rock and coral on the banks, where the floor is shallow and away from the beach.
+    float reef = smoothstep(0.64, 0.76, noise(b * 0.03 + 21.0)) * (1.0 - smoothstep(9.0, 17.0, seeDepth)) * smoothstep(12.0, 40.0, d);
+    float coral = noise(b * 0.35 + 4.0);
+    bed = mix(bed, mix(toLinear(vec3(0.2, 0.19, 0.18)), toLinear(vec3(0.85, 0.36, 0.3)), smoothstep(0.55, 0.75, coral)) * 0.8, reef * 0.85);
+    // Light on the floor: a web of caustics over the whole of the shallows, in sight out to a long way.
+    float causticWeight = smoothstep(0.05, 0.9, seeDepth) * (1.0 - smoothstep(4.0, 17.0, seeDepth)) * (1.0 - smoothstep(30.0, 170.0, dist));
     // The web is only worth its cost where it can be seen.
     float caustic = causticWeight > 0.002 ? caustics(b * 1.2, time) * causticWeight : 0.0;
-    floorColor = bed * (incident * 0.42 + sunColor() * SUN_RADIANCE * nl * sunlit * caustic * 0.3);
+    // Slow broad shafts of light (a stretched noise drifting along the surface) over the caustics.
+    float shaft = 0.8 + 0.5 * noise(vec2(dot(b, vec2(0.7, 0.3)) * 0.05 + time * 0.05, dot(b, vec2(-0.3, 0.7)) * 0.012));
+    floorColor = bed * (incident * 0.42 * shaft + sunColor() * SUN_RADIANCE * nl * sunlit * caustic * 0.38);
   }
   // The water's own hue: deep blue offshore, drifting toward a greener teal in wide patches,
   // and turquoise over the sand shelf where the bottom reflects light back up.
   float hue = noise(q * 0.0045 + 5.0) * 0.6 + noise(q * 0.012 - time * 0.003) * 0.4;
   vec3 open = mix(toLinear(deep), toLinear(deepTeal), smoothstep(0.32, 0.72, hue));
-  vec3 scatterColor = mix(open, toLinear(shallow), (1.0 - smoothstep(3.0, 13.0, depth)) * 0.85);
+  vec3 scatterColor = mix(open, toLinear(shallow), (1.0 - smoothstep(4.0, 22.0, seeDepth)) * 0.85);
   // Sun on the faces: a face tilted toward the sun is lit, the one behind it is in its own shade, a
   // trough is darker (less sky, a deeper blue) and a crest is paler. Open sea only.
   float faceSun = clamp(-dot(bigSlope, sunDir.xz) / max(length(sunDir.xz), 0.2) * ${SWELL_SHADING.face.toFixed(2)}, -1.0, 1.0);
