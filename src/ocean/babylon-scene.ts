@@ -45,6 +45,7 @@ import { placeVendors } from "./market-vendor.ts";
 import { WakeMesh } from "./wake-mesh.ts";
 import { WakeTrail } from "./wake-trail.ts";
 import { islands, lighthouseIslands, type Boat, type Pose } from "./model.ts";
+import { FishSchools } from "./fish-schools.ts";
 import { FishingGear, type GearInput } from "./fishing-gear.ts";
 import { paletteIndex } from "./palette.ts";
 import { RodVisual } from "./rod-visual.ts";
@@ -142,6 +143,7 @@ export class OceanScene {
   private lost = false;
   private gear: FishingGear | undefined;
   private readonly seaProps: SeaProps;
+  private readonly schools: FishSchools;
   /** The water the boats stir, simulated: the sea draws it and the hulls float on it (ripple-sim.ts). */
   private readonly sim = new RippleSim();
   private readonly simPixels = new Float32Array(SIM_N * SIM_N * 4);
@@ -252,6 +254,7 @@ export class OceanScene {
     this.markets = MARKETS.map((market) => createMarket(this.scene, market));
     this.vendors = this.placeVendorCats();
     this.seaProps = new SeaProps(this.scene);
+    this.schools = new FishSchools(this.scene);
     this.observer = new ResizeObserver(() => this.engine.resize());
     this.observer.observe(host);
     this.engine.resize();
@@ -616,6 +619,10 @@ export class OceanScene {
     else if (tip && this.gear?.holding) this.gear.updateHeld(tip, this.clock);
     else this.gear?.hide();
     this.seaProps.update(this.clock);
+    this.schools.update(this.clock, this.camera.position, [
+      ...(this.self ? [this.self.physics.state()] : []),
+      ...this.fleet.values(),
+    ]);
     // Every boat, yours and the others', pushes on the water (ripple-sim.ts), which then spreads,
     // breaks and fades by itself.
     const hulls: Hull[] = [];
@@ -889,6 +896,7 @@ export class OceanScene {
     this.gear?.dispose();
     this.clearWater?.dispose();
     this.seaProps.dispose();
+    this.schools.dispose();
     for (const market of this.markets) market.dispose();
     for (const id of [...this.trails.keys()]) this.forgetTrail(id);
     this.self?.craft.label.remove();

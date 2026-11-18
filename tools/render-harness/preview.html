@@ -16,6 +16,7 @@
         Engine,
         Scene,
         Vector3,
+        Matrix,
         FreeCamera,
         Color4,
       } from "@babylonjs/core";
@@ -38,6 +39,8 @@
       import { MARKETS } from "/src/ocean/market.ts";
       import { createMarket } from "/src/ocean/market-visual.ts";
       import { SeaProps } from "/src/ocean/sea-props.ts";
+      import { FishSchools } from "/src/ocean/fish-schools.ts";
+      import { createClearWater } from "/src/ocean/clear-water-pass.ts";
       import { CHASE } from "/src/ocean/chase-camera.ts";
       import { waveHeight } from "/src/ocean/waves.ts";
       import { RippleSim, SIM_N } from "/src/ocean/ripple-sim.ts";
@@ -121,6 +124,11 @@
       }
       MARKETS.forEach((m) => createMarket(scene, m));
       const props = new SeaProps(scene);
+      // &fish=0 leaves out the fish schools and the clear-water layer they are seen through.
+      const schools =
+        q.get("fish") !== "0" ? new FishSchools(scene) : undefined;
+      const clear = schools ? createClearWater(scene, water) : undefined;
+      clear?.setEnabled(true);
       const tpl = createBoatTemplate(scene, boatPalettes[1], "b");
       tpl.isVisible = false;
       const isl = islands[idx];
@@ -299,6 +307,8 @@
         water.update(cam.position.x, cam.position.z, T, boatList);
         sky.update(cam.position.x, cam.position.y, cam.position.z, T);
         props.update(T);
+        schools?.update(T, cam.position, boatList);
+        clear?.update(T, cam.position);
         for (const e of extras) e.update?.(T);
       };
       tick();
@@ -308,6 +318,30 @@
         setTimeout(() => {
           tick();
           scene.render();
+          if (schools && q.get("fishcam")) {
+            // &fishcam=<metres>: look at the nearest school from that far, a little above the water.
+            const fishes = scene.meshes.filter(
+              (m) =>
+                m.name.startsWith("school-fish-") &&
+                m.position.y > -10 &&
+                m.getClassName() === "InstancedMesh",
+            );
+            fishes.sort(
+              (a, b) =>
+                (a.position.x - cam.position.x) ** 2 +
+                (a.position.z - cam.position.z) ** 2 -
+                ((b.position.x - cam.position.x) ** 2 +
+                  (b.position.z - cam.position.z) ** 2),
+            );
+            const f = fishes[0];
+            if (f) {
+              const d = +q.get("fishcam");
+              cam.position.set(f.position.x + d, 2.2, f.position.z + d * 0.4);
+              cam.setTarget(new Vector3(f.position.x, -1, f.position.z));
+              tick();
+              scene.render();
+            }
+          }
           window.__done = { mode };
         }, 800);
       });

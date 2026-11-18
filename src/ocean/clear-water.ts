@@ -170,6 +170,7 @@ export function underwaterReach(name: string): number {
 export function underwaterCapable(name: string): boolean {
   if (name === "gear-under-line") return true;
   if (name.startsWith("hooked-fish")) return true;
+  if (/^school-fish-\d/.test(name)) return true;
   if (name.startsWith("boat-model-") && !name.endsWith("-lamp-glow"))
     return true;
   if (/^boat-\d+$/.test(name)) return true;
