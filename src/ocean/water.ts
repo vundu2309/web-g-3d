@@ -179,6 +179,34 @@ float caustics(vec2 p, float t) {
   float wb = 1.0 - smoothstep(0.0, 0.14, b.y - b.x);
   return wa * 0.35 + wb * 0.25 + wa * wb * 1.2;
 }
+// Shoals: the shadows of small fish schools swimming round the shallows. The floor is cut into
+// 14 m cells, about four in five hold a school of 7 fish circling a point that itself orbits the
+// cell's middle (the school never leaves its cell, so one cell is read per pixel); each fish is a
+// small ellipse along its heading with a tail that wiggles. Returns how dark the shadow is, 0 to 1.
+float shoals(vec2 p, float t, float blur) {
+  vec2 cell = floor(p / 14.0);
+  float h0 = hash(cell + 71.3);
+  if (h0 > 0.8) return 0.0;
+  float turn = h0 > 0.4 ? 1.0 : -1.0;
+  float a = t * (0.22 + 0.2 * hash(cell + 3.1)) * turn + h0 * 40.0;
+  vec2 centre = (cell + 0.5) * 14.0 + 2.8 * vec2(cos(a), sin(a));
+  vec2 dir = turn * vec2(-sin(a), cos(a));
+  vec2 side = vec2(-dir.y, dir.x);
+  float dark = 0.0;
+  for (int i = 0; i < 7; i++) {
+    float fi = float(i);
+    vec2 hh = vec2(hash(cell + fi * 5.3 + 11.0), hash(cell + fi * 3.7 + 29.0));
+    float rr = 0.4 + 1.8 * hh.x;
+    float aa = hh.y * 6.2831853 + t * (0.15 + 0.1 * hh.x) * turn;
+    vec2 at = centre + (dir * cos(aa) + side * sin(aa)) * rr;
+    vec2 r = p - at;
+    float u = dot(r, dir), v = dot(r, side);
+    v += 0.07 * sin(u * 7.0 - t * 8.0 + fi) * smoothstep(0.1, -0.5, u);
+    float e = (u * u) / (0.85 * 0.85) + (v * v) / (0.3 * 0.3);
+    dark = max(dark, 1.0 - smoothstep(0.55, 1.0 + blur, e));
+  }
+  return dark;
+}
 // One layer of the ripple map (ripples.ts): the map's +u axis turned to \`axis\` in the world,
 // one tile every \`tile\` metres, drifting, and its ripples moved along their own directions by
 // the phase. Returns the slope in the world, one standard deviation being about 1 / RANGE.
@@ -473,6 +501,10 @@ void main() {
     float reef = smoothstep(0.64, 0.76, noise(b * 0.03 + 21.0)) * (1.0 - smoothstep(9.0, 17.0, seeDepth)) * smoothstep(12.0, 40.0, d);
     float coral = noise(b * 0.35 + 4.0);
     bed = mix(bed, mix(toLinear(vec3(0.2, 0.19, 0.18)), toLinear(vec3(0.85, 0.36, 0.3)), smoothstep(0.55, 0.75, coral)) * 0.8, reef * 0.85);
+    // Shoals of small fish round the islands, as shadows on the floor (seen only in the shallows,
+    // not on the beach or far out), softer the deeper they are.
+    float shoalWeight = smoothstep(6.0, 18.0, d) * (1.0 - smoothstep(10.0, 17.0, seeDepth)) * (1.0 - smoothstep(60.0, 170.0, dist)) * smoothstep(0.3, 1.2, seeDepth);
+    if (shoalWeight > 0.01) bed *= 1.0 - 0.8 * shoalWeight * shoals(b, time, seeDepth * 0.25);
     // Light on the floor: a web of caustics over the whole of the shallows, in sight out to a long way.
     float causticWeight = smoothstep(0.05, 0.9, seeDepth) * (1.0 - smoothstep(4.0, 17.0, seeDepth)) * (1.0 - smoothstep(30.0, 170.0, dist));
     // The web is only worth its cost where it can be seen.
