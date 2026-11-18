@@ -9,7 +9,7 @@ import {
   createBoatPhysics,
   enableSeaPhysics,
 } from "../src/ocean/boat-physics.ts";
-import { humpAt, planingAt } from "../src/ocean/boat-physics.ts";
+import { SPEED_SCALE, humpAt, planingAt } from "../src/ocean/boat-physics.ts";
 import { SEA_BOUND } from "../src/ocean/model.ts";
 import { RippleSim } from "../src/ocean/ripple-sim.ts";
 import {
@@ -223,8 +223,8 @@ test("thrust builds speed gradually, top speed is bounded, and the boat coasts a
     `inertia: ${at[0.5].toFixed(2)} after 0.5 s vs ${at[11.9].toFixed(2)} at full speed`,
   );
   assert.ok(
-    at[11.9] > 10.5 && at[11.9] < 14,
-    `top speed ${at[11.9].toFixed(2)} m/s (it was 8 before the boat was made faster)`,
+    at[11.9] > 10.5 * SPEED_SCALE && at[11.9] < 14 * SPEED_SCALE,
+    `top speed ${at[11.9].toFixed(2)} m/s (it was 8, then 12, before the boat was made 1.5 times faster)`,
   );
   assert.ok(
     at[13] > 0.35 * at[11.9] && at[13] < at[11.9],
@@ -417,14 +417,17 @@ test("the start heading points the bow where the movement model says it does", (
 
 test("the hull parts the water: the bow climbs its own wave at the hump and the boat rides up when it planes", () => {
   // The two curves: a hump of wave-making drag around 7 m/s, planing from 6 to 10.5 m/s.
-  assert.ok(humpAt(7) > 0.99 && humpAt(2) < 0.05 && humpAt(12.5) < 0.05);
+  const K = SPEED_SCALE; // every speed of the hull is scaled (boat-physics.ts)
+  assert.ok(
+    humpAt(7 * K) > 0.99 && humpAt(2 * K) < 0.05 && humpAt(12.5 * K) < 0.05,
+  );
   let last = -1;
-  for (let v = 0; v <= 14; v += 0.5) {
+  for (let v = 0; v <= 14 * K; v += 0.5) {
     assert.ok(planingAt(v) >= last);
     last = planingAt(v);
   }
-  assert.equal(planingAt(3), 0);
-  assert.equal(planingAt(12), 1);
+  assert.equal(planingAt(3 * K), 0);
+  assert.equal(planingAt(12 * K), 1);
   // In the water: pitch up while climbing the hump, level once planing, and riding higher.
   const w = world();
   let bowUp = 0;
@@ -679,6 +682,9 @@ test("a boat held in a full-lock turn is not shoved sideways by the waves", () =
     },
   );
   w.dispose();
-  assert.ok(sideMax < 1.8, `slide up to ${sideMax.toFixed(2)} m/s across`);
+  assert.ok(
+    sideMax < 1.8 * SPEED_SCALE,
+    `slide up to ${sideMax.toFixed(2)} m/s across`,
+  );
   assert.ok(along > 10, `still cruises at ${along.toFixed(1)} m/s`);
 });

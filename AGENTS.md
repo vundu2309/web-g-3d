@@ -13,6 +13,7 @@ Vercel (frontend/PWA), Render (API) and Supabase (Auth/PostgreSQL), see [infrast
 - Start here, `package.json`, and relevant source files.
 - For the game, read [shared sea contract](docs/ocean.md).
 - For UI work, read [approved theme](docs/design/theme.md). **Phones in landscape are the primary target**, not desktop. Check 844×390, 932×430 and compact 667×375 first, portrait fallback second, desktop last.
+- To run the game locally (worktree, `.env.local`, local API), read [local setup](docs/local-setup.md).
 - Read [architecture](docs/architecture.md) for ownership and [workflow](docs/workflow.md) for checks and publication. For parallel agents see [agent briefs](docs/agent-briefs.md) ('Standard start', 'Worktrees').
 - For installation/offline/update work, read [PWA contract](docs/pwa.md). Keep the service worker scoped to the app and static assets only; never cache auth or API calls or force reload active sessions. OS-level Android/iOS installation still needs real-device verification.
 - Source and executed tests take precedence over stale wiki prose. Record durable decisions in `docs/decisions/`, not conversation transcripts.

@@ -89,11 +89,14 @@ const SAMPLES = [-1, 1].flatMap((side) =>
 );
 const STIFFNESS = (HULL.mass * 9.81) / (SAMPLES.length * DRAFT); // N per metre submerged
 const HEAVE_DAMPING = 520; // N·s/m per sample
-export const THRUST = 6000;
+/** Every speed of the hull (thrust, top speed, the hump, planing) is scaled by this: 1.5 times the boat it was (user request). */
+export const SPEED_SCALE = 1.5;
+// A little more push than the scale alone (1.15): the quadratic drag slows the climb to the new top speed.
+export const THRUST = 6000 * SPEED_SCALE * 1.15;
 /** Nominal top speed with the hull planing (m/s); the real one comes out of the drag below. */
-export const TOP_SPEED = 12;
+export const TOP_SPEED = 12 * SPEED_SCALE;
 // With the planing drag cut below, this gives a top speed a little over TOP_SPEED.
-const C_FORWARD = THRUST / (12 * 12);
+const C_FORWARD = THRUST / (TOP_SPEED * TOP_SPEED);
 const C_SIDE = C_FORWARD * 13; // the keel resists sideslip far more than motion ahead
 const C_LINEAR = 60;
 
@@ -102,12 +105,12 @@ const C_LINEAR = 60;
 // rides up on the water (planing): lighter, less wetted, less drag. All of it grows from
 // the speed along the keel, so a slow boat behaves as before.
 const WEIGHT = HULL.mass * 9.81;
-export const HUMP_SPEED = 7;
-const HUMP_WIDTH = 2.2;
-const WAVE_DRAG = 1100; // N at the peak of the hump
+export const HUMP_SPEED = 7 * SPEED_SCALE;
+const HUMP_WIDTH = 2.2 * SPEED_SCALE;
+const WAVE_DRAG = 1100 * SPEED_SCALE; // N at the peak of the hump
 const BOW_LIFT = 0.3 * WEIGHT; // N at the peak of the hump, at the bow
-const PLANE_FROM = 6;
-const PLANE_TO = 10.5;
+const PLANE_FROM = 6 * SPEED_SCALE;
+const PLANE_TO = 10.5 * SPEED_SCALE;
 const PLANE_LIFT = 0.22 * WEIGHT; // N, at full planing, at the centre
 const PLANE_DRAG_CUT = 0.15; // the share of forward drag that goes away at full planing
 const BANK = 2800; // N·m·s: how hard the hull leans into a turn at speed
@@ -318,7 +321,11 @@ export function createBoatPhysics(
     body.applyAngularImpulse(spin);
     // Leaning into the turn: a roll about the keel that grows with speed and rudder.
     const lean =
-      clamp(input.steer, -1, 1) * clamp(speed / 8, 0, 1) * wet * BANK * dt;
+      clamp(input.steer, -1, 1) *
+      clamp(speed / (8 * SPEED_SCALE), 0, 1) *
+      wet *
+      BANK *
+      dt;
     spin.set(forward.x * lean, 0, forward.z * lean);
     body.applyAngularImpulse(spin);
     // The edge of the sea: a damped zone that eases the boat to a stop without a rebound, then a

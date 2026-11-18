@@ -55,3 +55,5 @@ VIEW=844x390 EXTRA="&daytime=21.5&weather=rain" node tools/render-harness/shoot.
 - Do not edit source files while a Vite server is serving a browser test: Vite reloads the page and the test fails.
 - Delete the output folder when done; the images are not committed.
 - The browser tests of the game are separate: see `tests/*-browser.mjs` and `docs/agent-briefs.md`.
+
+`&fish=0` (page address) leaves out the fish schools and the clear-water layer they are seen through; `&fishcam=<metres>` puts the camera that far from the nearest fish, looking at it (`EXTRA="&fishcam=7" node scripts/shots.mjs ...`).
