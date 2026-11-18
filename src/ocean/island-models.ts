@@ -1,7 +1,15 @@
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import type { Scene } from "@babylonjs/core/scene";
+import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 import { loadMergedModel } from "./model-loader.ts";
+import { meshFrom } from "./mesh-parts.ts";
+import {
+  copyTriangles,
+  propDistances,
+  type PropDistances,
+} from "./prop-lod.ts";
+import { simplifyPart } from "./simplify.ts";
 import { layoutIsland, type KeepOut, type Spot } from "./island-layout.ts";
 import type { IslandVisual } from "./island-visual.ts";
 import { GANGWAY_LANDING } from "./market.ts";
@@ -37,13 +45,56 @@ const FILES = [
   "hut.glb",
 ] as const;
 
-/** How far from the camera each kind of prop is still drawn (m). */
-export const PROP_RANGE = {
-  palm: 260,
-  hut: 420,
-  rock: 180,
-  bush: 160,
-} as const;
+/** The distances of each prop source mesh (see prop-lod.ts), by mesh, for the fade and the tests. */
+const distancesOf = new WeakMap<Mesh, PropDistances>();
+export const propDistancesOf = (source: Mesh) => distancesOf.get(source);
+
+/**
+ * Gives a source mesh its levels of detail: the whole model up to `full`, a coarser copy to `mid`, a
+ * coarser one to `end`, then nothing (an instance follows its source mesh's levels, by its own
+ * distance from the camera). The copies are made from the model's own triangles (simplify.ts); the
+ * model is not changed. The prop fades out over the last part before `end` (prop-fade.ts), so the
+ * hiding level lies a little beyond it.
+ */
+export function addPropLevels(source: Mesh): void {
+  const bounds = source.getBoundingInfo().boundingBox.extendSize;
+  const size = Math.max(bounds.x, bounds.y, bounds.z) * 2;
+  const distances = propDistances(size);
+  const positions = source.getVerticesData(VertexBuffer.PositionKind);
+  const indices = source.getIndices();
+  const colors = source.getVerticesData(VertexBuffer.ColorKind);
+  const normals = source.getVerticesData(VertexBuffer.NormalKind);
+  if (positions && indices && colors) {
+    const whole = {
+      positions: Array.from(positions),
+      indices: Array.from(indices),
+      colors: Array.from(colors),
+      normals: normals ? Array.from(normals) : undefined,
+    };
+    const target = copyTriangles(indices.length / 3);
+    const copies = [target.mid, target.far].map((triangles, level) => {
+      const part = simplifyPart(whole, triangles);
+      const copy = meshFrom(
+        `${source.name}-lod${level + 1}`,
+        source.getScene(),
+        part.positions,
+        part.indices,
+        part.colors,
+        part.normals,
+      );
+      copy.material = source.material;
+      copy.useVertexColors = true;
+      copy.hasVertexAlpha = false;
+      copy.isVisible = false;
+      copy.isPickable = false;
+      return copy;
+    });
+    source.addLODLevel(distances.full, copies[0]!);
+    source.addLODLevel(distances.mid, copies[1]!);
+  }
+  source.addLODLevel(distances.end * 1.03, null);
+  distancesOf.set(source, distances);
+}
 
 /** Loads the ten models, each merged into one hidden source mesh. All or none. */
 export async function loadIslandModels(scene: Scene): Promise<IslandModels> {
@@ -68,14 +119,16 @@ export async function loadIslandModels(scene: Scene): Promise<IslandModels> {
     bushes: meshes.slice(6, 9),
     hut: meshes[9]!,
   };
-  // The islands are big and many: a prop is drawn only within its range of the camera (an
-  // instance follows its source mesh's level of detail; the null level hides it), farther out
-  // the island is its terrain, which the fog has already softened.
-  const hide = (mesh: Mesh, metres: number) => mesh.addLODLevel(metres, null);
-  for (const mesh of models.palms) hide(mesh, PROP_RANGE.palm);
-  for (const mesh of models.rocks) hide(mesh, PROP_RANGE.rock);
-  for (const mesh of models.bushes) hide(mesh, PROP_RANGE.bush);
-  hide(models.hut, PROP_RANGE.hut);
+  // The islands are big and many: a prop is drawn whole while it is big, as a coarser copy as it
+  // gets small and not at all once it is a few pixels or under the fog (prop-lod.ts), fading out
+  // before it goes.
+  for (const mesh of [
+    ...models.palms,
+    ...models.rocks,
+    ...models.bushes,
+    models.hut,
+  ])
+    addPropLevels(mesh);
   return models;
 }
 
@@ -87,6 +140,8 @@ export interface PlacedProps {
   /** Every hut placed (a village of several on a big island). */
   huts: number;
   instances: InstancedMesh[];
+  /** For each instance, the distance (m) at which it has faded out and is dropped (prop-lod.ts). */
+  ends: number[];
 }
 
 const placed = new WeakMap<IslandVisual, PlacedProps>();
@@ -141,6 +196,7 @@ export function placeIslandProps(
   visual.fallback?.dispose();
   visual.fallback = undefined;
   const instances: InstancedMesh[] = [];
+  const ends: number[] = [];
   const add = (source: Mesh, spot: Spot, name: string) => {
     const bottom = source.getBoundingInfo().boundingBox.minimum.y;
     const instance = source.createInstance(name);
@@ -151,6 +207,7 @@ export function placeIslandProps(
     instance.scaling.setAll(spot.scale);
     instance.freezeWorldMatrix();
     instances.push(instance);
+    ends.push(distancesOf.get(source)?.end ?? Infinity);
   };
   layout.palms.forEach((spot, i) =>
     add(models.palms[spot.variant]!, spot, `palm-${i}`),
@@ -169,6 +226,7 @@ export function placeIslandProps(
     hut: !!layout.hut,
     huts: layout.huts.length,
     instances,
+    ends,
   };
   placed.set(visual, result);
   return result;

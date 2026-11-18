@@ -28,6 +28,7 @@ import { loadIslandModels, placeIslandProps } from "./island-models.ts";
 import { islandSeed } from "./shore.ts";
 import { SeaProps } from "./sea-props.ts";
 import { Wildlife } from "./wildlife-scene.ts";
+import { PropFade } from "./prop-fade.ts";
 import { RippleSim, SIM_N, type Hull } from "./ripple-sim.ts";
 import { OrbitCamera } from "./orbit-camera.ts";
 import {
@@ -149,6 +150,7 @@ export class OceanScene {
   private readonly seabed: Seabed;
   private readonly schools: FishSchools;
   private readonly wildlife: Wildlife;
+  private readonly propFade: PropFade;
   /** The water the boats stir, simulated: the sea draws it and the hulls float on it (ripple-sim.ts). */
   private readonly sim = new RippleSim();
   private readonly simPixels = new Float32Array(SIM_N * SIM_N * 4);
@@ -262,6 +264,7 @@ export class OceanScene {
     this.seaProps = new SeaProps(this.scene);
     this.schools = new FishSchools(this.scene);
     this.wildlife = new Wildlife(this.scene);
+    this.propFade = new PropFade(this.scene);
     this.observer = new ResizeObserver(() => this.engine.resize());
     this.observer.observe(host);
     this.engine.resize();
@@ -426,7 +429,8 @@ export class OceanScene {
     try {
       const models = await loadIslandModels(this.scene);
       if (this.scene.isDisposed) return;
-      for (const visual of visuals) placeIslandProps(visual, models, MARKETS);
+      for (const visual of visuals)
+        this.propFade.add(placeIslandProps(visual, models, MARKETS));
     } catch (error) {
       if (!this.scene.isDisposed)
         console.warn(
@@ -631,6 +635,7 @@ export class OceanScene {
       ...this.fleet.values(),
     ]);
     this.wildlife.update(this.clock, this.camera.position);
+    this.propFade.update(this.camera.position);
     // Every boat, yours and the others', pushes on the water (ripple-sim.ts), which then spreads,
     // breaks and fades by itself.
     const hulls: Hull[] = [];
@@ -907,6 +912,7 @@ export class OceanScene {
     this.seabed.dispose();
     this.schools.dispose();
     this.wildlife.dispose();
+    this.propFade.dispose();
     for (const market of this.markets) market.dispose();
     for (const id of [...this.trails.keys()]) this.forgetTrail(id);
     this.self?.craft.label.remove();
