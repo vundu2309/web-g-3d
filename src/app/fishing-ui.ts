@@ -1,5 +1,6 @@
 import { createHaptics } from "./haptics";
 import { showFishThumb } from "./fish-thumb";
+import { createHubShell, type HubNav } from "./hub-shell";
 import {
   Angler,
   CHARGE_MS,
@@ -41,6 +42,8 @@ export interface FishingUiOptions {
   /** The store changed (a catch, a release): save it and update the counters. */
   setStock: (next: Inventory, caughtOne: boolean) => void;
   reduced: boolean;
+  /** The tabs of the hub shell: the way to the market, crew and settings pages. */
+  hubs: HubNav;
   /** A landed fish was kept (the market tells the server about it). */
   onKeep?: (fish: Catch) => void;
   /** Test only: runs the tug of war faster (1 is real time). */
@@ -458,11 +461,6 @@ export function createFishingUi(options: FishingUiOptions) {
   }
 
   function openDialog() {
-    dialog.addEventListener(
-      "close",
-      () => dialog.classList.remove("is-stock"),
-      { once: true },
-    );
     if (!dialog.open) dialog.showModal();
   }
 
@@ -470,17 +468,15 @@ export function createFishingUi(options: FishingUiOptions) {
   function showStock() {
     cancel();
     renderStock();
-    dialog.classList.add("is-stock");
     openDialog();
   }
 
   function renderStock() {
-    dialog.replaceChildren();
-    dialog.removeAttribute("aria-labelledby");
+    const page = createHubShell(dialog, options.hubs, "stock");
     dialog.setAttribute("aria-label", "Kho cá");
     const stock = options.stock();
     const held = heldSpecies(stock);
-    // Header: the title, how many are held, and the X that closes the store.
+    // Header: the title and how many are held; the shell's rail has the way out.
     const head = document.createElement("header");
     head.className = "fish-store-head";
     const title = document.createElement("h2");
@@ -488,14 +484,7 @@ export function createFishingUi(options: FishingUiOptions) {
     const total = document.createElement("span");
     total.className = "fish-total";
     total.textContent = `Trong kho: ${stockTotal(stock)} con`;
-    const close = document.createElement("button");
-    close.type = "button";
-    close.className = "fish-store-close";
-    close.setAttribute("aria-label", "Đóng");
-    close.innerHTML =
-      '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
-    close.addEventListener("click", () => dialog.close());
-    head.append(title, total, close);
+    head.append(title, total);
     const body = document.createElement("div");
     body.className = "fish-store-body";
     if (!held.length) {
@@ -541,7 +530,7 @@ export function createFishingUi(options: FishingUiOptions) {
       grid.append(cell);
     }
     if (held.length) body.append(grid);
-    dialog.append(head, body);
+    page.append(head, body);
   }
 
   return {

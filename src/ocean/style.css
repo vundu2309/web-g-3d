@@ -637,7 +637,8 @@
     transform: translateX(-3px);
   }
 }
-/* The fish store: a full-screen hub with an X, a grid of the species held and nothing else. */
+/* The in-game hubs (fish store, market, crew, settings) share one shell, src/app/hub-shell.ts:
+   a rail of tabs on the left and one page beside it, with only 8px between them and the screen. */
 .ocean-dialog.is-stock {
   max-width: none;
   max-height: none;
@@ -653,68 +654,141 @@
   flex-direction: column;
   border: 0;
   border-radius: 0;
-  background: linear-gradient(#e6f4ff, #bfe3ff);
-  padding: max(14px, var(--safe-top, env(safe-area-inset-top, 0px)))
-    max(18px, var(--safe-right, env(safe-area-inset-right, 0px)))
-    max(14px, var(--safe-bottom, env(safe-area-inset-bottom, 0px)))
-    max(18px, var(--safe-left, env(safe-area-inset-left, 0px)));
+  background: #153b80b3;
+  padding: max(8px, var(--safe-top, env(safe-area-inset-top, 0px)))
+    max(8px, var(--safe-right, env(safe-area-inset-right, 0px)))
+    max(8px, var(--safe-bottom, env(safe-area-inset-bottom, 0px)))
+    max(8px, var(--safe-left, env(safe-area-inset-left, 0px)));
+}
+.hub-shell {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 8px;
+}
+.hub-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 18px;
+  background: #153b80;
+  overflow-y: auto;
+}
+.hub-tab {
+  /* 56px when there is room, down to the 44px touch size on a short screen. */
+  flex: 0 1 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 44px;
+  padding: 4px 2px;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  color: #cfe1ff;
+  font:
+    700 12px/1.1 "Be Vietnam Pro",
+    sans-serif;
+  cursor: pointer;
+}
+.hub-tab svg {
+  width: 24px;
+  height: 24px;
+}
+.hub-tab[aria-current="page"] {
+  background: #ffd35a;
+  color: #153b80;
+  cursor: default;
+}
+.hub-tab:not([aria-current="page"]):active {
+  background: #ffffff26;
+}
+.hub-tab.is-close {
+  margin-top: auto;
+  background: #ffffff1f;
+}
+.ocean-dialog .hub-tab:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: -3px;
+}
+.ocean-dialog .hub-tab[aria-current="page"]:focus-visible {
+  outline-color: #153b80;
+}
+.hub-page {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 8px 10px;
+  border: 3px solid #153b80;
+  border-radius: 18px;
+  background: #f6fbff;
+}
+/* Portrait phones: the rail lies along the top and the tabs shrink to their icons and words. */
+@media (max-aspect-ratio: 1/1) {
+  .hub-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .hub-rail {
+    flex-direction: row;
+  }
+  .hub-tab {
+    flex: 1;
+    min-width: 44px;
+  }
+  .hub-tab.is-close {
+    margin-top: 0;
+    flex: none;
+    width: 64px;
+  }
 }
 .fish-store-head {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  min-height: 44px;
 }
 .fish-store-head h2 {
   margin: 0;
+  font-size: 24px;
+  line-height: 1;
 }
 .fish-store-head .fish-total {
   flex: 1;
   margin: 0;
+  font-size: 14px;
   font-weight: 700;
-}
-.fish-store-close {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  padding: 0;
-  border: 2.5px solid #153b80;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 3px 0 #153b80;
-  color: #153b80;
-  cursor: pointer;
-}
-.fish-store-close:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 #153b80;
+  text-align: right;
 }
 .fish-store-body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 14px 4px 8px;
+  padding: 6px 2px 4px;
 }
 .fish-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
-  gap: 14px 12px;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 12px 8px;
   margin: 0;
-  padding: 10px 8px 4px 0;
+  padding: 8px 10px 2px 2px;
 }
 .fish-cell {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 10px 6px 8px;
-  border: 3px solid #153b80;
-  border-radius: 16px;
+  gap: 2px;
+  padding: 6px 4px 6px;
+  border: 2px solid #153b8030;
+  border-radius: 14px;
   background: #fff;
-  box-shadow: 0 4px 0 #153b80;
 }
 .fish-cell-name {
   font-size: 13px;
@@ -722,16 +796,16 @@
 }
 .fish-count {
   position: absolute;
-  right: -8px;
-  top: -10px;
-  min-width: 34px;
-  height: 28px;
-  padding: 0 8px;
-  border: 3px solid #153b80;
-  border-radius: 14px;
+  right: -6px;
+  top: -8px;
+  min-width: 30px;
+  height: 24px;
+  padding: 0 6px;
+  border: 2.5px solid #153b80;
+  border-radius: 12px;
   background: #ffd35a;
   font:
-    900 15px/22px "Baloo 2",
+    900 14px/19px "Baloo 2",
     sans-serif;
   text-align: center;
 }
@@ -750,7 +824,7 @@
   min-height: 44px;
   padding: 0;
   border: 2px solid #153b80;
-  border-radius: 14px;
+  border-radius: 12px;
   background: #fff;
   color: #153b80;
   cursor: pointer;
@@ -795,12 +869,12 @@
 }
 .market-vendor {
   flex: none;
-  margin: 2px 0 0;
+  margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font:
-    700 14px/1.3 "Baloo 2",
+    700 13px/1.3 "Baloo 2",
     sans-serif;
   color: #335a99;
 }
@@ -808,6 +882,7 @@
   flex: 1;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
   margin: 0;
   font:
@@ -824,11 +899,11 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-width: 96px;
+  min-width: 88px;
   min-height: 44px;
-  padding: 0 12px;
+  padding: 0 10px;
   border: 2.5px solid #153b80;
-  border-radius: 14px;
+  border-radius: 12px;
   background: #ffd35a;
   box-shadow: 0 3px 0 #153b80;
   color: #153b80;
@@ -844,24 +919,73 @@
 .market-foot {
   flex: none;
   display: flex;
-  justify-content: center;
-  padding-top: 8px;
+  justify-content: flex-end;
+  padding-top: 6px;
+}
+/* The market lists each kind as one row: picture, name and heaviest, then what it pays. */
+.is-market .fish-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
+  padding: 6px 2px 2px;
+  align-content: start;
+}
+.is-market .fish-cell {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "art name sell"
+    "art rec sell";
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 0;
+  min-height: 56px;
+  padding: 4px 6px;
+  text-align: left;
+}
+.is-market .fish-cell-art {
+  grid-area: art;
+}
+.is-market .fish-cell-art img {
+  max-width: 52px;
+}
+.is-market .fish-cell-name {
+  grid-area: name;
+  align-self: end;
+}
+.is-market .fish-cell-record {
+  grid-area: rec;
+  align-self: start;
+}
+.is-market .fish-count {
+  right: auto;
+  left: -4px;
+  top: -8px;
+}
+.is-market .fish-cell .market-sell {
+  grid-area: sell;
+}
+@media (max-aspect-ratio: 1/1) {
+  .is-market .fish-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .market-foot:empty {
   display: none;
 }
 .market-sell-all {
-  min-height: 48px;
+  min-height: 44px;
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
 .market-flash {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   font:
     900 18px/1.2 "Baloo 2",
     sans-serif;
   color: #1c7a3a;
 }
 .market-error {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   color: #b3261e;
   font-weight: 800;
 }
@@ -1240,7 +1364,7 @@ dialog.account-screen :is(input, textarea) {
 .fish-cell-art img {
   display: block;
   width: 100%;
-  max-width: 130px;
+  max-width: 76px;
   height: auto;
   -webkit-user-drag: none;
 }
@@ -1348,64 +1472,61 @@ dialog.account-screen :is(input, textarea) {
 }
 
 /* The crew list: one rounded row for each boat in the sea, with its colour and what it is doing. */
-.ocean-dialog.is-crew {
-  width: min(420px, calc(100vw - 32px));
-  padding: 16px 16px 14px;
-}
+/* One row for each boat in the sea, with its colour and what it is doing (the Thủy thủ page). */
 .crew-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 .crew-head h2 {
   flex: 1;
   margin: 0;
 }
 .crew-count {
-  min-width: 34px;
-  height: 30px;
-  padding: 0 10px;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 8px;
   box-sizing: border-box;
-  border: 3px solid #153b80;
-  border-radius: 15px;
+  border: 2.5px solid #153b80;
+  border-radius: 13px;
   background: #ffd35a;
   font:
-    900 16px/24px "Baloo 2",
+    900 15px/21px "Baloo 2",
     sans-serif;
   text-align: center;
 }
 .crew-list {
   list-style: none;
   margin: 0;
-  padding: 2px 4px 6px 0;
+  padding: 4px 2px;
   display: grid;
-  /* A long name must shrink with an ellipsis, not stretch the column past the box. */
-  grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
-  max-height: calc(100dvh - 150px);
-  overflow-y: auto;
+  /* A long name must shrink with an ellipsis, not stretch the column past the page. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 6px 10px;
+  align-content: start;
 }
 .crew-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 9px 12px;
-  border: 2.5px solid #153b80;
-  border-radius: 16px;
+  gap: 8px;
+  min-height: 48px;
+  padding: 4px 8px;
+  border: 2px solid #153b8030;
+  border-radius: 14px;
   background: #fff;
-  box-shadow: 0 3px 0 #153b80;
   line-height: 1.2 !important;
 }
 .crew-row.is-you {
   background: #fff6d6;
+  border-color: #ffd35a;
 }
 .crew-avatar {
   flex: none;
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 2.5px solid #153b80;
 }
@@ -1417,13 +1538,13 @@ dialog.account-screen :is(input, textarea) {
   gap: 2px;
 }
 .crew-info strong {
-  font-size: 16px;
+  font-size: 15px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .crew-info small {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: #385b8d;
 }
@@ -1443,7 +1564,7 @@ dialog.account-screen :is(input, textarea) {
   background: #e9573f;
 }
 .crew-you {
-  padding: 3px 12px;
+  padding: 2px 10px;
   border: 2px solid #153b80;
   border-radius: 999px;
   background: #ffd35a;
@@ -1456,25 +1577,31 @@ dialog.account-screen :is(input, textarea) {
   color: #385b8d;
 }
 
-/* Settings: the crew list sits in the full-screen hub, with the way back at the foot. */
+/* Settings: two panels side by side (day and weather test, version) and the way back at the foot. */
 .crew-head h3 {
   flex: 1;
   margin: 0;
-  font-size: 18px;
+  font-size: 15px;
 }
-.settings-body .crew-list {
-  max-height: none;
-  overflow: visible;
+.settings-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 8px;
+  align-content: start;
+}
+@media (max-aspect-ratio: 1/1) {
+  .settings-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .settings-foot {
   flex: none;
   display: flex;
-  justify-content: center;
-  padding-top: 10px;
+  justify-content: flex-end;
+  padding-top: 6px;
 }
 .settings-leave {
-  min-width: 200px;
-  min-height: 48px;
+  min-height: 44px;
 }
 .sr-only {
   position: absolute;
@@ -1493,13 +1620,13 @@ dialog.account-screen :is(input, textarea) {
 .settings-leave {
   background: #fff;
   border: 3px solid #153b80;
-  border-radius: 18px;
-  box-shadow: 0 4px 0 #153b80;
+  border-radius: 14px;
+  box-shadow: 0 3px 0 #153b80;
   color: #153b80;
   font:
-    800 18px/1 "Baloo 2",
+    800 16px/1 "Baloo 2",
     sans-serif;
-  padding: 10px 22px;
+  padding: 6px 20px;
   cursor: pointer;
 }
 .settings-leave:active {
@@ -1509,9 +1636,11 @@ dialog.account-screen :is(input, textarea) {
 
 /* Settings: which version runs, and a button to look for a newer one. */
 .update-card {
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 3px solid #153b8022;
+  align-self: start;
+  padding: 8px 10px;
+  border: 2px solid #153b8030;
+  border-radius: 14px;
+  background: #fff;
 }
 .update-version {
   font-family: ui-monospace, monospace;
@@ -1519,23 +1648,23 @@ dialog.account-screen :is(input, textarea) {
   letter-spacing: 0.04em;
 }
 .update-note {
-  margin: 0 0 12px;
-  font-size: 15px;
+  margin: 0 0 8px;
+  font-size: 13px;
   line-height: 1.35;
   color: #385b8d;
 }
 .settings-update {
-  min-width: 200px;
-  min-height: 48px;
+  width: 100%;
+  min-height: 44px;
   background: #fff;
   border: 3px solid #153b80;
-  border-radius: 18px;
-  box-shadow: 0 4px 0 #153b80;
+  border-radius: 14px;
+  box-shadow: 0 3px 0 #153b80;
   color: #153b80;
   font:
-    800 18px/1 "Baloo 2",
+    800 16px/1 "Baloo 2",
     sans-serif;
-  padding: 10px 22px;
+  padding: 6px 14px;
   cursor: pointer;
 }
 .settings-update.is-ready {
@@ -1552,21 +1681,22 @@ dialog.account-screen :is(input, textarea) {
 
 /* Settings: the day/night and weather test card (this device only). */
 .weather-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 10px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0 0 6px;
 }
 .weather-chip {
   min-height: 44px;
-  padding: 8px 14px;
+  padding: 4px 2px;
+  white-space: nowrap;
   background: #fff;
   border: 3px solid #153b80;
-  border-radius: 16px;
+  border-radius: 12px;
   box-shadow: 0 3px 0 #153b80;
   color: #153b80;
   font:
-    800 16px/1 "Baloo 2",
+    800 13px/1 "Baloo 2",
     sans-serif;
   cursor: pointer;
 }
@@ -1578,5 +1708,5 @@ dialog.account-screen :is(input, textarea) {
   box-shadow: 0 1px 0 #153b80;
 }
 .weather-chip.is-reset {
-  min-width: 200px;
+  width: 100%;
 }

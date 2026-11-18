@@ -24,6 +24,7 @@ import {
   type EconomyApi,
 } from "../platform/economy";
 import { mountHubArt } from "../ui/hub-canvas";
+import { createHubShell, type HubNav } from "./hub-shell";
 import { CHROME_COLORS, setChromeColor } from "./chrome-color";
 import { createMinimap } from "./minimap";
 import { hullCss } from "../ocean/palette";
@@ -217,6 +218,18 @@ export function startOcean(
     fishingUi.cancel();
     pose = { ...pose, fishing: false };
   }
+  // The rail of the hub shell: one tap goes from the fish store to the market, crew or settings.
+  const hubNav: HubNav = {
+    available: (id) => id !== "market" || marketUi.available,
+    go(id) {
+      keys.clear();
+      releaseStick();
+      if (id === "stock") fishingUi.showStock();
+      else if (id === "market") void marketUi.openNearest();
+      else if (id === "crew") showCrew();
+      else showSettings();
+    },
+  };
   const fishingUi = createFishingUi({
     root,
     button: fishButton,
@@ -233,6 +246,7 @@ export function startOcean(
       persist();
     },
     reduced,
+    hubs: hubNav,
     onKeep: (fish) => marketUi.recordCatch(fish),
   });
   // The fish markets: a Bán button near a pier and the hub it opens (server economy only).
@@ -253,6 +267,7 @@ export function startOcean(
       releaseStick();
       fishingUi.cancel();
     },
+    hubs: hubNav,
   });
   // Other boats are drawn slightly in the past, interpolated between received samples,
   // so they glide at any publish rate instead of jumping when a packet arrives.
@@ -383,20 +398,13 @@ export function startOcean(
     if (kind === "catch") fishingUi.showStock();
   }
 
-  /**
-   * Settings: everything that is not part of playing. The boats in the sea (who is online and
-   * what they are doing) and the way back to the harbor live here, so the sea's screen has only
-   * what the game needs: the stick, the rod, the fish store, the market and the map.
-   */
-  function showSettings() {
+  /** Crew: the boats in the sea, who is online and what they are doing. */
+  function showCrew() {
     keys.clear();
     releaseStick();
     fishingUi.cancel();
-    dialog.replaceChildren();
-    dialog.classList.remove("is-crew");
-    dialog.classList.add("is-stock", "is-settings");
-    dialog.removeAttribute("aria-labelledby");
-    dialog.setAttribute("aria-label", "Cài đặt");
+    const page = createHubShell(dialog, hubNav, "crew");
+    dialog.setAttribute("aria-label", "Thủy thủ");
     const here = visibleBoats().map((boat) => ({
       boat,
       you: boat.uid === connection?.uid,
@@ -406,25 +414,14 @@ export function startOcean(
     const head = document.createElement("header");
     head.className = "fish-store-head";
     const title = document.createElement("h2");
-    title.textContent = "Cài đặt";
-    const close = document.createElement("button");
-    close.type = "button";
-    close.className = "fish-store-close";
-    close.setAttribute("aria-label", "Đóng");
-    close.innerHTML =
-      '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
-    close.addEventListener("click", () => dialog.close());
-    head.append(title, close);
-    const body = document.createElement("div");
-    body.className = "fish-store-body settings-body";
-    const section = document.createElement("div");
-    section.className = "crew-head";
-    const sectionTitle = document.createElement("h3");
-    sectionTitle.textContent = "Thuyền trong kênh";
+    title.textContent = "Thủy thủ";
     const total = document.createElement("span");
     total.className = "crew-count";
     total.textContent = String(here.length);
-    section.append(sectionTitle, total);
+    total.setAttribute("aria-label", `${here.length} thuyền trong kênh`);
+    head.append(title, total);
+    const body = document.createElement("div");
+    body.className = "fish-store-body";
     const list = document.createElement("ul");
     list.className = "crew-list";
     for (const { boat, you, meters } of here) {
@@ -457,9 +454,30 @@ export function startOcean(
       }
       list.append(li);
     }
+    body.append(list);
+    page.append(head, body);
+    if (!dialog.open) dialog.showModal();
+  }
+
+  /**
+   * Settings: everything that is not part of playing. The way back to the harbor, the day and
+   * weather test and the version live here, so the sea's screen has only what the game needs:
+   * the stick, the rod, the fish store, the market and the map.
+   */
+  function showSettings() {
+    keys.clear();
+    releaseStick();
+    fishingUi.cancel();
+    const page = createHubShell(dialog, hubNav, "settings");
+    dialog.setAttribute("aria-label", "Cài đặt");
+    const head = document.createElement("header");
+    head.className = "fish-store-head";
+    const title = document.createElement("h2");
+    title.textContent = "Cài đặt";
+    head.append(title);
+    const body = document.createElement("div");
+    body.className = "fish-store-body settings-body";
     body.append(
-      section,
-      list,
       createWeatherTestSection(),
       createUpdateSection({ beforeApply: persist }),
     );
@@ -475,13 +493,8 @@ export function startOcean(
       back();
     });
     foot.append(leave);
-    dialog.append(head, body, foot);
-    dialog.addEventListener(
-      "close",
-      () => dialog.classList.remove("is-stock", "is-settings"),
-      { once: true },
-    );
-    dialog.showModal();
+    page.append(head, body, foot);
+    if (!dialog.open) dialog.showModal();
   }
   function visibleBoats() {
     return boats.filter(

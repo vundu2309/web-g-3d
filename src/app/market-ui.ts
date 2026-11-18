@@ -8,6 +8,7 @@ import {
   type SoldFish,
 } from "../platform/economy";
 import { showFishThumb } from "./fish-thumb";
+import { createHubShell, type HubNav } from "./hub-shell";
 
 /**
  * The fish market on the screen: a Bán button that appears when the boat is near a pier, and
@@ -25,6 +26,8 @@ export interface MarketUiOptions {
   setStock: (next: Inventory, caughtOne: boolean) => void;
   /** Called before the hub opens: let go of the stick and the line. */
   beforeOpen: () => void;
+  /** The tabs of the hub shell: the way to the fish store, crew and settings pages. */
+  hubs: HubNav;
 }
 
 const coins = (value: number) => value.toLocaleString("vi-VN");
@@ -82,21 +85,13 @@ export function createMarketUi(options: MarketUiOptions) {
   }
 
   function shell(market: Market) {
-    dialog.replaceChildren();
-    dialog.classList.add("is-stock", "is-market");
-    dialog.removeAttribute("aria-labelledby");
+    const page = createHubShell(dialog, options.hubs, "market");
     dialog.setAttribute("aria-label", market.name);
     const head = el("header", "fish-store-head");
     const title = el("h2", undefined, market.name);
     const wallet = el("span", "market-wallet");
     wallet.setAttribute("aria-live", "polite");
-    const close = el("button", "fish-store-close");
-    close.type = "button";
-    close.setAttribute("aria-label", "Đóng");
-    close.innerHTML =
-      '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
-    close.addEventListener("click", () => dialog.close());
-    head.append(title, wallet, close);
+    head.append(title, wallet);
     const body = el("div", "fish-store-body");
     const foot = el("footer", "market-foot");
     const vendor = el(
@@ -104,7 +99,7 @@ export function createMarketUi(options: MarketUiOptions) {
       "market-vendor",
       `${market.vendor.name}: “${market.vendor.greeting}”`,
     );
-    dialog.append(head, vendor, body, foot);
+    page.append(head, vendor, body, foot);
     return { wallet, body, foot };
   }
 
@@ -147,7 +142,7 @@ export function createMarketUi(options: MarketUiOptions) {
 
   /** Draws the hub for the current market; fetches the ledger from the server. */
   async function render(flash?: string, problem?: string) {
-    if (!open || !economy) return;
+    if (!open || !economy || dialog.dataset.hub !== "market") return;
     const { wallet, body, foot } = shell(open);
     showWallet(wallet);
     body.append(el("p", "fish-empty", "Đang mở chợ…"));
@@ -155,6 +150,7 @@ export function createMarketUi(options: MarketUiOptions) {
     try {
       state = await economy.state();
     } catch (error) {
+      if (dialog.dataset.hub !== "market") return;
       body.replaceChildren();
       body.append(el("p", "fish-empty market-error", failureText(error)));
       const retry = el("button", "button primary", "Thử lại");
@@ -163,6 +159,8 @@ export function createMarketUi(options: MarketUiOptions) {
       body.append(retry);
       return;
     }
+    // The player went to another tab while the ledger loaded: leave that page alone.
+    if (dialog.dataset.hub !== "market") return;
     balance = state.coins;
     ledgerNow = state.ledger;
     showWallet(wallet);
@@ -235,11 +233,12 @@ export function createMarketUi(options: MarketUiOptions) {
   return {
     /** Called every frame with the boat's position: shows the Bán button near a pier. */
     update(x: number, z: number, canOpen: boolean) {
-      const here =
-        economy && canOpen && !dialog.open ? marketAt(x, z) : undefined;
-      if (here?.id === near?.id && button.hidden === !here) return;
+      // `near` stays while a hub is open (the rail's Chợ tab needs it); only the button hides.
+      const here = economy && canOpen ? marketAt(x, z) : undefined;
+      const hidden = !here || dialog.open;
+      if (here?.id === near?.id && button.hidden === hidden) return;
       near = here;
-      button.hidden = !here;
+      button.hidden = hidden;
       if (here) button.setAttribute("aria-label", `Bán cá ở ${here.name}`);
     },
     /** The Bán button was pressed. */
@@ -247,14 +246,9 @@ export function createMarketUi(options: MarketUiOptions) {
       if (!economy || !near) return;
       open = near;
       options.beforeOpen();
-      dialog.addEventListener(
-        "close",
-        () => {
-          dialog.classList.remove("is-stock", "is-market");
-          open = undefined;
-        },
-        { once: true },
-      );
+      dialog.addEventListener("close", () => (open = undefined), {
+        once: true,
+      });
       if (!dialog.open) dialog.showModal();
       const { wallet } = shell(open);
       showWallet(wallet);
@@ -271,6 +265,10 @@ export function createMarketUi(options: MarketUiOptions) {
     },
     get enabled() {
       return !!economy;
+    },
+    /** A pier is in reach: the rail may offer the market tab. */
+    get available() {
+      return !!economy && !!near;
     },
   };
 }
