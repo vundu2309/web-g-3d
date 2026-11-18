@@ -7,6 +7,7 @@ import {
   SCHOOLS,
   scatterTarget,
   schoolPoses,
+  schoolCentre,
   schoolShore,
 } from "../src/ocean/fish-school-plan.ts";
 import { seabedDepth } from "../src/ocean/shore.ts";
@@ -21,7 +22,7 @@ test("every island has schools of small fish, the same on every run", () => {
 });
 
 test("schools swim in open water off the coast, never on the sand, over minutes", () => {
-  for (const school of SCHOOLS)
+  for (const school of SCHOOLS.filter((s) => !s.anchor))
     for (let t = 0; t < 1200; t += 20) {
       const d = schoolShore(school, t);
       assert.ok(
@@ -71,6 +72,15 @@ test("a boat scares a school away and a far boat does not", () => {
   assert.ok(push.x < 0, "away from the boat");
   boat.x = c.x + SCARE_RANGE + 30;
   assert.equal(scatterTarget(school, 10, [boat], { x: 0, z: 0 }).x, 0);
+});
+
+test("the harbour has schools within sight of where a player starts", () => {
+  const near = SCHOOLS.filter(
+    (s) =>
+      s.anchor &&
+      Math.hypot(schoolCentre(s, 5).x, schoolCentre(s, 5).z - 22) < 70,
+  );
+  assert.ok(near.length >= 3);
 });
 
 test("the fish are drawn on the clear-water layer", () => {

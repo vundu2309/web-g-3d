@@ -1,3 +1,4 @@
+import { HARBOR } from "./model.ts";
 import {
   coastAt,
   islandSeed,
@@ -18,6 +19,8 @@ import {
 /** Schools round each island, and fish in each school. */
 export const SCHOOLS_PER_ISLAND = 3;
 export const FISH_PER_SCHOOL = 12;
+/** Schools circling the harbour. */
+export const HARBOUR_SCHOOLS = 4;
 /** Metres off the coast the school swims (the middle of the range, and how far it drifts). */
 export const OFFSHORE = { min: 20, max: 44, drift: 7 };
 /** How fast a school's middle moves (m/s). */
@@ -27,6 +30,8 @@ export const SCARE_RANGE = 16;
 
 export interface School {
   island: number;
+  /** A school of the harbour: it circles a point in open water instead of an island's coast. */
+  anchor?: { x: number; z: number; radius: number };
   /** Which of the two looks (0 silver-blue, 1 yellow). */
   look: number;
   angle0: number;
@@ -84,6 +89,28 @@ export function makeSchools(): School[] {
       });
     }
   });
+  // The harbour has its own schools, so the first sea a player sees is not empty: the nearest
+  // island is hundreds of metres away and the water layer reaches 110 m.
+  const random = seeded(0x4a7b1);
+  for (let s = 0; s < HARBOUR_SCHOOLS; s++) {
+    const radius = 26 + s * 9;
+    schools.push({
+      island: -1,
+      anchor: { x: HARBOR.x, z: HARBOR.z + 8, radius },
+      look: s % 2,
+      angle0: random() * Math.PI * 2,
+      rate: ((s % 2 ? -1 : 1) * 1.1) / radius,
+      distance0: radius,
+      driftPhase: random() * Math.PI * 2,
+      fish: Array.from({ length: FISH_PER_SCHOOL }, () => ({
+        forward: (random() - 0.5) * 6,
+        right: (random() - 0.5) * 5,
+        depth: random(),
+        phase: random() * Math.PI * 2,
+        size: 0.8 + 0.4 * random(),
+      })),
+    });
+  }
   return schools;
 }
 
@@ -91,6 +118,15 @@ export const SCHOOLS: readonly School[] = makeSchools();
 
 /** The middle of a school at time `t`: world x, z and how far off the coast it is. */
 export function schoolCentre(school: School, t: number) {
+  if (school.anchor) {
+    const angle = school.angle0 + school.rate * t;
+    const r = school.anchor.radius + 3 * Math.sin(t * 0.06 + school.driftPhase);
+    return {
+      x: school.anchor.x + Math.cos(angle) * r,
+      z: school.anchor.z + Math.sin(angle) * r,
+      off: 40,
+    };
+  }
   const island = SHORE_ISLANDS[school.island]!;
   const angle = school.angle0 + school.rate * t;
   const off =
@@ -148,7 +184,7 @@ export function schoolPoses(
     const x = c.x + push.x + fx * wf + rx * wr;
     const z = c.z + push.z + fz * wf + rz * wr;
     // Fish keep clear of the sand: shallow where the shelf is thin, deeper (up to 2.4 m) otherwise.
-    const gap = Math.max(0.05, seabedDepth(c.off));
+    const gap = school.anchor ? 6 : Math.max(0.05, seabedDepth(c.off));
     const depth = Math.min(0.5 + 1.4 * fish.depth, gap * 0.55);
     const wobble = Math.sin(t * 6 + fish.phase * 3);
     const turn = 0.3 * Math.sin(t * 0.9 + fish.phase);
@@ -190,6 +226,7 @@ export function scatterTarget(
 
 /** How far (m) the water over a school's middle is from the coast, for tests and the island checks. */
 export function schoolShore(school: School, t: number) {
+  if (school.anchor) return Infinity;
   const c = schoolCentre(school, t);
   return shoreOf(school.island, c.x, c.z).distance;
 }
