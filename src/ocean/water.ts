@@ -475,15 +475,15 @@ void main() {
   float sunlit = 1.0 - ${SHADOW.sun.toFixed(2)} * shade;
   vec3 incident = skyIrradiance * 0.55 + sunColor() * SUN_RADIANCE * nl * 0.55 * sunlit + nightGlow;
   vec3 refracted = refract(-view, n, 0.75);
-  // The water is a little murky (1.7 x the clear-water path), so the sand fades to turquoise.
+  // The water is only a little murky (0.55 x the clear-water path), so the floor shows far down.
   // How deep the floor LOOKS (paint only: the physics and the island floors keep seabedDepth): a
   // wide, gently shelving shallows round every island with sandbanks (shallower, paler) and
   // channels (deeper, bluer) wandering through it, so the floor shows far beyond the beach and
   // falls into deep blue only a few hundred metres out.
   float bank = noise(q * 0.011 + 3.0) * 0.65 + noise(q * 0.04 - 7.0) * 0.35;
-  float lookDepth = (3.0 + 16.0 * smoothstep(20.0, 320.0, d) + 12.0 * smoothstep(320.0, 950.0, d)) * mix(0.4, 1.3, bank);
+  float lookDepth = seabedDepth(d) * mix(0.85, 1.15, bank);
   float seeDepth = mix(depth, lookDepth, smoothstep(10.0, 40.0, d));
-  float path = seeDepth * 0.8 * (1.0 + 1.0 / max(-refracted.y, 0.25));
+  float path = seeDepth * 0.55 * (1.0 + 1.0 / max(-refracted.y, 0.25));
   vec3 transmit = exp(-absorb * path);
   // The sea floor where it can be seen: sand with ripples and darker weed patches, seen through
   // the surface (shifted by the refracted view), lit by caustics in the shallows.

@@ -50,6 +50,13 @@ export const PAL = {
   light: { lamp: 0xffe28a },
   stone: { rock: 0x8d9298, dark: 0x757b83, moss: 0x6f9a58, night: 0x2b3a4a },
   sand: { wet: 0xc9b27b, dry: 0xf2dca2 },
+  /** The sea floor (seabed.ts): sand and silt, weed, and the coral heads. */
+  seabed: {
+    sand: 0xd8c38a,
+    silt: 0xa99567,
+    weed: [0x4f8f4a, 0x3f7d4a, 0x6aa04f],
+    coral: [0xe9745a, 0xf2a0b8, 0xf4a82e, 0xb48be0, 0xe8604f],
+  },
   plants: {
     grassLow: 0x7bbf6e,
     grassHigh: 0x4b9a5a,

@@ -26,7 +26,7 @@ const NEVER = new Set([
   "gear-shadow",
   "rain",
 ]);
-const NEVER_PREFIX = ["swash-", "gear-ring-", "beacon"];
+const NEVER_PREFIX = ["swash-", "gear-ring-", "beacon", "seabed-"];
 /** The material of the fish and the line while they are under the water (underwater.ts): they lie below y = 0. */
 export const UNDER_THE_SEA = "underwater-skin";
 

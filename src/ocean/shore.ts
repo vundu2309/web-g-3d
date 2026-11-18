@@ -151,17 +151,25 @@ export const coastDistance = (x: number, z: number) =>
   shoreField(x, z, 0, islands.length).distance;
 
 /**
+ * The open sea's floor: from 25 m off the coast it falls away smoothly, a further OPEN_FLOOR.depth
+ * metres by OPEN_FLOOR.to metres out (a smoothstep, so it meets the shelf without a kink and
+ * levels off into the deep floor). Its steepest slope is 1.5 x depth / (to - from) = 0.11 (a bit
+ * over 6 degrees): a gentle slope from the island all the way down.
+ */
+export const OPEN_FLOOR = { from: 25, to: 500, depth: 34 } as const;
+
+/**
  * Depth of the sea floor (m) at `distance` metres off the coast: the island's own gently
  * shelving sand first (`shelfDepth`, island-shape.ts: 0.75 m at 10 m out, 2 m at 25 m), then
- * the shelf falls away to about 12 m at 45 m out and the open sea floor beyond (about 46 m).
+ * the long slope of the open floor (about 5 m at 60 m out, 18 m at 200 m, 42 m from 500 m).
  */
 export function seabedDepth(distance: number): number {
   const d = Math.max(0, distance);
-  const step = (a: number, b: number) => {
-    const t = Math.min(1, Math.max(0, (d - a) / (b - a)));
-    return t * t * (3 - 2 * t);
-  };
-  return shelfDepth(d) + 12 * step(22, 62) + 26 * step(50, 170);
+  const t = Math.min(
+    1,
+    Math.max(0, (d - OPEN_FLOOR.from) / (OPEN_FLOOR.to - OPEN_FLOOR.from)),
+  );
+  return shelfDepth(d) + OPEN_FLOOR.depth * t * t * (3 - 2 * t);
 }
 
 // ----- Surf timing -----
@@ -304,7 +312,7 @@ float shoreNoise(vec2 p) {
 float seabedDepth(float distance) {
   float d = max(distance, 0.0);
   float raw = d * (${f(SHELF.slope)} + ${f(SHELF.curve)} * d);
-  return ${f(SHELF.cap)} * (1.0 - exp(-raw / ${f(SHELF.cap)})) + 12.0 * smoothstep(22.0, 62.0, d) + 26.0 * smoothstep(50.0, 170.0, d);
+  return ${f(SHELF.cap)} * (1.0 - exp(-raw / ${f(SHELF.cap)})) + ${f(OPEN_FLOOR.depth)} * smoothstep(${f(OPEN_FLOOR.from)}, ${f(OPEN_FLOOR.to)}, d);
 }
 // The sand's height (m) d metres inland of the coast, as island-shape.ts's beachRise.
 float beachRise(float d) {

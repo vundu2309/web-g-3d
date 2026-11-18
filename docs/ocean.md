@@ -62,18 +62,18 @@ While it fights, the fish is below the waterline and is seen through the sea (`s
 
 Every sea animal is a model from the Blender community (BlenderKit), one file per species: `public/models/fish-<species id>.glb`. They replaced the sixteen body plans built from code and recoloured per species (and the generator `tools/blender/fish.py`), see [decision 0013](decisions/0013-community-sea-models.md). The triangle count of each model is kept as it was downloaded; nothing was reduced.
 
-| Species (id) | Model | Author | Licence | Triangles | Longest side at mid weight |
-|---|---|---|---|---|---|
-| Cá madeka (`ca-madeka`) | Madeka fish | M X | royalty_free | 6,032 | 7 cm |
-| Cua biển (`cua-bien`) | Rocky shore crab | Joachim Bornemann | CC0 | 78,048 | 14 cm |
-| Sao biển (`sao-bien`) | Blue starfish rigged | Joachim Bornemann | CC0 | 10,732 | 14 cm |
-| Sứa (`sua`) | Glowing jellyfish | SaTales | royalty_free | 58,756 | 57 cm with tentacles (bell 25 cm) |
-| Cá hề (`ca-he`) | Fish Nemo | Michał Talaśka | royalty_free | 11,136 | 9 cm |
-| Cá ngựa (`ca-ngua`) | Tiger tail seahorse | Joachim Bornemann | royalty_free | 36,136 | 16 cm tall |
-| Rùa biển (`rua-bien`) | Brown turtle | Eliška Pantůčková | royalty_free | 17,512 (after its Subsurf modifier) | 80 cm |
-| Tôm hùm (`tom-hum`) | Blue Lobster | ImNoah | royalty_free | 10,214 | 40 cm |
-| Cá heo (`ca-heo`) | Dolphin in lowpoly style | Dr. Carrrven | royalty_free | 600 | 200 cm |
-| Cá mập (`ca-map`) | Shark Stylized Black -Rigged- Lowpoly | Garshasp khedri | royalty_free | 7,096 | 220 cm |
+| Species (id)            | Model                                 | Author            | Licence      | Triangles                           | Longest side at mid weight        |
+| ----------------------- | ------------------------------------- | ----------------- | ------------ | ----------------------------------- | --------------------------------- |
+| Cá madeka (`ca-madeka`) | Madeka fish                           | M X               | royalty_free | 6,032                               | 7 cm                              |
+| Cua biển (`cua-bien`)   | Rocky shore crab                      | Joachim Bornemann | CC0          | 78,048                              | 14 cm                             |
+| Sao biển (`sao-bien`)   | Blue starfish rigged                  | Joachim Bornemann | CC0          | 10,732                              | 14 cm                             |
+| Sứa (`sua`)             | Glowing jellyfish                     | SaTales           | royalty_free | 58,756                              | 57 cm with tentacles (bell 25 cm) |
+| Cá hề (`ca-he`)         | Fish Nemo                             | Michał Talaśka    | royalty_free | 11,136                              | 9 cm                              |
+| Cá ngựa (`ca-ngua`)     | Tiger tail seahorse                   | Joachim Bornemann | royalty_free | 36,136                              | 16 cm tall                        |
+| Rùa biển (`rua-bien`)   | Brown turtle                          | Eliška Pantůčková | royalty_free | 17,512 (after its Subsurf modifier) | 80 cm                             |
+| Tôm hùm (`tom-hum`)     | Blue Lobster                          | ImNoah            | royalty_free | 10,214                              | 40 cm                             |
+| Cá heo (`ca-heo`)       | Dolphin in lowpoly style              | Dr. Carrrven      | royalty_free | 600                                 | 200 cm                            |
+| Cá mập (`ca-map`)       | Shark Stylized Black -Rigged- Lowpoly | Garshasp khedri   | royalty_free | 7,096                               | 220 cm                            |
 
 BlenderKit's royalty_free licence allows commercial use but not reselling the model; the game serves these files publicly, so the licence terms still need the owner's own reading. Only the starfish and the crab are CC0. The dolphin download had no material at all, so its colours (blue-grey back, white belly) are painted by `sea_import.py`; the jellyfish takes its emission colours.
 
@@ -391,3 +391,14 @@ The wake is no longer drawn from a recorded path or a ring added by hand: it is 
 ### Hub shell
 
 All four in-game hubs (Kho cá, Chợ, Thủy thủ, Cài đặt) share one shell, `src/app/hub-shell.ts`: the dialog is full screen with an 8 px margin (plus the safe-area insets), a cobalt rail of tabs on the left (76 px, tabs 44 to 56 px high) and one page beside it (`.hub-page`, 8 px × 10 px padding). A tap on a rail tab changes hub inside the same dialog (`HubNav` in `app/ocean.ts`); the Chợ tab shows only near a pier with a server economy, and the `Đóng` tab (`.fish-store-close`) closes. The shell owns the dialog's hub classes (`is-stock`, `is-market`, `is-crew-hub`, `is-settings`, `data-hub`); each hub only fills the page with its header (`.fish-store-head`), body (`.fish-store-body`) and optional foot. On portrait the rail lies along the top. The market lists each kind as one row (picture, name, heaviest, price button); the page the player left is never redrawn by a late market answer (`dialog.dataset.hub` check). Chosen by the user from two mock-ups (the paper-and-rail "Sổ tay thuyền trưởng" over the glass "Bảng lái"), 2026-11-18. Seen in desktop-Chromium screenshots of the real CSS at 844×390 and 704×337 with sample data, not on a phone and not with the live game behind it.
+
+## The sea floor: real geometry for the whole sea
+
+Until now the floor was only paint in the water's shader. It is now geometry (`src/ocean/seabed.ts` the rules and data, `seabed-visual.ts` the meshes, `tests/seabed.test.mjs`), seen through the clear-water layer.
+
+- **Profile.** One depth for the whole sea, `seabedDepth(d)` (`shore.ts`, its GLSL twin in the shader, `tests/shore.test.mjs`): the island's own shelf at the sand, then from 25 m off the coast a smoothstep of 34 m more by 500 m out (`OPEN_FLOOR`): about 5 m at 60 m out, 18 m at 200 m, 42 m from 500 m, never steeper than 0.11 (a bit over 6 degrees). It was about 46 m by 170 m out before, steeper. The water's paint (`lookDepth` in `water.ts`) now uses the same depth (plus 15 % of slow variation) instead of its own invented one, so the real and painted floors meet.
+- **Meshes.** The sea is cut into 128 m tiles, one mesh each (`seabed-<x>-<z>`), with a grid as fine as the tile needs (6.4 m cells within 60 m of a coast, 12.8 m to 200 m, 25.6 m to 420 m) and one coarse mesh of 64 m cells (`seabed-far`) for the deep floor between them; a skirt hangs from each tile's edge so no crack shows where grids of different fineness meet; tiles wholly inland are skipped. 388 meshes, about 257 000 triangles, built in about 0.1 s at start-up (measured in Node).
+- **Relief and life.** Dunes tens of metres across, long swells of the floor in the deep, silt in the hollows, rocky outcrops, weed (and tufts of seagrass), coral heads, boulders: the patches fade out with depth because the grid under them gets coarser. About 700 coral heads, 1 500 weed tufts and 900 boulders stand within 90 m of the coasts. The floor never rises above -0.5 m past the beach (`SEABED_CEILING`): a keel and the troughs of the waves stay clear of it. It is not collision: a boat cannot run aground.
+- **Drawn only on the layer.** The tiles carry a layer mask the scene's own camera does not have, so the main pass does not draw them (the opaque sea would cover them), and the clear-water layer, whose list is chosen by name and does not look at the mask, draws those within 170 m (`CLEAR.reach`). When the layer is off (slow frames, no support) the floor is the water's paint alone, as before. The tiles are not mirrored (`reflection-model.ts`).
+- **Clearer water.** `CLEAR.murk` 2.4 to 1.3 and `CLEAR.see` 0.42 to 0.2 (a thing under the water is seen to about 8 to 12 m, was 2 to 4), and the paint's murk factor 0.8 to 0.55 (`tests/clear-water.test.mjs` moved with them).
+- **Not measured:** the cost on a phone (388 more meshes in the scene, the layer drawing about 12 tiles within reach); how the floor looks in the real game rather than the software render (the render harness shows the clearer water and no error; the tiles themselves were checked in Blender). Review file: the scene "Seabed" in Blender is built from `scratchpad/export-seabed.mjs` and `build_seabed.py` (not in the repository).

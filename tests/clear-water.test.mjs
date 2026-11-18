@@ -46,13 +46,13 @@ test("light that goes through the water loses red first, then green, and the mor
     assert.ok(r < last, "more water, less red");
     last = r;
   }
-  // At two metres down a white hull has lost nearly all its red and keeps most of its blue.
+  // At two metres down (the water is clearer now: murk 1.3) a white hull has lost most of its red and keeps most of its blue.
   const [r, g, b] = transmit(lightPath(2, 0.6), WATER_ABSORPTION);
-  assert.ok(r < 0.05, `red ${r}`);
-  assert.ok(g > 0.35 && b > 0.5, `green ${g}, blue ${b}`);
+  assert.ok(r < 0.12, `red ${r}`);
+  assert.ok(g > 0.5 && b > 0.6, `green ${g}, blue ${b}`);
 });
 
-test("a thing under the water is seen less the deeper it is, and about 2 to 4 m is the limit", () => {
+test("a thing under the water is seen less the deeper it is, and about 8 to 12 m is the limit", () => {
   assert.equal(sight(0), 1);
   let last = 1;
   for (let d = 0.1; d <= 6; d += 0.1) {
@@ -60,11 +60,16 @@ test("a thing under the water is seen less the deeper it is, and about 2 to 4 m 
     assert.ok(s < last, "deeper is dimmer");
     last = s;
   }
-  // A keel a metre down is clearly there; at four metres of vertical depth it is nearly gone.
+  // A keel a metre down is clearly there; the floor is still seen at four metres (the water is
+  // clearer than it was, so the real sea floor shows down to about ten metres) and nearly gone at twelve.
   assert.ok(shownAt(0.8, 0.7, 40) > 0.5, `keel ${shownAt(0.8, 0.7, 40)}`);
-  assert.ok(shownAt(4, 0.7, 40) < 0.2, `deep ${shownAt(4, 0.7, 40)}`);
+  assert.ok(
+    shownAt(4, 0.7, 40) > 0.25 && shownAt(4, 0.7, 40) < 0.5,
+    `deep ${shownAt(4, 0.7, 40)}`,
+  );
+  assert.ok(shownAt(12, 0.7, 40) < 0.1);
   // Nothing at all is left far below.
-  assert.ok(shownAt(12, 0.7, 40) < 0.01);
+  assert.ok(shownAt(30, 0.7, 40) < 0.01);
 });
 
 test("seen at a slant the path is longer, so a thing is fainter than straight below", () => {

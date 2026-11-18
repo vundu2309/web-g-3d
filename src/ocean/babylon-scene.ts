@@ -23,6 +23,7 @@ import {
 import { dressBoat, loadBoatModels, type BoatModels } from "./boat-model.ts";
 import { createHavok } from "./havok.ts";
 import { createIsland, type IslandVisual } from "./island-visual.ts";
+import { createSeabed, type Seabed } from "./seabed-visual.ts";
 import { loadIslandModels, placeIslandProps } from "./island-models.ts";
 import { islandSeed } from "./shore.ts";
 import { SeaProps } from "./sea-props.ts";
@@ -142,6 +143,8 @@ export class OceanScene {
   private lost = false;
   private gear: FishingGear | undefined;
   private readonly seaProps: SeaProps;
+  /** The sea floor round the islands, seen through the clear water (seabed.ts). */
+  private readonly seabed: Seabed;
   /** The water the boats stir, simulated: the sea draws it and the hulls float on it (ripple-sim.ts). */
   private readonly sim = new RippleSim();
   private readonly simPixels = new Float32Array(SIM_N * SIM_N * 4);
@@ -221,6 +224,7 @@ export class OceanScene {
       template.isVisible = false;
       return template;
     });
+    this.seabed = createSeabed(this.scene);
     const visuals = islands.map((island, index) => {
       const visual = createIsland(this.scene, {
         seed: islandSeed(index),
@@ -889,6 +893,7 @@ export class OceanScene {
     this.gear?.dispose();
     this.clearWater?.dispose();
     this.seaProps.dispose();
+    this.seabed.dispose();
     for (const market of this.markets) market.dispose();
     for (const id of [...this.trails.keys()]) this.forgetTrail(id);
     this.self?.craft.label.remove();

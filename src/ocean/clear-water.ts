@@ -39,13 +39,13 @@ export const CLEAR = {
   /** Water refracts: the ratio of the indices (air to water), as the sea's own `refract` uses. */
   eta: 0.75,
   /** The sea is murky: absorption works over this many times the clear-water path (the floor's own is 1.7; the objects' is higher so red is gone within a metre and they turn blue-green, as they must). */
-  murk: 2.4,
+  murk: 1.3,
   /** Sunlight reaches an object along a steeper, refracted ray: its path through the water is this many times the depth. */
   sunLeg: 1.4,
   /** A refracted ray never counts as flatter than this (cosine from the vertical): keeps the path finite at grazing views. */
   minDown: 0.3,
   /** How fast what lies under the water is lost to sight (1 / m, along the refracted ray) in deep water. */
-  see: 0.42,
+  see: 0.2,
   /** In the shallows the water is clearer: visibility is raised to this power (0.5 = twice as far). */
   shallowEase: 0.5,
   /** The shallows' clearer sight is applied only to what is already clearly seen: the faint rim of a shape stays faint (between these two sights it is blended in). */
@@ -63,7 +63,7 @@ export const CLEAR = {
   /** Nothing above this height is ever under the water: the layer's shader gives up on it at once. */
   top: MAX_WAVE_HEIGHT + 0.25,
   /** The layer's meshes farther than this from the camera are left out: a keel or a pile at that distance is seen at a grazing angle, where the mirror covers it. */
-  reach: 110,
+  reach: 170,
   /** A market pier is a 15,600 triangle mesh (stall, awning, sign) of which only the piles are under the water: it is drawn only this close. */
   marketReach: 70,
   /** The thin line under the water keeps at least this much sight so it can be followed down to the fish. */
@@ -177,6 +177,8 @@ export function underwaterCapable(name: string): boolean {
   if (name.startsWith("market-") && !name.startsWith("market-sign"))
     return true;
   if (/^(model-)?rock-\d+/.test(name)) return true;
+  // The sea floor (seabed.ts): one mesh per stretch of coast, drawn on the layer only.
+  if (name.startsWith("seabed-")) return true;
   if (name === "buoy" || /^buoy-\d+$/.test(name)) return true;
   return false;
 }

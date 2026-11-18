@@ -141,7 +141,7 @@ test("the coast texture stores the table exactly enough for the shader", () => {
 test("the sea floor shelves off gently from the beach exactly as the island's terrain does", () => {
   assert.equal(seabedDepth(0), 0);
   assert.equal(seabedDepth(-3), 0, "no depth on land");
-  for (let d = 0; d < 300; d += 1)
+  for (let d = 0; d < 700; d += 1)
     assert.ok(seabedDepth(d + 1) >= seabedDepth(d), "deeper further out");
   // The island's own shelf is the floor out to 20 m (the open sea's slope takes over from 22), deeper by 0.07 of the distance at the sand.
   for (let index = 0; index < islands.length; index++) {
@@ -161,10 +161,19 @@ test("the sea floor shelves off gently from the beach exactly as the island's te
   );
   assert.ok(seabedDepth(10) > 0.6 && seabedDepth(10) < 0.9);
   assert.ok(seabedDepth(25) > 1.8 && seabedDepth(25) < 2.3);
-  // Turquoise shelf near the islands (a few metres deep out to 30 m), open sea far away.
+  // Turquoise shelf near the islands (a few metres deep out to 30 m), then a long gentle slope
+  // down to the deep floor (about 5 m at 60 m, 18 m at 200 m, 42 m from 500 m).
   assert.ok(seabedDepth(30) < 5);
-  assert.ok(seabedDepth(60) > 12 && seabedDepth(60) < 20);
-  assert.ok(seabedDepth(200) > 40);
+  assert.ok(seabedDepth(60) > 3.5 && seabedDepth(60) < 7);
+  assert.ok(seabedDepth(200) > 14 && seabedDepth(200) < 22);
+  assert.ok(seabedDepth(500) > 40 && seabedDepth(500) < 44);
+  let steepest = 0;
+  for (let d = 0; d < 700; d += 1)
+    steepest = Math.max(steepest, seabedDepth(d + 1) - seabedDepth(d));
+  assert.ok(
+    steepest < 0.12,
+    `never steeper than ${steepest.toFixed(3)} m per m`,
+  );
 });
 
 test("breakers move toward the beach and bunch up as the water gets shallow", () => {
