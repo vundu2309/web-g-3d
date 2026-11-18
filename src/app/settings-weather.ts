@@ -33,7 +33,7 @@ export function createWeatherTestSection(): HTMLElement {
   const note = document.createElement("p");
   note.className = "update-note";
   note.textContent =
-    "Chỉ đổi trên máy này để xem thử. Tải lại hoặc bấm “Theo giờ thật” để về giờ chung.";
+    "Chỉ đổi trên máy này để xem thử, bắt đầu từ buổi trưa nắng. Tải lại hoặc bấm “Theo giờ thật” để về giờ chung.";
 
   const buttons: { el: HTMLButtonElement; test: () => boolean }[] = [];
   const chip = (label: string, test: () => boolean, apply: () => void) => {
@@ -56,11 +56,11 @@ export function createWeatherTestSection(): HTMLElement {
     hour?: number | undefined;
     weather?: WeatherKind;
   }) => {
-    const now = currentPin() ?? {};
-    const next = { ...now, ...patch };
-    pinAtmosphere(
-      next.hour === undefined && next.weather === undefined ? undefined : next,
-    );
+    // The first press pins both parts, from a sunny noon: a weather picked while the shared
+    // clock is at night would otherwise be drawn in the dark, and an hour picked while the clock
+    // weather is rain would be drawn in the rain, so no button seemed to do what it says.
+    const now = currentPin() ?? { hour: 12, weather: "clear" as WeatherKind };
+    pinAtmosphere({ ...now, ...patch });
   };
 
   const hours = document.createElement("div");
