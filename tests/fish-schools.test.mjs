@@ -45,10 +45,7 @@ test("fish stay under the water and above the floor, and swim at a gentle pace",
         assert.ok(p.y <= -0.04 && p.y >= -2.5, `depth ${p.y}`);
         assert.ok(-p.y <= seabedDepth(d) + 1.2, "above the floor");
         const speed = Math.hypot(b[i].x - p.x, b[i].z - p.z);
-        assert.ok(
-          speed < 3.2,
-          `a fish moved ${speed.toFixed(2)} m in a second`,
-        );
+        assert.ok(speed < 6, `a fish moved ${speed.toFixed(2)} m in a second`);
       });
     }
   }

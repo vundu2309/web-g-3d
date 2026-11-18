@@ -24,7 +24,7 @@ export const HARBOUR_SCHOOLS = 4;
 /** Metres off the coast the school swims (the middle of the range, and how far it drifts). */
 export const OFFSHORE = { min: 20, max: 44, drift: 7 };
 /** How fast a school's middle moves (m/s). */
-export const SCHOOL_SPEED = { min: 0.9, max: 1.5 };
+export const SCHOOL_SPEED = { min: 2.0, max: 3.4 };
 /** A boat closer than this (m) frightens the school; it is pushed out to about this far. */
 export const SCARE_RANGE = 16;
 
@@ -99,7 +99,7 @@ export function makeSchools(): School[] {
       anchor: { x: HARBOR.x, z: HARBOR.z + 8, radius },
       look: s % 2,
       angle0: random() * Math.PI * 2,
-      rate: ((s % 2 ? -1 : 1) * 1.1) / radius,
+      rate: ((s % 2 ? -1 : 1) * 2.4) / radius,
       distance0: radius,
       driftPhase: random() * Math.PI * 2,
       fish: Array.from({ length: FISH_PER_SCHOOL }, () => ({
