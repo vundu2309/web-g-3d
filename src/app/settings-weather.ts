@@ -10,7 +10,7 @@ export const TEST_HOURS = [
 ] as const;
 
 export const TEST_WEATHER: readonly { label: string; kind: WeatherKind }[] = [
-  { label: "Nắng", kind: "clear" },
+  { label: "Quang đãng", kind: "clear" },
   { label: "U ám", kind: "overcast" },
   { label: "Mưa", kind: "rain" },
   { label: "Sương mù", kind: "fog" },
@@ -33,7 +33,7 @@ export function createWeatherTestSection(): HTMLElement {
   const note = document.createElement("p");
   note.className = "update-note";
   note.textContent =
-    "Chỉ đổi trên máy này để xem thử, bắt đầu từ buổi trưa nắng. Tải lại hoặc bấm “Theo giờ thật” để về giờ chung.";
+    "Chỉ đổi trên máy này để xem thử, bắt đầu từ buổi trưa quang đãng. Tải lại hoặc bấm “Theo giờ thật” để về giờ chung.";
 
   const buttons: { el: HTMLButtonElement; test: () => boolean }[] = [];
   const chip = (label: string, test: () => boolean, apply: () => void) => {
