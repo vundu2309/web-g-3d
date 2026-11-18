@@ -33,7 +33,7 @@ export function createWeatherTestSection(): HTMLElement {
   const note = document.createElement("p");
   note.className = "update-note";
   note.textContent =
-    "Chỉ đổi trên máy này để xem thử, bắt đầu từ buổi trưa quang đãng. Tải lại hoặc bấm “Theo giờ thật” để về giờ chung.";
+    "Chỉ đổi trên máy này, bắt đầu từ trưa quang đãng. Bấm “Theo giờ thật” để về giờ chung.";
 
   const buttons: { el: HTMLButtonElement; test: () => boolean }[] = [];
   const chip = (label: string, test: () => boolean, apply: () => void) => {
