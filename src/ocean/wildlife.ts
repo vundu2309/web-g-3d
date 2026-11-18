@@ -11,8 +11,10 @@ import { coastAt, shoreTable } from "./shore.ts";
  * what can be caught or what a fish is worth.
  *
  * The models are the fish files of the species (glb-parts.ts), which are heavy (a crab is 78,048
- * triangles). So only the animals near the player are drawn, with a cap per kind and a budget of
- * triangles for all of them (`chooseVisible`); the rest are hidden and cost nothing.
+ * triangles). So how much of each is drawn depends on how big it looks on screen: the whole model
+ * only while it is big, a coarser copy (simplify.ts) as it gets small, nothing once it is a few
+ * pixels (`levelOf`), with a cap of whole models per kind and a budget of triangles for all of them
+ * (`chooseVisible`).
  * Pure maths with no Babylon, so it is tested without a browser; wildlife-scene.ts draws it.
  */
 export type Kind = "dolphin" | "turtle" | "jellyfish" | "crab" | "starfish";
@@ -24,9 +26,7 @@ export interface KindSpec {
   length: number;
   /** Triangles of its model, for the budget. */
   triangles: number;
-  /** Beyond this distance from the player (m) it is not drawn. */
-  range: number;
-  /** At most this many of the kind are drawn at once. */
+  /** At most this many of the kind are drawn as the whole model at once (the rest as a coarser copy). */
   cap: number;
 }
 
@@ -35,35 +35,30 @@ export const KINDS: Readonly<Record<Kind, KindSpec>> = {
     species: "ca-heo",
     length: 4,
     triangles: 600,
-    range: 260,
     cap: 8,
   },
   turtle: {
     species: "rua-bien",
     length: 3,
     triangles: 17512,
-    range: 110,
     cap: 2,
   },
   jellyfish: {
     species: "sua",
     length: 2.4,
     triangles: 58756,
-    range: 90,
     cap: 1,
   },
   crab: {
     species: "cua-bien",
     length: 0.8,
     triangles: 78048,
-    range: 45,
     cap: 1,
   },
   starfish: {
     species: "sao-bien",
     length: 0.6,
     triangles: 10732,
-    range: 45,
     cap: 2,
   },
 };
@@ -329,33 +324,95 @@ export function wildPose(a: Animal, t: number): WildPose {
 }
 
 /**
- * Which animals to draw: those within their kind's range of the player, nearest first, at most
- * `cap` of a kind and no more than `budget` triangles in all.
+ * How big an animal looks: its length over its distance from the camera (radians; about 490 pixels
+ * to the radian on a phone held wide). At least `FULL_ANGLE` it is drawn as the whole model, at least
+ * `MID_ANGLE` as a copy of `LOD_TRIANGLES[1]` triangles, at least `MIN_ANGLE` as a copy of
+ * `LOD_TRIANGLES[2]`, and smaller than that (a few pixels) not at all.
+ */
+export const FULL_ANGLE = 0.05;
+export const MID_ANGLE = 0.02;
+export const MIN_ANGLE = 0.008;
+export const LOD_TRIANGLES = [Infinity, 4000, 700] as const;
+/** A model with no more triangles than this (the dolphin) has no coarser copy: one level only. */
+export const LIGHT_MODEL = 2000;
+
+export const hasLevels = (kind: Kind) => KINDS[kind].triangles > LIGHT_MODEL;
+
+/** Triangles an animal of `kind` costs when drawn at `level` (0 whole, 1 mid, 2 far). */
+export const trianglesAt = (kind: Kind, level: number) =>
+  hasLevels(kind)
+    ? Math.min(KINDS[kind].triangles, LOD_TRIANGLES[level] ?? 0)
+    : KINDS[kind].triangles;
+
+/** Which level an animal at `distance` m from the camera is drawn at: 0, 1, 2, or -1 for not at all. */
+export function levelOf(kind: Kind, distance: number): number {
+  const apparent = KINDS[kind].length / Math.max(distance, 0.5);
+  if (apparent < MIN_ANGLE) return -1;
+  if (!hasLevels(kind) || apparent >= FULL_ANGLE) return 0;
+  return apparent >= MID_ANGLE ? 1 : 2;
+}
+
+/**
+ * Moves `current` toward `target` by at most `rate * dt`: the fade of an animal that comes into
+ * view (it grows from nothing) or leaves it (it shrinks away) instead of appearing in one frame.
+ */
+export function approach(
+  current: number,
+  target: number,
+  dt: number,
+  rate: number,
+): number {
+  const step = Math.max(0, rate * dt);
+  return current < target
+    ? Math.min(target, current + step)
+    : Math.max(target, current - step);
+}
+
+/**
+ * Which animals to draw and at which level: by how big each looks from `eye` (the camera), nearest
+ * first. At most `cap` of a kind are drawn as the whole model (the rest of that kind drop to the
+ * mid copy), and the triangles of all of them stay within `budget`: an animal that would not fit is
+ * drawn coarser, and left out if even the coarsest does not fit.
  */
 export function chooseVisible(
-  viewer: { x: number; z: number },
+  eye: { x: number; y?: number; z: number },
   t: number,
   budget = TRIANGLE_BUDGET,
   animals: readonly Animal[] = ANIMALS,
-): Set<string> {
-  const near: { id: string; kind: Kind; distance: number }[] = [];
+): Map<string, number> {
+  const seen: { id: string; kind: Kind; distance: number; level: number }[] =
+    [];
   for (const a of animals) {
     const pose = wildPose(a, t);
-    const distance = Math.hypot(pose.x - viewer.x, pose.z - viewer.z);
-    if (distance <= KINDS[a.kind].range)
-      near.push({ id: a.id, kind: a.kind, distance });
+    const distance = Math.hypot(
+      pose.x - eye.x,
+      pose.z - eye.z,
+      (eye.y ?? 0) - (pose.level === "sea" ? 0 : pose.y),
+    );
+    const level = levelOf(a.kind, distance);
+    if (level >= 0) seen.push({ id: a.id, kind: a.kind, distance, level });
   }
-  near.sort((p, q) => p.distance - q.distance);
-  const counts: Partial<Record<Kind, number>> = {};
-  const chosen = new Set<string>();
+  seen.sort((p, q) => p.distance - q.distance);
+  const whole: Partial<Record<Kind, number>> = {};
+  const chosen = new Map<string, number>();
   let spent = 0;
-  for (const n of near) {
-    const spec = KINDS[n.kind];
-    if ((counts[n.kind] ?? 0) >= spec.cap) continue;
-    if (spent + spec.triangles > budget) continue;
-    counts[n.kind] = (counts[n.kind] ?? 0) + 1;
-    spent += spec.triangles;
-    chosen.add(n.id);
+  for (const n of seen) {
+    let level = n.level;
+    if (level === 0 && hasLevels(n.kind)) {
+      if ((whole[n.kind] ?? 0) >= KINDS[n.kind].cap) level = 1;
+    }
+    while (spent + trianglesAt(n.kind, level) > budget) {
+      if (!hasLevels(n.kind) || level >= 2) {
+        level = -1;
+        break;
+      }
+      level++;
+    }
+    if (level < 0) continue;
+    if (level === 0 && hasLevels(n.kind))
+      whole[n.kind] = (whole[n.kind] ?? 0) + 1;
+    spent += trianglesAt(n.kind, level);
+    chosen.set(n.id, level);
   }
   return chosen;
 }

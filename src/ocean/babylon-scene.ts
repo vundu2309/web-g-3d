@@ -630,10 +630,7 @@ export class OceanScene {
       ...(this.self ? [this.self.physics.state()] : []),
       ...this.fleet.values(),
     ]);
-    this.wildlife.update(
-      this.clock,
-      state ? { x: state.x, z: state.z } : undefined,
-    );
+    this.wildlife.update(this.clock, this.camera.position);
     // Every boat, yours and the others', pushes on the water (ripple-sim.ts), which then spreads,
     // breaks and fades by itself.
     const hulls: Hull[] = [];

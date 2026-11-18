@@ -93,17 +93,21 @@ BlenderKit's royalty_free licence allows commercial use but not reselling the mo
 
 Dolphins, turtles, jellyfish, crabs and starfish share the sea with the boats. They are scenery like the gulls (`sea-layout.ts`): not solid, not part of the shared state, never part of the fishing or the economy, and where each one is at a time `t` is a pure function of `t` (`wildPose` in `src/ocean/wildlife.ts`), so every player sees the same ones without a message. `src/ocean/wildlife-scene.ts` draws them: one mesh per species built from its model file (see "Sea animal models") once the file has loaded, and one instance per animal; `OceanScene` updates them next to `SeaProps` with the own boat's position.
 
-| Kind | Where and how | Drawn length | Triangles | Range / cap |
+| Kind | Where and how | Drawn length | Triangles | Whole models at once |
 |---|---|---|---|---|
-| dolphin (`ca-heo`) | a pod of three swims round every second island, about 48 m off the coast, and leaps clear of the water every 15 to 21 s (a 2 s arc 2.3 m high, nose up then down) | 4 m | 600 | 260 m / 8 |
-| turtle (`rua-bien`) | one per island, drifts round it about 26 m off the coast, at the surface | 3 m | 17,512 | 110 m / 2 |
-| jellyfish (`sua`) | one at each odd island, drifts about 36 m off the coast with its bell just out of the water, pulsing | 2.4 m | 58,756 | 90 m / 1 |
-| crab (`cua-bien`) | two per island on the dry sand, scuttling sideways along the beach and stopping at each end | 0.8 m | 78,048 | 45 m / 1 |
-| starfish (`sao-bien`) | two per island on the wet sand | 0.6 m | 10,732 | 45 m / 2 |
+| dolphin (`ca-heo`) | a pod of three swims round every second island, about 48 m off the coast, and leaps clear of the water every 15 to 21 s (a 2 s arc 2.3 m high, nose up then down) | 4 m | 600 | any |
+| turtle (`rua-bien`) | one per island, drifts round it about 26 m off the coast, at the surface | 3 m | 17,512 | 2 |
+| jellyfish (`sua`) | one at each odd island, drifts about 36 m off the coast with its bell just out of the water, pulsing | 2.4 m | 58,756 | 1 |
+| crab (`cua-bien`) | two per island on the dry sand, scuttling sideways along the beach and stopping at each end | 0.8 m | 78,048 | 1 |
+| starfish (`sao-bien`) | two per island on the wet sand | 0.6 m | 10,732 | 2 |
 
-The models are heavy, so only the animals near the player are drawn: `chooseVisible` takes those within their kind's range, nearest first, at most the kind's cap and at most 200,000 triangles of animals in all (`TRIANGLE_BUDGET`); the rest are disabled. The sizes are larger than life (a dolphin is 2 to 4 m, a crab 10 to 20 cm) because from a boat 20 to 60 m away a real-sized animal is a few pixels. The meshes are named `wild-*`, which keeps them out of the water's mirror (`reflection-model.ts`), so they are not drawn twice and have no reflection.
+**How much is drawn follows how big the animal looks.** `levelOf` takes its length over its distance from the camera (the angle it covers; about 490 pixels to the radian on a phone held wide): at least 0.05 it is the whole model (level 0), at least 0.02 a coarser copy of at most 4,000 triangles (level 1), at least 0.008 a copy of at most 700 (level 2), and smaller than that, a few pixels, it is not drawn. A crab is whole within about 16 m, a mid copy to 40 m, a far copy to 100 m; a dolphin (600 triangles, no coarser copy) is drawn to 500 m. `chooseVisible` goes nearest first, lets at most the cap of a kind be whole (the rest of that kind use the mid copy) and keeps all of them within 200,000 triangles (`TRIANGLE_BUDGET`): one that would not fit is drawn coarser, and left out if even the far copy does not fit.
 
-Seen in the real game in a software-rendered browser: the five kinds draw, face the right way and are posed (the dolphin nose up, the turtle at the surface, the bell of the jellyfish out of the water). Not done: the animals under the water (fish schools, rays; they need the clear-water layer), anything that reacts to the boat, and any sound. Not measured: the frame rate with them on a phone.
+**The coarser copies** are made when a model's file has loaded by `simplify.ts` (vertex clustering: the model's box is cut into cubes, the vertices of a cube become one and the triangles that collapse are dropped; colours and normals are averaged), so there are no extra files to download. The whole model is never changed. The copies of the three heaviest models are 700 to 4,000 triangles and take a few tens of milliseconds each to make on a laptop (not measured on a phone).
+
+**Fade.** An animal comes into view and leaves it by a dithered fade, as most games do it: Babylon's `DitheredTileFadeMaterialPlugin` on the shared satin material switches the pixels of an instance on or off in a fixed screen pattern, so it dissolves in over about 1.4 s and out over about 0.8 s, with no blending and no sorting. Animals already in view when the sea starts are fully shown at once. Changing from one level to another is not faded. The sizes are larger than life (a dolphin is 2 to 4 m, a crab 10 to 20 cm) because from a boat 20 to 60 m away a real-sized animal is a few pixels. The meshes are named `wild-*`, which keeps them out of the water's mirror (`reflection-model.ts`), so they are not drawn twice and have no reflection.
+
+Seen in the real game in a software-rendered browser: the five kinds draw, face the right way and are posed (the dolphin nose up, the turtle at the surface, the bell of the jellyfish out of the water); the three levels were chosen at the distances above, and a forced 50 % and 25 % fade showed as an even checker of dots on the turtle and the jellyfish. Not done: the animals under the water (fish schools, rays; they need the clear-water layer), anything that reacts to the boat, and any sound. Not measured: the frame rate with them on a phone.
 
 ## Map detail
 
