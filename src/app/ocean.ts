@@ -1,3 +1,4 @@
+import { createPerfPanel } from "./perf-panel.ts";
 import {
   PRESENCE_MS,
   SEA_BOUND,
@@ -151,6 +152,23 @@ export function startOcean(
   const hitches: Record<string, number | string | boolean>[] = [];
   if (perfLog)
     (window as unknown as { __seaHitches: unknown }).__seaHitches = hitches;
+  // The frame numbers panel (perf-panel.ts): `?perf` shows it, F3 or a tap toggles it.
+  const perfPanel = createPerfPanel(
+    root.querySelector<HTMLElement>(".ocean-screen") ?? root,
+    {
+      mode: () => pacer.mode,
+      stats: () =>
+        scene?.stats() ?? {
+          renderScale: 1,
+          clearWater: false,
+          clearWaterMeshes: 0,
+          meshes: 0,
+          triangles: 0,
+        },
+      boats: () => boats.length,
+    },
+    { visible: perfLog, signal: abort.signal },
+  );
   let lastControl = 0;
   const boatControl = createBoatControl();
   const noKeys = { left: false, right: false, up: false, down: false };
@@ -565,6 +583,7 @@ export function startOcean(
         ? "Đang kết nối lại…"
         : "Chưa kết nối";
     if (count.textContent !== text) count.textContent = text;
+    perfPanel.tick(now);
     // Draw the sea even while connecting or offline; boats appear once connected.
     if (scene && pacer.frame(now)) {
       const shown = drawnBoats(visible, now);
@@ -606,6 +625,7 @@ export function startOcean(
           if (hitches.length > 60) hitches.shift();
         }
       }
+      perfPanel.frame(now, now - lastDraw, performance.now() - began);
       lastDraw = now;
     }
     frame = requestAnimationFrame(animate);
@@ -901,6 +921,7 @@ export function startOcean(
     network.abort();
     connection?.dispose();
     scene?.dispose();
+    perfPanel.dispose();
     dialog.remove();
     root.classList.remove("ocean-root");
     if (barBefore) setChromeColor(barBefore);

@@ -66,6 +66,10 @@ curl -s -o /dev/null -w '%{http_code}\n' -H 'Origin: http://127.0.0.1:5320' -H '
 
 Stop what you started when you are done (`node scripts/wt.mjs stop <name>`, or kill your own `vite` and `node server/index.mjs`). Leave other agents' servers alone (ports 5301 to 5308 are often theirs).
 
+## Frame numbers
+
+Add `?perf` to the page address (or press F3) for the performance panel: fps, gaps, frame cost, pacing mode, render scale, whether the clear-water layer is on. Read it before saying anything about speed; software WebGL numbers say nothing about a phone.
+
 ## 4. Looking at the sea without signing in: the screenshot harness
 
 `node scripts/shots.mjs <label> [--out dir] [--cwd <worktree>] [--refl 0] mode,island,angle,seconds` starts its own Vite and a headless browser and draws the sea scene from `tools/render-harness/preview.html`: no login, no API, no other boats, software WebGL (slow, and no frame rate to read). It builds its own scene, so anything added to the real scene (`BabylonScene`) is not in it until `preview.html` is taught about it; the fish schools and the clear-water layer were, for example, missing from it at first and every picture was empty. Page options (via `EXTRA="&..."`): `fish=0`, `fishcam=<metres>` (look at the nearest fish), `daytime=<hour>`, `weather=clear|overcast|rain|fog`. See `tools/render-harness/README.md`.
