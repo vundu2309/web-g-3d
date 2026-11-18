@@ -456,9 +456,9 @@ void main() {
   // channels (deeper, bluer) wandering through it, so the floor shows far beyond the beach and
   // falls into deep blue only a few hundred metres out.
   float bank = noise(q * 0.011 + 3.0) * 0.65 + noise(q * 0.04 - 7.0) * 0.35;
-  float lookDepth = (3.0 + 16.0 * smoothstep(20.0, 320.0, d) + 40.0 * smoothstep(320.0, 950.0, d)) * mix(0.4, 1.3, bank);
+  float lookDepth = (3.0 + 16.0 * smoothstep(20.0, 320.0, d) + 12.0 * smoothstep(320.0, 950.0, d)) * mix(0.4, 1.3, bank);
   float seeDepth = mix(depth, lookDepth, smoothstep(10.0, 40.0, d));
-  float path = seeDepth * 1.35 * (1.0 + 1.0 / max(-refracted.y, 0.25));
+  float path = seeDepth * 0.8 * (1.0 + 1.0 / max(-refracted.y, 0.25));
   vec3 transmit = exp(-absorb * path);
   // The sea floor where it can be seen: sand with ripples and darker weed patches, seen through
   // the surface (shifted by the refracted view), lit by caustics in the shallows.
@@ -468,7 +468,9 @@ void main() {
     vec2 b = q + refracted.xz / max(-refracted.y, 0.3) * seeDepth;
     float sandRipple = noise(vec2(dot(b, toSea) * 1.7, dot(b, vec2(-toSea.y, toSea.x)) * 0.25)) - 0.5;
     float weed = smoothstep(0.62, 0.8, noise(b * 0.09 + 11.0)) * smoothstep(3.0, 8.0, seeDepth);
-    vec3 bed = toLinear(sand) * (0.92 + 0.22 * sandRipple);
+    // Dunes, banks and dark hollows of the deep floor, wide enough to read from a long way off.
+    float dune = noise(b * 0.018 + 40.0) * 0.7 + noise(b * 0.06 - 13.0) * 0.3;
+    vec3 bed = toLinear(sand) * (0.92 + 0.22 * sandRipple) * (0.45 + 1.1 * dune);
     bed = mix(bed, toLinear(sand) * vec3(0.32, 0.42, 0.26), weed * 0.7);
     // Reef: rock and coral on the banks, where the floor is shallow and away from the beach.
     float reef = smoothstep(0.64, 0.76, noise(b * 0.03 + 21.0)) * (1.0 - smoothstep(9.0, 17.0, seeDepth)) * smoothstep(12.0, 40.0, d);
