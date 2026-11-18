@@ -50,12 +50,12 @@ export const TIER_TOTALS = { swell: 1.41, medium: 0.87, chop: 0.125 } as const;
 /** How many waves the sea is made of, and the longest and shortest wavelength (m). */
 export const SPECTRUM = {
   count: 20,
-  longest: 92,
+  longest: 70,
   shortest: 3,
   /** The wavelength (m) where the wind sea peaks: the spectrum has a JONSWAP-like bump there. */
-  peak: 58,
+  peak: 44,
   /** A wave of at least this length is swell, of at least `medium` is medium, below is chop. */
-  swell: 50,
+  swell: 40,
   medium: 12,
   seed: 20261117,
 };
@@ -106,10 +106,10 @@ export function drawWaves(): Wave[] {
       phase: random() * Math.PI * 2,
       sharp: 2.0 + 1.6 * (1 - rank),
       lean:
-        length >= 50
+        length >= 40
           ? 0.3
-          : length >= 20
-            ? 0.25 * ((length - 20) / 30 + 0.4)
+          : length >= 14
+            ? 0.25 * ((length - 14) / 20 + 0.4)
             : 0,
       tier,
     };
@@ -188,8 +188,8 @@ function meanOfSharpened(sharp: number, lean: number) {
  * positive (the surface never folds): waves tests check its smallest determinant.
  */
 export const PINCH: Record<WaveTier, number> = {
-  swell: 0.3,
-  medium: 0.55,
+  swell: 0.45,
+  medium: 0.6,
   chop: 0.3,
 };
 /** The most (m) the drawn surface may differ from the physics one at any point, at any sea state. */
