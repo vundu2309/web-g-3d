@@ -250,12 +250,15 @@ test("the sea draws its surf from the real coast; the old flat foam ring is gone
     "no shore measured from a circle",
   );
   // The surf is in the fragment shader only: the vertex shader moves the sea by the waves
-  // and the wake alone, so the boats float on exactly what is drawn.
+  // and the water the boats stir alone, so the boats float on exactly what is drawn.
   const vertex = water.slice(
     water.indexOf('ShadersStore["seaVertexShader"]'),
     water.indexOf('ShadersStore["seaFragmentShader"]'),
   );
-  assert.match(vertex, /p\.y = waveHeight\(p\.xz, time\) \+ wakeHere\.x;/);
+  assert.match(
+    vertex,
+    /p\.y = waveHeight\(p\.xz, time\) \+ simAt\(p\.xz\)\.x;/,
+  );
   // The only thing it knows of the coast is where the islands are, to fade the visual-only
   // horizontal motion of the waves to zero near a beach (waves.ts, HORIZONTAL_FADE): no surf,
   // no coast field, no swash.

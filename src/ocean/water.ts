@@ -2,9 +2,9 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
 import { Effect } from "@babylonjs/core/Materials/effect";
-import { Vector2, Vector3, Vector4 } from "@babylonjs/core/Maths/math.vector";
+import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Scene } from "@babylonjs/core/scene";
-import { WAKE_MAX, glslWake } from "./wake.ts";
+import { SIM_N, glslSim } from "./ripple-sim.ts";
 import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Constants } from "@babylonjs/core/Engines/constants";
@@ -88,7 +88,7 @@ export function packBoats(boats: readonly BoatSpot[]): number[] {
 
 Effect.ShadersStore["seaVertexShader"] = `
 ${COMMON}
-${glslWake()}
+${glslSim()}
 ${glslHorizontalFade()}
 ${glslWaveDisplace()}
 attribute vec3 position;
@@ -97,15 +97,12 @@ uniform vec3 anchor;
 varying vec3 vWorld;
 varying vec2 vOrigin;
 varying float vHeight;
-varying vec4 vWake;
 void main() {
   vec3 p = position;
   p.x += anchor.x;
   p.z += anchor.z;
-  // The wake of the boats is added to the waves: height, slope and white water.
-  vec4 wakeHere = wakeAt(p.xz, time);
-  vWake = wakeHere;
-  p.y = waveHeight(p.xz, time) + wakeHere.x;
+  // The water the boats stir (ripple-sim.ts) is added to the waves.
+  p.y = waveHeight(p.xz, time) + simAt(p.xz).x;
   // Gerstner-style horizontal motion (visual only, none near a beach): the vertex that starts at
   // vOrigin is drawn a little toward the crest it sits before, so crests pinch and troughs widen.
   vOrigin = p.xz;
@@ -133,12 +130,10 @@ uniform vec2 reflectionSize;
 uniform mat4 viewProjection;
 uniform sampler2D underMap;
 uniform float underOn;
-uniform sampler2D foamMap;
-uniform vec4 foamWin;
 varying vec3 vWorld;
 varying vec2 vOrigin;
 varying float vHeight;
-varying vec4 vWake;
+${glslSim()}
 ${glslSkyModel()}
 ${glslShore(true)}
 ${glslHorizontalFade()}
@@ -304,7 +299,9 @@ void main() {
   float squeezeDet = max((1.0 - squeeze.x) * (1.0 - squeeze.z) - squeeze.y * squeeze.y, 0.04);
   mat2 unsqueeze = mat2(1.0 - squeeze.z, squeeze.y, squeeze.y, 1.0 - squeeze.x) / squeezeDet;
   bigSlope = unsqueeze * bigSlope;
-  vec2 slope = unsqueeze * waveOnly + vWake.yz + hull.yz;
+  // The water the boats stir: its slope and its white water (ripple-sim.ts).
+  vec4 stirred = simAt(vOrigin);
+  vec2 slope = unsqueeze * waveOnly + stirred.yz + hull.yz;
   // How choppy the sea is here: wide calm and rough patches drifting downwind, and faint
   // streaks along the wind (faded far away, where they would alias).
   vec2 q = vWorld.xz;
@@ -420,7 +417,7 @@ void main() {
   // shadow, the mesh and the boats' water are not touched.
   float openSea = 1.0 - nearShore;
   float hNorm = clamp(vHeight / waveReach(time), -1.0, 1.0);
-  slope += (bigSlope * ${SWELL_SHADING.exaggerate.toFixed(2)} - (slope - bigSlope - vWake.yz - hull.yz) * ${(1 - SWELL_SHADING.chopKeep).toFixed(2)}) * openSea;
+  slope += (bigSlope * ${SWELL_SHADING.exaggerate.toFixed(2)} - (slope - bigSlope - stirred.yz - hull.yz) * ${(1 - SWELL_SHADING.chopKeep).toFixed(2)}) * openSea;
   vec3 n = normalize(vec3(-slope.x - detail.x * ${SWELL_SHADING.detailKeep.toFixed(2)}, 1.0, -slope.y - detail.y * ${SWELL_SHADING.detailKeep.toFixed(2)}));
   float nv = max(dot(n, view), 0.02);
   // Roughness: the waves too small to draw make the sea rougher the farther it is.
@@ -569,21 +566,15 @@ void main() {
     vec3 hullFoamColor = vec3(0.93, 0.96, 0.97) * (skyIrradiance * 0.7 + sunColor() * SUN_RADIANCE * max(nlSun, nl * 0.6) * 0.3 * sunlit + nightGlow + moonLight * SUN_RADIANCE * max(normalize(moonDirection).y, 0.0) * 0.3);
     color = mix(color, hullFoamColor, hull.x * (1.0 - smoothstep(120.0, 260.0, dist)));
   }
-  // The white water behind the boats (foam-buffer.ts): the buffer holds only how dense the foam
-  // is, round puffs added together; the bubbles come from here, the way the surf's lace does, so
-  // thick foam is solid and thin foam breaks into patches and then into nothing, and the wake
-  // has no edge, strip or straight line in it.
-  if (foamWin.w > 0.5) {
-    // Read a little off the texel grid (a warp of about two texels), so the foam's edges do not
-    // follow the buffer's squares.
-    vec2 fwarp = vec2(noise(vWorld.xz * 1.7 + 5.0), noise(vWorld.xz * 1.7 - 9.0)) - 0.5;
-    vec2 fuv = (vWorld.xz - foamWin.xy) * foamWin.z + 0.5 + fwarp * foamWin.z * 0.9;
-    float inside = smoothstep(0.0, 0.05, min(min(fuv.x, fuv.y), min(1.0 - fuv.x, 1.0 - fuv.y)));
-    float density = texture2D(foamMap, fuv).r * inside;
+  // The white water behind the boats (ripple-sim.ts): the grid holds only how dense the foam is,
+  // spread and thinned by the simulation; the bubbles come from here, the way the surf's lace does,
+  // so thick foam is solid and thin foam breaks into patches and then into nothing.
+  {
+    float density = stirred.w;
     if (density > 0.012) {
       vec2 wq = vWorld.xz;
-      vec2 wwarp = wq + vec2(noise(wq * 0.5 + 3.0), noise(wq * 0.5 - 6.0)) * 1.1;
-      vec2 wcells = foamCells(wwarp * 1.7, time * 0.9);
+      vec2 wwarp = wq + vec2(noise(wq * 0.7 + 3.0), noise(wq * 0.7 - 6.0)) * 2.0;
+      vec2 wcells = foamCells(wwarp * 2.4, time * 0.9);
       float wwalls = smoothstep(0.04, 0.4 + 0.25 * noise(wq * 0.9), wcells.x);
       float wblot = noise(wwarp * 0.8) * 0.45 + noise(wwarp * 2.1 + 7.0) * 0.35 + noise(wq * 4.8 - time * 0.3) * 0.2;
       float wlace = wblot * 0.58 + wwalls * 0.42;
@@ -613,10 +604,8 @@ export interface Water {
   swash: Mesh[];
   /** Gives the water its planar reflection (reflection.ts); undefined goes back to the sky alone. */
   setReflection(texture: BaseTexture | undefined): void;
-  /** Gives the water the foam buffer of the wakes (foam-buffer-pass.ts); undefined is a sea without wake foam. */
-  setFoam(texture: BaseTexture | undefined): void;
-  /** Where the foam buffer is on the sea: the centre (x, z) and the side (m) of its square. */
-  setFoamWindow(cx: number, cz: number, size: number): void;
+  /** Gives the water the grid of the water the boats stir (ripple-sim.ts `pack`), whose window is centred at (cx, cz). */
+  setStirred(pixels: Float32Array, cx: number, cz: number): void;
   /** Gives the water the layer of what lies under it (clear-water.ts); undefined is the opaque sea. */
   setUnderlayer(texture: BaseTexture | undefined): void;
   /** Keeps the grid centred under the camera and advances the wave clock. */
@@ -624,7 +613,6 @@ export interface Water {
     cameraX: number,
     cameraZ: number,
     time: number,
-    wake?: readonly number[],
     boats?: readonly BoatSpot[],
   ): void;
 }
@@ -683,19 +671,18 @@ export function createWater(scene: Scene): Water {
         "sand",
         "fogDensity",
         "shoreIslands",
-        "wake",
         "boats",
         "viewProjection",
         "reflectionSize",
         "underOn",
-        "foamWin",
+        "simCentre",
       ],
       samplers: [
         "rippleMap",
         "coastMap",
         "reflectionMap",
         "underMap",
-        "foamMap",
+        "simMap",
       ],
     },
   );
@@ -706,7 +693,6 @@ export function createWater(scene: Scene): Water {
   material.setColor3("deepTeal", SEA.deepTeal);
   material.setColor3("sand", SEA_FLOOR);
   material.setFloat("fogDensity", SEA.fogDensity);
-  material.setArray4("wake", new Array(WAKE_MAX * 4).fill(0));
   material.setArray4("boats", new Array(BOAT_MAX * 4).fill(0));
   const ripples = new RawTexture(
     ripplePixels(),
@@ -750,8 +736,7 @@ export function createWater(scene: Scene): Water {
     Texture.NEAREST_SAMPLINGMODE,
   );
   let reflection: BaseTexture | undefined;
-  let foamOn = false;
-  const foamWindow = new Vector4();
+  const simCentre = new Vector2();
   material.setTexture("reflectionMap", noReflection);
   material.setVector2("reflectionSize", new Vector2(1, 1));
   // The layer of what is under the water: until the clear-water pass gives one (or when it is switched
@@ -768,19 +753,23 @@ export function createWater(scene: Scene): Water {
   );
   material.setTexture("underMap", noUnder);
   material.setFloat("underOn", 0);
-  // The foam behind the boats (foam-buffer-pass.ts): until it exists the sea has no wake foam.
-  const noFoam = new RawTexture(
-    new Uint8Array(4),
-    1,
-    1,
+  // The water the boats stir: one float texture, written every frame, read exactly (the shader
+  // does the bilinear read itself, so no float filtering is needed).
+  const stirred = new RawTexture(
+    new Float32Array(SIM_N * SIM_N * 4),
+    SIM_N,
+    SIM_N,
     Constants.TEXTUREFORMAT_RGBA,
     scene,
     false,
     false,
     Texture.NEAREST_SAMPLINGMODE,
+    Constants.TEXTURETYPE_FLOAT,
   );
-  material.setTexture("foamMap", noFoam);
-  material.setVector4("foamWin", new Vector4(0, 0, 1, 0));
+  stirred.wrapU = Texture.WRAP_ADDRESSMODE;
+  stirred.wrapV = Texture.WRAP_ADDRESSMODE;
+  material.setTexture("simMap", stirred);
+  material.setVector2("simCentre", simCentre);
   mesh.material = material;
   const swash = createSwash(scene);
   const anchor = new Vector3();
@@ -795,17 +784,12 @@ export function createWater(scene: Scene): Water {
       material.setTexture("underMap", texture ?? noUnder);
       material.setFloat("underOn", texture ? 1 : 0);
     },
-    setFoam(texture) {
-      material.setTexture("foamMap", texture ?? noFoam);
-      foamOn = texture !== undefined;
-      if (!texture) material.setVector4("foamWin", new Vector4(0, 0, 1, 0));
+    setStirred(pixels, cx, cz) {
+      stirred.update(pixels);
+      simCentre.set(cx, cz);
+      material.setVector2("simCentre", simCentre);
     },
-    setFoamWindow(cx, cz, size) {
-      if (!foamOn) return;
-      foamWindow.set(cx, cz, 1 / size, 1);
-      material.setVector4("foamWin", foamWindow);
-    },
-    update(cameraX, cameraZ, time, wake, boats) {
+    update(cameraX, cameraZ, time, boats) {
       swash.update(time);
       if (boats) material.setArray4("boats", packBoats(boats));
       material.setFloat("time", time);
@@ -817,7 +801,6 @@ export function createWater(scene: Scene): Water {
           new Vector2(size.width, size.height),
         );
       }
-      if (wake) material.setArray4("wake", wake as number[]);
       anchor.set(cameraX, 0, cameraZ);
       material.setVector3("anchor", anchor);
       material.setVector3(

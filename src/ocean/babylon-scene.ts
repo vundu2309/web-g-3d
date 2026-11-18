@@ -26,7 +26,7 @@ import { createIsland, type IslandVisual } from "./island-visual.ts";
 import { loadIslandModels, placeIslandProps } from "./island-models.ts";
 import { islandSeed } from "./shore.ts";
 import { SeaProps } from "./sea-props.ts";
-import { WakeField, sampleWake } from "./wake.ts";
+import { RippleSim, SIM_N, type Hull } from "./ripple-sim.ts";
 import { OrbitCamera } from "./orbit-camera.ts";
 import {
   CHASE,
@@ -44,8 +44,6 @@ import { preloadFishModels } from "./fish-models.ts";
 import { placeVendors } from "./market-vendor.ts";
 import { WakeMesh } from "./wake-mesh.ts";
 import { WakeTrail } from "./wake-trail.ts";
-import { FOAM_LIFE, FOAM_STEP } from "./foam-buffer.ts";
-import { createFoamBuffer, type FoamBuffer } from "./foam-buffer-pass.ts";
 import { islands, lighthouseIslands, type Boat, type Pose } from "./model.ts";
 import { FishingGear, type GearInput } from "./fishing-gear.ts";
 import { paletteIndex } from "./palette.ts";
@@ -144,14 +142,14 @@ export class OceanScene {
   private lost = false;
   private gear: FishingGear | undefined;
   private readonly seaProps: SeaProps;
-  private readonly wakeField = new WakeField();
-  /** The visible wake (white water) of each boat, yours under "self". */
+  /** The water the boats stir, simulated: the sea draws it and the hulls float on it (ripple-sim.ts). */
+  private readonly sim = new RippleSim();
+  private readonly simPixels = new Float32Array(SIM_N * SIM_N * 4);
+  /** The bow wave of each boat and the path it has just taken, yours under "self". */
   private readonly trails = new Map<
     string,
-    { trail: WakeTrail; foamTrail: WakeTrail; mesh: WakeMesh }
+    { trail: WakeTrail; mesh: WakeMesh }
   >();
-  /** Where the foam of all the wakes is drawn for the sea to read (foam-buffer.ts). */
-  private readonly foamBuffer: FoamBuffer | undefined;
   private gearInput: Omit<GearInput, "tip" | "time"> | undefined;
   private readonly canvas: HTMLCanvasElement;
   /** Settles once the island models are in place (or failed and the fallback stays). */
@@ -213,8 +211,6 @@ export class OceanScene {
     createSeaReflection(this.scene, this.water, this.sky);
     // The sea is see-through: hulls, piles, rocks, the fish and the line show through it. Slow
     // frames switch it off again (the opaque sea), before the render scale is coarsened.
-    this.foamBuffer = createFoamBuffer(this.scene);
-    this.water.setFoam(this.foamBuffer?.texture);
     this.clearWater = createClearWater(this.scene, this.water);
     this.clearGovernor = new ClearWaterGovernor(
       this.clearWater !== undefined && !clearWaterRefused(),
@@ -324,7 +320,7 @@ export class OceanScene {
     const physics = createBoatPhysics(this.scene, {
       islands: seaObstacles(),
       time: () => this.clock,
-      extraHeight: (x, z, t) => sampleWake(this.wakeField.data, x, z, t).height,
+      extraHeight: (x, z) => this.sim.sample(x, z).height,
       start: { x: pose.x, z: pose.z, heading: pose.heading },
     });
     const craft = this.craft(uid, name, true);
@@ -388,14 +384,23 @@ export class OceanScene {
     if (!entry) {
       entry = {
         trail: new WakeTrail(),
-        foamTrail: new WakeTrail(FOAM_LIFE, FOAM_STEP),
         mesh: new WakeMesh(this.scene),
       };
       this.trails.set(id, entry);
     }
     entry.trail.push(x, z, this.clock);
-    entry.foamTrail.push(x, z, this.clock);
     entry.mesh.update(entry.trail, this.clock, { x, z });
+  }
+
+  /** A boat as the water sees it: where it is, which way it points and how fast it goes. */
+  private hullOf(id: string, x: number, z: number): Hull {
+    const newest = this.trails.get(id)?.trail.samples.at(-1);
+    return {
+      x,
+      z,
+      heading: newest?.heading ?? 0,
+      speed: newest?.speed ?? 0,
+    };
   }
 
   private forgetTrail(id: string) {
@@ -565,7 +570,6 @@ export class OceanScene {
     }
     for (const [id, craft] of this.fleet)
       if (!present.has(id)) {
-        this.wakeField.forget(id);
         this.forgetTrail(id);
         craft.label.remove();
         craft.line?.dispose();
@@ -612,20 +616,25 @@ export class OceanScene {
     else if (tip && this.gear?.holding) this.gear.updateHeld(tip, this.clock);
     else this.gear?.hide();
     this.seaProps.update(this.clock);
-    // Every moving boat, yours and the others', leaves a wake in the water.
+    // Every boat, yours and the others', pushes on the water (ripple-sim.ts), which then spreads,
+    // breaks and fades by itself.
+    const hulls: Hull[] = [];
     if (this.self && state) {
-      this.wakeField.track("self", state.x, state.z, this.clock);
       this.leaveTrail("self", state.x, state.z);
+      hulls.push(this.hullOf("self", state.x, state.z));
     }
     for (const [id, craft] of this.fleet) {
-      this.wakeField.track(id, craft.x, craft.z, this.clock);
       this.leaveTrail(id, craft.x, craft.z);
+      hulls.push(this.hullOf(id, craft.x, craft.z));
     }
+    this.sim.recentre(this.camera.position.x, this.camera.position.z);
+    this.sim.step(step, hulls);
+    this.sim.pack(this.simPixels);
+    this.water.setStirred(this.simPixels, this.sim.centreX, this.sim.centreZ);
     this.water.update(
       this.camera.position.x,
       this.camera.position.z,
       this.clock,
-      this.wakeField.data,
       [...(this.self && state ? [state] : []), ...this.fleet.values()],
     );
     this.rain.update(this.clock);
@@ -637,15 +646,6 @@ export class OceanScene {
       this.clock,
     );
     this.clearWater?.update(this.clock, this.camera.position);
-    if (this.foamBuffer) {
-      const view = this.foamBuffer.update(
-        [...this.trails.values()].map((entry) => entry.foamTrail),
-        this.clock,
-        this.camera.position.x,
-        this.camera.position.z,
-      );
-      this.water.setFoamWindow(view.cx, view.cz, view.size);
-    }
     this.engine.beginFrame();
     this.scene.render();
     this.engine.endFrame();
@@ -888,7 +888,6 @@ export class OceanScene {
     for (const craft of this.fleet.values()) craft.label.remove();
     this.gear?.dispose();
     this.clearWater?.dispose();
-    this.foamBuffer?.dispose();
     this.seaProps.dispose();
     for (const market of this.markets) market.dispose();
     for (const id of [...this.trails.keys()]) this.forgetTrail(id);

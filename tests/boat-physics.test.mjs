@@ -11,7 +11,7 @@ import {
 } from "../src/ocean/boat-physics.ts";
 import { humpAt, planingAt } from "../src/ocean/boat-physics.ts";
 import { SEA_BOUND } from "../src/ocean/model.ts";
-import { WakeField, sampleWake } from "../src/ocean/wake.ts";
+import { RippleSim } from "../src/ocean/ripple-sim.ts";
 import {
   WAVES,
   WIND_DIRECTION,
@@ -638,11 +638,9 @@ test("uneven frames (a slow phone, a long frame while the mouse drags) give the 
 
 test("the boat's own wake does not turn or push its hull", () => {
   const sail = (wake) => {
-    const field = new WakeField();
+    const sim = new RippleSim();
     const w = world({
-      extraHeight: wake
-        ? (x, z, t) => sampleWake(field.data, x, z, t).height
-        : undefined,
+      extraHeight: wake ? (x, z) => sim.sample(x, z).height : undefined,
     });
     let state;
     w.run(
@@ -650,7 +648,10 @@ test("the boat's own wake does not turn or push its hull", () => {
       () => ({ throttle: 0.4, steer: 0.6 }),
       (s, t) => {
         state = s;
-        field.track("self", s.x, s.z, t);
+        sim.recentre(s.x, s.z);
+        sim.step(DT, [
+          { x: s.x, z: s.z, heading: s.heading, speed: s.forwardSpeed },
+        ]);
       },
     );
     w.dispose();
