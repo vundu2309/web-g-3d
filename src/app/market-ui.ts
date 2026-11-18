@@ -94,12 +94,7 @@ export function createMarketUi(options: MarketUiOptions) {
     head.append(title, wallet);
     const body = el("div", "fish-store-body");
     const foot = el("footer", "market-foot");
-    const vendor = el(
-      "p",
-      "market-vendor",
-      `${market.vendor.name}: “${market.vendor.greeting}”`,
-    );
-    page.append(head, vendor, body, foot);
+    page.append(head, body, foot);
     return { wallet, body, foot };
   }
 
