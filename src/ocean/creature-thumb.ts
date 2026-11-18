@@ -4,7 +4,7 @@ import type { Creature, Part } from "./creature-geometry.ts";
  * A still picture of an animal from its own 3D model, with no WebGL: the triangles are
  * turned a little, shaded by a fixed light and sorted far to near (painter's algorithm).
  * This file is the pure maths (tested without a browser); app/fish-thumb.ts paints it.
- * The viewer looks along +Z from -Z, with the nose toward +X, as in creatures.ts.
+ * The viewer looks along +Z from -Z, with the nose toward +X, as in the model files (glb-parts.ts).
  */
 export interface ThumbTriangle {
   /** Screen points x0,y0,x1,y1,x2,y2 (y down). */

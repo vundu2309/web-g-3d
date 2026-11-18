@@ -2,15 +2,13 @@ import type { Material } from "@babylonjs/core/Materials/material";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
-import type { Creature, Part } from "./creature-geometry.ts";
-import { buildCreature, type CreatureKind, type Look } from "./creatures.ts";
-import { cachedFishModel, loadFishModel } from "./fish-models.ts";
 import {
-  fishColours,
-  fishFile,
-  paintFish,
-  type FishTemplate,
-} from "./glb-parts.ts";
+  placeholderCreature,
+  type Creature,
+  type Part,
+} from "./creature-geometry.ts";
+import { cachedFishModel, loadFishModel } from "./fish-models.ts";
+import { creatureOf, fishFile } from "./glb-parts.ts";
 import { meshFrom } from "./mesh-parts.ts";
 import { solidMaterial } from "./art/materials.ts";
 
@@ -19,20 +17,20 @@ import { solidMaterial } from "./art/materials.ts";
  * that swings about its own pivot. The material is shared per scene, with the colours carried
  * by the vertices, so any number of animals cost one material.
  *
- * The animal is the Blender model (public/models/fish-*.glb, read by glb-parts.ts and fetched
- * once per page by fish-models.ts, recoloured for the species). While the file is not loaded
- * yet, or if it cannot be had, it is the animal built from code (creatures.ts); an animal made
- * before the file arrived changes into the model in place when it does (`root`, `body` and
- * `tail` may be replaced then, so read them from the object, not once).
+ * The animal is the species' model (public/models/fish-<id>.glb, read by glb-parts.ts and
+ * fetched once per page by fish-models.ts). While the file is not loaded yet, or if it cannot be
+ * had, a plain stand-in shape is drawn; an animal made before the file arrived changes into the
+ * model in place when it does (`root`, `body` and `tail` may be replaced then, so read them from
+ * the object, not once).
  */
 export interface CreatureModel {
-  /** Move, turn and scale this. Model units: about 1 long, nose toward +X. */
+  /** Move, turn and scale this. Model units: 1 long, nose toward +X. */
   root: TransformNode;
   body: Mesh;
   /** Rotate this about Y to swing the tail. */
   tail?: TransformNode;
   creature: Creature;
-  /** True once it is drawn from the Blender model, false for the code-built stand-in. */
+  /** True once it is drawn from the species' model, false for the stand-in shape. */
   fromModel: boolean;
   /**
    * Dresses the body and tail in another material (the hooked fish under the water), or back in the
@@ -64,12 +62,8 @@ function meshOf(name: string, scene: Scene, part: Part, shift = [0, 0, 0]) {
 export function createCreature(
   scene: Scene,
   name: string,
-  kind: CreatureKind,
-  body: string,
-  fin: string,
-  look?: Look,
-  /** The species' id, for the species that have a model file of their own. */
-  variant?: string,
+  /** The species' id: its model is `fish-<id>.glb`. */
+  speciesId: string,
 ): CreatureModel {
   const root = new TransformNode(name, scene);
   let tailMesh: Mesh | undefined;
@@ -124,16 +118,14 @@ export function createCreature(
     }
     dress();
   };
-  const paint = (template: FishTemplate) =>
-    paintFish(template, fishColours(kind, body, fin, look));
-  const file = fishFile(kind, variant);
+  const file = fishFile(speciesId);
   const loaded = cachedFishModel(file);
-  if (loaded) show(paint(loaded), true);
+  if (loaded) show(creatureOf(loaded), true);
   else {
-    show(buildCreature(kind, body, fin, look), false);
+    show(placeholderCreature(), false);
     void loadFishModel(file).then((template) => {
       if (template && !disposed && !scene.isDisposed)
-        show(paint(template), true);
+        show(creatureOf(template), true);
     });
   }
   return model;

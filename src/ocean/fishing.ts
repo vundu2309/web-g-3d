@@ -1,4 +1,3 @@
-import type { CreatureKind, Look } from "./creatures.ts";
 import { HARBOR, SEA_BOUND, islandCollisionRadius, islands } from "./model.ts";
 import { coastDistance } from "./shore.ts";
 import {
@@ -16,9 +15,6 @@ import {
 
 export type Zone = "shore" | "open" | "deep";
 export type Rarity = 1 | 2 | 3;
-/** Which 3D model draws the animal (see ocean/creatures.ts). */
-export type Shape = CreatureKind;
-
 export interface Species {
   id: string;
   name: string;
@@ -27,15 +23,13 @@ export interface Species {
   zones: Record<Zone, number>;
   /** Lightest and heaviest fish, kg. */
   kg: readonly [number, number];
-  /** Length in cm of a 1 kg fish; other sizes scale with the cube root of the weight. */
+  /**
+   * Length in cm of the longest side of a 1 kg animal; other sizes scale with the cube root of the
+   * weight. Its 3D model is `public/models/fish-<id>.glb` (see ocean/glb-parts.ts).
+   */
   lengthCm: number;
-  shape: Shape;
   /** How it fights once hooked (see ocean/fight.ts). */
   fight: FightStyle;
-  body: string;
-  fin: string;
-  /** How the skin is painted beyond the two colours (see creatures.ts). */
-  look?: Look;
 }
 
 export const RARITY_NAMES: Record<Rarity, string> = {
@@ -46,148 +40,13 @@ export const RARITY_NAMES: Record<Rarity, string> = {
 
 export const SPECIES: readonly Species[] = [
   {
-    id: "ca-com",
-    name: "Cá cơm",
+    id: "ca-madeka",
+    name: "Cá madeka",
     rarity: 1,
-    zones: { shore: 5, open: 2, deep: 0 },
-    kg: [0.05, 0.2],
-    lengthCm: 24,
-    shape: "slim",
+    zones: { shore: 4, open: 0, deep: 0 },
+    kg: [0.01, 0.06],
+    lengthCm: 23,
     fight: "steady",
-    body: "#8fc4e8",
-    fin: "#5b9cc9",
-    look: { sheen: 0.45, belly: "#f4fbff" },
-  },
-  {
-    id: "ca-bong",
-    name: "Cá bống",
-    rarity: 1,
-    zones: { shore: 5, open: 0, deep: 0 },
-    kg: [0.1, 0.5],
-    lengthCm: 22,
-    shape: "round",
-    fight: "steady",
-    body: "#b99a6b",
-    fin: "#8b6f44",
-  },
-  {
-    id: "ca-chim",
-    name: "Cá chim",
-    rarity: 1,
-    zones: { shore: 3, open: 4, deep: 1 },
-    kg: [0.4, 2.5],
-    lengthCm: 30,
-    shape: "diamond",
-    fight: "steady",
-    body: "#c9d6e3",
-    fin: "#8ea4bd",
-    look: { sheen: 0.4, belly: "#f1f4f7" },
-  },
-  {
-    id: "ca-noc",
-    name: "Cá nóc",
-    rarity: 2,
-    zones: { shore: 4, open: 1, deep: 0 },
-    kg: [0.3, 1.8],
-    lengthCm: 26,
-    shape: "puffer",
-    fight: "crawler",
-    body: "#e6c35a",
-    fin: "#c99a1c",
-  },
-  {
-    id: "ca-mu",
-    name: "Cá mú",
-    rarity: 2,
-    zones: { shore: 2, open: 4, deep: 1 },
-    kg: [1, 12],
-    lengthCm: 36,
-    shape: "chunky",
-    fight: "heavy",
-    body: "#d98b5f",
-    fin: "#a9582f",
-  },
-  {
-    id: "ca-thu",
-    name: "Cá thu đảo",
-    rarity: 2,
-    zones: { shore: 0, open: 4, deep: 3 },
-    kg: [1, 9],
-    lengthCm: 44,
-    shape: "torpedo",
-    fight: "runner",
-    body: "#5aa7d6",
-    fin: "#2f78a8",
-    look: { pattern: "wavy", mark: "#14304f", sheen: 0.3, belly: "#e8f0f4" },
-  },
-  {
-    id: "ca-hong",
-    name: "Cá hồng",
-    rarity: 2,
-    zones: { shore: 0, open: 3, deep: 3 },
-    kg: [0.8, 6],
-    lengthCm: 34,
-    shape: "round",
-    fight: "steady",
-    body: "#e0584f",
-    fin: "#b03a33",
-    look: { belly: "#f6c9c0" },
-  },
-  {
-    id: "ca-ngu",
-    name: "Cá ngừ",
-    rarity: 3,
-    zones: { shore: 0, open: 1, deep: 4 },
-    kg: [5, 45],
-    lengthCm: 41,
-    shape: "torpedo",
-    fight: "runner",
-    body: "#2f5fa8",
-    fin: "#1d3f78",
-    look: { pattern: "plain", sheen: 0.35, belly: "#dfe6ee" },
-  },
-  {
-    id: "ca-duoi",
-    name: "Cá đuối",
-    rarity: 3,
-    zones: { shore: 0, open: 2, deep: 3 },
-    kg: [3, 35],
-    lengthCm: 30,
-    shape: "flat",
-    fight: "glider",
-    body: "#8f7fb8",
-    fin: "#64558f",
-  },
-  {
-    id: "ca-kiem",
-    name: "Cá kiếm",
-    rarity: 3,
-    zones: { shore: 0, open: 0, deep: 3 },
-    kg: [20, 120],
-    lengthCm: 52,
-    shape: "sword",
-    fight: "runner",
-    body: "#3b4f8c",
-    fin: "#243063",
-    look: { sheen: 0.3, belly: "#c9d4e6" },
-  },
-  {
-    id: "ca-nuc",
-    name: "Cá nục",
-    rarity: 1,
-    zones: { shore: 3, open: 3, deep: 0 },
-    kg: [0.1, 0.6],
-    lengthCm: 25,
-    shape: "slim",
-    fight: "jet",
-    body: "#7fb6c9",
-    fin: "#4f8aa3",
-    look: {
-      pattern: "lateral",
-      mark: "#ffe08a",
-      sheen: 0.35,
-      belly: "#f4f6f0",
-    },
   },
   {
     id: "cua-bien",
@@ -195,11 +54,8 @@ export const SPECIES: readonly Species[] = [
     rarity: 1,
     zones: { shore: 4, open: 0, deep: 0 },
     kg: [0.2, 2],
-    lengthCm: 18,
-    shape: "crab",
+    lengthCm: 16,
     fight: "glider",
-    body: "#d9583f",
-    fin: "#a63a28",
   },
   {
     id: "sao-bien",
@@ -207,11 +63,17 @@ export const SPECIES: readonly Species[] = [
     rarity: 1,
     zones: { shore: 3, open: 0, deep: 0 },
     kg: [0.05, 0.5],
-    lengthCm: 14,
-    shape: "starfish",
+    lengthCm: 22,
     fight: "crawler",
-    body: "#f08a4b",
-    fin: "#c9632a",
+  },
+  {
+    id: "sua",
+    name: "Sứa",
+    rarity: 1,
+    zones: { shore: 1, open: 3, deep: 1 },
+    kg: [0.3, 4],
+    lengthCm: 50,
+    fight: "glider",
   },
   {
     id: "ca-he",
@@ -219,24 +81,8 @@ export const SPECIES: readonly Species[] = [
     rarity: 2,
     zones: { shore: 3, open: 1, deep: 0 },
     kg: [0.03, 0.25],
-    lengthCm: 12,
-    shape: "round",
+    lengthCm: 22,
     fight: "steady",
-    body: "#f2862e",
-    fin: "#e0701c",
-    look: { pattern: "bands", mark: "#ffffff", belly: "#f2862e" },
-  },
-  {
-    id: "ca-bon",
-    name: "Cá bơn",
-    rarity: 2,
-    zones: { shore: 3, open: 2, deep: 0 },
-    kg: [0.5, 6],
-    lengthCm: 32,
-    shape: "flounder",
-    fight: "crawler",
-    body: "#b59a74",
-    fin: "#8c7552",
   },
   {
     id: "ca-ngua",
@@ -244,35 +90,17 @@ export const SPECIES: readonly Species[] = [
     rarity: 2,
     zones: { shore: 2, open: 0, deep: 0 },
     kg: [0.02, 0.12],
-    lengthCm: 12,
-    shape: "seahorse",
+    lengthCm: 43,
     fight: "steady",
-    body: "#e8b64a",
-    fin: "#c78d24",
   },
   {
-    id: "muc-ong",
-    name: "Mực ống",
+    id: "rua-bien",
+    name: "Rùa biển",
     rarity: 2,
-    zones: { shore: 0, open: 3, deep: 2 },
-    kg: [0.3, 4],
-    lengthCm: 30,
-    shape: "squid",
-    fight: "jet",
-    body: "#d9a3b8",
-    fin: "#b57a94",
-  },
-  {
-    id: "bach-tuoc",
-    name: "Bạch tuộc",
-    rarity: 2,
-    zones: { shore: 2, open: 2, deep: 1 },
-    kg: [1, 10],
-    lengthCm: 36,
-    shape: "octopus",
-    fight: "heavy",
-    body: "#a86a8f",
-    fin: "#7f466a",
+    zones: { shore: 1, open: 2, deep: 0 },
+    kg: [20, 120],
+    lengthCm: 22,
+    fight: "glider",
   },
   {
     id: "tom-hum",
@@ -280,11 +108,17 @@ export const SPECIES: readonly Species[] = [
     rarity: 3,
     zones: { shore: 1, open: 2, deep: 1 },
     kg: [0.5, 5],
-    lengthCm: 26,
-    shape: "lobster",
+    lengthCm: 35,
     fight: "jet",
-    body: "#c9442f",
-    fin: "#8f2c1c",
+  },
+  {
+    id: "ca-heo",
+    name: "Cá heo",
+    rarity: 3,
+    zones: { shore: 0, open: 2, deep: 2 },
+    kg: [60, 200],
+    lengthCm: 42,
+    fight: "runner",
   },
   {
     id: "ca-map",
@@ -292,12 +126,8 @@ export const SPECIES: readonly Species[] = [
     rarity: 3,
     zones: { shore: 0, open: 1, deep: 3 },
     kg: [60, 400],
-    lengthCm: 60,
-    shape: "shark",
+    lengthCm: 36,
     fight: "heavy",
-    body: "#7b8a99",
-    fin: "#55626f",
-    look: { belly: "#eef1f4" },
   },
 ];
 

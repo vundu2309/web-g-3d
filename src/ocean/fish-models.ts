@@ -1,5 +1,4 @@
-import type { CreatureKind } from "./creatures.ts";
-import { CREATURE_KINDS } from "./creatures.ts";
+import { SPECIES } from "./fishing.ts";
 import {
   allFishFiles,
   fishFile,
@@ -10,9 +9,9 @@ import {
 /**
  * Fetches and keeps the sea animals' GLB files (see glb-parts.ts). Each file is downloaded once
  * per page, on first need or by `preloadFishModels`, and parsed into a template that every animal
- * of that body plan shares; the scene (creature-kit.ts) and the fish store thumbnails
+ * of that species shares; the scene (creature-kit.ts) and the fish store thumbnails
  * (app/fish-thumb.ts) both read it. Nothing here blocks the game: a caller gets `undefined` for a
- * file that is not loaded yet (or failed) and draws the code-built animal instead.
+ * file that is not loaded yet (or failed) and draws the stand-in shape instead.
  */
 const templates = new Map<string, FishTemplate>();
 const pending = new Map<string, Promise<FishTemplate | undefined>>();
@@ -51,7 +50,7 @@ export function loadFishModel(
     } catch (error) {
       failedAt.set(file, now());
       console.warn(
-        `The sea animal model ${file} did not load; the animal built from code is drawn.`,
+        `The sea animal model ${file} did not load; a plain stand-in is drawn.`,
         error,
       );
       return undefined;
@@ -63,17 +62,16 @@ export function loadFishModel(
   return job;
 }
 
-/** The template for a body plan (or a species with its own file), loading it if needed. */
-export const loadFishFor = (kind: CreatureKind, variant?: string) =>
-  loadFishModel(fishFile(kind, variant));
+/** The template of a species, loading its file if needed. */
+export const loadFishFor = (id: string) => loadFishModel(fishFile(id));
 
 /**
- * Starts downloading every file (about 1.4 MB in all), a few at a time so the first frames of the
+ * Starts downloading every file (about 6.6 MB in all), a few at a time so the first frames of the
  * sea are not starved of bandwidth. The game calls it once the scene is ready and does not wait
  * for it. Resolves when all have settled.
  */
 export async function preloadFishModels(parallel = 3): Promise<void> {
-  const queue = allFishFiles(CREATURE_KINDS);
+  const queue = allFishFiles(SPECIES.map((species) => species.id));
   const worker = async () => {
     for (let file = queue.shift(); file; file = queue.shift())
       await loadFishModel(file);

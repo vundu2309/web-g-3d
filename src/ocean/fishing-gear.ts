@@ -469,15 +469,7 @@ export class FishingGear {
       this.fishId = id;
       const species = id ? speciesById(id) : undefined;
       if (species)
-        this.fish = createCreature(
-          this.scene,
-          "hooked-fish",
-          species.shape,
-          species.body,
-          species.fin,
-          species.look,
-          species.id,
-        );
+        this.fish = createCreature(this.scene, "hooked-fish", species.id);
     }
     this.fish?.root.setEnabled(id !== undefined);
   }
