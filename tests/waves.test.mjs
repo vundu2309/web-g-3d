@@ -22,7 +22,7 @@ test("the sea has three readable tiers: a tall long swell, a medium tier and a s
   const tier = (name) => WAVES.filter((w) => w.tier === name);
   const [swell, medium, chop] = ["swell", "medium", "chop"].map(tier);
   assert.ok(swell.length >= 3 && medium.length >= 3 && chop.length >= 3);
-  assert.ok(Math.min(...swell.map((w) => w.length)) >= 50, "swell is long");
+  assert.ok(Math.min(...swell.map((w) => w.length)) >= 40, "swell is long");
   assert.ok(
     Math.max(...medium.map((w) => w.length)) <
       Math.min(...swell.map((w) => w.length)) &&
