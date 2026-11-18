@@ -26,6 +26,7 @@ import { createIsland, type IslandVisual } from "./island-visual.ts";
 import { loadIslandModels, placeIslandProps } from "./island-models.ts";
 import { islandSeed } from "./shore.ts";
 import { SeaProps } from "./sea-props.ts";
+import { Wildlife } from "./wildlife-scene.ts";
 import { RippleSim, SIM_N, type Hull } from "./ripple-sim.ts";
 import { OrbitCamera } from "./orbit-camera.ts";
 import {
@@ -144,6 +145,7 @@ export class OceanScene {
   private gear: FishingGear | undefined;
   private readonly seaProps: SeaProps;
   private readonly schools: FishSchools;
+  private readonly wildlife: Wildlife;
   /** The water the boats stir, simulated: the sea draws it and the hulls float on it (ripple-sim.ts). */
   private readonly sim = new RippleSim();
   private readonly simPixels = new Float32Array(SIM_N * SIM_N * 4);
@@ -255,6 +257,7 @@ export class OceanScene {
     this.vendors = this.placeVendorCats();
     this.seaProps = new SeaProps(this.scene);
     this.schools = new FishSchools(this.scene);
+    this.wildlife = new Wildlife(this.scene);
     this.observer = new ResizeObserver(() => this.engine.resize());
     this.observer.observe(host);
     this.engine.resize();
@@ -623,6 +626,10 @@ export class OceanScene {
       ...(this.self ? [this.self.physics.state()] : []),
       ...this.fleet.values(),
     ]);
+    this.wildlife.update(
+      this.clock,
+      state ? { x: state.x, z: state.z } : undefined,
+    );
     // Every boat, yours and the others', pushes on the water (ripple-sim.ts), which then spreads,
     // breaks and fades by itself.
     const hulls: Hull[] = [];
@@ -897,6 +904,7 @@ export class OceanScene {
     this.clearWater?.dispose();
     this.seaProps.dispose();
     this.schools.dispose();
+    this.wildlife.dispose();
     for (const market of this.markets) market.dispose();
     for (const id of [...this.trails.keys()]) this.forgetTrail(id);
     this.self?.craft.label.remove();

@@ -89,6 +89,22 @@ BlenderKit's royalty_free licence allows commercial use but not reselling the mo
 
 **Not measured.** The models are 600 to 78,048 triangles each (the old ones about 1,000), and the store thumbnails still paint every triangle on a 2D canvas. Their cost on a phone, in the sea with several animals and in the Kho cá, has not been measured; the game has not been run with them yet.
 
+## Living animals (wildlife)
+
+Dolphins, turtles, jellyfish, crabs and starfish share the sea with the boats. They are scenery like the gulls (`sea-layout.ts`): not solid, not part of the shared state, never part of the fishing or the economy, and where each one is at a time `t` is a pure function of `t` (`wildPose` in `src/ocean/wildlife.ts`), so every player sees the same ones without a message. `src/ocean/wildlife-scene.ts` draws them: one mesh per species built from its model file (see "Sea animal models") once the file has loaded, and one instance per animal; `OceanScene` updates them next to `SeaProps` with the own boat's position.
+
+| Kind | Where and how | Drawn length | Triangles | Range / cap |
+|---|---|---|---|---|
+| dolphin (`ca-heo`) | a pod of three swims round every second island, about 48 m off the coast, and leaps clear of the water every 15 to 21 s (a 2 s arc 2.3 m high, nose up then down) | 4 m | 600 | 260 m / 8 |
+| turtle (`rua-bien`) | one per island, drifts round it about 26 m off the coast, at the surface | 3 m | 17,512 | 110 m / 2 |
+| jellyfish (`sua`) | one at each odd island, drifts about 36 m off the coast with its bell just out of the water, pulsing | 2.4 m | 58,756 | 90 m / 1 |
+| crab (`cua-bien`) | two per island on the dry sand, scuttling sideways along the beach and stopping at each end | 0.8 m | 78,048 | 45 m / 1 |
+| starfish (`sao-bien`) | two per island on the wet sand | 0.6 m | 10,732 | 45 m / 2 |
+
+The models are heavy, so only the animals near the player are drawn: `chooseVisible` takes those within their kind's range, nearest first, at most the kind's cap and at most 200,000 triangles of animals in all (`TRIANGLE_BUDGET`); the rest are disabled. The sizes are larger than life (a dolphin is 2 to 4 m, a crab 10 to 20 cm) because from a boat 20 to 60 m away a real-sized animal is a few pixels. The meshes are named `wild-*`, which keeps them out of the water's mirror (`reflection-model.ts`), so they are not drawn twice and have no reflection.
+
+Seen in the real game in a software-rendered browser: the five kinds draw, face the right way and are posed (the dolphin nose up, the turtle at the surface, the bell of the jellyfish out of the water). Not done: the animals under the water (fish schools, rays; they need the clear-water layer), anything that reacts to the boat, and any sound. Not measured: the frame rate with them on a phone.
+
 ## Map detail
 
 (Since decision [0013](decisions/0013-bigger-sea-fewer-larger-islands.md) the sea is 3 x 3 km with eight large islands and no backdrop islands: where the paragraphs below speak of three islands, the 1.08 collision ring, a coast between 0.85 and 0.99 of the radius, hills 0.3 to 0.4 of the radius wide or the five backdrop islands, read "The big sea" at the end of this file instead.)

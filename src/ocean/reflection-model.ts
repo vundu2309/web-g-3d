@@ -26,7 +26,8 @@ const NEVER = new Set([
   "gear-shadow",
   "rain",
 ]);
-const NEVER_PREFIX = ["swash-", "gear-ring-", "beacon"];
+// "wild-": the living animals (wildlife-scene.ts), some of them tens of thousands of triangles.
+const NEVER_PREFIX = ["swash-", "gear-ring-", "beacon", "wild-"];
 /** The material of the fish and the line while they are under the water (underwater.ts): they lie below y = 0. */
 export const UNDER_THE_SEA = "underwater-skin";
 
