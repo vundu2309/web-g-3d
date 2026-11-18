@@ -22,6 +22,8 @@ import {
  * camera, so the cost follows what can be seen.
  */
 
+/** The fish of a school farther than this (m) from the camera are switched off: the layer draws nothing beyond about 110 m (CLEAR.reach). */
+const DRAW_RANGE = 150;
 /** A school farther than this (m) from the camera is not moved. */
 const ACTIVE_RANGE = 260;
 /** How quickly a school's scatter eases toward its target (per second). */
@@ -95,6 +97,7 @@ export class FishSchools {
   private readonly push = SCHOOLS.map(() => ({ x: 0, z: 0 }));
   private readonly target = { x: 0, z: 0 };
   private readonly poses: FishPose[] = [];
+  private readonly drawn: boolean[] = [];
   private last = -1;
 
   constructor(scene: Scene) {
@@ -122,6 +125,7 @@ export class FishSchools {
         instance.isPickable = false;
         // Out of sight until the first update places them.
         instance.position.y = -50;
+        instance.setEnabled(false);
         list.push(instance);
       }
       this.fish.push(list);
@@ -143,12 +147,14 @@ export class FishSchools {
       const centre = schoolCentre(school, time);
       const dx = centre.x - camera.x;
       const dz = centre.z - camera.z;
-      if (dx * dx + dz * dz > ACTIVE_RANGE * ACTIVE_RANGE) {
-        // Parked far below: never drawn, never tested against the camera's view.
-        if (list[0]!.position.y !== -50)
-          for (const mesh of list) mesh.position.y = -50;
-        return;
+      const near = dx * dx + dz * dz < DRAW_RANGE * DRAW_RANGE;
+      if (near !== this.drawn[s]) {
+        // Fish beyond the clear-water layer's reach cannot be seen: switched off, they cost the
+        // scene nothing (no culling, no draw), where a parked instance still costs both.
+        for (const mesh of list) mesh.setEnabled(near);
+        this.drawn[s] = near;
       }
+      if (dx * dx + dz * dz > ACTIVE_RANGE * ACTIVE_RANGE) return;
       scatterTarget(school, time, boats, this.target);
       push.x += (this.target.x - push.x) * ease;
       push.z += (this.target.z - push.z) * ease;

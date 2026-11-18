@@ -5,7 +5,9 @@ import {
   POOR,
   PerfWindow,
   isPoor,
+  meshGroup,
   perfLines,
+  topGroups,
 } from "../src/ocean/perf-meter.ts";
 
 test("a steady 30 fps shows as 30 fps with an even gap and no hitches", () => {
@@ -120,4 +122,39 @@ test("the panel is poor below 24 fps, with a slow tail, a heavy frame or many hi
     false,
     "too few frames to judge",
   );
+});
+
+test("the triangle breakdown groups meshes by name and lists the biggest first", () => {
+  assert.equal(meshGroup("palm-12-crown"), "palm");
+  assert.equal(meshGroup("boat-model-3-hull"), "boat");
+  assert.equal(meshGroup("school-fish-4-7"), "school");
+  assert.equal(meshGroup("island7"), "island");
+  assert.equal(meshGroup("12"), "mesh");
+  const top = topGroups(
+    [
+      ["island-1", 300000],
+      ["island-2", 100000],
+      ["boat-a-hull", 50000],
+      ["school-fish-1-1", 80],
+      ["school-fish-1-2", 80],
+      ["sea", 33600],
+    ],
+    3,
+  );
+  assert.deepEqual(top, [
+    ["island", 400000],
+    ["boat", 50000],
+    ["sea", 33600],
+  ]);
+  const lines = perfLines(new PerfWindow().summary(0), {
+    mode: "eco",
+    renderScale: 1,
+    clearWater: false,
+    clearWaterMeshes: 0,
+    meshes: 1,
+    triangles: 1,
+    boats: 1,
+    top,
+  });
+  assert.ok(lines.some((l) => l === "tris: island 400k boat 50k sea 34k"));
 });

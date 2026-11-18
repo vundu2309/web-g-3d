@@ -118,6 +118,26 @@ export class PerfWindow {
   }
 }
 
+/** The group a mesh belongs to for the triangle breakdown: its name without the numbers and parts (`palm-12-crown` is `palm`, `boat-model-3-hull` is `boat`). */
+export function meshGroup(name: string): string {
+  const first = name.split(/[-_. ]/)[0] || name;
+  const letters = first.replace(/\d+$/, "");
+  return letters || "mesh";
+}
+
+/** The biggest groups of a list of (mesh name, triangles) pairs, as [group, triangles], most first. */
+export function topGroups(
+  meshes: readonly (readonly [string, number])[],
+  count = 4,
+): [string, number][] {
+  const sums = new Map<string, number>();
+  for (const [name, triangles] of meshes) {
+    const group = meshGroup(name);
+    sums.set(group, (sums.get(group) ?? 0) + triangles);
+  }
+  return [...sums].sort((a, b) => b[1] - a[1]).slice(0, count);
+}
+
 /** The panel's lines for a summary and the scene's own numbers (pure, so a test can read them). */
 export function perfLines(
   s: PerfSummary,
@@ -131,6 +151,8 @@ export function perfLines(
     boats: number;
     heapMb?: number;
     poor?: boolean;
+    /** The biggest groups of drawn triangles ([group, triangles]). */
+    top?: [string, number][];
   },
 ): string[] {
   const f1 = (v: number) => v.toFixed(1);
@@ -142,6 +164,10 @@ export function perfLines(
     `clear water ${extra.clearWater ? `on (${extra.clearWaterMeshes})` : "off"}`,
     `meshes ${extra.meshes}  tris ${Math.round(extra.triangles / 1000)}k  boats ${extra.boats}`,
   ];
+  if (extra.top?.length)
+    lines.push(
+      `tris: ${extra.top.map(([group, n]) => `${group} ${Math.round(n / 1000)}k`).join(" ")}`,
+    );
   if (extra.heapMb !== undefined)
     lines.push(`heap ${Math.round(extra.heapMb)} MB`);
   return lines;

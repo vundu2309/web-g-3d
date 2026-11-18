@@ -11,6 +11,8 @@ export interface PerfSource {
     triangles: number;
   };
   boats: () => number;
+  /** The biggest groups of drawn triangles. */
+  groups?: () => [string, number][];
 }
 
 /**
@@ -107,6 +109,7 @@ export function createPerfPanel(
         boats: source.boats(),
         heapMb: heap(),
         poor,
+        top: source.groups?.(),
       }).join("\n");
     },
     dispose() {

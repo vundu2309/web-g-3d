@@ -1,3 +1,4 @@
+import { topGroups } from "./perf-meter.ts";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
 import { FreeCamera } from "@babylonjs/core/Cameras/freeCamera";
@@ -893,6 +894,17 @@ export class OceanScene {
   }
 
   /** Frame cost, for diagnostics and tests. */
+  /** The biggest groups of triangles in the frame (by mesh name), for the performance panel: one pass over the active meshes. */
+  trianglesByGroup(): [string, number][] {
+    const pairs: [string, number][] = [];
+    for (const mesh of this.scene.getActiveMeshes().data) {
+      if (!mesh) continue;
+      const source = (mesh as { sourceMesh?: AbstractMesh }).sourceMesh ?? mesh;
+      pairs.push([mesh.name, source.getTotalIndices() / 3]);
+    }
+    return topGroups(pairs);
+  }
+
   stats() {
     return {
       meshes: this.scene.getActiveMeshes().length,

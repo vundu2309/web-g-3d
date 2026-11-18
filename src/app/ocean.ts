@@ -167,6 +167,7 @@ export function startOcean(
           triangles: 0,
         },
       boats: () => boats.length,
+      groups: () => scene?.trianglesByGroup() ?? [],
     },
     {
       visible: perfLog || loadPerfPref(),
