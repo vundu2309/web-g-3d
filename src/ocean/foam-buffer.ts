@@ -25,7 +25,9 @@ import {
 /** Seconds a point of a boat's foam trail is kept. */
 export const FOAM_LIFE = 12;
 /** Seconds between the points of a foam trail. */
-export const FOAM_STEP = 0.14;
+export const FOAM_STEP = 0.05;
+/** Puffs are tuned for a point every 0.14 s; a shorter step lays more of them, so each is weaker. */
+const STEP_K = FOAM_STEP / 0.14;
 /** The texture is this many texels each way and covers FOAM_WINDOW metres each way. */
 export const FOAM_SIZE = 512;
 export const FOAM_WINDOW = 192;
@@ -68,10 +70,10 @@ export const washRadius = (age: number) => 0.85 + 0.42 * Math.pow(age, 0.92);
 /** The arms' strength and radius at an age (they fade sooner and stay thinner than the wash). */
 export const armStrength = (age: number, speedK: number) =>
   speedK *
-  0.62 *
-  Math.exp(-age / 2.6) *
+  0.6 *
+  Math.exp(-age / 2.4) *
   (1 - smooth(FOAM_LIFE * 0.5, FOAM_LIFE * 0.8, age));
-export const armRadius = (age: number) => 0.55 + 0.22 * Math.pow(age, 0.9);
+export const armRadius = (age: number) => 0.32 + 0.1 * Math.pow(age, 0.9);
 
 /** The bow burst: only while the point is fresh. */
 export const bowStrength = (age: number, speedK: number) =>
@@ -132,14 +134,14 @@ export function foamPuffs(
       if (wash > 0.01) {
         const radius = washRadius(age);
         const spread = 0.5 + 0.3 * age;
-        for (let k = 0; k < 4; k++) {
+        for (let k = 0; k < 2; k++) {
           const side = (hash01(s.dist * 3.1 + k * 17.3) - 0.5) * 2 * spread;
           const back = (hash01(s.dist * 5.3 + k * 7.9) - 0.5) * 1.2;
           put(
             s.x - fx * (STERN + back) + rx * side,
             s.z - fz * (STERN + back) + rz * side,
             radius * (0.8 + 0.4 * hash01(s.dist * 9.1 + k)),
-            wash * (k === 0 ? 1 : 0.65),
+            wash * (k === 0 ? 0.8 : 0.55),
             hash01(seed * 31 + k),
           );
         }
@@ -155,7 +157,7 @@ export function foamPuffs(
             s.x + fx * BOW + rx * side * out_,
             s.z + fz * BOW + rz * side * out_,
             radius,
-            arm,
+            arm * STEP_K * 1.6,
             hash01(seed * 17 + side),
           );
         }
@@ -166,8 +168,8 @@ export function foamPuffs(
         put(
           s.x + fx * (BOW - 0.4),
           s.z + fz * (BOW - 0.4),
-          0.9 + 0.4 * age,
-          burst,
+          0.45 + 0.2 * age,
+          burst * STEP_K * 1.2,
           seed,
         );
     }

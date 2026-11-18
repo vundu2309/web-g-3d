@@ -5,6 +5,7 @@ const {
   FOAM_LIFE,
   FOAM_MAX,
   FOAM_SIZE,
+  FOAM_STEP,
   FOAM_TEXEL,
   FOAM_WINDOW,
   PUFF,
@@ -26,7 +27,7 @@ const { WakeTrail } = await import("../src/ocean/wake-trail.ts");
 
 /** A boat sailing straight at `speed` m/s along heading `heading` from (x, z), seen for `seconds`. */
 function sail({ x = 0, z = 0, heading = 0, speed = 10, seconds = 6 } = {}) {
-  const trail = new WakeTrail(FOAM_LIFE, 0.14);
+  const trail = new WakeTrail(FOAM_LIFE, FOAM_STEP);
   const fx = Math.sin(heading);
   const fz = -Math.cos(heading);
   for (let t = 0; t <= seconds + 1e-9; t += 0.05)
@@ -167,7 +168,7 @@ test("the arms leave the stem and spread out to both sides at the Kelvin slope",
 });
 
 test("a turning boat leaves a curved wash, with no arms in the hardest part of the turn", () => {
-  const trail = new WakeTrail(FOAM_LIFE, 0.14);
+  const trail = new WakeTrail(FOAM_LIFE, FOAM_STEP);
   const turn = 1.4; // rad/s: a hard turn (past where the arms would only cross themselves)
   let x = 0;
   let z = 0;

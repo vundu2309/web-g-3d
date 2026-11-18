@@ -29,8 +29,8 @@ export const CREST_ACROSS = 3;
 export const CREST_FROM = 1.5;
 export const CREST_FULL = 9;
 /** The tallest the crest gets (m above the waves) and the width of its toe (m beyond the hull). */
-export const CREST_HEIGHT = 0.9;
-export const CREST_TOE = 1.7;
+export const CREST_HEIGHT = 0.6;
+export const CREST_TOE = 1.2;
 /** Above this speed (m/s) the bow throws spray; it is at its fullest at SPRAY_FULL. */
 export const BOW_SPRAY_FROM = 6;
 export const SPRAY_FULL = 10;
