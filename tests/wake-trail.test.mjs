@@ -391,7 +391,7 @@ test("the white water behind a boat is no longer a mesh of strips: the mesh keep
     "utf8",
   );
   // The strips (one mesh per boat, TRAIL_ACROSS vertices across, a vertex colour for the across
-  // coordinate) are gone; the sea's shader draws the wake from the foam buffer instead.
+  // coordinate) are gone; the sea's shader draws the wake from the water simulation instead.
   assert.ok(!mesh.includes("TRAIL_ACROSS"));
   assert.ok(!mesh.includes("layTrail"));
   assert.ok(!mesh.includes("geometry.across"));
@@ -400,8 +400,8 @@ test("the white water behind a boat is no longer a mesh of strips: the mesh keep
     new URL("../src/ocean/water.ts", import.meta.url),
     "utf8",
   );
-  assert.ok(water.includes("uniform sampler2D foamMap;"));
-  assert.ok(water.includes("texture2D(foamMap, fuv)"));
+  assert.ok(water.includes("float density = stirred.w;"));
+  assert.ok(!water.includes("foamMap"));
   // The bow crest shares the foam material: two taps of the texture at different sizes (no
   // lattice or tile shows) and a wide soft cut.
   assert.equal(mesh.match(/texture2D\(foam,/g).length, 2);
