@@ -1,4 +1,4 @@
-import { PerfWindow, perfLines } from "../ocean/perf-meter.ts";
+import { PerfWindow, isPoor, perfLines } from "../ocean/perf-meter.ts";
 
 /** What the panel reads from the scene each time it refreshes. */
 export interface PerfSource {
@@ -84,11 +84,19 @@ export function createPerfPanel(
       if (!shown || now - lastDraw < 500) return;
       lastDraw = now;
       const stats = source.stats();
-      el.textContent = perfLines(window_.summary(now), {
+      const summary = window_.summary(now);
+      const poor = isPoor(summary, window_.frames);
+      // Poor performance turns the panel red (and says SLOW, for those who cannot tell the colours apart).
+      el.style.background = poor
+        ? "rgba(170, 20, 20, 0.88)"
+        : "rgba(8, 24, 40, 0.72)";
+      el.style.borderColor = poor ? "#ff6b6b" : "rgba(255,255,255,0.18)";
+      el.textContent = perfLines(summary, {
         mode: source.mode(),
         ...stats,
         boats: source.boats(),
         heapMb: heap(),
+        poor,
       }).join("\n");
     },
     dispose() {

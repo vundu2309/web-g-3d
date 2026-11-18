@@ -27,6 +27,22 @@ export interface PerfSummary {
   hitches: number;
 }
 
+/** The panel turns red when the frames are poor: under POOR.fps, or the slowest 5 % of gaps over POOR.p95, or a frame costing more than POOR.cost on average, or this many hitches in the window. */
+export const POOR = { fps: 24, p95: 60, cost: 28, hitches: 3 };
+/** Frames needed in the window before it is judged (the first moments of a page tell nothing). */
+export const JUDGE_FROM = 12;
+
+/** True when the summary of a window shows poor performance. */
+export function isPoor(s: PerfSummary, frames: number): boolean {
+  if (frames < JUDGE_FROM) return false;
+  return (
+    s.fps < POOR.fps ||
+    s.gapP95 > POOR.p95 ||
+    s.costAvg > POOR.cost ||
+    s.hitches >= POOR.hitches
+  );
+}
+
 /** A gap longer than this (ms) counts as a hitch. */
 export const HITCH = 50;
 
@@ -64,6 +80,11 @@ export class PerfWindow {
     let j = 0;
     while (j < this.display.length && this.display[j]! < from) j++;
     if (j) this.display = this.display.slice(j);
+  }
+
+  /** How many drawn frames the window holds. */
+  get frames() {
+    return this.drawn.length;
   }
 
   /** The summary of the window ending at `now` (zeros while nothing has been recorded). */
@@ -109,11 +130,12 @@ export function perfLines(
     triangles: number;
     boats: number;
     heapMb?: number;
+    poor?: boolean;
   },
 ): string[] {
   const f1 = (v: number) => v.toFixed(1);
   const lines = [
-    `${Math.round(s.fps)} fps  (display ${Math.round(s.displayFps)})`,
+    `${extra.poor ? "! SLOW  " : ""}${Math.round(s.fps)} fps  (display ${Math.round(s.displayFps)})`,
     `gap ${f1(s.gapAvg)} ms  p95 ${f1(s.gapP95)}  max ${f1(s.gapMax)}`,
     `cost ${f1(s.costAvg)} ms  max ${f1(s.costMax)}  hitches ${s.hitches}`,
     `pace ${extra.mode}  scale ${extra.renderScale.toFixed(2)}`,

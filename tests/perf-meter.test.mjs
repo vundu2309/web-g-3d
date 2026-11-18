@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { HITCH, PerfWindow, perfLines } from "../src/ocean/perf-meter.ts";
+import {
+  HITCH,
+  POOR,
+  PerfWindow,
+  isPoor,
+  perfLines,
+} from "../src/ocean/perf-meter.ts";
 
 test("a steady 30 fps shows as 30 fps with an even gap and no hitches", () => {
   const w = new PerfWindow(2000);
@@ -66,5 +72,52 @@ test("the panel lines carry every number and leave out the heap when the browser
   assert.ok(!lines.some((l) => l.startsWith("heap")));
   assert.ok(
     perfLines(s, { ...base, heapMb: 210.4 }).some((l) => l === "heap 210 MB"),
+  );
+});
+
+test("the panel is poor below 24 fps, with a slow tail, a heavy frame or many hitches, and not for a steady 30 fps", () => {
+  const run = (gapOf, cost = 5, n = 90) => {
+    const w = new PerfWindow(5000);
+    let t = 0;
+    for (let i = 0; i < n; i++) {
+      const gap = gapOf(i);
+      t += gap;
+      w.frame(t, gap, cost);
+    }
+    return isPoor(w.summary(t), w.frames);
+  };
+  assert.equal(
+    run(() => 33.3),
+    false,
+    "a steady 30 is the eco rhythm, not poor",
+  );
+  assert.equal(
+    run(() => 16.7),
+    false,
+  );
+  assert.equal(
+    run(() => 50),
+    true,
+    "20 fps is poor",
+  );
+  assert.equal(
+    run((i) => (i % 10 === 0 ? 120 : 20)),
+    true,
+    "a slow tail",
+  );
+  assert.equal(
+    run(() => 33.3, POOR.cost + 5),
+    true,
+    "a heavy frame",
+  );
+  assert.equal(
+    run((i) => (i % 30 === 0 ? 90 : 16.7), 5, 100),
+    true,
+    "three hitches",
+  );
+  assert.equal(
+    run(() => 50, 5, 5),
+    false,
+    "too few frames to judge",
   );
 });
