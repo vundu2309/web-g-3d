@@ -10,9 +10,9 @@
  * 490 pixels to the radian on a phone held wide, so 0.005 is two or three pixels).
  */
 /** The whole model while the prop covers at least this angle. */
-export const PROP_FULL_ANGLE = 0.04;
+export const PROP_FULL_ANGLE = 0.07;
 /** A coarser copy (about 45 % of the triangles) while it covers at least this. */
-export const PROP_MID_ANGLE = 0.015;
+export const PROP_MID_ANGLE = 0.025;
 /** The coarsest copy (about 18 %) down to this angle, then the prop is gone. */
 export const PROP_END_ANGLE = 0.005;
 /**
