@@ -13,6 +13,8 @@ export interface PerfSource {
   boats: () => number;
   /** The biggest groups of drawn triangles. */
   groups?: () => [string, number][];
+  /** The frame-cost switches that are set (probe.ts). */
+  switches?: () => string[];
 }
 
 /**
@@ -111,6 +113,7 @@ export function createPerfPanel(
         heapMb: heap(),
         poor,
         top: source.groups?.(),
+        switches: source.switches?.(),
       }).join("\n");
     },
     dispose() {

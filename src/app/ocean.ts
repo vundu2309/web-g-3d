@@ -24,6 +24,7 @@ import {
   loadPerfPref,
   savePerfPref,
 } from "./settings-perf";
+import { probeSummary } from "../ocean/probe";
 import { createUpdateSection } from "./settings-update";
 import {
   economyEnabled,
@@ -173,6 +174,7 @@ export function startOcean(
         },
       boats: () => boats.length,
       groups: () => scene?.trianglesByGroup() ?? [],
+      switches: probeSummary,
     },
     {
       visible: perfLog || loadPerfPref(),

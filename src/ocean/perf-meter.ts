@@ -153,6 +153,8 @@ export function perfLines(
     poor?: boolean;
     /** The biggest groups of drawn triangles ([group, triangles]). */
     top?: [string, number][];
+    /** The page-address / Settings switches that leave a part out or force a setting (probe.ts); empty when none. */
+    switches?: string[];
   },
 ): string[] {
   const f1 = (v: number) => v.toFixed(1);
@@ -164,6 +166,12 @@ export function perfLines(
     `clear water ${extra.clearWater ? `on (${extra.clearWaterMeshes})` : "off"}`,
     `meshes ${extra.meshes}  tris ${Math.round(extra.triangles / 1000)}k  boats ${extra.boats}`,
   ];
+  if (extra.switches)
+    lines.push(
+      extra.switches.length
+        ? `OFF: ${extra.switches.join(" ")}`
+        : "parts: all on",
+    );
   if (extra.top?.length)
     lines.push(
       `tris: ${extra.top.map(([group, n]) => `${group} ${Math.round(n / 1000)}k`).join(" ")}`,

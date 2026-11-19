@@ -49,3 +49,9 @@ export const setProbe = (name: string, value: string | null) => {
     /* blocked storage: the switch just is not remembered */
   }
 };
+
+/** The switches that are set now, as short words for the performance panel ("reflect", "fish", "scale=1"…). */
+export const probeSummary = (): string[] =>
+  PROBES.filter((item) => probe(item.name) === item.off).map((item) =>
+    item.feature ? item.name : `${item.name}=${item.off}`,
+  );

@@ -158,3 +158,24 @@ test("the triangle breakdown groups meshes by name and lists the biggest first",
   });
   assert.ok(lines.some((l) => l === "tris: island 400k boat 50k sea 34k"));
 });
+
+test("the panel says which parts are switched off, or that all are on", () => {
+  const s = new PerfWindow().summary(0);
+  const base = {
+    mode: "eco",
+    renderScale: 1.5,
+    clearWater: true,
+    clearWaterMeshes: 1,
+    meshes: 10,
+    triangles: 1000,
+    boats: 1,
+  };
+  assert.ok(perfLines(s, { ...base, switches: [] }).includes("parts: all on"));
+  assert.ok(
+    perfLines(s, { ...base, switches: ["reflect", "scale=1"] }).includes(
+      "OFF: reflect scale=1",
+    ),
+  );
+  // Without the information (an old caller) neither line is added.
+  assert.ok(!perfLines(s, base).some((l) => /^(OFF|parts)/.test(l)));
+});
