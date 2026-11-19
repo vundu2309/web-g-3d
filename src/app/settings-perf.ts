@@ -79,7 +79,7 @@ export function createProbeSection(beforeReload: () => void): HTMLElement {
   const note = document.createElement("p");
   note.className = "update-note";
   note.textContent =
-    "Để tìm phần nào làm tụt khung hình: bật một mục, bấm Áp dụng, đứng yên rồi đọc khung đo. Nhớ tắt hết sau khi thử.";
+    "Để tìm phần nào làm tụt khung hình: tắt một phần (hoặc ép độ phân giải 1x), bấm Áp dụng, đứng yên rồi đọc khung đo. Xong thì bật lại hết.";
   const row = document.createElement("div");
   row.className = "weather-row";
   row.style.gridTemplateColumns = "1fr";
@@ -89,9 +89,11 @@ export function createProbeSection(beforeReload: () => void): HTMLElement {
     chip.className = "weather-chip";
     chip.dataset.probe = item.name;
     const refresh = () => {
-      const on = probe(item.name) === item.off;
+      const changed = probe(item.name) === item.off;
+      // A part shows "bật" while the game draws it; a forced setting shows "bật" while forced.
+      const on = item.feature ? !changed : changed;
       chip.setAttribute("aria-pressed", String(on));
-      chip.textContent = `${item.label}: ${on ? "đang bật" : "tắt"}`;
+      chip.textContent = `${item.label}: ${on ? "bật" : "tắt"}`;
     };
     chip.addEventListener("click", () => {
       setProbe(item.name, probe(item.name) === item.off ? null : item.off);

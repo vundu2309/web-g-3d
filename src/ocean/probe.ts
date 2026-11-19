@@ -5,11 +5,13 @@
  */
 const KEY = "sea-probe";
 export const PROBES = [
-  { name: "reflect", off: "0", label: "Tắt phản chiếu nước" },
-  { name: "fish", off: "0", label: "Tắt đàn cá" },
-  { name: "props", off: "0", label: "Tắt dừa, bụi, nhà, đá" },
-  { name: "clearwater", off: "0", label: "Tắt nước trong suốt" },
-  { name: "scale", off: "1", label: "Độ phân giải 1x" },
+  // `feature` true: the switch shows whether the part is on (the game's normal state) and setting it
+  // off leaves the part out. `feature` false: the switch is a forced setting, on only when forced.
+  { name: "reflect", off: "0", label: "Phản chiếu nước", feature: true },
+  { name: "fish", off: "0", label: "Đàn cá", feature: true },
+  { name: "props", off: "0", label: "Dừa, bụi, nhà, đá", feature: true },
+  { name: "clearwater", off: "0", label: "Nước trong suốt", feature: true },
+  { name: "scale", off: "1", label: "Ép độ phân giải 1x", feature: false },
 ] as const;
 
 const stored = (): Record<string, string> => {
