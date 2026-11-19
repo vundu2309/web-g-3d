@@ -18,7 +18,12 @@ import { stockTotal, type Inventory } from "../ocean/fishing";
 import { createFishingUi } from "./fishing-ui";
 import { createMarketUi } from "./market-ui";
 import { createWeatherTestSection } from "./settings-weather";
-import { createPerfSection, loadPerfPref, savePerfPref } from "./settings-perf";
+import {
+  createPerfSection,
+  createProbeSection,
+  loadPerfPref,
+  savePerfPref,
+} from "./settings-perf";
 import { createUpdateSection } from "./settings-update";
 import {
   economyEnabled,
@@ -504,6 +509,7 @@ export function startOcean(
     body.append(
       createWeatherTestSection(),
       createPerfSection(perfPanel),
+      createProbeSection(persist),
       createUpdateSection({ beforeApply: persist }),
     );
     const foot = document.createElement("footer");

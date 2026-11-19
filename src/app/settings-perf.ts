@@ -1,3 +1,5 @@
+import { PROBES, probe, setProbe } from "../ocean/probe";
+
 /** The device's choice to show the performance panel, kept on this device only. */
 const KEY = "sea-perf-panel";
 
@@ -58,5 +60,54 @@ export function createPerfSection(panel: {
   row.style.gridTemplateColumns = "1fr"; // one wide switch, not a quarter of the four-chip row
   row.append(button);
   section.append(head, note, row);
+  return section;
+}
+
+/**
+ * "Thử tắt từng phần": switches that leave one part of the sea out, so the performance panel shows
+ * what that part costs on this phone. They apply after a reload and stay until switched back.
+ */
+export function createProbeSection(beforeReload: () => void): HTMLElement {
+  const section = document.createElement("section");
+  section.className = "update-card weather-card";
+  section.setAttribute("aria-label", "Thử tắt từng phần");
+  const head = document.createElement("div");
+  head.className = "crew-head";
+  const title = document.createElement("h3");
+  title.textContent = "Thử tắt từng phần";
+  head.append(title);
+  const note = document.createElement("p");
+  note.className = "update-note";
+  note.textContent =
+    "Để tìm phần nào làm tụt khung hình: bật một mục, bấm Áp dụng, đứng yên rồi đọc khung đo. Nhớ tắt hết sau khi thử.";
+  const row = document.createElement("div");
+  row.className = "weather-row";
+  row.style.gridTemplateColumns = "1fr";
+  for (const item of PROBES) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "weather-chip";
+    chip.dataset.probe = item.name;
+    const refresh = () => {
+      const on = probe(item.name) === item.off;
+      chip.setAttribute("aria-pressed", String(on));
+      chip.textContent = `${item.label}: ${on ? "đang bật" : "tắt"}`;
+    };
+    chip.addEventListener("click", () => {
+      setProbe(item.name, probe(item.name) === item.off ? null : item.off);
+      refresh();
+    });
+    refresh();
+    row.append(chip);
+  }
+  const apply = document.createElement("button");
+  apply.type = "button";
+  apply.className = "button settings-update";
+  apply.textContent = "Áp dụng (tải lại game)";
+  apply.addEventListener("click", () => {
+    beforeReload();
+    window.location.reload();
+  });
+  section.append(head, note, row, apply);
   return section;
 }

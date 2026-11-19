@@ -30,6 +30,7 @@ import { islandSeed } from "./shore.ts";
 import { SeaProps } from "./sea-props.ts";
 import { Wildlife } from "./wildlife-scene.ts";
 import { PropBatches } from "./prop-batches.ts";
+import { probe } from "./probe.ts";
 import { RippleSim, SIM_N, type Hull } from "./ripple-sim.ts";
 import { OrbitCamera } from "./orbit-camera.ts";
 import {
@@ -89,28 +90,8 @@ interface Craft {
 const wrap = (angle: number) => Math.atan2(Math.sin(angle), Math.cos(angle));
 const blend = (dt: number, rate: number) => 1 - Math.exp(-dt * rate);
 const NORMALIZED = new Viewport(0, 0, 1, 1);
-/**
- * Switches in the page address to find what costs the frames on a device (read the performance
- * panel after each): `?reflect=0` (no mirror), `?fish=0` (no fish), `?props=0` (no island props),
- * `?scale=1` (render pixels per CSS pixel; the governor may still lower it), `?clearwater=0`.
- */
-const probe = (name: string): string | null => {
-  try {
-    return new URLSearchParams(window.location.search).get(name);
-  } catch {
-    return null;
-  }
-};
 /** `?clearwater=0` keeps the sea opaque (to compare, or on a device that cannot hold the layer). */
-const clearWaterRefused = () => {
-  try {
-    return (
-      new URLSearchParams(window.location.search).get("clearwater") === "0"
-    );
-  } catch {
-    return false;
-  }
-};
+const clearWaterRefused = () => probe("clearwater") === "0";
 
 /**
  * Babylon.js + Havok sea. The player's boat is a Havok body floating on the shared
