@@ -28,6 +28,16 @@ const NEVER = new Set([
 ]);
 // "wild-": the living animals (wildlife-scene.ts), some of them tens of thousands of triangles.
 const NEVER_PREFIX = ["swash-", "gear-ring-", "beacon", "seabed-", "wild-"];
+/**
+ * Small props (palms, rocks, bushes, huts) and the fish schools are left out of the mirror on a
+ * touch screen: the mirror draws the scene a second time, and a palm's reflection is a few blurred
+ * pixels in a half-size picture. The islands themselves, the boats and the sky stay.
+ */
+const LEAN_PREFIX = ["palm-", "rock-", "bush-", "hut-", "school-fish-"];
+let lean = false;
+export const setLeanReflection = (on: boolean) => {
+  lean = on;
+};
 /** The material of the fish and the line while they are under the water (underwater.ts): they lie below y = 0. */
 export const UNDER_THE_SEA = "underwater-skin";
 
@@ -43,6 +53,8 @@ export function reflectsInWater(name: string, material?: string): boolean {
   if (!reflectsMaterial(material)) return false;
   if (NEVER.has(name)) return false;
   for (const prefix of NEVER_PREFIX) if (name.startsWith(prefix)) return false;
+  if (lean)
+    for (const prefix of LEAN_PREFIX) if (name.startsWith(prefix)) return false;
   return true;
 }
 

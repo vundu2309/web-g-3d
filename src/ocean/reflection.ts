@@ -4,7 +4,11 @@ import { Constants } from "@babylonjs/core/Engines/constants";
 import { Color4 } from "@babylonjs/core/Maths/math.color";
 import { Plane } from "@babylonjs/core/Maths/math.plane";
 import type { Scene } from "@babylonjs/core/scene";
-import { reflectionSize, reflectsInWater } from "./reflection-model.ts";
+import {
+  reflectionSize,
+  reflectsInWater,
+  setLeanReflection,
+} from "./reflection-model.ts";
 import type { Sky } from "./sky.ts";
 import type { Water } from "./water.ts";
 
@@ -45,6 +49,12 @@ export function createSeaReflection(
   mirror.mirrorPlane = new Plane(0, -1, 0, 0);
   // prettier-ignore
   mirror.renderListPredicate = (mesh) => reflectsInWater(mesh.name, mesh.material?.name);
+  // On a touch screen the mirror is drawn every other frame (the picture is blurred and nudged by
+  // the waves anyway) and leaves the small props out.
+  if (window.matchMedia?.("(pointer: coarse)").matches) {
+    mirror.refreshRate = 2;
+    setLeanReflection(true);
+  }
   // Nothing drawn means alpha 0: the water then falls back to the analytic sky there.
   mirror.clearColor = new Color4(0, 0, 0, 0);
   mirror.wrapU = Texture.CLAMP_ADDRESSMODE;
