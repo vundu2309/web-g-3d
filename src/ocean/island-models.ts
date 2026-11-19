@@ -6,6 +6,8 @@ import { loadMergedModel } from "./model-loader.ts";
 import { meshFrom } from "./mesh-parts.ts";
 import {
   copyTriangles,
+  FOG_CUT,
+  FOG_CUT_TOUCH,
   propDistances,
   type PropDistances,
 } from "./prop-lod.ts";
@@ -56,10 +58,10 @@ export const propDistancesOf = (source: Mesh) => distancesOf.get(source);
  * model is not changed. The prop fades out over the last part before `end` (prop-fade.ts), so the
  * hiding level lies a little beyond it.
  */
-export function addPropLevels(source: Mesh): void {
+export function addPropLevels(source: Mesh, cut: number = FOG_CUT): void {
   const bounds = source.getBoundingInfo().boundingBox.extendSize;
   const size = Math.max(bounds.x, bounds.y, bounds.z) * 2;
-  const distances = propDistances(size);
+  const distances = propDistances(size, cut);
   const positions = source.getVerticesData(VertexBuffer.PositionKind);
   const indices = source.getIndices();
   const colors = source.getVerticesData(VertexBuffer.ColorKind);
@@ -122,13 +124,16 @@ export async function loadIslandModels(scene: Scene): Promise<IslandModels> {
   // The islands are big and many: a prop is drawn whole while it is big, as a coarser copy as it
   // gets small and not at all once it is a few pixels or under the fog (prop-lod.ts), fading out
   // before it goes.
+  const cut = window.matchMedia?.("(pointer: coarse)").matches
+    ? FOG_CUT_TOUCH
+    : FOG_CUT;
   for (const mesh of [
     ...models.palms,
     ...models.rocks,
     ...models.bushes,
     models.hut,
   ])
-    addPropLevels(mesh);
+    addPropLevels(mesh, cut);
   return models;
 }
 

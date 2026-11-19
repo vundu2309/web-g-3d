@@ -22,6 +22,8 @@ export const PROP_END_ANGLE = 0.005;
 export const FOG_CUT = 1400;
 /** The last part of the way to the end (a fraction of the end distance) in which a prop fades out. */
 export const FADE_BAND = 0.15;
+/** The same cut on a touch screen (m): the GPU there is the weak part, and far props are a few pixels. */
+export const FOG_CUT_TOUCH = 750;
 
 export interface PropDistances {
   /** Up to here the whole model. */
@@ -33,8 +35,11 @@ export interface PropDistances {
 }
 
 /** The distances at which a prop of this longest side changes level and goes. */
-export function propDistances(size: number): PropDistances {
-  const end = Math.min(size / PROP_END_ANGLE, FOG_CUT);
+export function propDistances(
+  size: number,
+  cut: number = FOG_CUT,
+): PropDistances {
+  const end = Math.min(size / PROP_END_ANGLE, cut);
   // The levels must come in order and each have room, even where the fog cut shortens the end.
   const mid = Math.min(size / PROP_MID_ANGLE, end * 0.7);
   const full = Math.min(size / PROP_FULL_ANGLE, mid * 0.5);
