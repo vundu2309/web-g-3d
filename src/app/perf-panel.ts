@@ -38,8 +38,9 @@ export function createPerfPanel(
   el.setAttribute("aria-hidden", "true");
   Object.assign(el.style, {
     position: "fixed",
-    left: "max(8px, env(safe-area-inset-left))",
-    top: "max(8px, env(safe-area-inset-top))",
+    // Under the settings button (the top-left chip, 48 px tall), never over it.
+    left: "max(16px, env(safe-area-inset-left))",
+    top: "calc(max(12px, env(safe-area-inset-top)) + 48px + 10px)",
     zIndex: "60",
     margin: "0",
     padding: "6px 8px",
