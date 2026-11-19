@@ -48,13 +48,46 @@ export function startPwa(root: HTMLElement): () => void {
     { signal: abort.signal },
   );
   document.body.append(dialog, update);
+  // A browser tab cannot tell that the game is installed, so the device remembers it once the
+  // installed app has run, or the install finished (the browser and the app share this storage).
+  const KEY = "sea-pwa-installed";
+  const remembered = () => {
+    try {
+      return localStorage.getItem(KEY) === "1";
+    } catch {
+      return false;
+    }
+  };
+  const remember = () => {
+    try {
+      localStorage.setItem(KEY, "1");
+    } catch {
+      /* private mode: the button just stays */
+    }
+  };
   function standalone() {
-    return (
-      installed ||
+    const running =
       display.matches ||
-      (navigator as Navigator & { standalone?: boolean }).standalone === true
-    );
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    if (running) remember();
+    return installed || running || remembered();
   }
+  // Chrome on Android can say whether the game is installed even from a tab.
+  const related = (
+    navigator as Navigator & {
+      getInstalledRelatedApps?: () => Promise<unknown[]>;
+    }
+  ).getInstalledRelatedApps;
+  if (related)
+    void related
+      .call(navigator)
+      .then((apps) => {
+        if (apps.length && !disposed) {
+          remember();
+          refreshButtons();
+        }
+      })
+      .catch(() => {});
   function refreshButtons() {
     for (const button of root.querySelectorAll<HTMLButtonElement>(
       "[data-pwa-install]",
@@ -84,6 +117,7 @@ export function startPwa(root: HTMLElement): () => void {
     "appinstalled",
     () => {
       installed = true;
+      remember();
       prompt = undefined;
       refreshButtons();
       if (dialog.open) dialog.close();
