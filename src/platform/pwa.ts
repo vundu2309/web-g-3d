@@ -51,12 +51,13 @@ export function registerShell(
   let registration: ServiceWorkerRegistration | undefined;
   let lastUpdate = 0;
   const checkWaiting = () => {
-    if (!disposed) onWaiting(!!registration?.waiting, applyUpdate);
+    if (!disposed)
+      onWaiting(!!registration?.waiting || pendingReload, applyUpdate);
   };
+  let pendingReload = false;
   let requested = false;
   // The first claim of an uncontrolled page is not an upgrade, so never reload for it.
   let hadController = !!navigator.serviceWorker.controller;
-  let pendingReload = false;
   navigator.serviceWorker.addEventListener(
     "controllerchange",
     () => {
@@ -65,14 +66,19 @@ export function registerShell(
       const upgrade = hadController;
       hadController = true;
       if (requested || (upgrade && canReload())) location.reload();
-      else if (upgrade) pendingReload = true;
+      else if (upgrade) {
+        // The new version already runs the worker; the banner on the home screen offers the reload.
+        pendingReload = true;
+        checkWaiting();
+      }
     },
     { signal: abort.signal },
   );
   async function applyUpdate() {
     const worker = registration?.waiting;
     if (!worker) {
-      checkWaiting();
+      if (pendingReload) location.reload();
+      else checkWaiting();
       return;
     }
     await new Promise<void>((resolve, reject) => {
@@ -127,6 +133,9 @@ export function registerShell(
         },
       };
       checkWaiting();
+      // Look for a newer version as soon as the page opens, not only when it comes back to view.
+      lastUpdate = Date.now();
+      void reg.update().catch(() => {});
       reg.addEventListener(
         "updatefound",
         () => {
