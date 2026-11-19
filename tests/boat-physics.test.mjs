@@ -17,7 +17,10 @@ import {
   WIND_DIRECTION,
   MAX_WAVE_HEIGHT,
   CALM_WAVE_HEIGHT,
+  WAVE_BOOST,
+  drawWaves,
   glslWaveHeight,
+  waveBoost,
   waveGradient,
   waveHeight,
 } from "../src/ocean/waves.ts";
@@ -653,7 +656,13 @@ test("the boat's own wake does not turn or push its hull", () => {
         state = s;
         sim.recentre(s.x, s.z);
         sim.step(DT, [
-          { x: s.x, z: s.z, heading: s.heading, speed: s.forwardSpeed },
+          {
+            x: s.x,
+            z: s.z,
+            heading: s.heading,
+            speed: s.forwardSpeed,
+            points: w.boat.contacts(),
+          },
         ]);
       },
     );
@@ -687,4 +696,143 @@ test("a boat held in a full-lock turn is not shoved sideways by the waves", () =
     `slide up to ${sideMax.toFixed(2)} m/s across`,
   );
   assert.ok(along > 10, `still cruises at ${along.toFixed(1)} m/s`);
+});
+
+test("the hull reports how its six points move through the water", () => {
+  const w = world();
+  let seenWet = 0;
+  let worst = 0;
+  w.run(
+    8,
+    () => ({ throttle: 1, steer: 1 }),
+    (s) => {
+      const points = w.boat.contacts();
+      assert.equal(points.length, 6);
+      for (const p of points) {
+        assert.ok(
+          [p.x, p.z, p.vx, p.vz, p.vy, p.wet].every(Number.isFinite),
+          "finite",
+        );
+        assert.ok(p.wet >= 0 && p.wet <= 1);
+        // Within the hull's own footprint, 3.2 m from its middle at most.
+        worst = Math.max(worst, Math.hypot(p.x - s.x, p.z - s.z));
+        if (p.wet > 0.5) seenWet++;
+      }
+    },
+  );
+  w.dispose();
+  assert.ok(seenWet > 100, "the points are in the water most of the time");
+  assert.ok(
+    worst < 3.6,
+    `the farthest point is ${worst.toFixed(2)} m from the middle`,
+  );
+});
+
+test("in a turn the bow and the stern move differently: the hull's spin is in the points' velocity", () => {
+  const w = world();
+  let rate = 0;
+  let before;
+  let gap = 0;
+  let count = 0;
+  w.run(
+    10,
+    () => ({ throttle: 0.6, steer: 1 }),
+    (s, t) => {
+      if (t < 5) {
+        before = s.heading;
+        return;
+      }
+      // Starboard bow and starboard stern, as the physics lists them (the +x side: z 3, 0, -3).
+      const points = w.boat.contacts();
+      const front = points[5];
+      const back = points[3];
+      // Their speed difference across the keel is the turn rate times the 6 m between them.
+      const fx = Math.sin(s.heading);
+      const fz = -Math.cos(s.heading);
+      const across = (p) => p.vx * -fz + p.vz * fx;
+      gap += across(front) - across(back);
+      count++;
+      const step = s.heading - before;
+      rate += Math.atan2(Math.sin(step), Math.cos(step));
+      before = s.heading;
+    },
+  );
+  w.dispose();
+  const turn = rate / (5 * 1); // rad over the last 5 s
+  const expected = Math.abs(turn) * 6;
+  const measured = Math.abs(gap / count);
+  assert.ok(
+    Math.abs(measured - expected) < 0.35 * expected + 0.3,
+    `bow and stern differ by ${measured.toFixed(2)} m/s, a ${turn.toFixed(2)} rad/s turn says ${expected.toFixed(2)}`,
+  );
+});
+
+test("a hull that stirs the water is not shaken by it: the ripples it makes at rest are small and the bobbing does not grow", () => {
+  const bob = (coupled) => {
+    const sim = new RippleSim();
+    const w = world({
+      extraHeight: coupled ? (x, z) => sim.sample(x, z).height : undefined,
+    });
+    const ys = [];
+    w.run(
+      20,
+      () => ({}),
+      (s) => {
+        ys.push(s.y);
+        sim.recentre(s.x, s.z);
+        sim.step(DT, [
+          {
+            x: s.x,
+            z: s.z,
+            heading: s.heading,
+            speed: s.forwardSpeed,
+            points: w.boat.contacts(),
+          },
+        ]);
+      },
+    );
+    w.dispose();
+    const m = mean(ys);
+    return {
+      spread: Math.sqrt(mean(ys.map((y) => (y - m) ** 2))),
+      ripple: sim.h.reduce((a, v) => Math.max(a, Math.abs(v)), 0),
+    };
+  };
+  const free = bob(false);
+  const coupled = bob(true);
+  assert.ok(
+    coupled.ripple > 0.005,
+    `a bobbing boat leaves ripples: ${coupled.ripple}`,
+  );
+  assert.ok(coupled.ripple < 0.12, `but small ones: ${coupled.ripple}`);
+  assert.ok(
+    coupled.spread < free.spread * 1.15,
+    `bobbing ${coupled.spread.toFixed(3)} m against ${free.spread.toFixed(3)} m without the ripples`,
+  );
+});
+
+test("?waves=N makes every wave N times taller and nothing else; no switch is the usual sea", () => {
+  assert.equal(
+    WAVE_BOOST,
+    1,
+    "no address in a test: the sea the game has always had",
+  );
+  assert.equal(waveBoost("2"), 2);
+  assert.equal(waveBoost("9"), 4, "no more than 4");
+  for (const bad of [null, "", "x", "0.5", "-2", "NaN"])
+    assert.equal(waveBoost(bad), 1, `${bad} is ignored`);
+  const base = drawWaves();
+  const big = drawWaves(2.5);
+  assert.equal(big.length, base.length);
+  base.forEach((wave, i) => {
+    const other = big[i];
+    assert.ok(Math.abs(other.amplitude - 2.5 * wave.amplitude) < 1e-12);
+    for (const key of ["length", "direction", "phase", "sharp", "lean", "tier"])
+      assert.equal(other[key], wave[key], key);
+  });
+  assert.ok(
+    Math.abs(
+      big.reduce((sum, w) => sum + w.amplitude, 0) - 2.5 * MAX_WAVE_HEIGHT,
+    ) < 1e-9,
+  );
 });

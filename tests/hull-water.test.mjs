@@ -236,3 +236,27 @@ test("the shader's collar is the one generated from these numbers", () => {
   );
   assert.ok(!water.includes("(0.8 + 1.4 * lap)"));
 });
+
+test("a hull lifted out of the water laps and ripples nothing, and a bow crest and spray need it wet", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const source = (name) =>
+    readFile(new URL(`../src/ocean/${name}`, import.meta.url), "utf8");
+  const water = await source("water.ts");
+  const hull = water.slice(water.indexOf("vec3 hullWater"));
+  // The wetness is the packed fourth component minus one, and it stops the whole boat's effects.
+  assert.ok(hull.includes("float wet = clamp(boat.w - 1.0, 0.0, 1.0);"));
+  assert.ok(hull.includes("if (wet <= 0.0) continue;"));
+  assert.ok(hull.includes("* pulse * wet;"), "the ripples");
+  assert.ok(hull.includes("foam = max(foam, wet * max(collar,"), "the foam");
+  // The shadow still needs only a boat (a lifted boat throws its shadow on the water).
+  assert.ok(water.includes("if (boat.w < 0.5 || distance(p, boat.xy) > 22.0)"));
+  const mesh = await source("wake-mesh.ts");
+  assert.ok(mesh.includes("newest.speed * wet"), "the bow crest and the spray");
+  const scene = await source("babylon-scene.ts");
+  assert.ok(scene.includes('this.leaveTrail("self", state.x, state.z, wet)'));
+  assert.match(
+    scene,
+    /heading: state\.heading,\s*wet\b/,
+    "the water is told how wet your hull is",
+  );
+});

@@ -17,6 +17,7 @@
  * function of the same clock runs in the shader.
  */
 import { SHORE_ISLANDS } from "./shore.ts";
+import { probe } from "./probe.ts";
 
 export type WaveTier = "swell" | "medium" | "chop";
 export interface Wave {
@@ -47,6 +48,20 @@ export const WIND_DIRECTION = 0.25;
  * with the wave set.
  */
 export const TIER_TOTALS = { swell: 1.41, medium: 0.87, chop: 0.125 } as const;
+/**
+ * A way to test the boat in a violent sea: `?waves=2` in the page address makes every wave twice as
+ * tall (the summed amplitudes, 1.4 to 2.4 m, become 2.8 to 4.8 m), `?waves=3` three times, up to 4.
+ * The same factor is in the physics and the water shader, since both read the table below; the
+ * pinch (how far a crest leans over) is a share of the height and does not change, so the surface
+ * never folds. Anything else, or no switch, is the sea the game has always had (1). It is read once,
+ * when the page loads, from the address or from the choice kept on this device by the "Thử sóng
+ * biển" card of Settings (settings-perf.ts).
+ */
+export function waveBoost(value: string | null = probe("waves")): number {
+  const boost = Number(value);
+  return Number.isFinite(boost) && boost >= 1 ? Math.min(boost, 4) : 1;
+}
+export const WAVE_BOOST = waveBoost();
 /** How many waves the sea is made of, and the longest and shortest wavelength (m). */
 export const SPECTRUM = {
   count: 20,
@@ -78,7 +93,7 @@ function seeded(seed: number) {
  * the wind, wider the shorter the wave (about 10 degrees for the longest, nearly 70 for the
  * shortest) and alternate side from one wave to the next, so neighbours never run alike.
  */
-export function drawWaves(): Wave[] {
+export function drawWaves(boost = 1): Wave[] {
   const random = seeded(SPECTRUM.seed);
   const { count, longest, shortest, peak } = SPECTRUM;
   const ratio = Math.pow(shortest / longest, 1 / (count - 1));
@@ -118,11 +133,11 @@ export function drawWaves(): Wave[] {
   for (const w of raw) sums[w.tier] += w.weight;
   return raw.map(({ weight, ...w }) => ({
     ...w,
-    amplitude: (weight / sums[w.tier]) * TIER_TOTALS[w.tier],
+    amplitude: (weight / sums[w.tier]) * TIER_TOTALS[w.tier] * boost,
   }));
 }
 /** The waves of the sea (the boats' physics and the water shader both read this table). */
-export const WAVES: readonly Wave[] = drawWaves();
+export const WAVES: readonly Wave[] = drawWaves(WAVE_BOOST);
 
 /** The tiers in the order the sums keep them. */
 export const TIERS: readonly WaveTier[] = ["swell", "medium", "chop"];
@@ -215,7 +230,9 @@ const terms = WAVES.map((wave) => {
     dx: Math.cos(wave.direction),
     dz: Math.sin(wave.direction),
     phase: wave.phase,
-    pinch: (PINCH[wave.tier] * wave.amplitude) / TIER_TOTALS[wave.tier],
+    pinch:
+      (PINCH[wave.tier] * wave.amplitude) /
+      (TIER_TOTALS[wave.tier] * WAVE_BOOST),
   };
 });
 

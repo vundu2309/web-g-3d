@@ -57,7 +57,15 @@ export const setProbe = (name: string, value: string | null) => {
 };
 
 /** The switches that are set now, as short words for the performance panel ("reflect", "fish", "scale=1"…). */
-export const probeSummary = (): string[] =>
-  PROBES.filter((item) => probe(item.name) === item.off).map((item) =>
-    item.feature ? item.name : `${item.name}=${item.off}`,
+export const probeSummary = (): string[] => {
+  const words = PROBES.filter((item) => probe(item.name) === item.off).map(
+    (item) => (item.feature ? item.name : `${item.name}=${item.off}`),
   );
+  // The taller sea (waves.ts) changes what a frame costs too, so it is named beside the others.
+  const waves = Number(probe("waves"));
+  if (Number.isFinite(waves) && waves > 1) words.push(`waves=${waves}`);
+  return words;
+};
+
+/** The sea's heights the "Thử sóng biển" card of Settings offers (1 is the usual sea). */
+export const WAVE_CHOICES = [1, 2, 3, 4] as const;

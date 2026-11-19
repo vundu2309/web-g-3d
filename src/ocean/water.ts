@@ -80,13 +80,26 @@ export interface BoatSpot {
   x: number;
   z: number;
   heading: number;
+  /** How much of the hull is in the water, 0 (lifted clear of it) to 1 (the default). */
+  wet?: number;
 }
 export { HULL_WATER } from "./hull-water.ts";
-/** Packs boats into the shader's vec4 array: x, z, heading, 1 for a boat and 0 for empty. */
+/**
+ * Packs boats into the shader's vec4 array: x, z, heading, and 1 plus how wet the hull is for a
+ * boat (1 to 2) or 0 for an empty slot, so "is there a boat" stays `w > 0.5` and the wetness is
+ * `w - 1`.
+ */
 export function packBoats(boats: readonly BoatSpot[]): number[] {
   const out = new Array<number>(BOAT_MAX * 4).fill(0);
   boats.slice(0, BOAT_MAX).forEach((boat, i) => {
-    out.splice(i * 4, 4, boat.x, boat.z, boat.heading, 1);
+    out.splice(
+      i * 4,
+      4,
+      boat.x,
+      boat.z,
+      boat.heading,
+      1 + Math.min(1, Math.max(0, boat.wet ?? 1)),
+    );
   });
   return out;
 }
@@ -257,6 +270,9 @@ vec3 hullWater(vec2 p, float t) {
     vec4 boat = boats[i];
     vec2 d = p - boat.xy;
     if (boat.w < 0.5 || dot(d, d) > ${(HULL_REACH * HULL_REACH).toFixed(1)}) continue;
+    // A hull lifted out of the water laps and ripples nothing.
+    float wet = clamp(boat.w - 1.0, 0.0, 1.0);
+    if (wet <= 0.0) continue;
     vec2 fwd = vec2(sin(boat.z), -cos(boat.z));
     vec2 side = vec2(cos(boat.z), sin(boat.z));
     float u = dot(d, fwd) + ${HULL_WATER.shift.toFixed(2)};
@@ -281,11 +297,11 @@ vec3 hullWater(vec2 p, float t) {
     float phase = warped * k - 6.2832 * ${HULL_WATER.rate.toFixed(2)} * t;
     // The ripples fade out well inside the shader's reach (hull-water.ts), so nothing is cut off.
     float fade = exp(-edge / 3.2) * smoothstep(0.0, 0.5, edge) * (1.0 - smoothstep(${RING_FADE.from.toFixed(1)}, ${RING_FADE.to.toFixed(1)}, edge));
-    slope += normalize(d + 0.0001) * ${HULL_WATER.height.toFixed(3)} * k * cos(phase) * fade * pulse;
+    slope += normalize(d + 0.0001) * ${HULL_WATER.height.toFixed(3)} * k * cos(phase) * fade * pulse * wet;
     // The crests of the first rings catch a little foam, in broken patches that thin out quickly.
     float broken = smoothstep(0.42, 0.72, noise(p * 1.25 + vec2(t * 0.22, -t * 0.17)) * 0.65 + softNoise(p * 3.3 - vec2(t * 0.3, t * 0.2)) * 0.35);
     float crest = smoothstep(0.55, 0.95, cos(phase)) * (1.0 - smoothstep(0.4, ${FOAM_REACH.toFixed(1)}, edge)) * smoothstep(0.1, 0.5, edge) * (0.45 + 0.55 * pulse) * (0.35 + 0.65 * lap) * broken;
-    foam = max(foam, max(collar, crest * ${CREST_FOAM.toFixed(2)}));
+    foam = max(foam, wet * max(collar, crest * ${CREST_FOAM.toFixed(2)}));
   }
   return vec3(foam, slope);
 }

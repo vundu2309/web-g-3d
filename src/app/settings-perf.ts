@@ -1,4 +1,4 @@
-import { PROBES, probe, setProbe } from "../ocean/probe";
+import { PROBES, WAVE_CHOICES, probe, setProbe } from "../ocean/probe";
 
 /** The device's choice to show the performance panel, kept on this device only. */
 const KEY = "sea-perf-panel";
@@ -102,6 +102,64 @@ export function createProbeSection(beforeReload: () => void): HTMLElement {
     refresh();
     row.append(chip);
   }
+  const apply = document.createElement("button");
+  apply.type = "button";
+  apply.className = "button settings-update";
+  apply.textContent = "Áp dụng (tải lại game)";
+  apply.addEventListener("click", () => {
+    beforeReload();
+    window.location.reload();
+  });
+  section.append(head, note, row, apply);
+  return section;
+}
+
+/**
+ * "Thử sóng biển": makes every wave of the sea 2, 3 or 4 times taller (waves.ts reads `waves` from
+ * the page address or from here), to try the boat in a violent sea: a hull lifted out of the water,
+ * the camera, the wake. The sea table is built when the page loads, so the choice applies after a
+ * reload and stays on this device until set back to 1.
+ */
+export function createWavesSection(beforeReload: () => void): HTMLElement {
+  const section = document.createElement("section");
+  section.className = "update-card weather-card";
+  section.setAttribute("aria-label", "Thử sóng biển");
+  const head = document.createElement("div");
+  head.className = "crew-head";
+  const title = document.createElement("h3");
+  title.textContent = "Thử sóng biển";
+  head.append(title);
+  const note = document.createElement("p");
+  note.className = "update-note";
+  note.textContent =
+    "Làm mọi con sóng cao gấp 2, 3 hoặc 4 lần để thử thuyền khi bị nhấc khỏi mặt nước. Chọn mức, bấm Áp dụng, xong thì chọn lại 1x. Chỉ đổi trên máy này.";
+  const row = document.createElement("div");
+  row.className = "weather-row";
+  row.setAttribute("role", "group");
+  row.setAttribute("aria-label", "Độ cao sóng");
+  const chosen = () => {
+    const value = Number(probe("waves"));
+    return WAVE_CHOICES.find((choice) => choice === value) ?? 1;
+  };
+  const chips: { el: HTMLButtonElement; value: number }[] = [];
+  const refresh = () => {
+    for (const { el, value } of chips)
+      el.setAttribute("aria-pressed", String(value === chosen()));
+  };
+  for (const value of WAVE_CHOICES) {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "weather-chip";
+    el.dataset.waves = String(value);
+    el.textContent = `${value}x`;
+    el.addEventListener("click", () => {
+      setProbe("waves", value === 1 ? null : String(value));
+      refresh();
+    });
+    chips.push({ el, value });
+    row.append(el);
+  }
+  refresh();
   const apply = document.createElement("button");
   apply.type = "button";
   apply.className = "button settings-update";

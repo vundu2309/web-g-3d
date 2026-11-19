@@ -21,6 +21,7 @@ import { createWeatherTestSection } from "./settings-weather";
 import {
   createPerfSection,
   createProbeSection,
+  createWavesSection,
   loadPerfPref,
   savePerfPref,
 } from "./settings-perf";
@@ -512,6 +513,7 @@ export function startOcean(
       createWeatherTestSection(),
       createPerfSection(perfPanel),
       createProbeSection(persist),
+      createWavesSection(persist),
       createUpdateSection({ beforeApply: persist }),
     );
     const foot = document.createElement("footer");

@@ -11,6 +11,7 @@ import "@babylonjs/core/Physics/joinedPhysicsEngineComponent";
 import "@babylonjs/core/Physics/v2/physicsEngineComponent";
 import { SEA_BOUND } from "./model.ts";
 import { waveHeight } from "./waves.ts";
+import type { HullPoint } from "./ripple-sim.ts";
 import {
   BODY_ANGULAR_DAMPING,
   KEEL_DRY_GRIP,
@@ -64,6 +65,13 @@ export interface BoatPhysics {
    */
   readonly view: TransformNode;
   state(): BoatState;
+  /**
+   * How the six points on the hull's bottom move through the water, as of the last physics step:
+   * position, velocity (the hull's turn and slide included), how wet each is and its vertical
+   * speed relative to the sea's own waves. The ripple simulation (ripple-sim.ts) stirs the water
+   * with them. The list is reused every step: read it, do not keep it.
+   */
+  contacts(): readonly HullPoint[];
   dispose(): void;
 }
 export interface BoatPhysicsOptions {
@@ -89,6 +97,9 @@ const SAMPLES = [-1, 1].flatMap((side) =>
 );
 const STIFFNESS = (HULL.mass * 9.81) / (SAMPLES.length * DRAFT); // N per metre submerged
 const HEAVE_DAMPING = 520; // N·s/m per sample
+/** A hull point counts as wet over its first CONTACT_DEPTH metres in the water; WAVE_RATE_STEP is the step the sea's own rise is measured over (s). */
+const CONTACT_DEPTH = 0.3;
+const WAVE_RATE_STEP = 0.02;
 /** Every speed of the hull (thrust, top speed, the hump, planing) is scaled by this: 1.5 times the boat it was (user request). */
 export const SPEED_SCALE = 1.5;
 // A little more push than the scale alone (1.15): the quadratic drag slows the climb to the new top speed.
@@ -232,12 +243,43 @@ export function createBoatPhysics(
   // The water the hull floats on: the waves and, when given, the wakes on top of them.
   const surface = (x: number, z: number, t: number) =>
     waveHeight(x, z, t) + (options.extraHeight?.(x, z, t) ?? 0);
+  // What the hull does to the water, per sample point (read by the ripple simulation).
+  const touching: HullPoint[] = SAMPLES.map(() => ({
+    x: 0,
+    z: 0,
+    vx: 0,
+    vz: 0,
+    vy: 0,
+    wet: 0,
+  }));
+  const feel = (t: number) => {
+    body.getLinearVelocityToRef(velocity);
+    body.getAngularVelocityToRef(spin);
+    SAMPLES.forEach((local, i) => {
+      Vector3.TransformCoordinatesToRef(local, mesh.getWorldMatrix(), world);
+      point.copyFrom(world).subtractInPlace(mesh.position);
+      const contact = touching[i]!;
+      // The sea's own surface (not the wakes on it): a hull that rides a wave moves the water no
+      // more than the wave does, so only the speed relative to it counts.
+      const wave = waveHeight(world.x, world.z, t);
+      const rising =
+        (waveHeight(world.x, world.z, t + WAVE_RATE_STEP) - wave) /
+        WAVE_RATE_STEP;
+      contact.x = world.x;
+      contact.z = world.z;
+      contact.vx = velocity.x + (spin.y * point.z - spin.z * point.y);
+      contact.vz = velocity.z + (spin.x * point.y - spin.y * point.x);
+      contact.vy = velocity.y + (spin.z * point.x - spin.x * point.z) - rising;
+      contact.wet = clamp((wave - world.y) / CONTACT_DEPTH, 0, 1);
+    });
+  };
 
   const beforeStep = () => {
     // Fixed sub-steps (see enableSeaPhysics): every step is exactly this long.
     const dt = physics.getTimeStep();
     mesh.computeWorldMatrix(true);
     const t = options.time();
+    feel(t);
     // Buoyancy and heave damping at every sample point.
     for (const local of SAMPLES) {
       Vector3.TransformCoordinatesToRef(local, mesh.getWorldMatrix(), world);
@@ -380,6 +422,7 @@ export function createBoatPhysics(
         sideSpeed: velocity.x * -fz + velocity.z * fx,
       };
     },
+    contacts: () => touching,
     dispose() {
       scene.onBeforePhysicsObservable.removeCallback(beforeStep);
       scene.onAfterPhysicsObservable.removeCallback(afterStep);

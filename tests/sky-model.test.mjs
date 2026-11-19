@@ -31,8 +31,18 @@ import { packBoats, BOAT_MAX } from "../src/ocean/water.ts";
 test("boat shadows pack boats for the shader and cap at BOAT_MAX", () => {
   const packed = packBoats([{ x: 1, z: 2, heading: 0.5 }]);
   assert.equal(packed.length, BOAT_MAX * 4);
-  assert.deepEqual(packed.slice(0, 4), [1, 2, 0.5, 1]);
+  assert.deepEqual(packed.slice(0, 4), [1, 2, 0.5, 2], "a boat is 1 + how wet");
   assert.equal(packed[7], 0, "empty slots are inactive");
+  const lifted = packBoats([
+    { x: 0, z: 0, heading: 0, wet: 0 },
+    { x: 0, z: 0, heading: 0, wet: 0.25 },
+    { x: 0, z: 0, heading: 0, wet: 7 },
+  ]);
+  assert.deepEqual([lifted[3], lifted[7], lifted[11]], [1, 1.25, 2]);
+  assert.ok(
+    lifted[3] > 0.5,
+    "a lifted boat is still a boat (it still has a shadow)",
+  );
   const many = Array.from({ length: BOAT_MAX + 5 }, (_, i) => ({
     x: i,
     z: 0,

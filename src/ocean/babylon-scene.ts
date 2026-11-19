@@ -65,7 +65,7 @@ import { createSeaReflection } from "./reflection.ts";
 import { createClearWater, type ClearWater } from "./clear-water-pass.ts";
 import { ClearWaterGovernor } from "./clear-water.ts";
 import { createSky, type Sky } from "./sky.ts";
-import { createWater, type Water } from "./water.ts";
+import { createWater, type BoatSpot, type Water } from "./water.ts";
 import { waveHeight } from "./waves.ts";
 
 // A tab that comes back after being hidden must not replay seconds of physics.
@@ -395,7 +395,7 @@ export class OceanScene {
   }
 
   /** Records where a boat is and draws the white water it leaves. */
-  private leaveTrail(id: string, x: number, z: number) {
+  private leaveTrail(id: string, x: number, z: number, wet = 1) {
     let entry = this.trails.get(id);
     if (!entry) {
       entry = {
@@ -405,10 +405,24 @@ export class OceanScene {
       this.trails.set(id, entry);
     }
     entry.trail.push(x, z, this.clock);
-    entry.mesh.update(entry.trail, this.clock, { x, z });
+    entry.mesh.update(entry.trail, this.clock, { x, z }, wet);
   }
 
-  /** A boat as the water sees it: where it is, which way it points and how fast it goes. */
+  /** How wet your hull is, 0 (lifted clear of the water) to 1, smoothed over about a tenth of a second so a wave that lets go of the hull for one step does not make the foam flicker. */
+  private wetness = 1;
+  private wetOf(points: readonly { wet: number }[], dt: number) {
+    let target = 0;
+    for (const point of points) target += point.wet;
+    target /= Math.max(1, points.length);
+    this.wetness += (target - this.wetness) * Math.min(1, dt * 10);
+    return this.wetness;
+  }
+
+  /**
+   * A boat as the water sees it: where it is, which way it points and how fast it goes. Your own
+   * boat also tells how each point of its hull moves (the turn, the slide, the heave), which is
+   * what the physics knows; another player's boat only has its pose and speed.
+   */
   private hullOf(id: string, x: number, z: number): Hull {
     const newest = this.trails.get(id)?.trail.samples.at(-1);
     return {
@@ -416,6 +430,7 @@ export class OceanScene {
       z,
       heading: newest?.heading ?? 0,
       speed: newest?.speed ?? 0,
+      points: id === "self" ? this.self?.physics.contacts() : undefined,
     };
   }
 
@@ -646,13 +661,17 @@ export class OceanScene {
     // Every boat, yours and the others', pushes on the water (ripple-sim.ts), which then spreads,
     // breaks and fades by itself.
     const hulls: Hull[] = [];
+    const spots: BoatSpot[] = [];
     if (this.self && state) {
-      this.leaveTrail("self", state.x, state.z);
+      const wet = this.wetOf(this.self.physics.contacts(), step);
+      this.leaveTrail("self", state.x, state.z, wet);
       hulls.push(this.hullOf("self", state.x, state.z));
+      spots.push({ x: state.x, z: state.z, heading: state.heading, wet });
     }
     for (const [id, craft] of this.fleet) {
       this.leaveTrail(id, craft.x, craft.z);
       hulls.push(this.hullOf(id, craft.x, craft.z));
+      spots.push({ x: craft.x, z: craft.z, heading: craft.heading });
     }
     this.sim.recentre(this.camera.position.x, this.camera.position.z);
     this.sim.step(step, hulls);
@@ -662,7 +681,7 @@ export class OceanScene {
       this.camera.position.x,
       this.camera.position.z,
       this.clock,
-      [...(this.self && state ? [state] : []), ...this.fleet.values()],
+      spots,
     );
     this.rain.update(this.clock);
     for (const beacon of this.beacons) beacon.update(this.clock);

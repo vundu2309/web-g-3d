@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  HEAVE_PUSH,
+  HULL_POINTS,
   RippleSim,
   SIM_C,
   SIM_CELL,
@@ -8,6 +10,7 @@ import {
   SIM_SIZE,
   glslSim,
   hullSpeed,
+  pointsOf,
   simMask,
 } from "../src/ocean/ripple-sim.ts";
 
@@ -184,5 +187,176 @@ test("the shader reads the same grid, the same way", () => {
   assert.equal(out[at * 4 + 3], sim.foam[at]);
   assert.ok(
     Math.abs(out[at * 4 + 1] - (sim.h[at + 1] - sim.h[at - 1]) / 2) < 1e-6,
+  );
+});
+
+/** The hull's points for a hull at (0, 0) facing -Z that does `motion` at each point (its offset from the middle, m). */
+const hullWith = (motion) => ({
+  x: 0,
+  z: 0,
+  heading: 0,
+  speed: 0,
+  points: HULL_POINTS.map(([lx, lz]) => ({
+    x: lx,
+    z: lz,
+    vy: 0,
+    wet: 1,
+    ...motion(lx, lz),
+  })),
+});
+const still = () => ({ vx: 0, vz: 0 });
+const run = (hull, seconds, sim = new RippleSim()) => {
+  sim.recentre(0, 0);
+  for (let f = 0; f < seconds * 60; f++) sim.step(1 / 60, [hull]);
+  return sim;
+};
+const peak = (sim) => sim.h.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+
+test("a hull with only a pose has six points moving straight along its keel, bow ahead", () => {
+  const east = pointsOf({ x: 10, z: 4, heading: Math.PI / 2, speed: 5 });
+  assert.equal(east.length, HULL_POINTS.length);
+  for (const point of east) {
+    assert.ok(Math.abs(point.vx - 5) < 1e-9 && Math.abs(point.vz) < 1e-9);
+    assert.equal(point.vy, 0);
+    assert.equal(point.wet, 1);
+  }
+  // The bow end (local z -3) is 3 m ahead of the middle, the stern 3 m behind.
+  assert.ok(east.some((p) => Math.abs(p.x - 13) < 1e-9));
+  assert.ok(east.some((p) => Math.abs(p.x - 7) < 1e-9));
+  const given = [{ x: 1, z: 2, vx: 0, vz: 0, vy: 0, wet: 1 }];
+  assert.equal(
+    pointsOf({ x: 0, z: 0, heading: 0, speed: 9, points: given }),
+    given,
+  );
+});
+
+test("a hull that sinks into the water raises it and one that rises draws it in, the same either way", () => {
+  const down = run(
+    hullWith((lx, lz) => ({ ...still(lx, lz), vy: -1.5 })),
+    0.3,
+  );
+  const up = run(
+    hullWith((lx, lz) => ({ ...still(lx, lz), vy: 1.5 })),
+    0.3,
+  );
+  assert.ok(down.sample(0, 0).height > 0.03, `${down.sample(0, 0).height}`);
+  assert.ok(up.sample(0, 0).height < -0.03);
+  for (let i = 0; i < down.h.length; i += 7)
+    assert.ok(Math.abs(down.h[i] + up.h[i]) < 1e-6, "the water is linear");
+  // Height gained is the sinking speed over the time, times the gain, at most (the point's
+  // neighbours add up to a bit more than one point alone).
+  assert.ok(down.sample(0, 0).height < 0.3 * 1.5 * HEAVE_PUSH * 6);
+});
+
+test("the ring of a sinking hull travels outward and the water settles again", () => {
+  const sim = new RippleSim();
+  sim.recentre(0, 0);
+  const plunge = hullWith(() => ({ ...still(), vy: -2 }));
+  for (let f = 0; f < 12; f++) sim.step(1 / 60, [plunge]);
+  assert.ok(Math.abs(sim.sample(6, 0).height) < 0.005, "nothing far away yet");
+  for (let f = 0; f < 90; f++) sim.step(1 / 60, []);
+  let ring = 0;
+  for (let x = 3; x < 12; x += 0.5)
+    ring = Math.max(ring, Math.abs(sim.sample(x, 0).height));
+  assert.ok(ring > 0.003, `a ring ${ring} m high 1.5 s later`);
+  for (let f = 0; f < 60 * 25; f++) sim.step(1 / 60, []);
+  assert.ok(peak(sim) < 0.01, "settled");
+});
+
+test("a hull out of the water, or only just touching it, stirs less", () => {
+  const dry = run(
+    hullWith(() => ({ ...still(), vy: -3 })),
+    0.3,
+  );
+  const wet = hullWith(() => ({ ...still(), vy: -3 }));
+  assert.ok(
+    peak(
+      run({ ...wet, points: wet.points.map((p) => ({ ...p, wet: 0 })) }, 0.3),
+    ) === 0,
+  );
+  const half = run(
+    { ...wet, points: wet.points.map((p) => ({ ...p, wet: 0.5 })) },
+    0.3,
+  );
+  assert.ok(
+    Math.abs(half.sample(0, 0).height * 2 - dry.sample(0, 0).height) < 1e-6,
+  );
+});
+
+test("a hard plunge throws white water and a gentle one does not", () => {
+  const hard = run(
+    hullWith(() => ({ ...still(), vy: -3 })),
+    0.3,
+  );
+  const soft = run(
+    hullWith(() => ({ ...still(), vy: -0.6 })),
+    0.3,
+  );
+  assert.ok(hard.sample(0, 0).foam > 0.1, `${hard.sample(0, 0).foam}`);
+  assert.ok(soft.foam.every((v) => v === 0));
+});
+
+test("a hull turning on the spot pushes the water, ahead of each point and not behind it", () => {
+  const spin = (omega) =>
+    hullWith((lx, lz) => ({ vx: omega * lz, vz: -omega * lx }));
+  const turning = run(spin(0.9), 1);
+  assert.ok(peak(turning) > 0.03, `${peak(turning)}`);
+  assert.ok(
+    peak(run(spin(0), 1)) === 0,
+    "a hull that does not move stirs nothing",
+  );
+  // Turning the other way mirrors the water: the pattern is odd under the reversal.
+  const back = run(spin(-0.9), 1);
+  for (let i = 0; i < back.h.length; i += 11)
+    assert.ok(
+      Math.abs(turning.h[i] + back.h[i]) < 1e-6,
+      "reversed motion, reversed push",
+    );
+  // What is lifted ahead of the points is let fall behind them: no net water is made.
+  let net = 0;
+  for (let i = 0; i < turning.h.length; i++) net += turning.h[i];
+  assert.ok(Math.abs(net) < 0.2, `net ${net.toFixed(3)} m`);
+});
+
+test("a hull sliding sideways pushes the water it slides into", () => {
+  const sideways = run(
+    hullWith(() => ({ vx: 4, vz: 0 })),
+    1.5,
+  );
+  // The hull faces -Z and slides toward +X: the water is higher on the +X side than the -X side.
+  assert.ok(
+    sideways.sample(3, 0).height > sideways.sample(-3, 0).height + 0.02,
+  );
+});
+
+test("a hull lifted out of the water stirs nothing: no push, no ripples, no propeller wash", () => {
+  const fast = (wet) => ({
+    x: 0,
+    z: 0,
+    heading: Math.PI / 2,
+    speed: 9,
+    points: pointsOf({ x: 0, z: 0, heading: Math.PI / 2, speed: 9 }).map(
+      (p) => ({
+        ...p,
+        vy: -2,
+        wet,
+      }),
+    ),
+  });
+  const dry = run(fast(0), 0.5);
+  assert.ok(
+    dry.h.every((v) => v === 0),
+    "no waves",
+  );
+  assert.ok(
+    dry.foam.every((v) => v === 0),
+    "no white water",
+  );
+  const half = run(fast(0.5), 0.1);
+  const full = run(fast(1), 0.1);
+  const total = (sim) => sim.foam.reduce((a, v) => a + v, 0);
+  assert.ok(
+    Math.abs(total(half) / total(full) - 0.5) < 0.1,
+    `half wet, half the wash: ${(total(half) / total(full)).toFixed(2)}`,
   );
 });
