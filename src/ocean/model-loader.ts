@@ -5,6 +5,10 @@ import { Matrix } from "@babylonjs/core/Maths/math.vector";
 import type { Scene } from "@babylonjs/core/scene";
 import { LoadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
 import "@babylonjs/loaders/glTF";
+// The glTF loader makes PBR materials, whose BRDF lookup is decoded by this pair of shaders; when
+// they are not imported Babylon asks the server for them (Vite answers with the page: "syntax error").
+import "@babylonjs/core/Shaders/postprocess.vertex";
+import "@babylonjs/core/Shaders/rgbdDecode.fragment";
 import { useSolid } from "./art/materials.ts";
 
 /**
