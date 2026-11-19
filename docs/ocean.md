@@ -445,6 +445,8 @@ On a touch screen (`pointer: coarse`): the render scale starts at 1.5x and the g
 
 The same switches are in Settings, card "Thử tắt từng phần" (`createProbeSection`, stored under `sea-probe` by `src/ocean/probe.ts`; the address still wins), because an installed app has no address bar. They apply after "Áp dụng (tải lại game)" and stay on until switched off.
 
+**Performance pass: the boat stirs the water point by point** (`ripple-sim.ts`, `boat-physics.ts`, `water.ts`). Per boat and per sim step the hull now visits about 1,090 grid cells (six dipole points of about 2.5 x 1.9 m, a heave reach of 1.5 m and the propeller wash), against about 361 for the single push before; counted from the code, not timed. A hull point out of the water returns before it touches the grid, so a lifted boat costs less than before. The six contact points and their velocities are computed in the physics step (a finite difference of the wave height at 0.02 s per point), remote boats get six synthesised points with no extra data, and the water shader gains one `clamp` and an early `continue` per boat spot. `?waves=N` costs nothing extra (the same wave functions, taller). Not measured on a phone.
+
 ### Phone: scale 1 and a short see-through reach
 
 Real-phone panel readings (one sample each): scale 1.5 gave about 23 fps, scale 1 gave 39; the see-through sea cost about half the frame rate (12 fps); props, fish and the mirror cost little. So a touch screen starts at render scale 1 (`babylon-scene.ts`), and the see-through layer reaches `TOUCH_REACH` = 70 m there instead of `CLEAR.reach` = 170 m (`LAYER_REACH` in `clear-water.ts`): the layer's pass leaves out meshes farther than that and the sea shader skips the layer read beyond it.
