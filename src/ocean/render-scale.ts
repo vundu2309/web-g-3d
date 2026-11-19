@@ -13,8 +13,8 @@ export interface ScaleOptions {
 
 const WINDOW = 2; // seconds per decision
 const WARMUP = 4; // shader compile, WASM start and texture uploads are not representative
-const SLOW = 0.052; // average interval above this is below ~19 fps
-const FAST = 0.04; // below this the 30 fps cap is being met with room to spare
+const SLOW = 0.04; // average interval above this is below ~25 fps (a phone at 26 fps was left at 2x)
+const FAST = 0.03; // below this the 30 fps cap is being met with room to spare
 const STEP = 0.25;
 
 export class ScaleGovernor {
