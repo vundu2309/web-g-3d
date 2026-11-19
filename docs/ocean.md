@@ -444,3 +444,7 @@ On a touch screen (`pointer: coarse`): the render scale starts at 1.5x and the g
 **Finding what costs frames on a device.** Page-address switches (`babylon-scene.ts`, `probe`): `?reflect=0` no mirror, `?fish=0` no fish, `?props=0` no island props, `?scale=1` render pixels per CSS pixel, `?clearwater=0` opaque sea; combine them (`?perf&reflect=0&fish=0`) and read the performance panel after each. A feature that gives back many fps when off is the one to cut.
 
 The same switches are in Settings, card "Thử tắt từng phần" (`createProbeSection`, stored under `sea-probe` by `src/ocean/probe.ts`; the address still wins), because an installed app has no address bar. They apply after "Áp dụng (tải lại game)" and stay on until switched off.
+
+### Phone: scale 1 and a short see-through reach
+
+Real-phone panel readings (one sample each): scale 1.5 gave about 23 fps, scale 1 gave 39; the see-through sea cost about half the frame rate (12 fps); props, fish and the mirror cost little. So a touch screen starts at render scale 1 (`babylon-scene.ts`), and the see-through layer reaches `TOUCH_REACH` = 70 m there instead of `CLEAR.reach` = 170 m (`LAYER_REACH` in `clear-water.ts`): the layer's pass leaves out meshes farther than that and the sea shader skips the layer read beyond it.

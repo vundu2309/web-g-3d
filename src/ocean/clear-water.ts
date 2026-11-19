@@ -157,8 +157,17 @@ export function shownAt(
 }
 
 /** How far from the camera (m) a mesh of this name is drawn on the layer. */
+/** A phone draws the layer (and reads it in the sea shader) only this close (m): the GPU is its weak part and sight under the water is short anyway. */
+export const TOUCH_REACH = 70;
+const onTouch =
+  typeof window !== "undefined" &&
+  (window.matchMedia?.("(pointer: coarse)").matches ?? false);
+/** How far (m) from the camera the see-through layer reaches on this device. */
+export const LAYER_REACH = onTouch ? TOUCH_REACH : CLEAR.reach;
 export function underwaterReach(name: string): number {
-  return name.startsWith("market-") ? CLEAR.marketReach : CLEAR.reach;
+  return name.startsWith("market-")
+    ? Math.min(CLEAR.marketReach, LAYER_REACH)
+    : LAYER_REACH;
 }
 
 /**

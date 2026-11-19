@@ -19,7 +19,7 @@ import {
 import { RIPPLE_RANGE, RIPPLE_SIZE, ripplePixels } from "./ripples.ts";
 import { glslSkyModel } from "./sky-model.ts";
 import { glslReflection } from "./reflection-model.ts";
-import { CLEAR, glslUnderLayer } from "./clear-water.ts";
+import { CLEAR, LAYER_REACH, glslUnderLayer } from "./clear-water.ts";
 import type { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
 import { createSwash } from "./swash.ts";
 import { SEA_FLOOR, WATER_ABSORPTION } from "./sea-style.ts";
@@ -498,7 +498,8 @@ void main() {
   // something, the water shows it through itself, fading into its own body with depth (clearer over
   // the shallows); the Fresnel mirror, the glitter and the foam come over it, as over everything.
   // Switched off (underOn 0) the sea is the opaque one it always was: no texture read at all.
-  if (underOn > 0.5) {
+  // Beyond the layer's reach nothing is drawn on it, so the read is skipped (most of a phone's pixels).
+  if (underOn > 0.5 && dist < ${(LAYER_REACH + 40).toFixed(1)}) {
     vec4 under = underLayerAt(vWorld, slope, smoothstep(3.0, 13.0, depth));
     body = mix(body, under.rgb * incident * ${CLEAR.light.toFixed(2)}, under.a);
   }

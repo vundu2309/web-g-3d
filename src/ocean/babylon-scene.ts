@@ -182,14 +182,14 @@ export class OceanScene {
       { powerPreference: "low-power", stencil: false },
       false,
     );
-    // Start sharp (up to 2x the CSS size, 1.5x on a touch screen, where the GPU is the weak part);
+    // Start sharp (up to 2x the CSS size, 1x on a touch screen: at 1.5x a phone made 23 fps, at 1x 39, where the GPU is the weak part);
     // the governor lowers it further if the phone struggles.
     const touch = window.matchMedia?.("(pointer: coarse)").matches ?? false;
     this.governor = new ScaleGovernor({
       sharpest:
         1 /
         (Number(probe("scale")) ||
-          Math.min(window.devicePixelRatio || 1, touch ? 1.5 : 2)),
+          Math.min(window.devicePixelRatio || 1, touch ? 1 : 2)),
     });
     this.engine.setHardwareScalingLevel(this.governor.scaling);
     this.engine.onContextLostObservable.add(() => {

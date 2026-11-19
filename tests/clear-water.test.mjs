@@ -257,7 +257,7 @@ test("the water shows the layer through itself, over its own body, under the mir
   assert.ok(mirrored > layer, "the Fresnel mirror is applied over it");
   assert.ok(foam > mirrored, "and the foam over that");
   // Off: the old opaque look, one uniform test, no texture read.
-  assert.match(water, /if \(underOn > 0\.5\)/);
+  assert.match(water, /if \(underOn > 0\.5/);
   // The sea's vertex shader and mesh are untouched by the layer.
   const vertex = water.slice(
     water.indexOf('ShadersStore["seaVertexShader"]'),
