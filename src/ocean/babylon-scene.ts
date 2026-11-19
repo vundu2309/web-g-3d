@@ -901,7 +901,11 @@ export class OceanScene {
     const pairs: [string, number][] = [];
     for (const mesh of this.scene.getActiveMeshes().data) {
       if (!mesh) continue;
-      const source = (mesh as { sourceMesh?: AbstractMesh }).sourceMesh ?? mesh;
+      // The copy actually drawn (a prop far away is a coarser mesh, or none), not the whole model.
+      const drawn = mesh.getLOD(this.camera);
+      if (!drawn) continue;
+      const source =
+        (drawn as { sourceMesh?: AbstractMesh }).sourceMesh ?? drawn;
       pairs.push([mesh.name, source.getTotalIndices() / 3]);
     }
     return topGroups(pairs);
