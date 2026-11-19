@@ -19,7 +19,12 @@ import {
 import { RIPPLE_RANGE, RIPPLE_SIZE, ripplePixels } from "./ripples.ts";
 import { glslSkyModel } from "./sky-model.ts";
 import { glslReflection } from "./reflection-model.ts";
-import { CLEAR, LAYER_REACH, glslUnderLayer } from "./clear-water.ts";
+import {
+  CLEAR,
+  LAYER_REACH,
+  glslSeeThrough,
+  glslUnderLayer,
+} from "./clear-water.ts";
 import type { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
 import { createSwash } from "./swash.ts";
 import { SEA_FLOOR, WATER_ABSORPTION } from "./sea-style.ts";
@@ -130,6 +135,7 @@ uniform vec2 reflectionSize;
 uniform mat4 viewProjection;
 uniform sampler2D underMap;
 uniform float underOn;
+uniform vec2 screenSize;
 varying vec3 vWorld;
 varying vec2 vOrigin;
 varying float vHeight;
@@ -139,6 +145,7 @@ ${glslShore(true)}
 ${glslHorizontalFade()}
 ${glslReflection()}
 ${glslUnderLayer()}
+${glslSeeThrough()}
 // Absorption of clear sea water per metre (red goes first, then green): turquoise shallows.
 const vec3 absorb = vec3(${WATER_ABSORPTION.map((v) => v.toFixed(4)).join(", ")});
 // A hash without sin(): cheaper on phone GPUs.
@@ -499,7 +506,7 @@ void main() {
   // the shallows); the Fresnel mirror, the glitter and the foam come over it, as over everything.
   // Switched off (underOn 0) the sea is the opaque one it always was: no texture read at all.
   // Beyond the layer's reach nothing is drawn on it, so the read is skipped (most of a phone's pixels).
-  if (underOn > 0.5 && dist < ${(LAYER_REACH + 40).toFixed(1)}) {
+  if (underOn > 0.5 && underOn < 1.5 && dist < ${(LAYER_REACH + 40).toFixed(1)}) {
     vec4 under = underLayerAt(vWorld, slope, smoothstep(3.0, 13.0, depth));
     body = mix(body, under.rgb * incident * ${CLEAR.light.toFixed(2)}, under.a);
   }
@@ -612,7 +619,9 @@ void main() {
   vec3 haze = skyRadiance(normalize(vec3(-view.x, 0.015, -view.z)), false);
   float fog = 1.0 - exp(-fogDensity * fogDensity * dist * dist);
   color = mix(color, haze, clamp(fog, 0.0, 1.0));
-  gl_FragColor = vec4(toScreen(color), 1.0);
+  // The depth mode: the sea is thinner over a thing lying under it (underOn 2); otherwise opaque.
+  float seeAlpha = underOn > 1.5 ? seeThroughAlpha(dist) : 1.0;
+  gl_FragColor = vec4(toScreen(color), seeAlpha);
 }`;
 
 export interface Water {
@@ -624,7 +633,10 @@ export interface Water {
   /** Gives the water the grid of the water the boats stir (ripple-sim.ts `pack`), whose window is centred at (cx, cz). */
   setStirred(pixels: Float32Array, cx: number, cz: number): void;
   /** Gives the water the layer of what lies under it (clear-water.ts); undefined is the opaque sea. */
-  setUnderlayer(texture: BaseTexture | undefined): void;
+  setUnderlayer(
+    texture: BaseTexture | undefined,
+    mode?: "layer" | "depth",
+  ): void;
   /** Keeps the grid centred under the camera and advances the wave clock. */
   update(
     cameraX: number,
@@ -692,6 +704,7 @@ export function createWater(scene: Scene): Water {
         "viewProjection",
         "reflectionSize",
         "underOn",
+        "screenSize",
         "simCentre",
       ],
       samplers: [
@@ -754,6 +767,8 @@ export function createWater(scene: Scene): Water {
   );
   let reflection: BaseTexture | undefined;
   const simCentre = new Vector2();
+  const engine = scene.getEngine();
+  const screenSize = new Vector2(1, 1);
   material.setTexture("reflectionMap", noReflection);
   material.setVector2("reflectionSize", new Vector2(1, 1));
   // The layer of what is under the water: until the clear-water pass gives one (or when it is switched
@@ -797,9 +812,14 @@ export function createWater(scene: Scene): Water {
       reflection = texture;
       material.setTexture("reflectionMap", texture ?? noReflection);
     },
-    setUnderlayer(texture) {
+    setUnderlayer(texture, mode = "layer") {
       material.setTexture("underMap", texture ?? noUnder);
-      material.setFloat("underOn", texture ? 1 : 0);
+      material.setFloat("underOn", texture ? (mode === "depth" ? 2 : 1) : 0);
+      // The depth mode blends the sea over what is drawn before it (after the opaque meshes).
+      const blend = !!texture && mode === "depth";
+      material.alpha = blend ? 0.999 : 1;
+      material.alphaMode = Constants.ALPHA_COMBINE;
+      mesh.alphaIndex = blend ? 0 : Number.MAX_SAFE_INTEGER;
     },
     setStirred(pixels, cx, cz) {
       stirred.update(pixels);
@@ -810,6 +830,8 @@ export function createWater(scene: Scene): Water {
       swash.update(time);
       if (boats) material.setArray4("boats", packBoats(boats));
       material.setFloat("time", time);
+      screenSize.set(engine.getRenderWidth(), engine.getRenderHeight());
+      material.setVector2("screenSize", screenSize);
       material.setFloat("fogDensity", SEA.fogDensity);
       if (reflection) {
         const size = reflection.getSize();

@@ -11,6 +11,7 @@ import type { Observer } from "@babylonjs/core/Misc/observable";
 import type { Scene } from "@babylonjs/core/scene";
 import {
   CLEAR,
+  UNDER_DEPTH_FRAGMENT,
   UNDER_FRAGMENT,
   UNDER_VERTEX,
   UNDER_SAMPLES,
@@ -33,10 +34,15 @@ import type { Water } from "./water.ts";
  */
 Effect.ShadersStore["underLayerVertexShader"] = UNDER_VERTEX;
 Effect.ShadersStore["underLayerFragmentShader"] = UNDER_FRAGMENT;
+Effect.ShadersStore["underDepthFragmentShader"] = UNDER_DEPTH_FRAGMENT;
 
 export const UNDER_LAYER_MATERIAL = "under-layer";
 
+/** "layer": the meshes are drawn in colour on the layer. "depth": only their distance is, and the sea blends over the main pass (a trial). */
+export type SeeMode = "layer" | "depth";
+
 export interface ClearWater {
+  readonly mode: SeeMode;
   /** The layer, as the water reads it. */
   readonly texture: RenderTargetTexture;
   readonly enabled: boolean;
@@ -57,11 +63,16 @@ export interface ClearWater {
   dispose(): void;
 }
 
-function layerMaterial(scene: Scene, name: string, unlit: boolean) {
+function layerMaterial(
+  scene: Scene,
+  name: string,
+  unlit: boolean,
+  fragment = "underLayer",
+) {
   const material = new ShaderMaterial(
     name,
     scene,
-    { vertex: "underLayer", fragment: "underLayer" },
+    { vertex: "underLayer", fragment },
     {
       attributes: ["position", "normal", "color"],
       uniforms: [
@@ -88,7 +99,9 @@ function layerMaterial(scene: Scene, name: string, unlit: boolean) {
 export function createClearWater(
   scene: Scene,
   water: Water,
+  mode: SeeMode = "layer",
 ): ClearWater | undefined {
+  const depth = mode === "depth";
   const engine = scene.getEngine();
   let texture: RenderTargetTexture;
   try {
@@ -96,11 +109,11 @@ export function createClearWater(
       "clear-water-layer",
       underSize(engine.getRenderWidth(), engine.getRenderHeight()),
       scene,
-      true,
+      !depth,
       true,
       Constants.TEXTURETYPE_UNSIGNED_BYTE,
       false,
-      Texture.TRILINEAR_SAMPLINGMODE,
+      depth ? Texture.NEAREST_SAMPLINGMODE : Texture.TRILINEAR_SAMPLINGMODE,
       true,
       false,
     );
@@ -109,13 +122,15 @@ export function createClearWater(
     return undefined;
   }
   // Multisampled (the layer is half the canvas: without it every silhouette is a staircase of 2 px steps).
-  texture.samples = UNDER_SAMPLES;
+  // (The depth mode packs a distance in the bytes: no averaging of samples.)
+  texture.samples = depth ? 1 : UNDER_SAMPLES;
   // Nothing drawn: no colour, no sight. The water then shows only its own body there.
   texture.clearColor = new Color4(0, 0, 0, 0);
   texture.wrapU = Texture.CLAMP_ADDRESSMODE;
   texture.wrapV = Texture.CLAMP_ADDRESSMODE;
-  const material = layerMaterial(scene, UNDER_LAYER_MATERIAL, false);
-  const lineMaterial = layerMaterial(scene, "under-layer-line", true);
+  const fragment = depth ? "underDepth" : "underLayer";
+  const material = layerMaterial(scene, UNDER_LAYER_MATERIAL, false, fragment);
+  const lineMaterial = layerMaterial(scene, "under-layer-line", true, fragment);
   // Which meshes the layer draws, by name. Looked at each frame (a mesh can be renamed after it is
   // made: merged meshes are), remembered with the name it was judged by, and dressed in the layer's
   // material the first time it is seen to qualify.
@@ -124,7 +139,17 @@ export function createClearWater(
   const consider = (mesh: AbstractMesh) => {
     let note = seen.get(mesh);
     if (!note || note.name !== mesh.name) {
-      note = { name: mesh.name, capable: underwaterCapable(mesh.name) };
+      // In the depth mode the main pass must draw what the layer holds: not the sea floor (the sea
+      // paints its own) and not the line (the fishing gear keeps its own skin there).
+      note = {
+        name: mesh.name,
+        capable:
+          underwaterCapable(mesh.name) &&
+          !(
+            depth &&
+            (mesh.name === "gear-under-line" || mesh.name.startsWith("seabed-"))
+          ),
+      };
       seen.set(mesh, note);
     }
     if (note.capable && !dressed.has(mesh)) {
@@ -162,6 +187,7 @@ export function createClearWater(
   };
   let on = false;
   const control: ClearWater = {
+    mode,
     texture,
     lineMaterial,
     get enabled() {
@@ -173,7 +199,7 @@ export function createClearWater(
       const at = scene.customRenderTargets.indexOf(texture);
       if (next && at < 0) scene.customRenderTargets.push(texture);
       if (!next && at >= 0) scene.customRenderTargets.splice(at, 1);
-      water.setUnderlayer(next ? texture : undefined);
+      water.setUnderlayer(next ? texture : undefined, mode);
     },
     update(time, camera) {
       for (const m of [material, lineMaterial]) {

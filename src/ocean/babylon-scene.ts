@@ -220,7 +220,11 @@ export class OceanScene {
       createSeaReflection(this.scene, this.water, this.sky);
     // The sea is see-through: hulls, piles, rocks, the fish and the line show through it. Slow
     // frames switch it off again (the opaque sea), before the render scale is coarsened.
-    this.clearWater = createClearWater(this.scene, this.water);
+    this.clearWater = createClearWater(
+      this.scene,
+      this.water,
+      probe("seemode") === "depth" ? "depth" : "layer",
+    );
     this.clearGovernor = new ClearWaterGovernor(
       this.clearWater !== undefined && !clearWaterRefused(),
     );
@@ -253,9 +257,7 @@ export class OceanScene {
     // The fishing gear is built now, not at the first throw: building it (meshes, textures, shaders)
     // while the button is held made the first throw of a visit hitch, and `ready()` compiles it.
     this.gear = new FishingGear(this.scene);
-    this.gear.setClearWater(
-      this.clearGovernor.enabled ? this.clearWater : undefined,
-    );
+    this.gear.setClearWater(this.gearLayer());
     this.boatLoad = this.loadBoats();
     this.islandProps = this.placeIslandModels(visuals);
     // A fish market on the water off each island.
@@ -892,9 +894,14 @@ export class OceanScene {
       this.clearGovernor.set(on);
     }
     this.clearWater?.setEnabled(this.clearGovernor.enabled);
-    this.gear?.setClearWater(
-      this.clearGovernor.enabled ? this.clearWater : undefined,
-    );
+    this.gear?.setClearWater(this.gearLayer());
+  }
+
+  /** The layer the fishing gear dresses itself for: only the colour layer (the depth mode lets the main pass draw the gear). */
+  private gearLayer() {
+    return this.clearGovernor.enabled && this.clearWater?.mode === "layer"
+      ? this.clearWater
+      : undefined;
   }
 
   /** Frame cost, for diagnostics and tests. */

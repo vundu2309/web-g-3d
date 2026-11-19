@@ -403,3 +403,48 @@ vec4 underLayerAt(vec3 plane, vec2 slope, float deepness) {
   return vec4(colour, sight);
 }
 `;
+
+// ----- The depth mode (a trial, `?seemode=depth`): the way many games do it -----
+
+/** The depth layer holds the distance (m) from the camera, over this range, packed in two bytes. */
+export const DEPTH_RANGE = 512;
+
+/**
+ * GLSL, the depth layer's fragment shader: only what is under the waves is kept, and what is
+ * written is how far from the camera it is (two bytes, high and low), alpha 1. The things
+ * themselves are drawn by the main pass as always; the sea, drawn after them, blends over them.
+ */
+export const UNDER_DEPTH_FRAGMENT = `
+precision highp float;
+uniform float time;
+uniform vec3 cameraPosition;
+varying vec3 vWorld;
+varying vec3 vNormal;
+varying vec4 vColor;
+${glslWaveHeight()}
+${glslHorizontalFade()}
+${glslWaveDisplace()}
+void main() {
+  if (vWorld.y > ${f(CLEAR.top)}) discard;
+  if (seaHeight(vWorld.xz, time) - vWorld.y < 0.0) discard;
+  float d = clamp(length(cameraPosition - vWorld) / ${f(DEPTH_RANGE, 1)}, 0.0, 0.9999) * 255.0;
+  float high = floor(d);
+  gl_FragColor = vec4(high / 255.0, d - high, 0.0, 1.0);
+}`;
+
+/**
+ * GLSL for the sea in the depth mode: `float seeThroughAlpha(float dist)` is how opaque the sea is
+ * at this pixel, `dist` being the distance to the sea here. Where a thing lies under the water
+ * behind this pixel, the sea is thinner the less water there is between: the thing is read from the
+ * framebuffer by the blend itself. The caller declares `underMap` and `screenSize`.
+ */
+export const glslSeeThrough = () => `
+float seeThroughAlpha(float dist) {
+  vec4 t = texture2D(underMap, gl_FragCoord.xy / screenSize);
+  if (t.a < 0.5) return 1.0;
+  float thick = (t.r * 255.0 + t.g) / 255.0 * ${f(DEPTH_RANGE, 1)} - dist;
+  if (thick <= 0.0) return 1.0;
+  float sight = exp(-${f(CLEAR.see)} * thick) * smoothstep(0.0, ${f(CLEAR.waterline)}, thick);
+  return 1.0 - sight;
+}
+`;

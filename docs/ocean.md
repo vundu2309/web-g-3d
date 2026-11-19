@@ -448,3 +448,7 @@ The same switches are in Settings, card "Thử tắt từng phần" (`createProb
 ### Phone: scale 1 and a short see-through reach
 
 Real-phone panel readings (one sample each): scale 1.5 gave about 23 fps, scale 1 gave 39; the see-through sea cost about half the frame rate (12 fps); props, fish and the mirror cost little. So a touch screen starts at render scale 1 (`babylon-scene.ts`), and the see-through layer reaches `TOUCH_REACH` = 70 m there instead of `CLEAR.reach` = 170 m (`LAYER_REACH` in `clear-water.ts`): the layer's pass leaves out meshes farther than that and the sea shader skips the layer read beyond it.
+
+### Trial: see-through sea by depth (`?seemode=depth`)
+
+Not the default. The depth layer (`UNDER_DEPTH_FRAGMENT`) holds only the camera distance of what is under the waves (two bytes, nearest sampling, no multisampling); the main pass draws hulls, rocks, fish and buoys in colour as usual, and the sea is alpha-blended after them (`alphaIndex` 0): its alpha is `1 - exp(-CLEAR.see x thickness)`, thickness being the layer's distance minus the sea's own. The sea floor and the fishing line are left out of this layer (the sea paints its own floor; the gear keeps its own skin). Look and cost are unmeasured; compare with the default on a phone.

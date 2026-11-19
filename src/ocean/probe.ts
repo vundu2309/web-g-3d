@@ -12,6 +12,12 @@ export const PROBES = [
   { name: "props", off: "0", label: "Dừa, bụi, nhà, đá", feature: true },
   { name: "clearwater", off: "0", label: "Nước trong suốt", feature: true },
   { name: "scale", off: "1", label: "Ép độ phân giải 1x", feature: false },
+  {
+    name: "seemode",
+    off: "depth",
+    label: "Nước trong suốt kiểu đọc độ sâu (thử)",
+    feature: false,
+  },
 ] as const;
 
 const stored = (): Record<string, string> => {

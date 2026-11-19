@@ -165,7 +165,10 @@ test("the layer is three quarters of the canvas in each direction and never empt
 
 test("the layer is multisampled and read softly, so a hull's silhouette is not a staircase", () => {
   assert.ok(UNDER_SAMPLES >= 4);
-  assert.match(read("clear-water-pass.ts"), /texture\.samples = UNDER_SAMPLES/);
+  assert.match(
+    read("clear-water-pass.ts"),
+    /texture\.samples = depth \? 1 : UNDER_SAMPLES/,
+  );
   assert.ok(
     CLEAR.blur >= 0.4 && CLEAR.blur <= 2,
     "soft, but a fish and a pile stay readable",
@@ -383,7 +386,7 @@ test("the render scale waits while the layer is still on, and coarsens only when
 
 test("the scene wires the layer: created with the reflection, switched by the governor, the render scale held meanwhile", () => {
   const scene = read("babylon-scene.ts");
-  assert.match(scene, /createClearWater\(this\.scene, this\.water\)/);
+  assert.match(scene, /createClearWater\(\s*this\.scene,\s*this\.water,/);
   assert.match(scene, /ClearWaterGovernor/);
   assert.match(scene, /this\.governor\.sample\(dt, /);
   assert.match(scene, /clearWater: /, "stats report the layer");
