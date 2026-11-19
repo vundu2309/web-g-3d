@@ -51,6 +51,7 @@
         loadIslandModels,
         placeIslandProps,
       } from "/src/ocean/island-models.ts";
+      import { PropBatches } from "/src/ocean/prop-batches.ts";
       const q = new URLSearchParams(location.search);
       // &daytime=<hour 0..24>&weather=clear|overcast|rain|fog pin the time and the weather (default:
       // noon, clear, the sea's original look; the harness never follows the real clock).
@@ -105,11 +106,14 @@
         return v;
       });
       const placedAll = [];
+      // &batch=0 keeps every prop an ordinary instance (the old way) to compare with.
+      const batches = q.get("batch") !== "0" ? new PropBatches() : undefined;
       if (q.get("models") !== "0") {
         const models = await loadIslandModels(scene);
         visuals.forEach((v, i) => {
           const p = placeIslandProps(v, models, MARKETS);
           placedAll.push(p);
+          batches?.add(p);
           console.log(
             "island",
             i,
@@ -310,6 +314,7 @@
         schools?.update(T, cam.position, boatList);
         clear?.update(T, cam.position);
         for (const e of extras) e.update?.(T);
+        batches?.update(scene.activeCamera.position, scene.frustumPlanes ?? []);
       };
       tick();
       scene.executeWhenReady(() => {

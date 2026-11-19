@@ -49,6 +49,12 @@ const FILES = [
 
 /** The distances of each prop source mesh (see prop-lod.ts), by mesh, for the fade and the tests. */
 const distancesOf = new WeakMap<Mesh, PropDistances>();
+/** The coarser copies of a source mesh (mid, far, impostor), for the batches (prop-batches.ts), which draw them as thin instances. */
+const coarserOf = new WeakMap<Mesh, Mesh[]>();
+export const propCopiesOf = (source: Mesh) => coarserOf.get(source);
+/** An impostor is the model cut down to about this share of its triangles, never fewer than IMPOSTOR_MIN. */
+const IMPOSTOR_SHARE = 0.04;
+const IMPOSTOR_MIN = 20;
 export const propDistancesOf = (source: Mesh) => distancesOf.get(source);
 
 /**
@@ -91,6 +97,24 @@ export function addPropLevels(source: Mesh, cut: number = FOG_CUT): void {
       copy.isPickable = false;
       return copy;
     });
+    const impostor = simplifyPart(
+      whole,
+      Math.max(IMPOSTOR_MIN, Math.round((indices.length / 3) * IMPOSTOR_SHARE)),
+    );
+    const stand = meshFrom(
+      `${source.name}-impostor`,
+      source.getScene(),
+      impostor.positions,
+      impostor.indices,
+      impostor.colors,
+      impostor.normals,
+    );
+    stand.material = source.material;
+    stand.useVertexColors = true;
+    stand.hasVertexAlpha = false;
+    stand.isVisible = false;
+    stand.isPickable = false;
+    coarserOf.set(source, [...copies, stand]);
     source.addLODLevel(distances.full, copies[0]!);
     source.addLODLevel(distances.mid, copies[1]!);
   }

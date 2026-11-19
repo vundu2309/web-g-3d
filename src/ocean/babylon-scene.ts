@@ -29,7 +29,7 @@ import { loadIslandModels, placeIslandProps } from "./island-models.ts";
 import { islandSeed } from "./shore.ts";
 import { SeaProps } from "./sea-props.ts";
 import { Wildlife } from "./wildlife-scene.ts";
-import { PropFade } from "./prop-fade.ts";
+import { PropBatches } from "./prop-batches.ts";
 import { RippleSim, SIM_N, type Hull } from "./ripple-sim.ts";
 import { OrbitCamera } from "./orbit-camera.ts";
 import {
@@ -151,7 +151,7 @@ export class OceanScene {
   private readonly seabed: Seabed;
   private readonly schools: FishSchools;
   private readonly wildlife: Wildlife;
-  private readonly propFade: PropFade;
+  private readonly propFade: PropBatches;
   /** The water the boats stir, simulated: the sea draws it and the hulls float on it (ripple-sim.ts). */
   private readonly sim = new RippleSim();
   private readonly simPixels = new Float32Array(SIM_N * SIM_N * 4);
@@ -267,7 +267,7 @@ export class OceanScene {
     this.seaProps = new SeaProps(this.scene);
     this.schools = new FishSchools(this.scene);
     this.wildlife = new Wildlife(this.scene);
-    this.propFade = new PropFade(this.scene);
+    this.propFade = new PropBatches();
     this.observer = new ResizeObserver(() => this.engine.resize());
     this.observer.observe(host);
     this.engine.resize();
@@ -638,7 +638,7 @@ export class OceanScene {
       ...this.fleet.values(),
     ]);
     this.wildlife.update(this.clock, this.camera.position);
-    this.propFade.update(this.camera.position);
+    this.propFade.update(this.camera.position, this.scene.frustumPlanes ?? []);
     // Every boat, yours and the others', pushes on the water (ripple-sim.ts), which then spreads,
     // breaks and fades by itself.
     const hulls: Hull[] = [];
