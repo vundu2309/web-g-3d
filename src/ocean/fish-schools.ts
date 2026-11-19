@@ -132,12 +132,19 @@ export class FishSchools {
     });
   }
 
+  private hidden = false;
+  /** Leaves the fish out altogether (a page-address switch for finding what costs frames). */
+  hide() {
+    this.hidden = true;
+  }
+
   /** Moves the schools near the camera; `boats` frighten the schools they come close to. */
   update(
     time: number,
     camera: { x: number; z: number },
     boats: readonly Scarer[],
   ) {
+    if (this.hidden) return;
     const dt = this.last < 0 ? 0 : Math.min(0.1, Math.abs(time - this.last));
     this.last = time;
     const ease = 1 - Math.exp(-EASE * dt);

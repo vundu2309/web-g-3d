@@ -89,6 +89,18 @@ interface Craft {
 const wrap = (angle: number) => Math.atan2(Math.sin(angle), Math.cos(angle));
 const blend = (dt: number, rate: number) => 1 - Math.exp(-dt * rate);
 const NORMALIZED = new Viewport(0, 0, 1, 1);
+/**
+ * Switches in the page address to find what costs the frames on a device (read the performance
+ * panel after each): `?reflect=0` (no mirror), `?fish=0` (no fish), `?props=0` (no island props),
+ * `?scale=1` (render pixels per CSS pixel; the governor may still lower it), `?clearwater=0`.
+ */
+const probe = (name: string): string | null => {
+  try {
+    return new URLSearchParams(window.location.search).get(name);
+  } catch {
+    return null;
+  }
+};
 /** `?clearwater=0` keeps the sea opaque (to compare, or on a device that cannot hold the layer). */
 const clearWaterRefused = () => {
   try {
@@ -193,7 +205,10 @@ export class OceanScene {
     // the governor lowers it further if the phone struggles.
     const touch = window.matchMedia?.("(pointer: coarse)").matches ?? false;
     this.governor = new ScaleGovernor({
-      sharpest: 1 / Math.min(window.devicePixelRatio || 1, touch ? 1.5 : 2),
+      sharpest:
+        1 /
+        (Number(probe("scale")) ||
+          Math.min(window.devicePixelRatio || 1, touch ? 1.5 : 2)),
     });
     this.engine.setHardwareScalingLevel(this.governor.scaling);
     this.engine.onContextLostObservable.add(() => {
@@ -220,7 +235,8 @@ export class OceanScene {
     this.sky = createSky(this.scene);
     this.rain = createRain(this.scene);
     // The sea mirrors the islands, markets and boats too (a predicate over the whole scene).
-    createSeaReflection(this.scene, this.water, this.sky);
+    if (probe("reflect") !== "0")
+      createSeaReflection(this.scene, this.water, this.sky);
     // The sea is see-through: hulls, piles, rocks, the fish and the line show through it. Slow
     // frames switch it off again (the opaque sea), before the render scale is coarsened.
     this.clearWater = createClearWater(this.scene, this.water);
@@ -266,6 +282,7 @@ export class OceanScene {
     this.vendors = this.placeVendorCats();
     this.seaProps = new SeaProps(this.scene);
     this.schools = new FishSchools(this.scene);
+    if (probe("fish") === "0") this.schools.hide();
     this.wildlife = new Wildlife(this.scene);
     this.propFade = new PropBatches();
     this.observer = new ResizeObserver(() => this.engine.resize());
@@ -638,7 +655,11 @@ export class OceanScene {
       ...this.fleet.values(),
     ]);
     this.wildlife.update(this.clock, this.camera.position);
-    this.propFade.update(this.camera.position, this.scene.frustumPlanes ?? []);
+    if (probe("props") !== "0")
+      this.propFade.update(
+        this.camera.position,
+        this.scene.frustumPlanes ?? [],
+      );
     // Every boat, yours and the others', pushes on the water (ripple-sim.ts), which then spreads,
     // breaks and fades by itself.
     const hulls: Hull[] = [];
