@@ -899,7 +899,11 @@ export class OceanScene {
   /** The biggest groups of triangles in the frame (by mesh name), for the performance panel: one pass over the active meshes. */
   trianglesByGroup(): [string, number][] {
     const pairs: [string, number][] = [];
-    for (const mesh of this.scene.getActiveMeshes().data) {
+    // `data` is the list's backing array: only the first `length` entries are this frame's meshes
+    // (the rest are left over from earlier, bigger frames and made the panel count meshes twice).
+    const active = this.scene.getActiveMeshes();
+    for (let i = 0; i < active.length; i++) {
+      const mesh = active.data[i];
       if (!mesh) continue;
       // The copy actually drawn (a prop far away is a coarser mesh, or none), not the whole model.
       const drawn = mesh.getLOD(this.camera);
