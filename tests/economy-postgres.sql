@@ -1,5 +1,6 @@
 -- Run only against a disposable PostgreSQL that has the Supabase Auth fixtures (auth.users,
--- auth.uid(), the anon and authenticated roles) and the economy migration applied.
+-- auth.uid(), the anon and authenticated roles) and the economy, sea species and upgrades
+-- migrations applied.
 -- tests/economy-postgres.sh builds exactly that and runs this file.
 begin;
 insert into auth.users(id) values
@@ -244,6 +245,189 @@ do $$declare r jsonb; begin
   if jsonb_array_length(public.economy_state()->'ledger') <> 100 then raise exception 'ledger not capped'; end if;
   if (select count(*) from jsonb_array_elements(public.economy_state()->'ledger') e where e->>'species' = 'ca-map') <> 50 then raise exception 'species not cut by the same ratio'; end if;
   if (public.economy_profile()->>'caught')::int <> 1000000 then raise exception 'caught not capped'; end if;
+end$$;
+
+-- ---------------------------------------------------------------------------------------------
+-- Upgrades (supabase/migrations/20261120130000_upgrades.sql). A fresh player a3 with 700 coins
+-- (given by a superuser step: coins only come from selling fish).
+reset role;
+insert into auth.users(id) values ('00000000-0000-0000-0000-0000000000a5'), ('00000000-0000-0000-0000-0000000000a6');
+insert into economy_private.wallets(user_id, coins) values ('00000000-0000-0000-0000-0000000000a5', 700);
+insert into economy_private.ledger(user_id, species, kg) values ('00000000-0000-0000-0000-0000000000a5', 'ca-com', 0.1);
+
+-- Nobody signed in: the new RPCs need an account too.
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '', true);
+do $$begin
+  begin perform public.economy_buy('rod', 1); raise exception 'anonymous buy accepted';
+  exception when insufficient_privilege then null; end;
+  begin perform public.economy_set_bait(0); raise exception 'anonymous bait choice accepted';
+  exception when insufficient_privilege then null; end;
+  begin perform public.economy_loadout(); raise exception 'anonymous loadout accepted';
+  exception when insufficient_privilege then null; end;
+end$$;
+
+-- The new tables are private, and the price table matches the TypeScript table's seed.
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a5', true);
+do $$begin
+  begin perform * from economy_private.loadouts; raise exception 'loadouts read accepted';
+  exception when insufficient_privilege then null; end;
+  begin update economy_private.loadouts set rod = 3; raise exception 'loadouts write accepted';
+  exception when insufficient_privilege then null; end;
+  begin insert into economy_private.loadouts(user_id, rod) values ('00000000-0000-0000-0000-0000000000a5', 3); raise exception 'loadouts insert accepted';
+  exception when insufficient_privilege then null; end;
+  begin perform * from economy_private.upgrade_prices; raise exception 'price table read accepted';
+  exception when insufficient_privilege then null; end;
+  begin update economy_private.upgrade_prices set price = 0; raise exception 'price table write accepted';
+  exception when insufficient_privilege then null; end;
+  -- No private function is callable directly either.
+  begin perform economy_private.buy('rod', 1); raise exception 'private buy accepted';
+  exception when insufficient_privilege then null; end;
+end$$;
+
+-- A new account owns only the defaults; economy_state carries them next to the old fields.
+do $$declare s jsonb; begin
+  s := public.economy_state();
+  if s->'loadout' is distinct from '{"rod":0,"bait":0,"baitUsed":0,"boat":0}'::jsonb then raise exception 'new loadout %', s->'loadout'; end if;
+  if (s->>'coins')::bigint <> 700 or jsonb_array_length(s->'ledger') <> 1 then raise exception 'state fields changed: %', s; end if;
+end$$;
+
+-- Buying at the right price: wallet and loadout come back, and the state agrees.
+do $$declare r jsonb; begin
+  r := public.economy_buy('rod', 1);
+  if (r->>'coins')::bigint <> 600 or (r->'loadout'->>'rod')::int <> 1 then raise exception 'rod 1 result %', r; end if;
+  r := public.economy_buy('bait', 1);
+  if (r->>'coins')::bigint <> 500 or (r->'loadout'->>'bait')::int <> 1 or (r->'loadout'->>'baitUsed')::int <> 1 then raise exception 'bait 1 result %', r; end if;
+  if (public.economy_state()->>'coins')::bigint <> 500 then raise exception 'state coins after buying'; end if;
+end$$;
+
+-- The same tier twice (a double press, or a second device) charges once.
+do $$begin
+  begin perform public.economy_buy('rod', 1); raise exception 'second buy of the same tier accepted';
+  exception when sqlstate 'EC409' then null; end;
+  begin perform public.economy_buy('rod', 0); raise exception 'buying the free tier accepted';
+  exception when sqlstate 'EC409' then null; end;
+  if (public.economy_state()->>'coins')::bigint <> 500 then raise exception 'a refused buy charged coins'; end if;
+end$$;
+
+-- Skipping a tier is rejected and changes nothing; so is an unknown kind or tier.
+do $$declare before jsonb; begin
+  before := public.economy_state();
+  begin perform public.economy_buy('boat', 2); raise exception 'skipped boat tier accepted';
+  exception when sqlstate 'EC422' then null; end;
+  begin perform public.economy_buy('rod', 3); raise exception 'skipped rod tier accepted';
+  exception when sqlstate 'EC422' then null; end;
+  begin perform public.economy_buy('sail', 1); raise exception 'unknown kind accepted';
+  exception when invalid_parameter_value then null; end;
+  begin perform public.economy_buy('rod', 4); raise exception 'tier 4 accepted';
+  exception when invalid_parameter_value then null; end;
+  begin perform public.economy_buy('rod', -1); raise exception 'tier -1 accepted';
+  exception when invalid_parameter_value then null; end;
+  begin perform public.economy_buy(null, 1); raise exception 'null kind accepted';
+  exception when invalid_parameter_value then null; end;
+  if public.economy_state() <> before then raise exception 'a refused buy changed the state: % vs %', before, public.economy_state(); end if;
+end$$;
+
+-- Too poor: rejected, and the wallet, the ledger and the tiers stay as they were.
+do $$declare before jsonb; begin
+  before := public.economy_state();
+  begin perform public.economy_buy('rod', 2); raise exception 'unaffordable rod accepted';   -- 600 coins, 500 held
+  exception when sqlstate 'EC402' then null; end;
+  if public.economy_state() <> before then raise exception 'a refused buy changed the state'; end if;
+  if (public.economy_loadout()->>'rod')::int <> 1 then raise exception 'tier recorded without paying'; end if;
+end$$;
+
+-- A purchase pays with coins only to the cent: exactly the price, no more.
+do $$declare r jsonb; begin
+  r := public.economy_buy('boat', 1);   -- 200 coins
+  if (r->>'coins')::bigint <> 300 or (r->'loadout'->>'boat')::int <> 1 then raise exception 'boat 1 result %', r; end if;
+end$$;
+
+-- Bait: every bought bait is kept; one is in use; only an owned one can be chosen.
+reset role;
+update economy_private.wallets set coins = coins + 1000 where user_id = '00000000-0000-0000-0000-0000000000a5';
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a5', true);
+do $$declare r jsonb; begin
+  r := public.economy_buy('bait', 2);   -- 600 coins: 1300 - 600 = 700
+  if (r->>'coins')::bigint <> 700 or (r->'loadout'->>'bait')::int <> 2 or (r->'loadout'->>'baitUsed')::int <> 2 then raise exception 'bait 2 result %', r; end if;
+  r := public.economy_set_bait(1);
+  if r is distinct from '{"rod":1,"bait":2,"baitUsed":1,"boat":1}'::jsonb then raise exception 'bait 1 chosen: %', r; end if;
+  r := public.economy_set_bait(0);
+  if (r->>'baitUsed')::int <> 0 or (r->>'bait')::int <> 2 then raise exception 'default bait chosen: %', r; end if;
+  begin perform public.economy_set_bait(3); raise exception 'bait not owned accepted';
+  exception when sqlstate 'EC422' then null; end;
+  begin perform public.economy_set_bait(4); raise exception 'bait tier 4 accepted';
+  exception when invalid_parameter_value then null; end;
+  begin perform public.economy_set_bait(-1); raise exception 'bait tier -1 accepted';
+  exception when invalid_parameter_value then null; end;
+  begin perform public.economy_set_bait(null); raise exception 'null bait tier accepted';
+  exception when invalid_parameter_value then null; end;
+  if (public.economy_loadout()->>'baitUsed')::int <> 0 then raise exception 'a refused choice changed the bait in use'; end if;
+end$$;
+do $$declare r jsonb; begin
+  -- Choosing a lower bait again, then buying the next one (too poor) leaves the choice alone.
+  r := public.economy_set_bait(2);
+  if (r->>'baitUsed')::int <> 2 then raise exception 'bait 2 not chosen: %', r; end if;
+  begin perform public.economy_buy('bait', 3); raise exception 'unaffordable bait accepted';   -- 3000 coins, 700 held
+  exception when sqlstate 'EC402' then null; end;
+  if (public.economy_loadout()->>'baitUsed')::int <> 2 or (public.economy_state()->>'coins')::bigint <> 700 then
+    raise exception 'a refused bait purchase changed something';
+  end if;
+  r := public.economy_set_bait(0);   -- back to the default bait for the checks below
+end$$;
+
+-- One player's upgrades are not another's.
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a6', true);
+do $$begin
+  if public.economy_loadout() is distinct from '{"rod":0,"bait":0,"baitUsed":0,"boat":0}'::jsonb then raise exception 'loadout leaked between accounts'; end if;
+  begin perform public.economy_set_bait(1); raise exception 'someone else''s bait could be chosen';
+  exception when sqlstate 'EC422' then null; end;
+  begin perform public.economy_buy('rod', 1); raise exception 'buying with an empty wallet accepted';
+  exception when sqlstate 'EC402' then null; end;
+end$$;
+
+-- economy_loadout is a LIGHT read: only the four tiers, never the coins or the ledger.
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a5', true);
+do $$declare l jsonb; begin
+  l := public.economy_loadout();
+  if (select array_agg(k order by k) from jsonb_object_keys(l) k) <> array['bait', 'baitUsed', 'boat', 'rod'] then
+    raise exception 'loadout keys: %', l;
+  end if;
+  if l ? 'coins' or l ? 'ledger' then raise exception 'loadout leaks the wallet'; end if;
+  if l is distinct from '{"rod":1,"bait":2,"baitUsed":0,"boat":1}'::jsonb then raise exception 'loadout %', l; end if;
+end$$;
+
+-- A read does not create rows: a never-seen account reading its loadout leaves nothing behind.
+reset role;
+do $$begin
+  if exists (select 1 from economy_private.loadouts where user_id = '00000000-0000-0000-0000-0000000000a6') then
+    raise exception 'a refused call or a read created a loadout row';
+  end if;
+end$$;
+
+-- Privileges: anon and authenticated have no table grants; only authenticated runs the new RPCs.
+do $$declare fn text; begin
+  if exists (select 1 from information_schema.role_table_grants
+      where table_schema = 'economy_private' and grantee in ('anon', 'authenticated', 'public')) then
+    raise exception 'a table of economy_private is granted to anon or authenticated';
+  end if;
+  foreach fn in array array['public.economy_buy(text,integer)', 'public.economy_set_bait(integer)', 'public.economy_loadout()'] loop
+    if not has_function_privilege('authenticated', fn, 'execute') then raise exception '% not executable by authenticated', fn; end if;
+    if has_function_privilege('anon', fn, 'execute') then raise exception '% executable by anon', fn; end if;
+  end loop;
+  foreach fn in array array['economy_private.buy(text,integer)', 'economy_private.set_bait(integer)', 'economy_private.loadout()',
+      'economy_private.loadout_of(uuid)', 'economy_private.state()'] loop
+    if has_function_privilege('authenticated', fn, 'execute') or has_function_privilege('anon', fn, 'execute') then
+      raise exception '% is executable by a client role', fn;
+    end if;
+  end loop;
+end$$;
+
+-- A price table the database owns: an unaffordable or skipped buy leaves exactly what was seeded.
+do $$begin
+  if (select count(*) from economy_private.upgrade_prices) <> 12 then raise exception 'price table rows'; end if;
+  if (select price from economy_private.upgrade_prices where kind = 'boat' and tier = 3) <> 8000 then raise exception 'boat 3 price'; end if;
 end$$;
 rollback;
 select 'economy ok' as result;

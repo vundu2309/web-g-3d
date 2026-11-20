@@ -1,5 +1,5 @@
 #!/bin/bash
-# Applies the economy migration to a DISPOSABLE PostgreSQL (given as PGHOST/PGPORT/PGUSER with a
+# Applies the economy migrations (economy, sea species, profile, upgrades) to a DISPOSABLE PostgreSQL (given as PGHOST/PGPORT/PGUSER with a
 # superuser) and runs tests/economy-postgres.sql against it. It creates a throwaway database
 # with the Supabase Auth fixtures (auth.users, auth.uid(), the anon and authenticated roles)
 # and drops it afterwards. Never point it at a production database.
@@ -20,7 +20,9 @@ create function auth.uid() returns uuid language sql stable as
 grant usage on schema auth to authenticated, anon;
 grant usage on schema public to authenticated, anon;
 SQL
-psql -v ON_ERROR_STOP=1 -q -d "$DB" -f supabase/migrations/20261113032223_economy.sql
-psql -v ON_ERROR_STOP=1 -q -d "$DB" -f supabase/migrations/20261118120000_sea_species.sql
-psql -v ON_ERROR_STOP=1 -q -d "$DB" -f supabase/migrations/20261120120000_profile.sql
+# Every migration the sea's economy has, in order: the economy, the species added later, the
+# profile (fish store, records, boat position), the upgrades.
+for migration in 20261113032223_economy 20261118120000_sea_species 20261120120000_profile 20261120130000_upgrades; do
+  psql -v ON_ERROR_STOP=1 -q -d "$DB" -f "supabase/migrations/$migration.sql"
+done
 psql -v ON_ERROR_STOP=1 -q -t -d "$DB" -f tests/economy-postgres.sql | grep -v '^$' | tail -2
