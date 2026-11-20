@@ -61,7 +61,8 @@ import { createBeacon, type Beacon } from "./beacon.ts";
 import { createSeaLights } from "./art/lighting.ts";
 import { edgeIndicator, separateLabels } from "./indicator.ts";
 import { ScaleGovernor } from "./render-scale.ts";
-import { CatBoat, loadRowerAssets, type RowerAssets } from "./cat-boat.ts";
+import { loadRowerAssets } from "./cat-boat.ts";
+import { CatFleet } from "./cat-fleet.ts";
 import { createSeaReflection } from "./reflection.ts";
 import { createClearWater, type ClearWater } from "./clear-water-pass.ts";
 import { ClearWaterGovernor } from "./clear-water.ts";
@@ -121,8 +122,9 @@ export class OceanScene {
       }
     | undefined;
   private clock = 0;
-  private catBoat: CatBoat | undefined;
-  private catAssets: RowerAssets | undefined;
+  /** The NPC rowing cats (cat-fleet.ts), once their models have loaded; `sharedClock` is the clock they follow (seconds). */
+  private cats: CatFleet | undefined;
+  private sharedClock: () => number = () => Date.now() / 1000;
   private viewHeading = 0;
   private viewReady = false;
   private readonly orbit = new OrbitCamera();
@@ -261,12 +263,16 @@ export class OceanScene {
     // while the button is held made the first throw of a visit hitch, and `ready()` compiles it.
     this.gear = new FishingGear(this.scene);
     this.gear.setClearWater(this.gearLayer());
-    // A trial: one rowing boat with two cats (`?cats=1`), put 14 m ahead of the player's boat once
-    // both are there (the boat resumes where it was left, so a fixed place would be anywhere).
-    if (probe("cats") === "1")
+    // The NPC rowing cats: boats rowing between the islands by the shared clock. `?cats=0` (or the
+    // Settings switch) leaves them out.
+    if (probe("cats") !== "0")
       void loadRowerAssets(this.scene)
         .then((assets) => {
-          if (!this.scene.isDisposed) this.catAssets = assets;
+          if (this.scene.isDisposed) return;
+          this.cats = new CatFleet(this.scene, assets, {
+            range: touch ? 130 : 220,
+            limit: touch ? 3 : 5,
+          });
         })
         .catch((error) => console.warn("No rowing cats.", error));
     this.boatLoad = this.loadBoats();
@@ -360,6 +366,16 @@ export class OceanScene {
     };
     this.viewHeading = pose.heading;
     this.viewReady = false;
+  }
+
+  /** The clock the NPC rowing cats follow (seconds): the server's, so every player sees them at the same places. */
+  setSharedClock(seconds: () => number) {
+    this.sharedClock = seconds;
+  }
+
+  /** Where the NPC rowing cats are now, for the minimap. */
+  catBoats(): readonly { x: number; z: number; heading: number }[] {
+    return this.cats?.all() ?? [];
   }
 
   setInput(steer: number, throttle: number) {
@@ -644,16 +660,12 @@ export class OceanScene {
     else if (tip && this.gear?.holding) this.gear.updateHeld(tip, this.clock);
     else this.gear?.hide();
     this.seaProps.update(this.clock);
-    const me = this.catAssets && !this.catBoat ? this.selfState() : undefined;
-    if (me && this.catAssets) {
-      const at = {
-        x: me.x + Math.sin(me.heading) * 14,
-        z: me.z - Math.cos(me.heading) * 14,
-      };
-      this.catBoat = new CatBoat(this.scene, this.catAssets, at);
-      console.info("Rowing cats at", Math.round(at.x), Math.round(at.z));
-    }
-    this.catBoat?.update(this.clock, (x, z) => this.sim.sample(x, z).height);
+    this.cats?.update(
+      this.sharedClock(),
+      this.clock,
+      this.camera.position,
+      (x, z) => waveHeight(x, z, this.clock) + this.sim.sample(x, z).height,
+    );
     this.schools.update(this.clock, this.camera.position, [
       ...(this.self ? [this.self.physics.state()] : []),
       ...this.fleet.values(),
@@ -675,6 +687,15 @@ export class OceanScene {
       this.leaveTrail(id, craft.x, craft.z);
       hulls.push(this.hullOf(id, craft.x, craft.z));
     }
+    // The NPC cats' boats push on the water too, as the other players' boats do.
+    const catsNear = this.cats?.near() ?? [];
+    for (const pose of catsNear)
+      hulls.push({
+        x: pose.x,
+        z: pose.z,
+        heading: pose.heading,
+        speed: pose.speed,
+      });
     this.sim.recentre(this.camera.position.x, this.camera.position.z);
     this.sim.step(step, hulls);
     this.sim.pack(this.simPixels);
@@ -683,7 +704,11 @@ export class OceanScene {
       this.camera.position.x,
       this.camera.position.z,
       this.clock,
-      [...(this.self && state ? [state] : []), ...this.fleet.values()],
+      [
+        ...(this.self && state ? [state] : []),
+        ...this.fleet.values(),
+        ...catsNear,
+      ],
     );
     this.rain.update(this.clock);
     for (const beacon of this.beacons) beacon.update(this.clock);

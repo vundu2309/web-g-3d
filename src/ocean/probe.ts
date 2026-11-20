@@ -20,9 +20,9 @@ export const PROBES = [
   },
   {
     name: "cats",
-    off: "1",
-    label: "Thuyền mèo chèo (thử)",
-    feature: false,
+    off: "0",
+    label: "Mèo chèo thuyền (NPC)",
+    feature: true,
   },
 ] as const;
 

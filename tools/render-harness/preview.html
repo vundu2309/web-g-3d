@@ -297,16 +297,29 @@
       scene.activeCamera = cam;
       window.scene = scene;
       // &cats=1: the rowing cats' boat (src/ocean/cat-boat.ts) at the camera's target, seen from a few metres.
-      let catBoat;
+      let catBoats = [];
+      let catKit;
       if (q.get("cats") === "1") {
-        const { loadRowerAssets, CatBoat } = await import(
+        const { loadRowerAssets, createRowerKit, CatBoat } = await import(
           "/src/ocean/cat-boat.ts"
         );
         try {
-          const assets = await loadRowerAssets(scene);
-          catBoat = new CatBoat(scene, assets, { x: target.x, z: target.z });
-          cam.position.set(target.x + 8, 3.6, target.z + 13);
-          cam.setTarget(new Vector3(target.x, 1.5, target.z));
+          catKit = createRowerKit(scene, await loadRowerAssets(scene));
+          // Two boats from the same models (instances), rowing and resting.
+          catBoats = [
+            {
+              boat: new CatBoat(scene, catKit, "cat-boat-0"),
+              dx: 0,
+              effort: 1,
+            },
+            {
+              boat: new CatBoat(scene, catKit, "cat-boat-1"),
+              dx: 14,
+              effort: 0,
+            },
+          ];
+          cam.position.set(target.x + 14, 3.6, target.z + 17);
+          cam.setTarget(new Vector3(target.x + 7, 1.5, target.z));
           window.__cats = "loaded";
         } catch (error) {
           window.__cats = "failed: " + error;
@@ -314,7 +327,13 @@
         }
       }
       const tick = () => {
-        catBoat?.update(T, (x, z) => waveHeight(x, z, T));
+        catKit?.update();
+        for (const c of catBoats)
+          c.boat.update(
+            { x: target.x + c.dx, z: target.z, heading: 0, effort: c.effort },
+            T,
+            (x, z) => waveHeight(x, z, T),
+          );
         stepAtmosphere(0);
         rain.update(T);
         for (const b of beacons) b.update(T);

@@ -1,4 +1,6 @@
 import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { beaconLevel } from "./atmosphere.ts";
+import { SEA } from "./sea-atmosphere.ts";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
@@ -46,42 +48,70 @@ export function lanternGlass(): Geo {
   return g;
 }
 
-export interface Lantern {
-  /** Each frame: the glass and halo follow the time of day. */
+/** The lantern's shared meshes and glass material (made once; each boat hangs instances of them). */
+export interface LanternKit {
+  frame: Mesh;
+  glass: Mesh;
+  /** Once a frame: the glass is dull amber by day, bright at night. */
   update(): void;
   dispose(): void;
 }
 
-export function createLantern(scene: Scene, parent: TransformNode): Lantern {
+export function createLanternKit(scene: Scene): LanternKit {
   const frame: Mesh = lanternFrame().toMesh(scene, "cat-lantern-frame");
   useSolid(frame, "matte");
   const glass: Mesh = lanternGlass().toMesh(scene, "cat-lantern-glass");
-  const glassMaterial = glowMaterial(scene, "cat-lantern-glass-material", {
+  const material = glowMaterial(scene, "cat-lantern-glass-material", {
     color: GLASS.scale(0.5),
   });
-  glass.material = glassMaterial;
+  glass.material = material;
+  for (const mesh of [frame, glass]) {
+    mesh.isVisible = false;
+    mesh.isPickable = false;
+  }
+  return {
+    frame,
+    glass,
+    update() {
+      const level = beaconLevel(SEA.grade.y, SEA.weather.y, SEA.weather.z);
+      material.emissiveColor = GLASS.scale(0.45 + 0.55 * Math.max(level, 0));
+    },
+    dispose() {
+      frame.dispose();
+      glass.dispose();
+      material.dispose();
+    },
+  };
+}
+
+export interface Lantern {
+  /** Each frame: the halo follows the time of day. */
+  update(): void;
+  dispose(): void;
+}
+
+/** A lantern on `parent`: instances of the kit's meshes and a halo of its own. */
+export function createLantern(
+  scene: Scene,
+  parent: TransformNode,
+  kit: LanternKit,
+  name: string,
+): Lantern {
+  const frame = kit.frame.createInstance(`${name}-frame`);
+  const glass = kit.glass.createInstance(`${name}-glass`);
   for (const mesh of [frame, glass]) {
     mesh.parent = parent;
     mesh.isPickable = false;
   }
-  const glow = createLampGlow(
-    scene,
-    parent,
-    LANTERN.at,
-    LANTERN.halo,
-    "cat-lantern",
-  );
+  const glow = createLampGlow(scene, parent, LANTERN.at, LANTERN.halo, name);
   return {
     update() {
-      const level = glow.update();
-      // Dull amber by day, bright warm white-yellow at night.
-      glassMaterial.emissiveColor = GLASS.scale(0.45 + 0.55 * level);
+      glow.update();
     },
     dispose() {
       glow.dispose();
       frame.dispose();
       glass.dispose();
-      glassMaterial.dispose();
     },
   };
 }

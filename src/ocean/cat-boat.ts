@@ -4,8 +4,13 @@ import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import { poleOf, solveArm, type V3 } from "./arm-ik.ts";
+import {
+  createLantern,
+  createLanternKit,
+  type Lantern,
+  type LanternKit,
+} from "./cat-lantern.ts";
 import { CAT_SCALE } from "./cat-pose.ts";
-import { createLantern, type Lantern } from "./cat-lantern.ts";
 import {
   loadMergedModel,
   loadPartsModel,
@@ -70,29 +75,6 @@ export function oarQuaternion(yaw: number, pitch: number, roll: number) {
     .multiply(Quaternion.RotationAxis(Axis.X, roll));
 }
 
-interface Hand {
-  shoulder: Vector3;
-  elbow: Vector3;
-  upper: number;
-  fore: number;
-  pole: V3;
-  /** Along the oar from the oarlock (m, inboard). */
-  grip: number;
-  arm: TransformNode;
-  forearm: TransformNode;
-  restUpper: Vector3;
-  restFore: Vector3;
-}
-
-interface Rower {
-  model: PartsModel<Part>;
-  seat: Vector3;
-  /** +1 starboard, -1 port: which oar this cat rows. */
-  side: 1 | -1;
-  hands: Hand[];
-  oar: TransformNode;
-}
-
 export interface RowerAssets {
   cats: { ginger: PartsModel<Part>; grey: PartsModel<Part> };
   oars: { starboard: Mesh; port: Mesh };
@@ -113,50 +95,138 @@ export async function loadRowerAssets(scene: Scene): Promise<RowerAssets> {
   return { cats: { ginger, grey }, oars: { starboard, port }, hull };
 }
 
+/** The loaded models as templates (hidden): each boat is made of instances of these, so many boats cost no more geometry. */
+export interface RowerKit {
+  assets: RowerAssets;
+  lantern: LanternKit;
+  /** Once a frame. */
+  update(): void;
+  dispose(): void;
+}
+
+export function createRowerKit(scene: Scene, assets: RowerAssets): RowerKit {
+  const lantern = createLanternKit(scene);
+  const templates: Mesh[] = [
+    assets.hull,
+    assets.oars.starboard,
+    assets.oars.port,
+  ];
+  for (const model of [assets.cats.ginger, assets.cats.grey]) {
+    model.root.setEnabled(true);
+    templates.push(...model.meshes);
+  }
+  // The parts stay under their pivots (each boat reads them from there); only hidden.
+  for (const mesh of templates) mesh.isVisible = false;
+  return {
+    assets,
+    lantern,
+    update: () => lantern.update(),
+    dispose() {
+      lantern.dispose();
+      for (const mesh of templates) mesh.dispose();
+      assets.cats.ginger.root.dispose();
+      assets.cats.grey.root.dispose();
+    },
+  };
+}
+
+interface Hand {
+  shoulder: Vector3;
+  elbow: Vector3;
+  upper: number;
+  fore: number;
+  pole: V3;
+  /** Along the oar from the oarlock (m, inboard). */
+  grip: number;
+  arm: TransformNode;
+  forearm: TransformNode;
+  restUpper: Vector3;
+  restFore: Vector3;
+}
+
+interface Rower {
+  root: TransformNode;
+  parts: Record<Part, TransformNode>;
+  seat: Vector3;
+  /** +1 starboard, -1 port: which oar this cat rows. */
+  side: 1 | -1;
+  hands: Hand[];
+  oar: TransformNode;
+}
+
+/** What a boat is doing at a moment (see cat-routes.ts `boatPose`). */
+export interface CatBoatState {
+  x: number;
+  z: number;
+  /** The game's heading: 0 is -Z, a quarter turn is +X. */
+  heading: number;
+  /** 0 at rest .. 1 rowing at full effort. */
+  effort: number;
+}
+
 /**
- * One rowing boat with two cats, one on each oar (a trial, `?cats=1`; one boat only: the loaded
- * models are used themselves, not copied). The cats face the stern, as rowers do. The oars sweep,
- * lift and feather by `stroke`; each arm is solved with arm-ik.ts so the paws stay on the handle.
+ * One rowing boat with two cats, one on each oar, made of instances of the kit's models. The cats
+ * face the stern, as rowers do. The oars sweep, lift and feather by `stroke` (scaled by the
+ * effort); each arm is solved with arm-ik.ts so the paws stay on the handle.
  */
 export class CatBoat {
-  private readonly root: TransformNode;
+  readonly root: TransformNode;
   private readonly rowers: Rower[] = [];
-  private readonly at: { x: number; z: number };
-  private readonly yaw: number;
   private readonly lantern: Lantern;
 
-  constructor(
-    scene: Scene,
-    assets: RowerAssets,
-    at: { x: number; z: number },
-    yaw = 0,
-  ) {
-    this.at = at;
-    this.yaw = yaw;
-    this.root = new TransformNode("cat-boat", scene);
+  constructor(scene: Scene, kit: RowerKit, name: string) {
+    const { assets } = kit;
+    this.root = new TransformNode(name, scene);
     this.root.scaling.setAll(CREW_SCALE);
-    assets.hull.parent = this.root;
-    this.lantern = createLantern(scene, this.root);
+    const hull = assets.hull.createInstance(`${name}-hull`);
+    hull.parent = this.root;
+    hull.isPickable = false;
+    this.lantern = createLantern(
+      scene,
+      this.root,
+      kit.lantern,
+      `${name}-lantern`,
+    );
     const make = (
+      id: string,
       model: PartsModel<Part>,
       seat: readonly number[],
       side: 1 | -1,
       oarMesh: Mesh,
     ) => {
-      model.root.setEnabled(true);
-      model.root.parent = this.root;
-      model.root.position = v(seat);
-      model.root.rotationQuaternion = Quaternion.Identity();
+      const root = new TransformNode(`${name}-${id}`, scene);
+      root.parent = this.root;
+      root.position = v(seat);
+      root.rotationQuaternion = Quaternion.Identity();
+      // Each part: a pivot of its own, placed as in the model, holding an instance of its mesh.
+      const parts = {} as Record<Part, TransformNode>;
+      for (const part of PARTS) {
+        const template = model.parts[part];
+        const pivot = new TransformNode(`${name}-${id}-${part}`, scene);
+        pivot.parent = root;
+        pivot.position.copyFrom(template.position);
+        pivot.rotationQuaternion = Quaternion.Identity();
+        for (const mesh of template.getChildMeshes()) {
+          const copy = (mesh as Mesh).createInstance(
+            `${name}-${id}-${part}-mesh`,
+          );
+          copy.parent = pivot;
+          copy.isPickable = false;
+        }
+        parts[part] = pivot;
+      }
       const lock = v(side === 1 ? RIG.oarlocks.starboard : RIG.oarlocks.port);
-      const oar = new TransformNode("cat-oar", scene);
+      const oar = new TransformNode(`${name}-${id}-oar`, scene);
       oar.parent = this.root;
       oar.position = lock;
       oar.rotationQuaternion = Quaternion.Identity();
-      oarMesh.parent = oar;
+      const blade = oarMesh.createInstance(`${name}-${id}-oar-mesh`);
+      blade.parent = oar;
+      blade.isPickable = false;
       const seatV = v(seat);
       const hands = (["left", "right"] as const).map((hand): Hand => {
-        const arm = model.parts[`arm-${hand}`];
-        const forearm = model.parts[`fore-${hand}`];
+        const arm = parts[`arm-${hand}`];
+        const forearm = parts[`fore-${hand}`];
         const shoulder = arm.position.clone();
         const elbow = forearm.position.clone();
         // The cat's left is +X; the arm on the oar's side reaches the outer grip.
@@ -179,47 +249,58 @@ export class CatBoat {
           restFore: wrist.subtract(elbow).normalize(),
         };
       });
-      this.rowers.push({ model, seat: seatV, side, hands, oar });
+      this.rowers.push({ root, parts, seat: seatV, side, hands, oar });
     };
-    make(assets.cats.ginger, RIG.seats.ginger, 1, assets.oars.starboard);
-    make(assets.cats.grey, RIG.seats.grey, -1, assets.oars.port);
+    make(
+      "ginger",
+      assets.cats.ginger,
+      RIG.seats.ginger,
+      1,
+      assets.oars.starboard,
+    );
+    make("grey", assets.cats.grey, RIG.seats.grey, -1, assets.oars.port);
   }
 
-  /** Each frame: `height(x, z)` is the sea's height there (m). */
-  update(time: number, height: (x: number, z: number) => number) {
-    const { x, z } = this.at;
-    const sin = Math.sin(this.yaw);
-    const cos = Math.cos(this.yaw);
+  setEnabled(on: boolean) {
+    this.root.setEnabled(on);
+  }
+
+  /** Each frame while the boat is near: `height(x, z)` is the sea's height there (m). */
+  update(
+    state: CatBoatState,
+    time: number,
+    height: (x: number, z: number) => number,
+  ) {
+    const { x, z, heading, effort } = state;
+    const fx = Math.sin(heading);
+    const fz = -Math.cos(heading);
     const reach = 1.8 * CREW_SCALE;
-    const fore = height(x - sin * reach, z - cos * reach);
-    const aft = height(x + sin * reach, z + cos * reach);
+    const fore = height(x + fx * reach, z + fz * reach);
+    const aft = height(x - fx * reach, z - fz * reach);
     this.root.position.set(x, height(x, z) + RIG.lift * CREW_SCALE, z);
-    this.root.rotation.y = this.yaw;
-    // The bow is -Z: a rise at the bow tilts the boat about X.
-    this.root.rotation.x = Math.atan2(aft - fore, 2 * reach) * -1;
+    this.root.rotation.y = -heading;
+    this.root.rotation.x = Math.atan2(fore - aft, 2 * reach);
     this.root.rotation.z = 0.03 * Math.sin(time * 0.8);
     this.lantern.update();
     const pose = stroke(time / STROKE);
-    const lean = Quaternion.RotationAxis(Axis.X, pose.lean);
+    const sweep = pose.sweep * effort;
+    const lift = pose.lift * effort;
+    const feather = pose.feather * effort;
+    const lean = Quaternion.RotationAxis(Axis.X, pose.lean * effort);
     const unlean = Quaternion.Inverse(lean);
     for (const rower of this.rowers) {
       const { side } = rower;
-      rower.model.root.rotationQuaternion = lean;
-      const oarQ = oarQuaternion(
-        side * pose.sweep,
-        side * pose.lift,
-        pose.feather,
-      );
+      rower.root.rotationQuaternion = lean;
+      const oarQ = oarQuaternion(side * sweep, side * lift, feather);
       rower.oar.rotationQuaternion = oarQ;
-      rower.model.parts.head.rotation.x = -0.4 * pose.lean;
-      rower.model.parts.tail.rotation.y = 0.2 * Math.sin(time * 1.3 + side);
+      rower.parts.head.rotation.x = -0.4 * pose.lean * effort;
+      rower.parts.tail.rotation.y = 0.2 * Math.sin(time * 1.3 + side);
       for (const hand of rower.hands) {
         // Where the paw is now, in the cat's own frame (the cat leans, the oar swings).
         const grip = new Vector3(-side * hand.grip, 0, 0);
         grip.rotateByQuaternionToRef(oarQ, grip);
-        const lock = rower.oar.position;
         const target = grip
-          .add(lock)
+          .add(rower.oar.position)
           .subtract(rower.seat)
           .applyRotationQuaternion(unlean)
           .add(v(RIG.wrist));
