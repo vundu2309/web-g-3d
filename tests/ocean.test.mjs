@@ -47,6 +47,11 @@ test("malformed remote boats are discarded rather than passed to the renderer", 
     updatedAt: { toMillis: () => 123 },
   };
   assert.equal(readBoat("minh", data).updatedAt, 123);
+  // A parked boat (the server's `off: 1`, or a boat already read) is offline; nothing else is.
+  assert.equal(readBoat("minh", data).offline, undefined);
+  assert.equal(readBoat("minh", { ...data, off: 1 }).offline, true);
+  assert.equal(readBoat("minh", { ...data, offline: true }).offline, true);
+  assert.equal(readBoat("minh", { ...data, off: 0 }).offline, undefined);
   for (const invalid of [
     { x: NaN },
     { z: Infinity },

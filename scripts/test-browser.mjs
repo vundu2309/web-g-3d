@@ -39,6 +39,7 @@ try {
   await run("tests/ocean-loading-browser.mjs", port);
   await run("tests/ocean-resume-browser.mjs", port);
   await run("tests/ocean-presence-browser.mjs", port);
+  await run("tests/ocean-parked-browser.mjs", port);
   await run("tests/ocean-fishing-browser.mjs", port);
   await run("tests/ocean-cast-browser.mjs", port);
   await run("tests/ocean-market-browser.mjs", port);

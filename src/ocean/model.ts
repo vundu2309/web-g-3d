@@ -15,6 +15,8 @@ export interface Boat extends Pose {
   /** Which boat it is (boat-tier.ts, 0 to 3) and which rod it holds (rod-plan.ts, 0 to 3). */
   tier: number;
   rod: number;
+  /** The player is not online: the boat is parked where it was left (the server's `off: 1`). */
+  offline?: boolean;
 }
 
 /** A boat's or a rod's tier from the network: a whole number from 0 to 3, anything else (or nothing: an older server) is 0. */
@@ -129,5 +131,7 @@ export function readBoat(
     updatedAt: stamp.toMillis(),
     tier: fitTier(value.tier),
     rod: fitTier(value.rod),
+    // The server marks a parked boat `off: 1`; what the client keeps is `offline`.
+    ...(value.off === 1 || value.offline === true ? { offline: true } : {}),
   };
 }

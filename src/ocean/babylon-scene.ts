@@ -12,6 +12,7 @@ import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import "@babylonjs/core/Meshes/instancedMesh";
 import {
   createBoatPhysics,
+  type ParkedBoat,
   enableSeaPhysics,
   type BoatPhysics,
   type BoatState,
@@ -96,6 +97,8 @@ interface Craft {
   /** Which rod it holds (rod-plan.ts, 0 to 3): bamboo, fibreglass, carbon fibre or gold. */
   rodTier: number;
   label: HTMLElement;
+  /** The player is not online: the boat lies where it was left (a dimmer name, no line, a hard obstacle). */
+  offline?: boolean;
   line?: Mesh;
   // Smoothed display pose of a remote boat.
   x: number;
@@ -111,6 +114,8 @@ const labelLift = (tier: number) =>
 const wrap = (angle: number) => Math.atan2(Math.sin(angle), Math.cos(angle));
 const blend = (dt: number, rate: number) => 1 - Math.exp(-dt * rate);
 const NORMALIZED = new Viewport(0, 0, 1, 1);
+/** Parked boats within this many metres of the player's own boat are hard obstacles (m). */
+const PARKED_SOLID_REACH = 150;
 /** `?tiers=0` draws every boat with the first boat's model (a switch for finding what costs frames; also in Settings, probe.ts). */
 const tiersOff = () => probe("tiers") === "0";
 
@@ -806,6 +811,7 @@ export class OceanScene {
     stepAtmosphere();
     const step = Math.min(dt, 0.1);
     const present = new Set<string>();
+    const parked: ParkedBoat[] = [];
     for (const boat of boats) {
       if (boat.uid === uid) {
         if (this.self) {
@@ -852,10 +858,37 @@ export class OceanScene {
         this.clock,
         craft.tier,
       );
-      this.setLine(craft, boat.fishing);
+      // A parked boat (its player is not online) is named so, has no line out and is a hard obstacle.
+      const offline = boat.offline === true;
+      if ((craft.offline ?? false) !== offline) {
+        craft.offline = offline;
+        craft.label.textContent = offline
+          ? `${boat.name} · ngoại tuyến`
+          : boat.name;
+        craft.label.classList.toggle("is-offline", offline);
+      }
+      if (offline)
+        parked.push({
+          uid: boat.uid,
+          x: boat.x,
+          z: boat.z,
+          heading: boat.heading,
+          tier: craft.tier,
+        });
+      this.setLine(craft, offline ? false : boat.fishing);
       this.pickLevel(craft);
       craft.label.dataset.x = String(boat.x);
       craft.label.dataset.z = String(boat.z);
+    }
+    // The parked boats near the player's own boat are solid (the farther ones are not worth a body).
+    if (this.self) {
+      const at = this.self.physics.state();
+      this.self.physics.setParked(
+        parked.filter(
+          (boat) =>
+            Math.hypot(boat.x - at.x, boat.z - at.z) < PARKED_SOLID_REACH,
+        ),
+      );
     }
     for (const [id, craft] of this.fleet)
       if (!present.has(id)) {

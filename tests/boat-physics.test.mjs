@@ -332,6 +332,73 @@ test("an island stops the hull without letting it through, and the boat can back
   assert.ok(backedAway, "reverse thrust frees it again");
 });
 
+test("a parked boat is a hard obstacle: the hull stops against it, and once it is not listed the way is free", () => {
+  // A boat parked straight ahead (a tier 2 boat, 8.4 m long, lying across the course).
+  const parked = { uid: "dai", x: 0, z: -40, heading: Math.PI / 2, tier: 1 };
+  const closestAhead = (listed) => {
+    const w = world();
+    w.boat.setParked(listed ? [parked] : []);
+    let closest = Infinity;
+    w.run(
+      30,
+      () => ({ throttle: 1 }),
+      (state) => {
+        closest = Math.min(
+          closest,
+          Math.hypot(state.x - parked.x, state.z - parked.z),
+        );
+      },
+    );
+    const final = w.boat.state();
+    w.dispose();
+    return { closest, final };
+  };
+  const blocked = closestAhead(true);
+  assert.ok(
+    blocked.closest > 1.5,
+    `never tunnels through the parked boat: closest centre ${blocked.closest.toFixed(2)} m`,
+  );
+  assert.ok(blocked.final.z > parked.z, "and it ends on this side of it");
+  const free = closestAhead(false);
+  assert.ok(
+    free.final.z < parked.z,
+    "without it the boat sails through that spot",
+  );
+});
+
+test("the parked boats are replaced by the list given: a boat no longer listed is removed, one kept is not rebuilt", () => {
+  const w = world();
+  const list = [
+    { uid: "a", x: 30, z: 30, heading: 0, tier: 0 },
+    { uid: "b", x: -30, z: 30, heading: 1, tier: 3 },
+  ];
+  const bodies = () =>
+    w.boat.mesh.getScene().meshes.filter((m) => m.name.startsWith("parked-"));
+  w.boat.setParked(list);
+  assert.deepEqual(
+    bodies()
+      .map((m) => m.name)
+      .sort(),
+    ["parked-a", "parked-b"],
+  );
+  const first = bodies().find((m) => m.name === "parked-a");
+  w.boat.setParked(list);
+  assert.equal(
+    bodies().find((m) => m.name === "parked-a"),
+    first,
+    "unchanged: not rebuilt",
+  );
+  w.boat.setParked([{ ...list[0], x: 31 }]);
+  assert.deepEqual(
+    bodies().map((m) => m.name),
+    ["parked-a"],
+    "the other is removed",
+  );
+  assert.notEqual(bodies()[0], first, "one that moved is rebuilt");
+  w.dispose();
+  assert.equal(bodies().length, 0, "disposing the boat removes them all");
+});
+
 test("results repeat exactly for the same inputs", () => {
   const run = () => {
     const w = world();

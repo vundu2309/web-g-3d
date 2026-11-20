@@ -391,6 +391,33 @@ Decided to postpone, in the order we would take them:
 
 Other known gaps: the upgrade shop (rod, line, bait, boat colour), shadows cast by islands and markets, and real-phone performance checks.
 
+## Parked boats (players who are not online)
+
+Decision [0018](decisions/0018-parked-boats.md). A boat whose player is not online stays where it
+was left, for the 7 days after the player was last seen.
+
+- **Data.** The migration `20261121130000_parked_boats.sql` adds `economy_parked_boats()`: the last
+  saved position (the profile's `x`, `z`, `heading`) of the OTHER accounts seen in 7 days, at most 100,
+  with the chosen name, boat and rod tiers and the age in seconds. The caller must be signed in; no
+  anonymous call; the private function is not reachable by a client role (`tests/economy-postgres.sql`).
+- **API** (`server/ocean.mjs`, option `parkedOf`; `server/app.mjs` calls the RPC with the player's own
+  token). When a player enters, the parked boats are read at most once per `parkedTtlMs` (60 s) with
+  that player's token and a short time limit; a failed read is asked again with the next player. A boat
+  that has just left is parked at its last LIVE pose (it wins over the database); a boat that comes
+  back is online again; one the database no longer lists, or older than 7 days, is removed. A parked
+  entry is sent with `off: 1`: in the full snapshot of a protocol 2 client, and as an `add` of the
+  delta in place of the online boat (no `gone`). Older clients get no parked boats. Without `parkedOf`
+  (tests, no economy) a boat leaves with its player as before.
+- **Client.** `readBoat` turns `off` into `offline`. The app never hides a parked boat for silence
+  (`visibleBoats`), plays it back with `fishing: false`, and counts only the players online (the
+  "N thuyền" count, the crew list). The scene gives it a dimmer name with "ngoại tuyến"
+  (`.ocean-boat-label.is-offline`), no line, and, within 150 m of the player's boat, a fixed Havok
+  box of its tier's size (`BoatPhysics.setParked`: boxes are made, kept and removed to match the list
+  given each frame). Tests: `tests/ocean-socket.test.mjs` (the server), `tests/boat-physics.test.mjs`
+  (the obstacle, real Havok), `tests/ocean.test.mjs`, `tests/ocean-parked-browser.mjs` (a real browser:
+  the name, the count, no line, and a negative control that fails when the obstacle is off).
+- **Not measured**: the cost of up to 100 more boats and of their boxes on a phone; two real clients.
+
 ## Settings hub
 
 The sea's screen keeps only what the game needs: the stick, the rod, the fish store, the market button and the minimap. Everything else is behind one gear button at the top left (`data-ocean="settings"`), which opens the "Cài đặt" hub (`showSettings` in `app/ocean.ts`): the day/night and weather test, the version and "Về sảnh" to leave the sea. The boats in the channel (who is online, fishing or sailing, distance) are the "Thủy thủ" hub (`showCrew`). The old back arrow and "N thuyền" chip are gone from the HUD; the boat count is still kept as a screen-reader-only live status (`[data-count]`) that tests and assistive tech read. While the sea loads, the gear stays reachable so a stuck load can still be left. Put new non-gameplay screens (sound, account, help) here, not on the HUD.

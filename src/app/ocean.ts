@@ -463,6 +463,9 @@ export function startOcean(
     return list.map((boat) => {
       if (boat.uid === connection?.uid) return boat;
       const played = tracks.sample(boat.uid, at);
+      // A parked boat is not fishing, whatever its last played sample says.
+      if (boat.offline)
+        return played ? { ...boat, ...played, fishing: false } : boat;
       return played ? { ...boat, ...played } : boat;
     });
   }
@@ -578,11 +581,13 @@ export function startOcean(
     fishingUi.cancel();
     const page = createHubShell(dialog, hubNav, "crew");
     dialog.setAttribute("aria-label", "Thủy thủ");
-    const here = visibleBoats().map((boat) => ({
-      boat,
-      you: boat.uid === connection?.uid,
-      meters: Math.round(Math.hypot(boat.x - pose.x, boat.z - pose.z)),
-    }));
+    const here = visibleBoats()
+      .filter((boat) => !boat.offline)
+      .map((boat) => ({
+        boat,
+        you: boat.uid === connection?.uid,
+        meters: Math.round(Math.hypot(boat.x - pose.x, boat.z - pose.z)),
+      }));
     here.sort((a, b) => Number(b.you) - Number(a.you) || a.meters - b.meters);
     const head = document.createElement("header");
     head.className = "fish-store-head";
@@ -685,6 +690,7 @@ export function startOcean(
     return boats.filter(
       (boat) =>
         boat.uid === connection?.uid ||
+        boat.offline === true ||
         Date.now() + clockOffset - boat.updatedAt < PRESENCE_MS,
     );
   }
@@ -749,8 +755,10 @@ export function startOcean(
       publishPose(now, poseKey(pose));
     }
     const visible = active || reconnecting ? visibleBoats() : [];
+    // The count and the crew list are the players who are online; parked boats are only drawn.
+    const online = visible.filter((boat) => !boat.offline).length;
     const text = active
-      ? `${visible.length} thuyền`
+      ? `${online} thuyền`
       : reconnecting
         ? "Đang kết nối lại…"
         : "Chưa kết nối";

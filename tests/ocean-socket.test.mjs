@@ -542,3 +542,171 @@ test("shared sea: an older client gets the full snapshot with the extra fields i
     io.close();
   }
 });
+
+test("shared sea: a boat whose player leaves stays where it was, for the protocol 2 clients; the database fills in the others; a returning player takes it back", async () => {
+  const server = createServer();
+  let clock = 1000;
+  const ids = { ta: "ann", tb: "bao", tc: "cam", tl: "old-client" };
+  const authenticate = async (token) =>
+    ids[token]
+      ? { id: ids[token], user_metadata: { display_name: ids[token] } }
+      : null;
+  // What the database says about the boats of players who are not online (one entry is wrong).
+  let database = [
+    {
+      uid: "dai",
+      name: "  Đại  ",
+      x: 50,
+      z: -20,
+      heading: 1,
+      tier: 1,
+      rod: 2,
+      age: 600,
+    },
+    {
+      uid: "far",
+      name: "Xa",
+      x: 99999,
+      z: 0,
+      heading: 0,
+      tier: 0,
+      rod: 0,
+      age: 1,
+    },
+    { name: "no uid", x: 1, z: 1, heading: 0, age: 1 },
+  ];
+  const reads = [];
+  let unreachable = false;
+  const parkedOf = async (token) => {
+    reads.push(token);
+    if (unreachable) throw new Error("database unreachable");
+    return database;
+  };
+  const io = attachSockets(server, {
+    origins: ["https://sea.test"],
+    authenticate,
+  });
+  attachOcean(io, {
+    authenticate,
+    now: () => clock,
+    tickMs: 30,
+    parkedOf,
+    parkedTtlMs: 1000,
+    fitWaitMs: 200,
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const sockets = [];
+  const next = async (token) => {
+    const socket = connect(base, {
+      transports: ["websocket"],
+      reconnection: false,
+      autoConnect: false,
+      auth: { token },
+    });
+    const connected = once(socket, "connect");
+    socket.connect();
+    await connected;
+    sockets.push(socket);
+    return socket;
+  };
+  const join = (socket, proto = 2) =>
+    socket
+      .timeout(3000)
+      .emitWithAck("ocean:command", { action: "join", proto });
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const parkedIds = (state) =>
+    state.boats
+      .filter((b) => b.off)
+      .map((b) => b.uid)
+      .sort();
+  try {
+    // The first player entering reads the database with their own token and sees the parked boat
+    // of a player who is not online; the wrong entries are left out and the name is trimmed.
+    const ta = await next("ta");
+    const first = once(ta, "ocean:state");
+    await join(ta);
+    const state = (await first)[0];
+    assert.deepEqual(reads, ["ta"]);
+    assert.deepEqual(parkedIds(state), ["dai"]);
+    const dai = state.boats.find((b) => b.uid === "dai");
+    assert.deepEqual(
+      [dai.name, dai.x, dai.z, dai.heading, dai.tier, dai.rod, dai.fishing],
+      ["Đại", 50, -20, 1, 1, 2, false],
+    );
+    assert.ok(
+      state.boats.find((b) => b.uid === "ann" && !b.off),
+      "the online boat is not parked",
+    );
+
+    // Everything that happens next, as ann sees it.
+    const deltas = [];
+    ta.on("ocean:delta", (value) => deltas.push(value));
+    const tb = await next("tb");
+    await join(tb);
+    clock += 200;
+    tb.emit("ocean:move", { x: 30, z: 40, heading: 0.5, fishing: true });
+    await wait(80);
+    assert.equal(reads.length, 1, "asked once within the time to live");
+
+    // bao leaves: the boat stays at its last pose, as a parked entry in place of the online one
+    // (no `gone`), and nobody fishes from a parked boat.
+    deltas.length = 0;
+    tb.disconnect();
+    await wait(120);
+    const left = deltas.flatMap((d) => d.add).find((b) => b.uid === "bao");
+    assert.deepEqual(
+      [left.off, left.x, left.z, left.heading, left.fishing],
+      [1, 30, 40, 0.5, false],
+    );
+    assert.ok(!deltas.some((d) => d.gone.includes("bao")), "not removed");
+
+    // A player entering later sees both parked boats, and an older client sees none of them.
+    const tc = await next("tc");
+    const cam = once(tc, "ocean:state");
+    await join(tc);
+    assert.deepEqual(parkedIds((await cam)[0]), ["bao", "dai"]);
+    const old = await next("tl");
+    const oldState = once(old, "ocean:state");
+    await old.timeout(3000).emitWithAck("ocean:command", { action: "join" });
+    old.emit("ocean:command", { action: "move" }, () => {});
+    const legacy = (await oldState)[0];
+    assert.ok(
+      legacy.boats.every((b) => !b.off) &&
+        !legacy.boats.some((b) => ["bao", "dai"].includes(b.uid)),
+      "an older client gets the online boats only",
+    );
+
+    // bao comes back: the others get the boat as an online one, and its own snapshot has no parked bao.
+    deltas.length = 0;
+    const tb2 = await next("tb");
+    const back = once(tb2, "ocean:state");
+    await join(tb2);
+    assert.deepEqual(parkedIds((await back)[0]), ["dai"]);
+    await wait(80);
+    const again = deltas.flatMap((d) => d.add).find((b) => b.uid === "bao");
+    assert.ok(again && !again.off, "online again");
+
+    // The database later forgets the boat of dai (7 days passed): it is removed for everyone.
+    // An unreachable database changes nothing and is asked again with the next player.
+    database = [];
+    unreachable = true;
+    clock += 5000;
+    deltas.length = 0;
+    const tx = await next("tl");
+    await old.disconnect();
+    await wait(50);
+    tx.disconnect();
+    unreachable = false;
+    const ty = await next("tl");
+    await join(ty);
+    await wait(100);
+    assert.ok(
+      deltas.some((d) => d.gone.includes("dai")),
+      "a parked boat the database no longer lists is removed",
+    );
+  } finally {
+    for (const socket of sockets) socket.disconnect();
+    server.close();
+  }
+});

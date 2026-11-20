@@ -34,6 +34,16 @@ export function createApi({
     const user = await response.json();
     return user.id && !user.is_anonymous ? user : null;
   }
+  /** Where the boats of the players who are not online were last left, read with a player's own token (no admin key). */
+  async function parkedOf(token) {
+    const response = await upstream(
+      "/rest/v1/rpc/economy_parked_boats",
+      token,
+      {},
+    );
+    if (!response.ok) throw new Error("Parked boats unavailable");
+    return response.json();
+  }
   /** The player's boat and rod tiers, read with the player's own token (the RPC is the player's; no admin key). */
   async function loadoutOf(token) {
     const response = await upstream("/rest/v1/rpc/economy_loadout", token, {});
@@ -61,6 +71,6 @@ export function createApi({
     return send(404, { error: "Không tìm thấy." });
   });
   server.io = attachSockets(server, { origins, authenticate, ready });
-  attachOcean(server.io, { authenticate, ready, now, loadoutOf });
+  attachOcean(server.io, { authenticate, ready, now, loadoutOf, parkedOf });
   return server;
 }

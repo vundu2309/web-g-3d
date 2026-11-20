@@ -49,7 +49,7 @@ export async function connectOcean(
         !Number.isFinite(value.serverTime)
       )
         return;
-      const boats = value.boats.slice(0, 100).flatMap((item) => {
+      const boats = value.boats.slice(0, 200).flatMap((item) => {
         if (typeof item.uid !== "string" || typeof item.updatedAt !== "number")
           return [];
         const boat = readBoat(item.uid, {
@@ -70,7 +70,7 @@ export async function connectOcean(
   let lastServerTime = 0;
   const publishBoats = (serverTime: number) => {
     lastServerTime = serverTime;
-    onBoats([...fleet.values()].slice(0, 100), serverTime);
+    onBoats([...fleet.values()].slice(0, 200), serverTime);
   };
   socket.on(
     "ocean:delta",

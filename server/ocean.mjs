@@ -51,23 +51,61 @@ export function attachOcean(
     fitWaitMs = 2500,
     /** Minimum gap between two `ocean:refit` of one socket (ms). */
     minRefitMs = 2000,
+    /**
+     * Reads, with a player's own token, where the boats of the players who are not online were last
+     * left (the economy RPC `economy_parked_boats`): `[{ uid, name, x, z, heading, tier, rod, age }]`.
+     * Without it a boat leaves the sea with its player; with it the boat stays where it was (see below).
+     */
+    parkedOf,
+    /** How long a read of the parked boats is kept before the next player entering asks again (ms). */
+    parkedTtlMs = 60_000,
+    /** How long a boat stays where its player left it (ms); the database keeps the same 7 days. */
+    parkedKeepMs = 7 * 24 * 3600 * 1000,
   },
 ) {
+  const parking = typeof parkedOf === "function";
   const boats = new Map();
+  /**
+   * Parked boats: players who are not online keep their boat where it was left, for everyone to see
+   * (protocol 2 clients only: an entry has `off: 1`). Two sources: a boat that has just left the sea
+   * is parked at its last live pose (the newest), and the others are read from the database with a
+   * player's own token (no admin key) when someone enters, at most once per `parkedTtlMs`. What is
+   * known here wins over the database; a boat that comes back online is no longer parked.
+   */
+  const parked = new Map();
+  /** Parked boats not yet announced to the protocol 2 clients that are in the sea. */
+  const parkedAdded = new Set();
+  let parkedReadAt = -Infinity;
   const legacyRoom = "ocean:shared";
   const modernRoom = "ocean:v2";
   const dirty = new Set();
   const added = new Set();
   const gone = new Set();
   let timer;
-  const snapshot = () => ({
-    boats: [...boats.values()].map(({ socket, proto, ...boat }) => boat),
+  const parkedEntry = (boat) => ({
+    uid: boat.uid,
+    name: boat.name,
+    x: round(boat.x),
+    z: round(boat.z),
+    heading: round(boat.heading),
+    fishing: false,
+    tier: boat.tier,
+    rod: boat.rod,
+    updatedAt: boat.updatedAt,
+    off: 1,
+  });
+  /** The boats in the sea; protocol 2 clients also get the parked ones. */
+  const snapshot = (withParked = false) => ({
+    boats: [
+      ...[...boats.values()].map(({ socket, proto, ...boat }) => boat),
+      ...(withParked ? [...parked.values()].map(parkedEntry) : []),
+    ],
     serverTime: now(),
   });
   const members = (room) => io.sockets.adapter.rooms.get(room)?.size ?? 0;
   /** Sends everything that changed since the last flush, once per room. */
   function flush() {
-    if (!dirty.size && !gone.size) return;
+    if (!dirty.size && !gone.size && !parkedAdded.size) return;
     const t = now();
     if (members(modernRoom)) {
       const add = [];
@@ -99,12 +137,17 @@ export function attachOcean(
             boat.updatedAt,
           ]);
       }
+      for (const uid of parkedAdded) {
+        const boat = parked.get(uid);
+        if (boat) add.push(parkedEntry(boat));
+      }
       io.to(modernRoom).emit("ocean:delta", { t, add, up, gone: [...gone] });
     }
     if (members(legacyRoom)) io.to(legacyRoom).emit("ocean:state", snapshot());
     dirty.clear();
     added.clear();
     gone.clear();
+    parkedAdded.clear();
     if (!boats.size) stopTimer();
   }
   function startTimer() {
@@ -115,6 +158,85 @@ export function attachOcean(
   function stopTimer() {
     clearInterval(timer);
     timer = undefined;
+  }
+  const finite = (value, bound) =>
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    Math.abs(value) <= bound;
+  /** Takes what the database says about the parked boats; what is wrong in it is left out. */
+  function mergeParked(list) {
+    const at = now();
+    const seen = new Set();
+    for (const raw of list) {
+      if (!raw || typeof raw.uid !== "string" || raw.uid.length > 64) continue;
+      const x = Number(raw.x);
+      const z = Number(raw.z);
+      const turn = Number(raw.heading);
+      if (!finite(x, SEA_BOUND) || !finite(z, SEA_BOUND) || !finite(turn, 3.2))
+        continue;
+      // Saved rounded to three decimals: 3.142 is a hair past pi, which the clients refuse.
+      const heading = round(Math.atan2(Math.sin(turn), Math.cos(turn)));
+      seen.add(raw.uid);
+      // Online, or parked a moment ago here (the newest): leave it.
+      if (boats.has(raw.uid)) continue;
+      const known = parked.get(raw.uid);
+      if (known && known.source === "live") continue;
+      const age = Math.max(0, Number(raw.age) || 0);
+      const next = {
+        uid: raw.uid,
+        name:
+          String(raw.name || "Người đi biển")
+            .trim()
+            .slice(0, 24) || "Người đi biển",
+        x,
+        z,
+        heading,
+        ...fitOf({ boat: raw.tier, rod: raw.rod }),
+        updatedAt: at - age * 1000,
+        source: "db",
+      };
+      if (
+        known &&
+        known.x === x &&
+        known.z === z &&
+        known.heading === heading &&
+        known.tier === next.tier &&
+        known.rod === next.rod
+      )
+        continue;
+      parked.set(raw.uid, next);
+      parkedAdded.add(raw.uid);
+    }
+    for (const [uid, boat] of parked) {
+      const expired = at - boat.updatedAt > parkedKeepMs;
+      const forgotten = boat.source === "db" && !seen.has(uid);
+      if (!expired && !forgotten) continue;
+      parked.delete(uid);
+      parkedAdded.delete(uid);
+      gone.add(uid);
+    }
+  }
+  /** Asks the database for the parked boats with this player's token, unless it was asked a moment ago. */
+  async function readParked(token) {
+    if (!parking || now() - parkedReadAt < parkedTtlMs) return;
+    parkedReadAt = now();
+    let timer;
+    try {
+      const list = await Promise.race([
+        parkedOf(token),
+        new Promise((resolve) => {
+          timer = setTimeout(() => resolve(undefined), fitWaitMs);
+          timer.unref?.();
+        }),
+      ]);
+      // Unreachable, or an older database: ask again with the next player.
+      if (!Array.isArray(list)) parkedReadAt = -Infinity;
+      else mergeParked(list);
+    } catch {
+      parkedReadAt = -Infinity;
+    } finally {
+      clearTimeout(timer);
+    }
   }
   /** The tiers of a loadout answer, each 0 to 3 (anything else is 0). */
   const fitOf = (loadout) => ({
@@ -171,11 +293,17 @@ export function attachOcean(
     const remove = () => {
       clearInterval(recheck);
       clearTimeout(refitLater);
-      if (boats.get(socket.data.uid)?.session === socket.id) {
+      const boat = boats.get(socket.data.uid);
+      if (boat?.session === socket.id) {
         boats.delete(socket.data.uid);
         dirty.delete(socket.data.uid);
         added.delete(socket.data.uid);
-        gone.add(socket.data.uid);
+        if (parking) {
+          // The boat stays where its player left it; protocol 2 clients get it as a parked boat
+          // in place of the online one (no `gone`), older clients simply no longer see it.
+          parked.set(boat.uid, { ...boat, source: "live", socket: undefined });
+          parkedAdded.add(boat.uid);
+        } else gone.add(socket.data.uid);
         flush();
       }
     };
@@ -217,7 +345,11 @@ export function attachOcean(
         }
         // What the boat looks like is read before anything below is decided, so nothing awaits between the
         // capacity check, the replacement of an older session and the boat being set.
-        const fit = (await readFit(socket.data.token)) ?? { tier: 0, rod: 0 };
+        const [read] = await Promise.all([
+          readFit(socket.data.token),
+          readParked(socket.data.token),
+        ]);
+        const fit = read ?? { tier: 0, rod: 0 };
         if (!socket.connected) return;
         if (joined) return ack({ error: "Thuyền đã vào biển." });
         if (boats.size >= MAX_BOATS && !boats.has(user.id))
@@ -247,6 +379,9 @@ export function attachOcean(
           socket,
           proto: modern ? OCEAN_PROTOCOL : 1,
         });
+        // The boat is online again: it is no longer parked.
+        parked.delete(user.id);
+        parkedAdded.delete(user.id);
         dirty.add(user.id);
         added.add(user.id);
         joined = true;
@@ -267,7 +402,7 @@ export function attachOcean(
           }
         }, authRecheckMs);
         recheck.unref?.();
-        if (modern) socket.emit("ocean:state", snapshot());
+        if (modern) socket.emit("ocean:state", snapshot(true));
         ack({
           data: modern
             ? {

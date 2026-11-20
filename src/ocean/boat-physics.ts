@@ -94,7 +94,22 @@ export interface BoatPhysics {
    * height and the mass do not change, so the waterline does not jump.
    */
   setTier(tier: number): void;
+  /**
+   * The boats of players who are not online, as hard obstacles: a fixed box for each, at its pose, of
+   * its tier's size (boat-tier.ts). Give the WHOLE list of those worth colliding with now (the scene
+   * hands over the ones near this boat); boxes of boats no longer listed are removed, and one that
+   * is already in place is not rebuilt.
+   */
+  setParked(boats: readonly ParkedBoat[]): void;
   dispose(): void;
+}
+/** A parked boat as an obstacle: where it lies and which boat it is (boat-tier.ts). */
+export interface ParkedBoat {
+  uid: string;
+  x: number;
+  z: number;
+  heading: number;
+  tier: number;
 }
 export interface BoatPhysicsOptions {
   islands: readonly IslandBody[];
@@ -295,6 +310,24 @@ export function createBoatPhysics(
       ),
     };
   });
+
+  // Parked boats: fixed boxes, made when a boat is first listed and dropped when it is not (a few at
+  // a time: the scene lists only the ones near this boat).
+  const parkedBodies = new Map<
+    string,
+    {
+      key: string;
+      mesh: Mesh;
+      aggregate: PhysicsAggregate;
+    }
+  >();
+  const dropParked = (uid: string) => {
+    const body = parkedBodies.get(uid);
+    if (!body) return;
+    body.aggregate.dispose();
+    body.mesh.dispose();
+    parkedBodies.delete(uid);
+  };
 
   const input: BoatInput = { steer: 0, throttle: 0 };
   const world = new Vector3();
@@ -519,7 +552,37 @@ export function createBoatPhysics(
       };
     },
     contacts: () => touching,
+    setParked(list) {
+      const wanted = new Set(list.map((boat) => boat.uid));
+      for (const uid of [...parkedBodies.keys()])
+        if (!wanted.has(uid)) dropParked(uid);
+      for (const boat of list) {
+        const box = boatTier(boat.tier).box;
+        const key = `${boat.x},${boat.z},${boat.heading},${boatTierIndex(boat.tier)}`;
+        if (parkedBodies.get(boat.uid)?.key === key) continue;
+        dropParked(boat.uid);
+        const hull = MeshBuilder.CreateBox(
+          `parked-${boat.uid}`,
+          { width: box.width, height: box.height, depth: box.length },
+          scene,
+        );
+        hull.isVisible = false;
+        hull.position.set(boat.x, -DRAFT - BOTTOM, boat.z);
+        hull.rotate(Axis.Y, -boat.heading);
+        parkedBodies.set(boat.uid, {
+          key,
+          mesh: hull,
+          aggregate: new PhysicsAggregate(
+            hull,
+            PhysicsShapeType.BOX,
+            { mass: 0, friction: 0.05, restitution: 0.12 },
+            scene,
+          ),
+        });
+      }
+    },
     dispose() {
+      for (const uid of [...parkedBodies.keys()]) dropParked(uid);
       scene.onBeforePhysicsObservable.removeCallback(beforeStep);
       scene.onAfterPhysicsObservable.removeCallback(afterStep);
       scene.onBeforeRenderObservable.removeCallback(place);

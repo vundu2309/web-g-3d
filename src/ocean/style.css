@@ -265,6 +265,11 @@
 .ocean-boat-label.is-self {
   background: #ffd35a;
 }
+/* A boat parked where its player left it (they are not online): a dimmer name. */
+.ocean-boat-label.is-offline {
+  background: #ffffffb8;
+  color: #153b80cc;
+}
 .ocean-dialog {
   color: #153b80;
   background: #f6fbff;
