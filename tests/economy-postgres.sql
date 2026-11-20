@@ -1,6 +1,6 @@
 -- Run only against a disposable PostgreSQL that has the Supabase Auth fixtures (auth.users,
 -- auth.uid(), the anon and authenticated roles) and the economy, sea species and upgrades
--- migrations applied.
+-- migrations applied (and the leaderboard one).
 -- tests/economy-postgres.sh builds exactly that and runs this file.
 begin;
 insert into auth.users(id) values
@@ -428,6 +428,93 @@ end$$;
 do $$begin
   if (select count(*) from economy_private.upgrade_prices) <> 12 then raise exception 'price table rows'; end if;
   if (select price from economy_private.upgrade_prices where kind = 'boat' and tier = 3) <> 8000 then raise exception 'boat 3 price'; end if;
+end$$;
+-- ---------------------------------------------------------------------------------------------
+-- Leaderboard (supabase/migrations/20261121120000_leaderboard.sql). Starts from empty profiles
+-- (this is a rolled-back transaction) so the ranks below are the whole table's.
+reset role;
+delete from economy_private.profiles;
+insert into auth.users(id, raw_user_meta_data) values
+  ('00000000-0000-0000-0000-0000000000b1', '{"display_name": "Bình"}'),
+  ('00000000-0000-0000-0000-0000000000b2', '{"display_name": "An"}'),
+  ('00000000-0000-0000-0000-0000000000b3', '{"display_name": "Cường"}'),
+  ('00000000-0000-0000-0000-0000000000b4', '{"display_name": "   "}'),
+  ('00000000-0000-0000-0000-0000000000b5', '{"display_name": "Một cái tên rất rất rất dài hơn hai mươi bốn ký tự"}'),
+  ('00000000-0000-0000-0000-0000000000b6', null);
+insert into economy_private.profiles(user_id, caught, records) values
+  ('00000000-0000-0000-0000-0000000000b1', 50, '{"ca-ngu": 30.5, "ca-thu": 8}'),
+  ('00000000-0000-0000-0000-0000000000b2', 50, '{"ca-ngu": 41.25}'),
+  ('00000000-0000-0000-0000-0000000000b3', 7, '{}'),
+  ('00000000-0000-0000-0000-0000000000b4', 0, '{"ca-com": 0.1}'),
+  ('00000000-0000-0000-0000-0000000000b5', 12, '{"ca-thu": 8}'),
+  ('00000000-0000-0000-0000-0000000000b6', 0, '{}');
+
+-- Nobody signed in: no board. The private function and the tables are not reachable either.
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '', true);
+do $$begin
+  begin perform public.economy_leaderboard(); raise exception 'anonymous leaderboard accepted';
+  exception when insufficient_privilege then null; end;
+end$$;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b3', true);
+do $$begin
+  begin perform economy_private.leaderboard(); raise exception 'private leaderboard accepted';
+  exception when insufficient_privilege then null; end;
+  if has_function_privilege('anon', 'public.economy_leaderboard()', 'execute') then raise exception 'anon can read the leaderboard'; end if;
+end$$;
+
+-- The two boards: equal values share a rank, nothing-yet players are not ranked, names are cut
+-- and filled in, `you` marks the caller, and the caller's own place comes back even off the top.
+do $$declare b jsonb; begin
+  b := public.economy_leaderboard();
+  -- caught: b1 and b2 tie at 50 (rank 1, by name An then Bình), b5 12 is 3rd, b3 7 is 4th.
+  if (b->'caught'->>'players')::int <> 3 + 1 then raise exception 'caught players %', b->'caught'; end if;
+  if jsonb_array_length(b->'caught'->'top') <> 4 then raise exception 'caught top %', b->'caught'->'top'; end if;
+  if b->'caught'->'top'->0->>'name' <> 'An' or (b->'caught'->'top'->0->>'rank')::int <> 1
+     or b->'caught'->'top'->1->>'name' <> 'Bình' or (b->'caught'->'top'->1->>'rank')::int <> 1
+     or (b->'caught'->'top'->2->>'rank')::int <> 3 or (b->'caught'->'top'->3->>'rank')::int <> 4 then
+    raise exception 'caught order %', b->'caught'->'top';
+  end if;
+  if char_length(b->'caught'->'top'->2->>'name') <> 24 then raise exception 'name not cut to 24: %', b->'caught'->'top'->2; end if;
+  if (b->'caught'->'top'->3->>'you')::boolean is not true or (b->'caught'->'top'->0->>'you')::boolean is not false then
+    raise exception 'you flag %', b->'caught'->'top';
+  end if;
+  if (b->'caught'->'me'->>'rank')::int <> 4 or (b->'caught'->'me'->>'value')::int <> 7 then raise exception 'caught me %', b->'caught'->'me'; end if;
+  -- heaviest: a species' best counts (b1 30.5 not 8), b2 41.25 first, b1 30.5, then b5 8 and b4 0.1.
+  if (b->'heaviest'->>'players')::int <> 4 then raise exception 'heaviest players %', b->'heaviest'; end if;
+  if b->'heaviest'->'top'->0->>'name' <> 'An' or (b->'heaviest'->'top'->0->>'value')::numeric <> 41.25
+     or b->'heaviest'->'top'->0->>'species' <> 'ca-ngu'
+     or b->'heaviest'->'top'->1->>'name' <> 'Bình' or (b->'heaviest'->'top'->1->>'value')::numeric <> 30.5
+     or (b->'heaviest'->'top'->2->>'value')::numeric <> 8 or (b->'heaviest'->'top'->3->>'value')::numeric <> 0.1 then
+    raise exception 'heaviest order %', b->'heaviest'->'top';
+  end if;
+  -- A blank or missing display name reads as the default one; a player with nothing has no place.
+  if b->'heaviest'->'top'->3->>'name' <> 'Người đi biển' then raise exception 'blank name %', b->'heaviest'->'top'->3; end if;
+  if b->'heaviest'->'me' <> 'null'::jsonb then raise exception 'heaviest me for a player with no record: %', b->'heaviest'->'me'; end if;
+end$$;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b6', true);
+do $$declare b jsonb; begin
+  b := public.economy_leaderboard();
+  if b->'caught'->'me' <> 'null'::jsonb or b->'heaviest'->'me' <> 'null'::jsonb then raise exception 'a player with nothing is ranked: %', b; end if;
+end$$;
+
+-- Only the top 20 come back; the caller below them still gets their rank.
+reset role;
+insert into auth.users(id, raw_user_meta_data)
+  select ('00000000-0000-0000-0000-00000000c' || lpad(i::text, 3, '0'))::uuid, jsonb_build_object('display_name', 'Cá thủ ' || i)
+    from generate_series(1, 25) i;
+insert into economy_private.profiles(user_id, caught, records)
+  select ('00000000-0000-0000-0000-00000000c' || lpad(i::text, 3, '0'))::uuid, 100 + i, jsonb_build_object('ca-ngu', 10 + i)
+    from generate_series(1, 25) i;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b3', true);
+do $$declare b jsonb; begin
+  b := public.economy_leaderboard();
+  if jsonb_array_length(b->'caught'->'top') <> 20 or jsonb_array_length(b->'heaviest'->'top') <> 20 then raise exception 'top is not 20'; end if;
+  if (b->'caught'->'top'->0->>'value')::int <> 125 or (b->'caught'->'top'->19->>'value')::int <> 106 then raise exception 'top 20 is not the best 20: %', b->'caught'->'top'; end if;
+  if (b->'caught'->>'players')::int <> 3 + 1 + 25 then raise exception 'players %', b->'caught'->>'players'; end if;
+  -- b3 (7 fish) is behind the 25 new players, 2 tied leaders and b5: rank 29.
+  if (b->'caught'->'me'->>'rank')::int <> 29 then raise exception 'rank off the top %', b->'caught'->'me'; end if;
 end$$;
 rollback;
 select 'economy ok' as result;

@@ -10,6 +10,7 @@ import {
   type UpgradeKind,
 } from "./upgrades.ts";
 import { SEA_BOUND } from "./model.ts";
+import { readLeaderboard, type Leaderboard } from "./leaderboard.ts";
 
 /** The most fish the one-time import moves (the server says the same), and the count it accepts. */
 export const IMPORT_MAX_FISH = 100;
@@ -105,9 +106,21 @@ export interface EconomyApi {
   buy(kind: UpgradeKind, tier: number): Promise<BuyResult>;
   /** Chooses the bait in use among the owned ones. */
   setBait(tier: number): Promise<Loadout>;
+  /** The fishing leaderboard: fish caught and the heaviest fish (decision 0017). */
+  leaderboard(): Promise<Leaderboard>;
 }
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
+
+/** A board with only the player on it, or an empty one. */
+const board = (own: false | { value: number; species?: string }) =>
+  own
+    ? {
+        players: 1,
+        top: [{ rank: 1, name: "Bạn", you: true, ...own }],
+        me: { rank: 1, ...own },
+      }
+    : { players: 0, top: [] };
 
 /** The same rules as the database, in memory (tests and development). */
 export function memoryEconomy(
@@ -263,6 +276,18 @@ export function memoryEconomy(
       if (tier > loadout.bait) throw new EconomyError("order");
       loadout = { ...loadout, baitUsed: tier };
       return { ...loadout };
+    },
+    // Nobody else is in memory: the player alone, ranked when they have caught something.
+    async leaderboard() {
+      const best = Object.entries(records).sort(
+        ([a, x], [b, y]) => y - x || (a < b ? -1 : 1),
+      )[0];
+      return readLeaderboard({
+        caught: board(caught > 0 && { value: caught }),
+        heaviest: board(
+          best !== undefined && { value: best[1], species: best[0] },
+        ),
+      });
     },
   };
 }

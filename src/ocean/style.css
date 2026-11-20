@@ -2013,6 +2013,133 @@ dialog.account-screen :is(input, textarea) {
   color: #385b8d;
 }
 
+/* The Xếp hạng page (src/app/rank-ui.ts): two boards behind a pair of tabs, one numbered row for
+   each player (the player's own row is yellow, like the crew list), and a foot line with the
+   player's place when it is below the 20 shown. */
+.is-rank .fish-store-head {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+.is-rank .fish-store-head h2 {
+  flex: 1;
+}
+.rank-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: #153b8018;
+}
+.rank-tab {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #153b80;
+  font:
+    800 14px/1.1 "Be Vietnam Pro",
+    sans-serif;
+  cursor: pointer;
+}
+.rank-tab[aria-selected="true"] {
+  background: #ffd35a;
+  box-shadow: 0 0 0 2.5px #153b80 inset;
+}
+.rank-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 2px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 6px 10px;
+  align-content: start;
+}
+.rank-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 4px 8px;
+  border: 2px solid #153b8030;
+  border-radius: 14px;
+  background: #fff;
+  line-height: 1.2 !important;
+}
+.rank-row.is-you {
+  background: #fff6d6;
+  border-color: #ffd35a;
+}
+.rank-badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border: 2.5px solid #153b80;
+  border-radius: 50%;
+  background: #e9f3ff;
+  font:
+    900 15px/1 "Baloo 2",
+    sans-serif;
+}
+.rank-badge.is-podium {
+  background: #ffd35a;
+}
+.rank-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.rank-info strong {
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rank-info small {
+  font-size: 12px;
+  font-weight: 700;
+  color: #385b8d;
+}
+.rank-value {
+  flex: none;
+  font-size: 14px;
+  font-weight: 800;
+  color: #153b80;
+}
+.rank-foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 4px;
+  padding: 4px 10px;
+  border: 2px solid #ffd35a;
+  border-radius: 14px;
+  background: #fff6d6;
+  font-size: 14px;
+  font-weight: 800;
+}
+.rank-foot[hidden] {
+  display: none;
+}
+.rank-me-label {
+  flex: 1;
+}
+.rank-of {
+  font-size: 12px;
+  color: #385b8d;
+}
+.rank-retry {
+  margin-top: 6px;
+}
+
 /* Settings: two panels side by side (day and weather test, version) and the way back at the foot. */
 .crew-head h3 {
   flex: 1;

@@ -18,6 +18,7 @@ import { releaseOne, stockTotal, type Inventory } from "../ocean/fishing";
 import { inventoryFrom } from "../ocean/server-store";
 import { createFishingUi } from "./fishing-ui";
 import { createMarketUi } from "./market-ui";
+import { createRankUi } from "./rank-ui";
 import { createWeatherTestSection } from "./settings-weather";
 import { createSeaAudio } from "./audio";
 import { createAudioSection } from "./settings-audio";
@@ -348,12 +349,15 @@ export function startOcean(
         ? marketUi.nearMarket
         : id === "yard"
           ? marketUi.nearYard
-          : true,
+          : id === "rank"
+            ? economy !== undefined
+            : true,
     go(id) {
       keys.clear();
       releaseStick();
       if (id === "stock") fishingUi.showStock();
       else if (id === "market" || id === "yard") void marketUi.openNearest();
+      else if (id === "rank") rankUi.show();
       else if (id === "crew") showCrew();
       else showSettings();
     },
@@ -426,6 +430,17 @@ export function startOcean(
       fishingUi.cancel();
     },
     hubs: hubNav,
+  });
+  // The fishing leaderboard: a tab of the hub rail (server economy only).
+  const rankUi = createRankUi({
+    dialog,
+    economy,
+    hubs: hubNav,
+    beforeOpen: () => {
+      keys.clear();
+      releaseStick();
+      fishingUi.cancel();
+    },
   });
   // Other boats are drawn slightly in the past, interpolated between received samples,
   // so they glide at any publish rate instead of jumping when a packet arrives.

@@ -7,6 +7,7 @@ import {
   type Profile,
   type SellResult,
 } from "../ocean/economy-api";
+import { readLeaderboard } from "../ocean/leaderboard";
 import { loadoutOf } from "../ocean/upgrades";
 
 export * from "../ocean/economy-api";
@@ -102,6 +103,9 @@ export function supabaseEconomy(): EconomyApi {
     },
     async setBait(tier) {
       return loadoutOf(await call("economy_set_bait", { p_tier: tier }));
+    },
+    async leaderboard() {
+      return readLeaderboard(await call("economy_leaderboard"));
     },
   };
 }
