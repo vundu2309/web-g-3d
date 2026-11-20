@@ -56,6 +56,10 @@ export async function loadModel(
   for (const material of container.materials) material.dispose();
   const nodes = new Map<string, TransformNode>();
   for (const node of container.transformNodes) nodes.set(node.name, node);
+  // A part with one palette colour is a single primitive, which the glTF loader makes a mesh with
+  // the node's own name and no transform node of its own: it is looked up too.
+  for (const mesh of container.meshes)
+    if (!nodes.has(mesh.name)) nodes.set(mesh.name, mesh);
   return { root, meshes, node: (name) => nodes.get(name) };
 }
 

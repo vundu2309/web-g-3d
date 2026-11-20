@@ -37,7 +37,7 @@ Each spec is `mode,island,angleDeg,seconds`:
 `seconds` sets the sea clock, so four shots one second apart (`t = 4, 5, 6, 7`) show the surf moving.
 `REFL=0` skips the reflection pass (much faster), `WORKERS` sets how many shots run at once,
 `CHROMIUM_PATH` picks another Chrome. The page itself is `preview.html`; its query parameters are
-`m`, `i`, `a`, `t`, `refl=0` (no reflection) and `models=0` (procedural props instead of the GLBs).
+`m`, `i`, `a`, `t`, `refl=0` (no reflection), `models=0` (procedural props instead of the GLBs) and `cats=1` (the rowing cats boat at the camera target, seen from a few metres).
 
 ## Time of day and weather
 

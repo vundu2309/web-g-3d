@@ -296,7 +296,25 @@
       cam.setTarget(target);
       scene.activeCamera = cam;
       window.scene = scene;
+      // &cats=1: the rowing cats' boat (src/ocean/cat-boat.ts) at the camera's target, seen from a few metres.
+      let catBoat;
+      if (q.get("cats") === "1") {
+        const { loadRowerAssets, CatBoat } = await import(
+          "/src/ocean/cat-boat.ts"
+        );
+        try {
+          const assets = await loadRowerAssets(scene);
+          catBoat = new CatBoat(scene, assets, { x: target.x, z: target.z });
+          cam.position.set(target.x + 5, 2.6, target.z + 8);
+          cam.setTarget(new Vector3(target.x, 1.0, target.z));
+          window.__cats = "loaded";
+        } catch (error) {
+          window.__cats = "failed: " + error;
+          console.error(error);
+        }
+      }
       const tick = () => {
+        catBoat?.update(T, (x, z) => waveHeight(x, z, T));
         stepAtmosphere(0);
         rain.update(T);
         for (const b of beacons) b.update(T);
