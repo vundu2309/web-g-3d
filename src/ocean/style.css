@@ -1699,3 +1699,12 @@ dialog.account-screen :is(input, textarea) {
 .weather-chip.is-reset {
   width: 100%;
 }
+
+/* Settings: the sound card (on/off and volume). */
+.audio-volume {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: 6px 0 0;
+  accent-color: #153b80;
+}

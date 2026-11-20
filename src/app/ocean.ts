@@ -18,6 +18,9 @@ import { stockTotal, type Inventory } from "../ocean/fishing";
 import { createFishingUi } from "./fishing-ui";
 import { createMarketUi } from "./market-ui";
 import { createWeatherTestSection } from "./settings-weather";
+import { createSeaAudio } from "./audio";
+import { createAudioSection } from "./settings-audio";
+import { SEA } from "../ocean/sea-atmosphere";
 import {
   createPerfSection,
   createProbeSection,
@@ -152,6 +155,7 @@ export function startOcean(
   let pose: Pose = { x: 0, z: 0, heading: 0, fishing: false };
   let boats: Boat[] = [];
   let disposed = false;
+  const seaAudio = createSeaAudio();
   let active = false;
   let frame = 0;
   let lastDraw = 0;
@@ -510,6 +514,7 @@ export function startOcean(
     const body = document.createElement("div");
     body.className = "fish-store-body settings-body";
     body.append(
+      createAudioSection(seaAudio),
       createWeatherTestSection(),
       createPerfSection(perfPanel),
       createProbeSection(persist),
@@ -613,6 +618,12 @@ export function startOcean(
           now / 1000,
         );
       }
+      const own = scene.selfState();
+      seaAudio.update({
+        speed: own ? Math.hypot(own.forwardSpeed, own.sideSpeed) : 0,
+        rain: SEA.weather.z,
+        gloom: SEA.weather.y,
+      });
       const began = performance.now();
       scene.update(
         shown,
@@ -932,6 +943,7 @@ export function startOcean(
     clearTimeout(quietTimer);
     persist();
     fishingUi.dispose();
+    seaAudio.dispose();
     cancelAnimationFrame(frame);
     stopLoadingArt?.();
     abort.abort();
