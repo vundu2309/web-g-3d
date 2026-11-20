@@ -22,8 +22,6 @@ import {
   swimPose,
 } from "./underwater.ts";
 import { UnderLine, UnderwaterSkin } from "./underwater-material.ts";
-import type { ClearWater } from "./clear-water-pass.ts";
-import { CLEAR } from "./clear-water.ts";
 import { PAL } from "./art/colors.ts";
 import { Parts, SIDES } from "./art/shapes.ts";
 import { hex } from "./mesh-parts.ts";
@@ -241,12 +239,6 @@ export class FishingGear {
   private readonly veeMaterial: StandardMaterial;
   /** Whether the fish now wears the underwater skin (else the shared satin one). */
   private wearing = false;
-  /**
-   * The clear-water layer (clear-water.ts), when the sea is see-through: it draws what is under the
-   * waves, so the fish wears the ordinary satin skin (the opaque water hides it by depth, the layer
-   * draws it) and the underwater line strip is drawn by the layer only. Undefined: the old way.
-   */
-  private clearWater: ClearWater | undefined;
   private readonly rope = new Rope(POINTS);
   private readonly smooth = new Float64Array(POINTS * 3);
   /** Where the line meets the water (or the fish's mouth), world. */
@@ -474,21 +466,6 @@ export class FishingGear {
     this.fish?.root.setEnabled(id !== undefined);
   }
 
-  /**
-   * Draws the fish and the line under the water through the clear-water layer (or, with undefined,
-   * through the special underwater skin as before). Can be switched at any frame: the quality
-   * governor does it when the frames are slow.
-   */
-  setClearWater(layer: ClearWater | undefined) {
-    this.clearWater = layer;
-    const strip = this.lineSkin.material;
-    // The strip is drawn by the layer; the main pass draws nothing of it (it lies under the sea).
-    strip.disableColorWrite = !!layer;
-    strip.disableDepthWrite = !!layer;
-    strip.forceDepthWrite = !layer;
-    if (layer) layer.dress(this.underLine.mesh, layer.lineMaterial);
-  }
-
   /** Dresses the fish in the underwater skin (or the shared satin one) and feeds the skin its frame. */
   private wear(
     wanted: boolean,
@@ -499,8 +476,7 @@ export class FishingGear {
     turquoise = 0,
   ) {
     if (!this.fish) return;
-    // With the clear-water layer the fish keeps its satin skin: the water hides what is below it.
-    const on = wanted && !this.clearWater;
+    const on = wanted;
     if (on) this.skin.update(time, surface, cut, fade, turquoise);
     if (on === this.wearing) return;
     this.wearing = on;
@@ -728,12 +704,7 @@ export class FishingGear {
       );
     }
     this.line.draw(this.dive, eye);
-    this.underLine.draw(
-      this.entry,
-      points[n - 1]!,
-      eye,
-      this.clearWater ? CLEAR.lineWiden : 1,
-    );
+    this.underLine.draw(this.entry, points[n - 1]!, eye);
     this.underLine.isVisible = true;
   }
 
@@ -962,7 +933,6 @@ export class FishingGear {
     const lineTint = lineColourFor(fight.tension);
     this.lineSkin.update(time, surface, true, fade, turquoise);
     this.lineSkin.tint(lineTint);
-    this.clearWater?.lineMaterial.setColor3("tint", lineTint);
     this.drawRope(
       lineTint,
       lineTremble(fight.tension),

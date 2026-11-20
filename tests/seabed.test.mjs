@@ -124,12 +124,12 @@ test("the floor has relief and life: dunes, rock, weed, coral and tufts", () => 
   assert.ok(heights.size > 8, "the floor is not a bare slope");
 });
 
-test("the floor is deterministic, drawn on the clear-water layer only and never mirrored", () => {
+test("the floor is deterministic, never mirrored, and left out of the depth layer (the sea paints its own floor)", () => {
   const again = buildSeabed();
   assert.equal(again.length, chunks.length);
   assert.deepEqual(again[3].positions, chunks[3].positions);
   for (const c of chunks) {
-    assert.ok(underwaterCapable(c.name), c.name);
+    assert.ok(!underwaterCapable(c.name), c.name);
     assert.ok(underwaterReach(c.name) >= 150);
     assert.ok(!reflectsInWater(c.name), "not in the mirror");
   }

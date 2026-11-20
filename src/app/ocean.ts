@@ -24,7 +24,6 @@ import { createAudioSection } from "./settings-audio";
 import { SEA } from "../ocean/sea-atmosphere";
 import {
   createPerfSection,
-  createProbeSection,
   createWavesSection,
   loadPerfPref,
   savePerfPref,
@@ -603,7 +602,6 @@ export function startOcean(
       createAudioSection(seaAudio),
       createWeatherTestSection(),
       createPerfSection(perfPanel),
-      createProbeSection(persist),
       createWavesSection(persist),
       createUpdateSection({ beforeApply: persist }),
     );

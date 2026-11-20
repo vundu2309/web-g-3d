@@ -1,23 +1,20 @@
 /**
- * Switches for finding what costs frames on a device: `?reflect=0`, `?fish=0`, `?props=0`,
- * `?clearwater=0`, `?scale=1` in the page address, or the same set in Settings ("Thử tắt từng
- * phần"), kept on this device (an installed app has no address bar). The address wins.
+ * Switches for finding what costs frames, for the developer: `?reflect=0`, `?fish=0`, `?props=0`,
+ * `?scale=1` in the page address (tests and the render harness use them). The player has none of
+ * them: every part of the graphics is on and Settings has no switch for it (2026-11-20, the user's
+ * decision), so nothing a device stored earlier can leave a part out: only `waves` (the "Thử sóng
+ * biển" card) is still read from the device.
  */
 const KEY = "sea-probe";
+/** The only switch read from what the device stored; the others come from the page address alone. */
+const STORED = new Set(["waves"]);
 export const PROBES = [
   // `feature` true: the switch shows whether the part is on (the game's normal state) and setting it
   // off leaves the part out. `feature` false: the switch is a forced setting, on only when forced.
   { name: "reflect", off: "0", label: "Phản chiếu nước", feature: true },
   { name: "fish", off: "0", label: "Đàn cá", feature: true },
   { name: "props", off: "0", label: "Dừa, bụi, nhà, đá", feature: true },
-  { name: "clearwater", off: "0", label: "Nước trong suốt", feature: true },
   { name: "scale", off: "1", label: "Ép độ phân giải 1x", feature: false },
-  {
-    name: "seemode",
-    off: "depth",
-    label: "Nước trong suốt kiểu đọc độ sâu (thử)",
-    feature: false,
-  },
 ] as const;
 
 const stored = (): Record<string, string> => {
@@ -25,9 +22,11 @@ const stored = (): Record<string, string> => {
     const parsed: unknown = JSON.parse(
       window.localStorage.getItem(KEY) ?? "{}",
     );
-    return parsed && typeof parsed === "object"
-      ? (parsed as Record<string, string>)
-      : {};
+    if (!parsed || typeof parsed !== "object") return {};
+    const kept: Record<string, string> = {};
+    for (const [name, value] of Object.entries(parsed))
+      if (STORED.has(name) && typeof value === "string") kept[name] = value;
+    return kept;
   } catch {
     return {};
   }

@@ -138,8 +138,7 @@ export class UnderLine {
     this.mesh.isVisible = on;
   }
 
-  /** `widen` thickens the strip (the clear-water layer is half the canvas, which would break a 2 px line into dashes). */
-  draw(from: Point3, to: Point3, eye: Point3, widen = 1) {
+  draw(from: Point3, to: Point3, eye: Point3) {
     // (Babylon's vectors keep x, y, z behind accessors, so they are copied by name.)
     const [a, b] = this.points as [Point3, Point3];
     a.x = from.x;
@@ -152,9 +151,9 @@ export class UnderLine {
       this.points,
       eye,
       this.positions,
-      LINE_WIDTH.perMetre * widen,
-      LINE_WIDTH.min * widen,
-      LINE_WIDTH.max * widen,
+      LINE_WIDTH.perMetre,
+      LINE_WIDTH.min,
+      LINE_WIDTH.max,
     );
     this.mesh.updateVerticesData(VertexBuffer.PositionKind, this.positions);
     this.mesh.refreshBoundingInfo();

@@ -55,14 +55,14 @@ curl -s -o /dev/null -w '%{http_code}\n' -H 'Origin: http://127.0.0.1:5320' -H '
 
 ## 3. Things that go wrong
 
-| What you see                                        | Cause and fix                                                                                                        |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| "account service is not configured"                 | `.env.local` missing in the worktree: copy it, restart Vite.                                                         |
-| Page loads, fonts or look wrong                     | Vite allow list: set `VITE_FS_ALLOW` (above).                                                                        |
-| Sign-in works, "websocket API failed" / no sea      | API not running, wrong `VITE_API_URL`, or your origin is not in `ALLOWED_ORIGINS` (400 above).                       |
-| Same worktree stays on old behaviour                | Vite was started before you changed `.env.local`: restart it. PWA cache: hard reload.                                |
-| The sea looks opaque, nothing shows under the water | The clear-water layer is off: the quality governor switched it off for slow frames, or the page has `?clearwater=0`. |
-| Port busy                                           | `lsof -nP -iTCP:<port> -sTCP:LISTEN`; use another port; stop only servers you started.                               |
+| What you see                                        | Cause and fix                                                                                                                                     |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "account service is not configured"                 | `.env.local` missing in the worktree: copy it, restart Vite.                                                                                      |
+| Page loads, fonts or look wrong                     | Vite allow list: set `VITE_FS_ALLOW` (above).                                                                                                     |
+| Sign-in works, "websocket API failed" / no sea      | API not running, wrong `VITE_API_URL`, or your origin is not in `ALLOWED_ORIGINS` (400 above).                                                    |
+| Same worktree stays on old behaviour                | Vite was started before you changed `.env.local`: restart it. PWA cache: hard reload.                                                             |
+| The sea looks opaque, nothing shows under the water | The clear-water layer is off: the quality governor switched it off for slow frames (there is no page-address or Settings switch for it any more). |
+| Port busy                                           | `lsof -nP -iTCP:<port> -sTCP:LISTEN`; use another port; stop only servers you started.                                                            |
 
 Stop what you started when you are done (`node scripts/wt.mjs stop <name>`, or kill your own `vite` and `node server/index.mjs`). Leave other agents' servers alone (ports 5301 to 5308 are often theirs).
 
