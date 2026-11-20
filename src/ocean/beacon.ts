@@ -4,6 +4,7 @@ import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
 import { Effect } from "@babylonjs/core/Materials/effect";
 import { Constants } from "@babylonjs/core/Engines/constants";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
+import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import { beaconLevel } from "./atmosphere.ts";
 import { SEA } from "./sea-atmosphere.ts";
@@ -156,6 +157,48 @@ export function createBeacon(
       haloMaterial.setFloat("level", level);
       beamMaterial.setFloat("level", level);
       beam.rotation.y = time * SWEEP;
+    },
+  };
+}
+
+/**
+ * A small soft glow that always faces the camera, hung on `parent` at `at` (local): a boat's
+ * lantern. Same halo and same level as the lighthouse lamp (dusk to dawn, dimmer in rain), drawn
+ * additively, off by day. `update()` once a frame; returns the level (0..1) for the lamp's glass.
+ */
+export function createLampGlow(
+  scene: Scene,
+  parent: TransformNode,
+  at: { x: number; y: number; z: number },
+  size: number,
+  name = "lamp-glow",
+): { update(): number; dispose(): void } {
+  const haloMaterial = material(`${name}-halo`, scene, "beaconHalo");
+  const halo = new Mesh(`${name}-halo`, scene);
+  const quad = new VertexData();
+  const h = size / 2;
+  quad.positions = [-h, -h, 0, h, -h, 0, -h, h, 0, h, h, 0];
+  quad.uvs = [0, 0, 1, 0, 0, 1, 1, 1];
+  quad.indices = [0, 1, 2, 1, 3, 2];
+  quad.applyToMesh(halo);
+  halo.billboardMode = Mesh.BILLBOARDMODE_ALL;
+  halo.material = haloMaterial;
+  halo.parent = parent;
+  halo.position.set(at.x, at.y, at.z);
+  halo.isPickable = false;
+  halo.alwaysSelectAsActiveMesh = true;
+  halo.isVisible = false;
+  return {
+    update() {
+      const level = beaconLevel(SEA.grade.y, SEA.weather.y, SEA.weather.z);
+      const on = level > 0.01;
+      halo.isVisible = on;
+      if (on) haloMaterial.setFloat("level", level);
+      return Math.max(level, 0);
+    },
+    dispose() {
+      halo.dispose();
+      haloMaterial.dispose();
     },
   };
 }

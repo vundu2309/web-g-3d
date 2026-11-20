@@ -92,3 +92,32 @@ test("the exported models have the nodes the game loads", () => {
   assert.ok(glbJson("rower-oar-port.glb").nodes.some((n) => n.name === "oar"));
   assert.ok(glbJson("rowboat.glb").nodes.some((n) => n.name === "hull"));
 });
+
+test("the lantern hangs at the bow, above the gunwale, with its glass inside the frame", async () => {
+  const { LANTERN, lanternFrame, lanternGlass } = await import(
+    "../src/ocean/cat-lantern.ts"
+  );
+  assert.ok(
+    LANTERN.at.z < -1 && LANTERN.at.y > 0.8,
+    "on the bow post, above the gunwale",
+  );
+  const box = (geo) => {
+    const lo = [Infinity, Infinity, Infinity];
+    const hi = [-Infinity, -Infinity, -Infinity];
+    for (let i = 0; i < geo.positions.length; i += 3)
+      for (let k = 0; k < 3; k++) {
+        lo[k] = Math.min(lo[k], geo.positions[i + k]);
+        hi[k] = Math.max(hi[k], geo.positions[i + k]);
+      }
+    return { lo, hi };
+  };
+  const frame = box(lanternFrame());
+  const glass = box(lanternGlass());
+  for (let k = 0; k < 3; k++) {
+    assert.ok(
+      glass.lo[k] >= frame.lo[k] - 1e-9 && glass.hi[k] <= frame.hi[k] + 1e-9,
+      `axis ${k}`,
+    );
+  }
+  assert.ok(lanternFrame().triangles < 300 && lanternGlass().triangles === 12);
+});

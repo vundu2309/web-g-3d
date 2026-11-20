@@ -4,6 +4,7 @@ import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import { poleOf, solveArm, type V3 } from "./arm-ik.ts";
+import { createLantern, type Lantern } from "./cat-lantern.ts";
 import {
   loadMergedModel,
   loadPartsModel,
@@ -118,6 +119,7 @@ export class CatBoat {
   private readonly rowers: Rower[] = [];
   private readonly at: { x: number; z: number };
   private readonly yaw: number;
+  private readonly lantern: Lantern;
 
   constructor(
     scene: Scene,
@@ -129,6 +131,7 @@ export class CatBoat {
     this.yaw = yaw;
     this.root = new TransformNode("cat-boat", scene);
     assets.hull.parent = this.root;
+    this.lantern = createLantern(scene, this.root);
     const make = (
       model: PartsModel<Part>,
       seat: readonly number[],
@@ -189,6 +192,7 @@ export class CatBoat {
     // The bow is -Z: a rise at the bow tilts the boat about X.
     this.root.rotation.x = Math.atan2(aft - fore, 3.6) * -1;
     this.root.rotation.z = 0.03 * Math.sin(time * 0.8);
+    this.lantern.update();
     const pose = stroke(time / STROKE);
     const lean = Quaternion.RotationAxis(Axis.X, pose.lean);
     const unlean = Quaternion.Inverse(lean);
@@ -237,6 +241,7 @@ export class CatBoat {
   }
 
   dispose() {
+    this.lantern.dispose();
     this.root.dispose();
   }
 }
