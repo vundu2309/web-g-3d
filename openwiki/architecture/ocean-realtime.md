@@ -2,9 +2,6 @@
 type: "Tham khảo"
 title: "Biển realtime: Socket.IO, server và đồng bộ"
 openwiki_generated: true
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-17T08:18:15.877Z
 sources:
   - id: openwiki-source-944d53aebcc6e3bbdfcd09de
     resource: repo://server/ocean.mjs
@@ -13,6 +10,9 @@ sources:
   - id: openwiki-source-da299de568c1622268f94e39
     resource: repo://src/platform/ocean-socket.ts
 generated: { by: "claude-code", at: "2026-11-17T08:18:15.877Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-20T02:01:25.414Z
 ---
 
 

@@ -2,9 +2,6 @@
 type: "Tham khảo"
 title: "Bắt đầu với biển chung Ra khơi"
 openwiki_generated: true
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-17T08:18:15.877Z
 sources:
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
@@ -18,7 +15,10 @@ sources:
     resource: repo://src/app/harbor.ts
   - id: openwiki-source-d4189bbeecb62806cb297b5a
     resource: repo://src/main.ts
-generated: { by: "claude-code", at: "2026-11-17T08:18:15.877Z" }
+generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-20T02:01:25.414Z
 ---
 
 
@@ -41,6 +41,7 @@ Quyết định nền: [biển chung](../docs/decisions/0007-shared-fishing-sea.
 | Vercel, Render, Supabase, biến môi trường | [hạ tầng](architecture/infrastructure-transition.md) | Chỉ biến `VITE_*` công khai ở frontend |
 | Mô hình 3D và bảng màu | [mô hình 3D](operations/art-pipeline.md) | `tools/blender`, `public/models` |
 | Cài PWA, offline, cập nhật | [PWA](operations/pwa.md) | Không ép reload phiên đang chơi |
+| Thêm việc mỗi khung hình, đo hiệu năng | [hiệu năng](operations/performance.md) | Ngân sách, công tắc `?…=0`, cách báo cáo chi phí |
 | Kiểm tra, worktree, phát hành | [phát triển](operations/development.md) | Node 24, `npm run check`, `scripts/qa.mjs` |
 
 ## Chạy và kiểm tra

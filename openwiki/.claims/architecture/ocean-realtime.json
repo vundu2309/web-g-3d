@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:245a5eead7bb77f8f5dae2dc842e08025d3fc16ec62b0fab5de451f5d327f4f7",
+  "pageVersion": "sha256:760c68398f89691bf139392803ab09ad468cc6c5b280d3636f41bbd14ec7b753",
   "claims": [
     {
       "id": "claim_37362a09a4f444258e03ca5fe1159e2d",
@@ -75,11 +75,11 @@
       "statement": "Client Socket.IO tắt tự kết nối lại (reconnection false) và báo mất kết nối qua onError; src/app/ocean.ts tự kết nối lại với cùng thuyền trong tối đa 90 giây.",
       "evidence": [
         {
-          "resource": "repo://src/app/ocean.ts#L282-L296",
+          "resource": "repo://src/app/ocean.ts#L330-L344",
           "version": "repo-lines-v1:sha256:046d77781ef3b61654df19b2fe2044d5c950ecd0875d9434ac628360baabf504:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3N2UwNGFhZjY1M2ZkZmRkYWY5NjRlZjk5YTBmYmY3ZWIxY2Q3NGYxZTA1YjUzYTc4NDU1NWZjYmI3MGI0MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3MTcyMTJjOTIzNjM2OTFlYzViYjZkNmYwNmJkMTU4ODQ5NDYyNjlmMWFjMjFkMTRjNjVlMzM2ZjIwNGMzODkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzN2MyNjIyNDZjZTFmYWU0MDA3NTdhODg0NmVjODEyYmRkZDA3NzczNmFjMzIzZGFkMGRjY2VjMmI1ZDRiMTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhOTZmNDNlM2FlM2NkYjAwNmRmOGJiZmMwYTZmNzMyZTlmNTgyYzEyMWM0ZTQ2OGUxMGU4Yjk0NzM5NTA3NTUifQ"
         },
         {
-          "resource": "repo://src/app/ocean.ts#L320-L320",
+          "resource": "repo://src/app/ocean.ts#L368-L368",
           "version": "repo-lines-v1:sha256:5ae23097bf664f6b910bf55cb2bfe33b4001e3a08dc0e3946fe31bbddfdb7102:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWFlMjMwOTdiZjY2NGY2YjkxMGJmNTVjYjJiZmUzM2I0MDAxZTNhMDhkYzBlMzk0NmZlMzFiYmRkZmRiNzEwMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWFlMjMwOTdiZjY2NGY2YjkxMGJmNTVjYjJiZmUzM2I0MDAxZTNhMDhkYzBlMzk0NmZlMzFiYmRkZmRiNzEwMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDRmNzU1ZWEyYTU2MDQwMWFlMDAzMDQ2NGMzZmJmMzZmNGRmN2NhYTJkMDE3NzUxNDZkYTQ4ZjMxOWU3ZWI1NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDY0NjhlZmIxZDAzMzIzMjdlY2Q0N2VkYTk4YmU1YTdhZDQwNDdhZDU2ZDBlNWQyZjJlODlhOTY2ZDQwOGFlMiJ9"
         },
         {
@@ -127,6 +127,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-17T08:18:15.877Z"
+    "at": "2026-11-20T02:01:25.414Z"
   }
 }

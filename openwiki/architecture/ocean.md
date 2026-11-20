@@ -2,9 +2,6 @@
 type: "Tham khảo"
 title: "Biển chung: tổng quan và ranh giới"
 openwiki_generated: true
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-17T08:18:15.877Z
 sources:
   - id: openwiki-source-3515d68bed1b916f693296ec
     resource: repo://scripts/test-browser.mjs
@@ -24,7 +21,10 @@ sources:
     resource: repo://src/platform/ocean-socket.ts
   - id: openwiki-source-739950034b62004a0096c757
     resource: repo://tests/ocean-socket.test.mjs
-generated: { by: "claude-code", at: "2026-11-17T08:18:15.877Z" }
+generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-20T02:01:25.414Z
 ---
 
 
@@ -86,7 +86,7 @@ Xu và kinh tế nằm trên server (xem [kinh tế biển](ocean-economy.md)), 
 
 - `tests/ocean.test.mjs`, `tests/ocean-socket.test.mjs`, `tests/socket.test.mjs`: luật biển, giao thức và Socket.IO.
 - `tests/boat-control.test.mjs`, `tests/boat-physics.test.mjs`, `tests/hull-handling.test.mjs`: điều khiển và thuyền.
-- `tests/ocean-browser.mjs`, `tests/ocean-steer-browser.mjs`, `tests/ocean-input-browser.mjs`, `tests/ocean-stick-browser.mjs`, `tests/ocean-resume-browser.mjs`, `tests/ocean-loading-browser.mjs`, `tests/ocean-multiplayer-browser.mjs`: luồng biển trong trình duyệt với Supabase và API giả.
+- `tests/ocean-babylon-browser.mjs`, `tests/ocean-steer-browser.mjs`, `tests/ocean-input-browser.mjs`, `tests/ocean-stick-browser.mjs`, `tests/ocean-resume-browser.mjs`, `tests/ocean-loading-browser.mjs`, `tests/ocean-multiplayer-browser.mjs`, `tests/ocean-market-browser.mjs`, `tests/ocean-fishing-browser.mjs`, `tests/ocean-cast-browser.mjs`: luồng biển trong trình duyệt với Supabase và API giả.
 
 Các kiểm tra này chứng minh luật trong mã và trong trình duyệt mô phỏng. Chưa có bằng chứng từ điện thoại thật, từ Supabase thật hay từ API Render đã triển khai.
 

@@ -2,9 +2,6 @@
 type: "Tham khảo"
 title: "Chuyển hạ tầng: Supabase, Render, Vercel"
 openwiki_generated: true
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-17T08:18:15.877Z
 sources:
   - id: openwiki-source-cb7a7ad14d0c42d3210d6e68
     resource: repo://.github/workflows/keep-api-awake.yml
@@ -27,6 +24,9 @@ sources:
   - id: openwiki-source-55831e92f29f8b3e9d43f58b
     resource: repo://vercel.json
 generated: { by: "claude-code", at: "2026-11-17T08:18:15.877Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-20T02:01:25.414Z
 ---
 
 

@@ -2,81 +2,88 @@
   "schemaVersion": 1,
   "pages": {
     "/openwiki/architecture/hub.md": {
-      "pageVersion": "sha256:2c42257bdc2d0f31da73c5fd83a87037eb74de3890fe21312167a0be1527b055",
+      "pageVersion": "sha256:5f36860b44378d0822b1d02f0cd49fd9693ffee7a15e02ae43695b2c7c74c80b",
       "completedBy": "claude-code",
-      "completedRunId": "7657da68-db3d-40b9-ac8d-867d08237cd9",
-      "gitHead": "d7877d2a7fd64ecdf005f013a3b3e4ed6ceec756",
-      "sourceFingerprint": "sha256:3b5b26e095a2c64b337891d38cd1edeace39c46076b25971ca97a65403806105"
+      "completedRunId": "61095298-fc47-41a3-80a7-ef91e62c522b",
+      "gitHead": "8c6dbb50d8e8921d77252276085ba35b8543a051",
+      "sourceFingerprint": "sha256:b19d6021c0c3d85b28692e845867176e229820a7334c195dab35dc658a167d79"
     },
     "/openwiki/architecture/infrastructure-transition.md": {
-      "pageVersion": "sha256:97e8a47e3ec54f1ecf6fee3caf3e8774444fe2821f5e3dfaac00aea609c3074e",
+      "pageVersion": "sha256:02f2a307d987ec00c38fa71af4c020e7fa63d1e9813f2cdad61c1177513b2144",
       "completedBy": "claude-code",
-      "completedRunId": "7657da68-db3d-40b9-ac8d-867d08237cd9",
-      "gitHead": "d7877d2a7fd64ecdf005f013a3b3e4ed6ceec756",
-      "sourceFingerprint": "sha256:3b5b26e095a2c64b337891d38cd1edeace39c46076b25971ca97a65403806105"
+      "completedRunId": "61095298-fc47-41a3-80a7-ef91e62c522b",
+      "gitHead": "8c6dbb50d8e8921d77252276085ba35b8543a051",
+      "sourceFingerprint": "sha256:b19d6021c0c3d85b28692e845867176e229820a7334c195dab35dc658a167d79"
     },
     "/openwiki/architecture/ocean-economy.md": {
-      "pageVersion": "sha256:a39ca121d3f8c87a2067e37ee149ef094c8778f5a00ab907d64703e9fcabb74c",
+      "pageVersion": "sha256:04465a52cb57f71298fd6ff55acc311b3b434d3edf2af375c64d21834706ba5c",
       "completedBy": "claude-code",
-      "completedRunId": "7657da68-db3d-40b9-ac8d-867d08237cd9",
-      "gitHead": "d7877d2a7fd64ecdf005f013a3b3e4ed6ceec756",
-      "sourceFingerprint": "sha256:3b5b26e095a2c64b337891d38cd1edeace39c46076b25971ca97a65403806105"
+      "completedRunId": "61095298-fc47-41a3-80a7-ef91e62c522b",
+      "gitHead": "8c6dbb50d8e8921d77252276085ba35b8543a051",
+      "sourceFingerprint": "sha256:b19d6021c0c3d85b28692e845867176e229820a7334c195dab35dc658a167d79"
     },
     "/openwiki/architecture/ocean-fishing.md": {
-      "pageVersion": "sha256:6cf2b25b01f4dbb59ff5b762c9a78de5d1f55c8228b7f5428eea44bb442cffc8",
+      "pageVersion": "sha256:146d0bd0f0cc02870279ca1a7ee87c61e3a587c45c4f542cdf72d79efaf4aeb2",
       "completedBy": "claude-code",
-      "completedRunId": "7657da68-db3d-40b9-ac8d-867d08237cd9",
-      "gitHead": "d7877d2a7fd64ecdf005f013a3b3e4ed6ceec756",
-      "sourceFingerprint": "sha256:3b5b26e095a2c64b337891d38cd1edeace39c46076b25971ca97a65403806105"
+      "completedRunId": "61095298-fc47-41a3-80a7-ef91e62c522b",
+      "gitHead": "8c6dbb50d8e8921d77252276085ba35b8543a051",
+      "sourceFingerprint": "sha256:b19d6021c0c3d85b28692e845867176e229820a7334c195dab35dc658a167d79"
     },
     "/openwiki/architecture/ocean-realtime.md": {
-      "pageVersion": "sha256:245a5eead7bb77f8f5dae2dc842e08025d3fc16ec62b0fab5de451f5d327f4f7",
+      "pageVersion": "sha256:760c68398f89691bf139392803ab09ad468cc6c5b280d3636f41bbd14ec7b753",
       "completedBy": "claude-code",
-      "completedRunId": "7657da68-db3d-40b9-ac8d-867d08237cd9",
-      "gitHead": "d7877d2a7fd64ecdf005f013a3b3e4ed6ceec756",
-      "sourceFingerprint": "sha256:3b5b26e095a2c64b337891d38cd1edeace39c46076b25971ca97a65403806105"
+      "completedRunId": "61095298-fc47-41a3-80a7-ef91e62c522b",
+      "gitHead": "8c6dbb50d8e8921d77252276085ba35b8543a051",
+      "sourceFingerprint": "sha256:b19d6021c0c3d85b28692e845867176e229820a7334c195dab35dc658a167d79"
     },
     "/openwiki/architecture/ocean-rendering.md": {
-      "pageVersion": "sha256:5d13a085e3976eb285503d42d064fb930edaf19c74ec951171ded38494cf31ba",
+      "pageVersion": "sha256:4fb296f882ce4265fc8e9b410f74c92feea539e93cb9f7a49616a2dc812e36b4",
       "completedBy": "claude-code",
-      "completedRunId": "7657da68-db3d-40b9-ac8d-867d08237cd9",
-      "gitHead": "d7877d2a7fd64ecdf005f013a3b3e4ed6ceec756",
-      "sourceFingerprint": "sha256:3b5b26e095a2c64b337891d38cd1edeace39c46076b25971ca97a65403806105"
+      "completedRunId": "61095298-fc47-41a3-80a7-ef91e62c522b",
+      "gitHead": "8c6dbb50d8e8921d77252276085ba35b8543a051",
+      "sourceFingerprint": "sha256:b19d6021c0c3d85b28692e845867176e229820a7334c195dab35dc658a167d79"
     },
     "/openwiki/architecture/ocean.md": {
-      "pageVersion": "sha256:b073d0a77b69df0925d0915845b7625d4b7de194614ed84ea588d1b587c93dfc",
+      "pageVersion": "sha256:b724f0379370826bd01577b19289d5db478cd4c8a046678e03e0cf71aa71d1c1",
       "completedBy": "claude-code",
-      "completedRunId": "7657da68-db3d-40b9-ac8d-867d08237cd9",
-      "gitHead": "d7877d2a7fd64ecdf005f013a3b3e4ed6ceec756",
-      "sourceFingerprint": "sha256:3b5b26e095a2c64b337891d38cd1edeace39c46076b25971ca97a65403806105"
+      "completedRunId": "61095298-fc47-41a3-80a7-ef91e62c522b",
+      "gitHead": "8c6dbb50d8e8921d77252276085ba35b8543a051",
+      "sourceFingerprint": "sha256:b19d6021c0c3d85b28692e845867176e229820a7334c195dab35dc658a167d79"
     },
     "/openwiki/operations/art-pipeline.md": {
-      "pageVersion": "sha256:fe6030868a890cf33a2e61ca001f5302c5596ea21c51829e28d26296ca5c38b4",
+      "pageVersion": "sha256:72940051dd891c8f5929986a089325495d18874f9ae460480c4929d8ac173252",
       "completedBy": "claude-code",
-      "completedRunId": "7657da68-db3d-40b9-ac8d-867d08237cd9",
-      "gitHead": "d7877d2a7fd64ecdf005f013a3b3e4ed6ceec756",
-      "sourceFingerprint": "sha256:3b5b26e095a2c64b337891d38cd1edeace39c46076b25971ca97a65403806105"
+      "completedRunId": "61095298-fc47-41a3-80a7-ef91e62c522b",
+      "gitHead": "8c6dbb50d8e8921d77252276085ba35b8543a051",
+      "sourceFingerprint": "sha256:b19d6021c0c3d85b28692e845867176e229820a7334c195dab35dc658a167d79"
     },
     "/openwiki/operations/development.md": {
-      "pageVersion": "sha256:0e82a7bd0b76366263a118a2ab6928b927039bfaea1c1226c49f9619d93a2eaf",
+      "pageVersion": "sha256:80e97070f04b6c41a4bf47fa0f33f4be51b2d5a1e2ecf223008ecbfe6780818d",
       "completedBy": "claude-code",
-      "completedRunId": "7657da68-db3d-40b9-ac8d-867d08237cd9",
-      "gitHead": "d7877d2a7fd64ecdf005f013a3b3e4ed6ceec756",
-      "sourceFingerprint": "sha256:3b5b26e095a2c64b337891d38cd1edeace39c46076b25971ca97a65403806105"
+      "completedRunId": "61095298-fc47-41a3-80a7-ef91e62c522b",
+      "gitHead": "8c6dbb50d8e8921d77252276085ba35b8543a051",
+      "sourceFingerprint": "sha256:b19d6021c0c3d85b28692e845867176e229820a7334c195dab35dc658a167d79"
+    },
+    "/openwiki/operations/performance.md": {
+      "pageVersion": "sha256:8ad915af65f9c43e712dfa31faa848d7e4389351d6f6d2584f04fd5ad053db73",
+      "completedBy": "claude-code",
+      "completedRunId": "61095298-fc47-41a3-80a7-ef91e62c522b",
+      "gitHead": "8c6dbb50d8e8921d77252276085ba35b8543a051",
+      "sourceFingerprint": "sha256:b19d6021c0c3d85b28692e845867176e229820a7334c195dab35dc658a167d79"
     },
     "/openwiki/operations/pwa.md": {
-      "pageVersion": "sha256:9a440386edd203b5eb64527acec03b36f086c4647ffdec6250615095ceb17ac0",
+      "pageVersion": "sha256:5fcde5d322f532b74b89263e31340f9f929d458f86d1690ed826aeea949a3568",
       "completedBy": "claude-code",
-      "completedRunId": "7657da68-db3d-40b9-ac8d-867d08237cd9",
-      "gitHead": "d7877d2a7fd64ecdf005f013a3b3e4ed6ceec756",
-      "sourceFingerprint": "sha256:3b5b26e095a2c64b337891d38cd1edeace39c46076b25971ca97a65403806105"
+      "completedRunId": "61095298-fc47-41a3-80a7-ef91e62c522b",
+      "gitHead": "8c6dbb50d8e8921d77252276085ba35b8543a051",
+      "sourceFingerprint": "sha256:b19d6021c0c3d85b28692e845867176e229820a7334c195dab35dc658a167d79"
     },
     "/openwiki/quickstart.md": {
-      "pageVersion": "sha256:b4c106aa777beba63f3a69bccacd26ac1ab2260b1c9ef047ebc2f40211af1471",
+      "pageVersion": "sha256:756cc762f31f85540ddbf286221c00a1c24513a29e2639dd6d9ee98cf0c81ee7",
       "completedBy": "claude-code",
-      "completedRunId": "7657da68-db3d-40b9-ac8d-867d08237cd9",
-      "gitHead": "d7877d2a7fd64ecdf005f013a3b3e4ed6ceec756",
-      "sourceFingerprint": "sha256:3b5b26e095a2c64b337891d38cd1edeace39c46076b25971ca97a65403806105"
+      "completedRunId": "61095298-fc47-41a3-80a7-ef91e62c522b",
+      "gitHead": "8c6dbb50d8e8921d77252276085ba35b8543a051",
+      "sourceFingerprint": "sha256:b19d6021c0c3d85b28692e845867176e229820a7334c195dab35dc658a167d79"
     }
   }
 }

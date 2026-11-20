@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:8ad915af65f9c43e712dfa31faa848d7e4389351d6f6d2584f04fd5ad053db73",
+  "claims": [
+    {
+      "id": "claim_34ac9d95929d4a7baae19ee7618a1efb",
+      "statement": "Bảng đo chuyển đỏ khi dưới 24 fps, 5% khoảng cách khung trên 60 ms, chi phí luồng chính trung bình trên 28 ms, hoặc 3 lần giật (khoảng cách trên 50 ms); ngưỡng nằm trong POOR và HITCH của perf-meter.ts.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/perf-meter.ts#L31-L47",
+          "version": "repo-lines-v1:sha256:97c190726cc4629b68b91e356f1c39bc271440f7facf8d080dc296dc032bdf92:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1Y2U3NDJhYmU4N2RhNWMwNDYyOGUwN2NhZmUzNDJiYzg0NzQ1OWVkYjJjNjBhYjY1NTE5YWJhZWJlNGM2ODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4NzRmYTkxMWExYzQ5YThhN2QxMmY0YjZmYjg0YmVmNzg2MjFkZDkwZWMxOGYzYjNkYWYxMTQzODE5ZmEyZjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzNDY2MTlmZDVhODNmZWNjYzBiYjczM2ZhNDMxNWVlMmZiMjBjNGVkMDE0ZTk1ZWRlMzg0Mjg0YTc3MjI5MzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhYWNhMmY5YmFkNjI5MzA5MWFlZWVlOWM0YWJjMzUwYTA3NmJiMWZiYmExZTMxNTkwZWFkNThiYzBiN2NhZjQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dcf15adcd01b4d438c14edccb7c83f6e",
+      "statement": "Khung hình được vẽ cách nhau ít nhất 10 ms (khoảng 100 fps), và chế độ eco vẽ khoảng 31 ms (khoảng 30 fps), theo frame-pacing.ts.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/frame-pacing.ts#L24-L27",
+          "version": "repo-lines-v1:sha256:5f3ce212d4d576bf16078c0e27d62c4ffef2723e70502718fc3f68bbf2fa37a3:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTU0ZTU2ZmZhOWFiNWIzMzY3ODg3OTM3ZTlkZTQ1OTEzYTMyZjk4MGYzNDViMDQzMmEyZmY5ZTI0MWFlMDJmMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzA3MTMxYTU1ZTNiMWI4NmE4YTg5NzQ5ZmE3MTUwYjA2OGUyMWE4YTA4MTQ0YzE2N2ViZmU4MjIyNWJkYjdiZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzEwYWVlOTQzMzQ1YzM0NDlmYzA4MGIyZmRkODY0NTI2YmNjM2Y4ZWNkZjU5Y2M5N2IzZGY1ZmQzMDA2NmZiMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTY2YjgzYjRjOTFjNjRkODRlMDM2MWNkODI0M2Q5NmE0NjI3NDc2ZDUwYWUxNDQ0ZDE0YmIzNzBmMjU1NjU4NyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_0e169fb85b2d47f48efa023d1cb4f6fb",
+      "statement": "Lớp nước trong có tầm 70 m trên màn cảm ứng (TOUCH_REACH); quyết định bật tắt dùng hai cửa sổ chậm liên tiếp để tắt, tám cửa sổ nhanh để bật lại, tối đa hai lần thử lại.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/clear-water.ts#L161-L161",
+          "version": "repo-lines-v1:sha256:cdb3196dc034d317e9c3d1e930997c900bc5d1eec9d2d1c3bf01a14f3e8e9355:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2RiMzE5NmRjMDM0ZDMxN2U5YzNkMWU5MzA5OTdjOTAwYmM1ZDFlZWM5ZDJkMWMzYmYwMWExNGYzZThlOTM1NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2RiMzE5NmRjMDM0ZDMxN2U5YzNkMWU5MzA5OTdjOTAwYmM1ZDFlZWM5ZDJkMWMzYmYwMWExNGYzZThlOTM1NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGQxZDE5NjE3NTY0OWY4Y2M0MGZmMWY0MzJjOTU1ZGIzZmQzOWNkOTQyMzY0NjA4ZWQzYjNhYmRlYTdmNjUzNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWI2N2YyMGYzZGYxZTVhY2MzY2QwZWMyYzJmMTJlZThkMTdlYzk4NzdhOWQ1MjcwZDU2MTQ0YjZjMmJmNTRlNyJ9"
+        },
+        {
+          "resource": "repo://src/ocean/clear-water.ts#L199-L218",
+          "version": "repo-lines-v1:sha256:7a004739f1eb5dc6d8c962381a604ccd57a09fddaa52a18ec7cc41e27719bbf0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmYTgyMjJlNWUzYTgxOWU4NjE2YTY3OWVhZmM3ZDcyNDQzODExYzFjOGRjNDM3YmU3N2QwMWE0OTdlODE0MDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0MjgwYjBmZjVkODJhNjhmMzZjMjJhMThhMGQ1YWM4MjgwMzY2OGExOTRkYjM3NGVhZWExZjZjYTYyMmQ0OTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0OTMxNjQ1N2Y4ODRiMGJkZTU3MzNkYjMwZTJjOTExZjVmYmVjOTljOWNkMzZiN2FmMzhiZTg4Yzg0NWFlM2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2MGY4MWNjNDA1NzhiODQ4NWViY2I5YjY0NWQzMWNhMzZkMDg3MzBiZjljZjI4YWUwMzI2YjFkZmZmY2FhNWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3f7bfa856c69499d80080bfbb3363a5a",
+      "statement": "Khối lượng động vật được vẽ cùng lúc có trần 200.000 tam giác (TRIANGLE_BUDGET trong wildlife.ts).",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/wildlife.ts#L67-L67",
+          "version": "repo-lines-v1:sha256:eccded2b65ad7eda4557b0d5094599a54e10cbff757dd0401010381f186010c6:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWNjZGVkMmI2NWFkN2VkYTQ1NTdiMGQ1MDk0NTk5YTU0ZTEwY2JmZjc1N2RkMDQwMTAxMDM4MWYxODYwMTBjNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWNjZGVkMmI2NWFkN2VkYTQ1NTdiMGQ1MDk0NTk5YTU0ZTEwY2JmZjc1N2RkMDQwMTAxMDM4MWYxODYwMTBjNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjIxYmQwNDQ5NWI5YzE1ZjRmZjQ2NmI0YzZmNTcxNzJiNDg5NGViZTUyZjIyNTVjNjg1YmUyN2M0ODg0MGNlZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDAwMDZlY2M3YmZlMzU3YTI1NTYzZGViNzgxMmMwZTBkZTliMWJmZmYyODQ1ZDBlYjI5M2Y1ZmNkMjc1MWJkYSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c872e685d3284e43a62d9a86c31f2d28",
+      "statement": "Các công tắc địa chỉ trang gồm reflect, fish, props, scale, clearwater, seemode và waves, được đọc qua probe trong probe.ts.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/probe.ts",
+          "version": "repo-file-v1:sha256:49a4c32e16e3daf3290ef85527bd09af149809af80bef9150be4aac500e42b9e"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-20T02:01:25.414Z"
+  }
+}

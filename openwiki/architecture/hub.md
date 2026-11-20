@@ -4,7 +4,7 @@ title: "Hub, đăng nhập và vào biển"
 openwiki_generated: true
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-17T08:18:15.877Z
+    at: 2026-11-20T02:01:25.414Z
 sources:
   - id: openwiki-source-5fac766e13b3ef2b068894f7
     resource: repo://docs/decisions/0012-remove-firebase-and-monopoly.md

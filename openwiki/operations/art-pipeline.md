@@ -8,9 +8,6 @@ tags:
   - assets
   - palette
   - operations
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-17T08:18:15.877Z
 sources:
   - id: openwiki-source-89372b3bc3c28e014fbf67ee
     resource: repo://scripts/export-palette.mjs
@@ -24,7 +21,10 @@ sources:
     resource: repo://tools/blender/build.py
   - id: openwiki-source-fd1644d9b31ac8bb776042a7
     resource: repo://tools/blender/people.py
-generated: { by: "claude-code", at: "2026-11-17T08:18:15.877Z" }
+generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-20T02:01:25.414Z
 ---
 
 # Quy trình mô hình 3D và bảng màu
@@ -37,8 +37,8 @@ Mô hình 3D của biển được làm bằng Blender và commit thành GLB tro
 | --- | --- | --- |
 | Bảng màu nguồn | `src/ocean/art/colors.ts` (`PAL`) | Một nơi duy nhất cho màu theo vai trò; thuyền, đảo, prop, cần câu lấy màu từ đây. |
 | Xuất bảng màu | `scripts/export-palette.mjs` → `tools/blender/palette.json` | Sao chép `PAL` để Blender dùng đúng màu của game, không có bảng hex thứ hai. Chạy qua `npm run assets:palette`. |
-| Dựng tài nguyên | `tools/blender/build.py` cùng `lib.py`, `boat.py`, `fish.py`, `props.py`, `people.py`, `vendors.py` | Script headless bằng `bpy`; xuất GLB vào `public/models`. |
-| Tệp GLB | `public/models/*.glb` (37 tệp) | Thuyền `boat.glb`; đảo `bush-*`, `palm-*`, `rock-*`, `hut.glb`; cá `fish-*.glb` (18 tệp); mèo người bán `cat-*.glb` (3 tệp); người `people-1..5.glb`. |
+| Dựng tài nguyên | `tools/blender/build.py` cùng `lib.py` và `people.py` | Script headless bằng `bpy`, chỉ xuất `people-N.glb` vào `public/models`. `boat.py`, `props.py`, `vendors.py`, `sea_import.py` và `sea_real.py` có trong thư mục nhưng `build.py` không gọi. |
+| Tệp GLB | `public/models/*.glb` (29 tệp) | Thuyền `boat.glb`; đảo `bush-*` (3), `palm-*` (3), `rock-*` (3), `hut.glb`; cá `fish-*.glb` (10 tệp); mèo người bán `cat-*.glb` (3 tệp); người `people-1..5.glb` (5 tệp). |
 | Nạp trong trình duyệt | `src/ocean/model-loader.ts`, `src/ocean/glb-parts.ts` | `loadMergedModel` gộp mesh thành một; phần GLB có thể hoạt hình được giữ tách. |
 | Ảnh thử | `tools/render-harness/` (`preview.html`, `shoot.mjs`) | Trang xem trước và script chụp ảnh để kiểm tra bằng mắt. |
 
@@ -66,7 +66,7 @@ Chưa có kiểm chứng trong repository rằng môi trường Blender cục b�
 - Vật liệu gốc của GLB bị hủy, nên màu chỉ đến từ bảng màu của game.
 - `loadMergedModel` gộp các mesh thành một mesh để giảm số lời gọi vẽ (dùng cho đảo và prop). Các mô hình cần hoạt hình, như người vẫy tay, được tách thành từng phần.
 
-Quy ước hệ tọa độ: GLB xuất theo Y-up và scene là bàn tay phải; điểm Blender (x, y, z) thành (x, z, −y) trong khung của mô hình. Cửa nhà gỗ (`hut.glb`) hướng về −Z.
+Quy ước hệ tọa độ: pipeline xuất glTF Y-up, còn scene của biển dùng hệ tay phải (`useRightHandedSystem`, ghi trong `model-loader.ts`).
 
 ## Ranh giới
 

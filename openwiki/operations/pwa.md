@@ -2,9 +2,6 @@
 type: "Tham khảo"
 title: "PWA: cài đặt, offline shell và cập nhật"
 openwiki_generated: true
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-17T08:18:15.877Z
 sources:
   - id: openwiki-source-e21de4e070e82eb7a1025ce0
     resource: repo://public/manifest.webmanifest
@@ -18,7 +15,10 @@ sources:
     resource: repo://src/platform/pwa.ts
   - id: openwiki-source-a875da0e301868b8784bbae3
     resource: repo://tests/pwa-browser.mjs
-generated: { by: "claude-code", at: "2026-11-17T08:18:15.877Z" }
+generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-20T02:01:25.414Z
 ---
 
 
@@ -53,7 +53,7 @@ Vì vậy service worker không cache dữ liệu biển, phiên đăng nhập h
 
 ## Cập nhật không tự reload
 
-`src/platform/pwa.ts` và `src/platform/update-check.ts` cung cấp `shellUpdates()`: `check()` chỉ báo kết quả (`latest`, `ready`), và `apply()` chỉ được gọi khi người chơi bấm “Cập nhật ngay”. Không có lệnh reload nào tự chạy khi phiên đang diễn ra; `registerShell` chỉ hiển thị trạng thái cập nhật chờ. Đây là yêu cầu của dự án: không ép reload phiên đang hoạt động.
+`src/platform/pwa.ts` cung cấp `shellUpdates()` và `shellVersion()`; logic kiểm tra thuần nằm trong `src/platform/update-check.ts` (`checkForUpdate`). `check()` chỉ báo kết quả (`latest`, `ready`), và `apply()` chỉ được gọi khi người chơi bấm “Cập nhật ngay” và xác nhận trong hộp `window.confirm` của `src/app/pwa.ts`. Không có lệnh reload nào tự chạy khi phiên đang diễn ra; `registerShell` chỉ hiển thị trạng thái cập nhật chờ. Đây là yêu cầu của dự án: không ép reload phiên đang hoạt động.
 
 `tests/update-check.test.mjs` kiểm tra logic kiểm tra cập nhật thuần; `tests/pwa-browser.mjs` kiểm tra cài đặt, offline reload và cập nhật chờ trên bản build.
 

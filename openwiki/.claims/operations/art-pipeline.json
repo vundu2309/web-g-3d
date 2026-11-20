@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:fe6030868a890cf33a2e61ca001f5302c5596ea21c51829e28d26296ca5c38b4",
+  "pageVersion": "sha256:72940051dd891c8f5929986a089325495d18874f9ae460480c4929d8ac173252",
   "claims": [
     {
       "id": "claim_82600e8b7a3841069eec60b3a6516608",
@@ -49,15 +49,15 @@
       "statement": "model-loader.ts nạp GLB bằng LoadAssetContainerAsync, hủy vật liệu gốc và áp chất liệu satin dùng chung cho mesh; loadMergedModel gộp mesh thành một.",
       "evidence": [
         {
-          "resource": "repo://src/ocean/model-loader.ts#L1-L15",
-          "version": "repo-lines-v1:sha256:ac61150fb7dc191bd03c16a2d11b967fc0376d1ddbe25e2e7cb2853acc82fa75:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkY2M4ODQyZDQyMjJhZDJkYjAyZThiYjEwMzY0YWFjNThjY2IzOGU2N2IyZTBkZTNmNjc1MzkyMTg4Y2M0OGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyM2NiNGMxM2Q2Nzc1OWQ1NGY3NjcxZDQ0MDM0OTcyZDA5MDNhMzlkMDhhZmFlNzNiYjk4MWViOWFiMGRjZjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIzNWE5MTk4ZjE1ZGUxYjhiNTQ3NGJlMzRiMGEyNDY0ZGZhMjFmZjc4OTczMDAxOTQ0NzRmMWFmNGMxNTZkMTMifQ"
-        },
-        {
-          "resource": "repo://src/ocean/model-loader.ts#L34-L52",
+          "resource": "repo://src/ocean/model-loader.ts#L38-L56",
           "version": "repo-lines-v1:sha256:568f82d602c30f5492acbd307f9deeabeabf207c1f90caa15f7cfc8ec2e319fd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwYzFhODUxMDgyYWMyMTVkYmU4OTExYjI3OWEyMzBhNWUyZGEwYmMzMGYxZDliNWYwZDFiYWE0MGUxZTgyMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3ZTA5ZjhjYjBmYjQxNDRkNjZlOGIxOTczN2FkN2Y4ZDNiZDM3MWI0NDFiNTVhMzQ5YzJmOGU4ZGQzOTczYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlNDk0MjIzMzY2OTY2NTIyODVlZmZjN2QyZmRkZjkzYjk0Nzk5NjUxYjhmMjZlNTEzYjE2YjgyYWRmMWE3MGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRlN2FhYWVjNTA0NWVjNGI0NTk3YWQxNTIwOGMxY2NiZWM1M2NiZDMwZmM1NTZhMTRkYzJjOWEyZGQ4NDU0NWUifQ"
         },
         {
-          "resource": "repo://src/ocean/model-loader.ts#L67-L85",
+          "resource": "repo://src/ocean/model-loader.ts#L6-L6",
+          "version": "repo-lines-v1:sha256:ef65df73d0dcd4120a4b0b53ced9861208e33d2ea76638bb377cfeed3db4efa4:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWY2NWRmNzNkMGRjZDQxMjBhNGIwYjUzY2VkOTg2MTIwOGUzM2QyZWE3NjYzOGJiMzc3Y2ZlZWQzZGI0ZWZhNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWY2NWRmNzNkMGRjZDQxMjBhNGIwYjUzY2VkOTg2MTIwOGUzM2QyZWE3NjYzOGJiMzc3Y2ZlZWQzZGI0ZWZhNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzM4Y2NhYjg0NzY4MGU4ZGVkZTBlOTE5MmJmMzc1ODZkZjkwMzNjZTRhMGJmZDVkYjFjNmExZmIxZDZhMmE1MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzE0OTFlZTJiOTYyNTNmMTZkY2FmZWZlMDNmZmE4MmM3NmY4Y2MwODQ2OGQxOGZjZTA0OGEzODU4OTQ1NDIwZCJ9"
+        },
+        {
+          "resource": "repo://src/ocean/model-loader.ts#L71-L89",
           "version": "repo-lines-v1:sha256:a408e7798555e12d3fd7003790d0812e667a3c68afb17912e987234af47da906:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4Y2Q1ODg3YWQxMTIwNGQ5YmE3OGRlNDFlZGZkNTMxMjlhMmJmNmIxZDA2OGQwMjJiOGNjMWM5Y2NjNWU4OTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2ZjE0MGMwMTc3ZWNkYTgyNjA5NmEzMTE4YjM3OTE5YWNjOGMxMDFjN2QxNjk0MDdhYzQ4Mzg1YzVlY2MxMjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA2YzI5ODliNTI5MTVkNTljOWFmNmU0OWYzNTRhNTk2NDc0ZGRhM2QyNjcwOGFiMWEwNGU3MzcwYWNkZDQ3ZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyZTRlMDgyN2YxMTZlNzJmMTJmMjJkNjg2OWY3Zjg5MGEyODQxN2EyYmEzMmJjNDQ4ZmJiNDQ5Y2Y2ODMzYjUifQ"
         }
       ]
@@ -65,6 +65,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-17T08:18:15.877Z"
+    "at": "2026-11-20T02:01:25.414Z"
   }
 }

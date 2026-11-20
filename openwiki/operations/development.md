@@ -7,9 +7,6 @@ tags:
   - testing
   - release
   - operations
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-17T08:18:15.877Z
 sources:
   - id: openwiki-source-5f219f204b3e870beec929d9
     resource: repo://.github/workflows/pages.yml
@@ -23,7 +20,10 @@ sources:
     resource: repo://scripts/wt.mjs
   - id: openwiki-source-a875da0e301868b8784bbae3
     resource: repo://tests/pwa-browser.mjs
-generated: { by: "claude-code", at: "2026-11-17T08:18:15.877Z" }
+generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-20T02:01:25.414Z
 ---
 
 # Phát triển, kiểm tra và phát hành
@@ -79,8 +79,7 @@ Repository có hai đường phát hành:
 
 Thay đổi không có tác động UI/UX (tài liệu, test, công cụ, nội bộ) không cần trailer và không được ghi là đã lên production.
 
-<!-- openwiki: broken internal link [infrastructure-transition.md] file "infrastructure-transition.md" does not exist. Fix the href or restore the target, then delete this comment. -->
-Workflow `keep-api-awake.yml` gọi `/health` của API Render mỗi 5 phút; xem [hạ tầng](infrastructure-transition.md).
+Workflow `keep-api-awake.yml` gọi `/health` của API Render mỗi 5 phút; xem [hạ tầng](../architecture/infrastructure-transition.md).
 
 ## Tài liệu và wiki
 

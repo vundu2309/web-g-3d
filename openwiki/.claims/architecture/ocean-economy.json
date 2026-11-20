@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:a39ca121d3f8c87a2067e37ee149ef094c8778f5a00ab907d64703e9fcabb74c",
+  "pageVersion": "sha256:04465a52cb57f71298fd6ff55acc311b3b434d3edf2af375c64d21834706ba5c",
   "claims": [
     {
       "id": "claim_dca7b3e7d3d246959f29439befc8c150",
@@ -61,7 +61,7 @@
       "statement": "Kinh tế chỉ bật khi VITE_ECONOMY=on; app/ocean.ts chỉ nối supabaseEconomy vào chợ khi điều kiện này đúng, còn nếu không chợ không có economy.",
       "evidence": [
         {
-          "resource": "repo://src/app/ocean.ts#L237-L243",
+          "resource": "repo://src/app/ocean.ts#L284-L290",
           "version": "repo-lines-v1:sha256:53ff1ce487991b266701d52ae766c3964b6ca1a6606529e7ec02c6e77e21bedc:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjE1MDAwZjY3NWUyMjVkZTA3NjlmYWJkZDRhNGE5MTJmZDE5M2ExZjY4MWIzMzIwM2I2N2Y1YzVhNjVjYmM4YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDRkMTEwYWE2MDQ3YjU2YmFmNjhlZmZhZThlM2UwNWIxYzU4NDE4NGZiODRlYWU2ZjQ0MDY2Mzk0ODdhMDYzMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzRkNzUyNDI1N2I3NjAzMmZmYzhkYzI4YWJmMzhjZDZlNjMyMTUwNmVjYjc4MDFlNzljMjAyMGIwOTdjNWVkNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzU1NDQzODJjYjNiODM3ODAwZmRlMTc0MjYxZmQ5ODY2MzgyNjExYTcxMWJiYWM0MzA3M2Y0NTNmODhkMGJkOSJ9"
         },
         {
@@ -87,6 +87,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-17T08:18:15.877Z"
+    "at": "2026-11-20T02:01:25.414Z"
   }
 }
