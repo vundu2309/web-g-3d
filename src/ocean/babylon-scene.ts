@@ -67,7 +67,7 @@ import { createBeacon, type Beacon } from "./beacon.ts";
 import { createSeaLights } from "./art/lighting.ts";
 import { edgeIndicator, separateLabels } from "./indicator.ts";
 import { ScaleGovernor } from "./render-scale.ts";
-import { CatBoat } from "./cat-boat.ts";
+import { CatBoat, loadRowerAssets } from "./cat-boat.ts";
 import { createSeaReflection } from "./reflection.ts";
 import { createClearWater, type ClearWater } from "./clear-water-pass.ts";
 import { ClearWaterGovernor } from "./clear-water.ts";
@@ -268,10 +268,15 @@ export class OceanScene {
     this.gear.setClearWater(this.gearLayer());
     // A trial: one rowing boat with two cats near the harbour (`?cats=1`).
     if (probe("cats") === "1")
-      this.catBoat = new CatBoat(this.scene, {
-        x: HARBOR.x + 8,
-        z: HARBOR.z - 4,
-      });
+      void loadRowerAssets(this.scene)
+        .then((assets) => {
+          if (this.scene.isDisposed) return;
+          this.catBoat = new CatBoat(this.scene, assets, {
+            x: HARBOR.x + 8,
+            z: HARBOR.z - 4,
+          });
+        })
+        .catch((error) => console.warn("No rowing cats.", error));
     this.boatLoad = this.loadBoats();
     this.islandProps = this.placeIslandModels(visuals);
     // A fish market on the water off each island.
