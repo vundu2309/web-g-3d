@@ -49,7 +49,13 @@ import { preloadFishModels } from "./fish-models.ts";
 import { placeVendors } from "./market-vendor.ts";
 import { WakeMesh } from "./wake-mesh.ts";
 import { WakeTrail } from "./wake-trail.ts";
-import { islands, lighthouseIslands, type Boat, type Pose } from "./model.ts";
+import {
+  HARBOR,
+  islands,
+  lighthouseIslands,
+  type Boat,
+  type Pose,
+} from "./model.ts";
 import { FishSchools } from "./fish-schools.ts";
 import { FishingGear, type GearInput } from "./fishing-gear.ts";
 import { paletteIndex } from "./palette.ts";
@@ -61,6 +67,7 @@ import { createBeacon, type Beacon } from "./beacon.ts";
 import { createSeaLights } from "./art/lighting.ts";
 import { edgeIndicator, separateLabels } from "./indicator.ts";
 import { ScaleGovernor } from "./render-scale.ts";
+import { CatBoat } from "./cat-boat.ts";
 import { createSeaReflection } from "./reflection.ts";
 import { createClearWater, type ClearWater } from "./clear-water-pass.ts";
 import { ClearWaterGovernor } from "./clear-water.ts";
@@ -120,6 +127,7 @@ export class OceanScene {
       }
     | undefined;
   private clock = 0;
+  private catBoat: CatBoat | undefined;
   private viewHeading = 0;
   private viewReady = false;
   private readonly orbit = new OrbitCamera();
@@ -258,6 +266,12 @@ export class OceanScene {
     // while the button is held made the first throw of a visit hitch, and `ready()` compiles it.
     this.gear = new FishingGear(this.scene);
     this.gear.setClearWater(this.gearLayer());
+    // A trial: one rowing boat with two cats near the harbour (`?cats=1`).
+    if (probe("cats") === "1")
+      this.catBoat = new CatBoat(this.scene, {
+        x: HARBOR.x + 8,
+        z: HARBOR.z - 4,
+      });
     this.boatLoad = this.loadBoats();
     this.islandProps = this.placeIslandModels(visuals);
     // A fish market on the water off each island.
@@ -633,6 +647,7 @@ export class OceanScene {
     else if (tip && this.gear?.holding) this.gear.updateHeld(tip, this.clock);
     else this.gear?.hide();
     this.seaProps.update(this.clock);
+    this.catBoat?.update(this.clock, (x, z) => this.sim.sample(x, z).height);
     this.schools.update(this.clock, this.camera.position, [
       ...(this.self ? [this.self.physics.state()] : []),
       ...this.fleet.values(),

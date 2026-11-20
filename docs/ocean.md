@@ -452,3 +452,7 @@ Real-phone panel readings (one sample each): scale 1.5 gave about 23 fps, scale 
 ### Trial: see-through sea by depth (`?seemode=depth`)
 
 Not the default. The depth layer (`UNDER_DEPTH_FRAGMENT`) holds only the camera distance of what is under the waves (two bytes, nearest sampling, no multisampling); the main pass draws hulls, rocks, fish and buoys in colour as usual, and the sea is alpha-blended after them (`alphaIndex` 0): its alpha is `1 - exp(-CLEAR.see x thickness)`, thickness being the layer's distance minus the sea's own. The sea floor and the fishing line are left out of this layer (the sea paints its own floor; the gear keeps its own skin). Look and cost are unmeasured; compare with the default on a phone.
+
+### Rowing cats (model only, `?cats=1`)
+
+`cat-model.ts` builds, from boxes and cones, a sitting cat (two looks, ginger and grey, about 1 m tall, under 450 triangles), an oar for each side (origin at the oarlock) and a small rowing boat; `cat-boat.ts` puts two cats on one thwart, one on each oar, facing the stern, and runs the stroke (`stroke(phase)`, 2.4 s). `?cats=1` shows one such boat about 8 m from the harbour start. There is no route, no other boat and no sync yet: the next step is the shared-clock routes between islands.
