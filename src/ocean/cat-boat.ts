@@ -5,10 +5,12 @@ import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import { poleOf, solveArm, type V3 } from "./arm-ik.ts";
 import {
+  LANTERN_PARTS,
   createLantern,
   createLanternKit,
   type Lantern,
   type LanternKit,
+  type LanternModel,
 } from "./cat-lantern.ts";
 import { CAT_SCALE } from "./cat-pose.ts";
 import {
@@ -79,20 +81,22 @@ export interface RowerAssets {
   cats: { ginger: PartsModel<Part>; grey: PartsModel<Part> };
   oars: { starboard: Mesh; port: Mesh };
   hull: Mesh;
+  lantern: LanternModel;
 }
 
 /** Loads the Blender models (public/models/rower-*.glb, rowboat.glb). */
 export async function loadRowerAssets(scene: Scene): Promise<RowerAssets> {
-  const [ginger, grey, starboard, port, hull] = await Promise.all([
+  const [ginger, grey, starboard, port, hull, lantern] = await Promise.all([
     loadPartsModel(scene, "rower-ginger.glb", PARTS),
     loadPartsModel(scene, "rower-grey.glb", PARTS),
     loadMergedModel(scene, "rower-oar-starboard.glb"),
     loadMergedModel(scene, "rower-oar-port.glb"),
     loadMergedModel(scene, "rowboat.glb"),
+    loadPartsModel(scene, "rower-lantern.glb", LANTERN_PARTS),
   ]);
   // Named as a boat's hull, so the see-through sea draws what is under the water.
   hull.name = "boat-model-rowboat";
-  return { cats: { ginger, grey }, oars: { starboard, port }, hull };
+  return { cats: { ginger, grey }, oars: { starboard, port }, hull, lantern };
 }
 
 /** The loaded models as templates (hidden): each boat is made of instances of these, so many boats cost no more geometry. */
@@ -105,7 +109,7 @@ export interface RowerKit {
 }
 
 export function createRowerKit(scene: Scene, assets: RowerAssets): RowerKit {
-  const lantern = createLanternKit(scene);
+  const lantern = createLanternKit(scene, assets.lantern);
   const templates: Mesh[] = [
     assets.hull,
     assets.oars.starboard,
@@ -281,7 +285,7 @@ export class CatBoat {
     this.root.rotation.y = -heading;
     this.root.rotation.x = Math.atan2(fore - aft, 2 * reach);
     this.root.rotation.z = 0.03 * Math.sin(time * 0.8);
-    this.lantern.update();
+    this.lantern.update(time);
     const pose = stroke(time / STROKE);
     const sweep = pose.sweep * effort;
     const lift = pose.lift * effort;

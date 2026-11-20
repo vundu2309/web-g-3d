@@ -20,16 +20,18 @@ Objects (each one set to export on its own; the scene places them in the assembl
         <key>-fore.L/.R  forearm and paw (child)       origin at the elbow
     oar-starboard / oar-port   one mesh each, origin at the oarlock pivot, handle inboard
     rowboat              one mesh, origin at the waterline middle
+    lantern-post / lantern-glass   bow lantern on a crook post (and its glass alone), in boat space
+                         with the origin at the boat origin; export_lantern writes rower-lantern.glb
 
 Tunable numbers: CREW (layout shared by the three), CAT (cat geometry), VARIANTS (colours and the
-oar side), BOAT and OAR. Every colour is a palette role.
+oar side), BOAT, OAR and LANTERN. Every colour is a palette role.
 """
 import math, os
 import bpy, bmesh
 from mathutils import Matrix, Vector
 import lib
 import vendors as V
-from vendors import Mesh, ellipsoid, sweep, smooth_path, lathe, profile_at, oface, lerp, mix_hex
+from vendors import Mesh, ellipsoid, sweep, sweep_rings, smooth_path, lathe, profile_at, oface, lerp, mix_hex
 
 PAL = lib.PAL
 FACE = V.FACE
@@ -565,6 +567,147 @@ def build_oar(col, side):
 
 
 # ------------------------------------------------------------------------------------------------
+# Bow lantern: a wooden shepherd's-crook post on the foredeck, its hook reaching forward over the
+# stem, a short chain and an old hexagonal brass oil lantern hanging from it. Two meshes in boat
+# space (origin at the boat origin): lantern-post (everything but the glass) and lantern-glass (the
+# glass alone, one flat warm colour; the game draws it unlit and glowing).
+# ------------------------------------------------------------------------------------------------
+LANTERN = {
+    "base": (0.0, 1.60),      # post foot (x, y) on the foredeck (Blender; glTF z = -y)
+    "deck": 0.450,            # foredeck height there
+    "postR": (0.038, 0.031),  # post radius at the foot and at the top of the straight part
+    "postTop": 1.10,          # where the straight post ends and the crook begins
+    "crook": [(0.0, 0.0), (0.015, 0.10), (0.10, 0.175), (0.215, 0.165), (0.285, 0.095), (0.292, 0.060)],  # (forward, up) from the post top; the last point is the hook tip
+    "crookR": (0.031, 0.022), "postSides": 8, "crookSides": 6, "crookSteps": 2,
+    "foot": (0.13, 0.13, 0.03),  # foot block (x, y, z) bolted to the deck
+    "centre": 0.95,           # lantern centre height (bottom finial to top of the carrying ring)
+    "height": 0.30,           # lantern height
+    "radius": 0.096,          # hexagon corner radius of the base plate and the rim
+    "bar": 0.0085, "barBulge": 0.006,   # corner bar radius and how far the cage bows out at mid height
+    "glassR": (0.072, 0.081),  # glass corner radius at its ends and in the middle
+    "links": 2, "linkR": 0.0035, "linkW": 0.012,
+    "colours": {"post": PAL["wood"]["dark"], "foot": PAL["wood"]["deep"], "brass": PAL["fit"]["winch"],
+                "bright": PAL["market"]["coin"], "chain": PAL["metal"]["steel"], "glass": PAL["light"]["lamp"]},
+}
+
+
+def hex_ring(c, r, z, n=6, phase=0.0):
+    """A horizontal ring of n points about the vertical axis through c (corner at angle `phase`)."""
+    return [Vector((c.x + r * math.cos(phase + math.tau * j / n), c.y + r * math.sin(phase + math.tau * j / n), z))
+            for j in range(n)]
+
+
+def loop_ring(m, c, rx, rz, plane, tube, hexint, n=8, sides=4):
+    """A closed wire loop (ring or chain link): an ellipse with half sizes rx (across) and rz (up) in the
+    vertical plane `plane` ('x' = XZ, 'y' = YZ), swept with a `sides`-gon of radius `tube`."""
+    u = Vector((1, 0, 0)) if plane == "x" else Vector((0, 1, 0))
+    path = [c + u * (rx * math.cos(math.tau * j / n)) + Vector((0, 0, rz * math.sin(math.tau * j / n))) for j in range(n)]
+    sweep(m, path, [tube] * n, hexint, sides=sides, caps=False, loop=True, axis=lambda p, t: p - c)
+
+
+def collar(m, a, b, ra, rb, hexint, sides, top=True):
+    """A short open band around a post from a to b, capped at the top only (the bottom hides in the foot)
+    or at the bottom only (top=False: a band whose top hides in the crook)."""
+    a, b = Vector(a), Vector(b)
+    rings = sweep_rings([a, b], [ra, rb], sides)
+    m.tube(rings, hexint, cap0=None if top else a, cap1=b if top else None)
+
+
+def lantern_layout():
+    """Heights of the lantern parts (bottom up) and the hook tip / hanging axis."""
+    L = LANTERN
+    bx, by = L["base"]
+    pts = [Vector((bx, by + f, L["postTop"] + u)) for f, u in L["crook"]]
+    tip = pts[-1]
+    h = L["height"]
+    zb = L["centre"] - h / 2
+    k = h / 0.305                        # the proportions below sum to 0.305
+    z = {"bottom": zb}
+    for name, d in (("finial", 0.020), ("base", 0.035), ("cage", 0.130), ("rim", 0.020), ("dome", 0.030),
+                    ("chimney", 0.020), ("hat", 0.010), ("ring", 0.040)):
+        z[name] = z[list(z)[-1]] + d * k
+    return pts, tip, z, k
+
+
+def build_lantern(col):
+    L, Co = LANTERN, LANTERN["colours"]
+    bx, by = L["base"]
+    crook, tip, z, k = lantern_layout()
+    ax = Vector((tip.x, tip.y, 0))      # the lantern's vertical axis hangs straight under the hook tip
+    m = Mesh("lantern-post", smooth=False)
+    # foot block and four bolts
+    fx, fy, fz = L["foot"]
+    box(m, (bx, by, L["deck"] + fz / 2 - 0.006), (fx, fy, fz), Co["foot"])
+    for sy in (-1, 1):
+        box(m, (bx, by + sy * fy * 0.34, L["deck"] + fz - 0.002), (0.020, 0.020, 0.010), Co["brass"])
+    # straight post (octagonal, tapering) with a brass collar at the foot and at the crook
+    r0, r1 = L["postR"]
+    ps = L["postSides"]
+    m.smooth = True
+    sweep(m, [(bx, by, L["deck"] + fz - 0.01), (bx, by, L["postTop"])], [r0, r1], Co["post"], sides=ps, caps=False)
+    zc = L["deck"] + fz
+    collar(m, (bx, by, zc - 0.012), (bx, by, zc + 0.045), r0 * 1.22, r0 * 1.14, Co["brass"], ps)
+    # crook: the post bends forward over the stem and curls down to the hook tip
+    path = smooth_path(crook, L["crookSteps"])
+    cr0, cr1 = L["crookR"]
+    n = len(path)
+    radii = [lerp(cr0, cr1, (i / (n - 1)) ** 1.3) for i in range(n)]
+    sweep(m, [Vector((bx, by, L["postTop"] - 0.02))] + path[1:], [r1] + radii[1:], Co["post"],
+          sides=L["crookSides"], caps=False)
+    collar(m, (bx, by, L["postTop"] - 0.05), (bx, by, L["postTop"] + 0.01), r1 * 1.25, r1 * 1.25, Co["brass"], ps, top=False)
+    d = (path[-1] - path[-2]).normalized()
+    collar(m, tip - d * 0.035, tip + d * 0.008, cr1 * 1.3, cr1 * 1.15, Co["brass"], L["crookSides"])
+    # chain: links alternate planes from the hook tip down to the lantern's carrying ring
+    top = tip.z - 0.002
+    ring_top = z["ring"]
+    lr = L["linkR"]
+    nl = L["links"]
+    span = (top - ring_top) / nl
+    for i in range(nl):
+        c = Vector((ax.x, ax.y, top - span * (i + 0.5)))
+        loop_ring(m, c, L["linkW"], span / 2 + lr * 1.6, "x" if i % 2 == 0 else "y", lr, Co["chain"], n=6, sides=4)
+    # lantern, bottom up (flat-shaded hexagonal brass)
+    m.smooth = False
+    R = L["radius"]
+    zb = z["bottom"]
+    m.tube([hex_ring(ax, 0.012 * k, zb), hex_ring(ax, 0.030 * k, z["finial"] - 0.004)], Co["brass"],
+           cap0=Vector((ax.x, ax.y, zb)))                                                       # finial
+    m.tube([hex_ring(ax, R * 0.92, z["finial"] - 0.004), hex_ring(ax, R, z["finial"] + 0.008),
+            hex_ring(ax, R, z["base"])], Co["brass"], cap1=Vector((ax.x, ax.y, z["base"])))     # base plate
+    gr0, gr1 = L["glassR"]
+    for j in range(6):                                                                          # corner bars
+        a = math.tau * j / 6
+        u = Vector((math.cos(a), math.sin(a), 0))
+        rr = (gr0 + R) / 2 + 0.004
+        bar = [ax + u * rr + Vector((0, 0, z["base"] - 0.004)),
+               ax + u * (rr + L["barBulge"]) + Vector((0, 0, (z["base"] + z["cage"]) / 2)),
+               ax + u * rr + Vector((0, 0, z["cage"] + 0.004))]
+        sweep(m, bar, [L["bar"]] * 3, Co["brass"], sides=4, caps=False)
+    m.tube([hex_ring(ax, R * 0.95, z["cage"]), hex_ring(ax, R, z["cage"] + 0.006), hex_ring(ax, R, z["rim"])],
+           Co["brass"], cap0=Vector((ax.x, ax.y, z["cage"])))                                   # top rim
+    m.tube([hex_ring(ax, R * 0.96, z["rim"]), hex_ring(ax, R * 0.70, z["rim"] + (z["dome"] - z["rim"]) * 0.55),
+            hex_ring(ax, 0.030 * k, z["dome"])], Co["brass"])                                   # dome
+    m.tube([hex_ring(ax, 0.022 * k, z["dome"] - 0.004), hex_ring(ax, 0.020 * k, z["chimney"])], Co["brass"])   # chimney
+    m.tube([hex_ring(ax, 0.034 * k, z["chimney"]), hex_ring(ax, 0.030 * k, z["hat"])], Co["bright"],
+           cap0=Vector((ax.x, ax.y, z["chimney"])), cap1=Vector((ax.x, ax.y, z["hat"])))       # chimney hat
+    rh = (z["ring"] - z["hat"]) / 2
+    loop_ring(m, Vector((ax.x, ax.y, z["hat"] + rh)), rh * 0.95, rh - 0.0045, "y", 0.0045, Co["bright"], n=6, sides=4)
+    post = m.object(col)
+    # glass: a slightly bulging hexagonal prism inside the cage
+    g = Mesh("lantern-glass", smooth=False)
+    g0, g1 = z["base"], z["cage"]
+    g.tube([hex_ring(ax, gr0, g0), hex_ring(ax, gr1, (g0 + g1) / 2), hex_ring(ax, gr0, g1)], Co["glass"],
+           cap0=Vector((ax.x, ax.y, g0)), cap1=Vector((ax.x, ax.y, g1)))
+    glass = g.object(col)
+    for o in (post, glass):
+        o["triangles"] = lib.triangles(o)
+    info = {"post": post["triangles"], "glass": glass["triangles"],
+            "glass_centre": [round(ax.x, 3), round(ax.y, 3), round((g0 + g1) / 2, 3)],
+            "glass_size": [round(2 * gr1, 3), round(g1 - g0, 3)], "hook_tip": [round(c, 3) for c in tip]}
+    return post, glass, info
+
+
+# ------------------------------------------------------------------------------------------------
 # Scene
 # ------------------------------------------------------------------------------------------------
 WATER_Z = -0.33   # preview water plane (below the keel so the inside of the hull shows; the real waterline is z = 0)
@@ -593,6 +736,8 @@ def build_scene(scene_name="Rowers"):
         o = build_oar(cols["oars"], s)
         o.location = (s * CREW["oarlock_x"], CREW["oarlock_y"], pz)
         report[o.name] = o["triangles"]
+    lp, lg, linfo = build_lantern(cols["rowboat-set"])
+    report["lantern"] = linfo
     report["crew_total"] = (report["rowboat"]["tris"] + sum(report[f"rower-{k}"]["total"] for k in VARIANTS)
                             + report["oar-starboard"] + report["oar-port"])
     # stage: water plane, lights, camera (render-only helpers, not part of any asset)
@@ -658,6 +803,16 @@ def aim(scene, shot):
         target = Vector((0, 0.1, 0.35))
         eye = target + Vector((-2.2, 4.8, 2.4))
         res = (1600, 1000)
+    elif shot == "lantern":  # close on the bow lantern, from the starboard quarter
+        cam.data.lens = 50
+        target = Vector((0, 1.72, 0.80))
+        eye = target + Vector((1.55, -1.35, 0.45))
+        res = (1000, 1000)
+    elif shot == "lanternSide":
+        cam.data.lens = 50
+        target = Vector((0, 1.65, 0.75))
+        eye = target + Vector((2.6, 0.0, 0.15))
+        res = (1000, 1000)
     else:                   # 'cat': close on the ginger cat
         cam.data.lens = 70
         target = Vector((0.3, 0.22, 0.55))
@@ -696,11 +851,17 @@ EXPORTS = (   # (file, root name, source root or None, {glTF part name: source o
     ("rower-oar-starboard", "oar-starboard", None, {"oar": "oar-starboard"}),
     ("rower-oar-port", "oar-port", None, {"oar": "oar-port"}),
     ("rowboat", "rowboat", None, {"hull": "rowboat"}),
+    ("rower-lantern", "rower-lantern", None, {"post": "lantern-post", "glass": "lantern-glass"}),
 )
 
 
-def export_glb(out_dir, scene_name="Rowers"):
-    """Write the five GLBs from renamed copies in a temporary scene (the Rowers scene is untouched).
+def export_lantern(out_dir, scene_name="Rowers"):
+    """Write only rower-lantern.glb (root at the boat origin, children `post` and `glass` in boat space)."""
+    return export_glb(out_dir, scene_name, only=("rower-lantern",))
+
+
+def export_glb(out_dir, scene_name="Rowers", only=None):
+    """Write the GLBs (or only the files named in `only`) from renamed copies in a temporary scene (the Rowers scene is untouched).
     Roots sit at the origin with identity rotation and scale; parts are flat children keeping their pivots
     (the cat parts at their offsets from the cat root, the oar and hull at the origin). Y-up: Blender -Y
     (the cats' front) becomes glTF +Z. Returns [(file, triangles)]."""
@@ -715,6 +876,8 @@ def export_glb(out_dir, scene_name="Rowers"):
     try:
         os.makedirs(out_dir, exist_ok=True)
         for fname, root_name, src_root, parts in EXPORTS:
+            if only is not None and fname not in only:
+                continue
             sources = {}
             for old in ([src_root] if src_root else []) + list(parts.values()):
                 o = src.objects[old]

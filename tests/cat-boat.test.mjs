@@ -93,31 +93,24 @@ test("the exported models have the nodes the game loads", () => {
   assert.ok(glbJson("rowboat.glb").nodes.some((n) => n.name === "hull"));
 });
 
-test("the lantern hangs at the bow, above the gunwale, with its glass inside the frame", async () => {
-  const { LANTERN, lanternFrame, lanternGlass } = await import(
-    "../src/ocean/cat-lantern.ts"
-  );
+test("the lantern model is a post and a glass, and the light hangs where the glass is", async () => {
+  const { LANTERN } = await import("../src/ocean/cat-lantern.ts");
+  const json = glbJson("rower-lantern.glb");
+  const names = json.nodes.map((n) => n.name);
+  for (const name of ["rower-lantern", "post", "glass"])
+    assert.ok(names.includes(name), name);
+  const root = json.nodes.find((n) => n.name === "rower-lantern");
+  assert.ok(!root.translation && !root.rotation && !root.scale);
+  // The glass's own box, from its accessor bounds: the light is at its centre.
+  const node = json.nodes.find((n) => n.name === "glass");
+  const mesh = json.meshes[node.mesh];
+  const accessor = json.accessors[mesh.primitives[0].attributes.POSITION];
+  const mid = accessor.min.map((lo, k) => (lo + accessor.max[k]) / 2);
+  assert.ok(Math.abs(mid[0] - LANTERN.at.x) < 0.02, `x ${mid[0]}`);
+  assert.ok(Math.abs(mid[1] - LANTERN.at.y) < 0.02, `y ${mid[1]}`);
+  assert.ok(Math.abs(mid[2] - LANTERN.at.z) < 0.02, `z ${mid[2]}`);
   assert.ok(
     LANTERN.at.z < -1 && LANTERN.at.y > 0.8,
-    "on the bow post, above the gunwale",
+    "on the bow, above the gunwale",
   );
-  const box = (geo) => {
-    const lo = [Infinity, Infinity, Infinity];
-    const hi = [-Infinity, -Infinity, -Infinity];
-    for (let i = 0; i < geo.positions.length; i += 3)
-      for (let k = 0; k < 3; k++) {
-        lo[k] = Math.min(lo[k], geo.positions[i + k]);
-        hi[k] = Math.max(hi[k], geo.positions[i + k]);
-      }
-    return { lo, hi };
-  };
-  const frame = box(lanternFrame());
-  const glass = box(lanternGlass());
-  for (let k = 0; k < 3; k++) {
-    assert.ok(
-      glass.lo[k] >= frame.lo[k] - 1e-9 && glass.hi[k] <= frame.hi[k] + 1e-9,
-      `axis ${k}`,
-    );
-  }
-  assert.ok(lanternFrame().triangles < 300 && lanternGlass().triangles === 12);
 });

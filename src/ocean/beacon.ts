@@ -162,43 +162,77 @@ export function createBeacon(
 }
 
 /**
- * A small soft glow that always faces the camera, hung on `parent` at `at` (local): a boat's
- * lantern. Same halo and same level as the lighthouse lamp (dusk to dawn, dimmer in rain), drawn
- * additively, off by day. `update()` once a frame; returns the level (0..1) for the lamp's glass.
+ * A lamp's light for a small boat's lantern, two soft glows on `parent`: a small halo round the lamp
+ * that always faces the camera, and a pool of light lying on the water under it (flat, at
+ * `water`, local height). Same shader and `beaconLevel` as the lighthouse lamp (dusk to dawn,
+ * dimmer in rain), drawn additively so it only adds light, off by day. The light wavers a little,
+ * like a flame. `update(time)` once a frame returns the level (0..1) for the lamp's glass.
  */
-export function createLampGlow(
+export interface LampLight {
+  update(time: number): number;
+  dispose(): void;
+}
+
+export function createLampLight(
   scene: Scene,
   parent: TransformNode,
-  at: { x: number; y: number; z: number },
-  size: number,
-  name = "lamp-glow",
-): { update(): number; dispose(): void } {
-  const haloMaterial = material(`${name}-halo`, scene, "beaconHalo");
-  const halo = new Mesh(`${name}-halo`, scene);
-  const quad = new VertexData();
-  const h = size / 2;
-  quad.positions = [-h, -h, 0, h, -h, 0, -h, h, 0, h, h, 0];
-  quad.uvs = [0, 0, 1, 0, 0, 1, 1, 1];
-  quad.indices = [0, 1, 2, 1, 3, 2];
-  quad.applyToMesh(halo);
-  halo.billboardMode = Mesh.BILLBOARDMODE_ALL;
-  halo.material = haloMaterial;
-  halo.parent = parent;
-  halo.position.set(at.x, at.y, at.z);
-  halo.isPickable = false;
-  halo.alwaysSelectAsActiveMesh = true;
-  halo.isVisible = false;
+  options: {
+    at: { x: number; y: number; z: number };
+    haloSize: number;
+    poolSize: number;
+    /** Local height of the water's surface under the lamp. */
+    water: number;
+  },
+  name = "lamp-light",
+): LampLight {
+  const quadOf = (size: number) => {
+    const quad = new VertexData();
+    const h = size / 2;
+    quad.positions = [-h, -h, 0, h, -h, 0, -h, h, 0, h, h, 0];
+    quad.uvs = [0, 0, 1, 0, 0, 1, 1, 1];
+    quad.indices = [0, 1, 2, 1, 3, 2];
+    return quad;
+  };
+  const make = (suffix: string, size: number) => {
+    const mat = material(`${name}-${suffix}`, scene, "beaconHalo");
+    const mesh = new Mesh(`${name}-${suffix}`, scene);
+    quadOf(size).applyToMesh(mesh);
+    mesh.material = mat;
+    mesh.parent = parent;
+    mesh.isPickable = false;
+    mesh.alwaysSelectAsActiveMesh = true;
+    mesh.isVisible = false;
+    return { mat, mesh };
+  };
+  const halo = make("halo", options.haloSize);
+  halo.mesh.billboardMode = Mesh.BILLBOARDMODE_ALL;
+  halo.mesh.position.set(options.at.x, options.at.y, options.at.z);
+  const pool = make("pool", options.poolSize);
+  // Lying flat on the water: the quad faces up (its +Z turned to +Y).
+  pool.mesh.rotation.x = Math.PI / 2;
+  pool.mesh.position.set(options.at.x, options.water, options.at.z);
   return {
-    update() {
+    update(time) {
       const level = beaconLevel(SEA.grade.y, SEA.weather.y, SEA.weather.z);
       const on = level > 0.01;
-      halo.isVisible = on;
-      if (on) haloMaterial.setFloat("level", level);
-      return Math.max(level, 0);
+      halo.mesh.isVisible = on;
+      pool.mesh.isVisible = on;
+      if (!on) return 0;
+      // A flame's waver: two slow sines and a quick one, a few percent.
+      const waver =
+        1 +
+        0.04 * Math.sin(time * 5.3 + 1.1) +
+        0.03 * Math.sin(time * 9.7) +
+        0.03 * Math.sin(time * 2.1 + 0.4);
+      halo.mat.setFloat("level", 0.8 * level * waver);
+      pool.mat.setFloat("level", 0.42 * level * waver);
+      return Math.max(level * waver, 0);
     },
     dispose() {
-      halo.dispose();
-      haloMaterial.dispose();
+      for (const part of [halo, pool]) {
+        part.mesh.dispose();
+        part.mat.dispose();
+      }
     },
   };
 }

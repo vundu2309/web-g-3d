@@ -320,6 +320,11 @@
           ];
           cam.position.set(target.x + 14, 3.6, target.z + 17);
           cam.setTarget(new Vector3(target.x + 7, 1.5, target.z));
+          // &catcam=lantern: close to the first boat's bow lantern, from the side and a little ahead.
+          if (q.get("catcam") === "lantern") {
+            cam.position.set(target.x + 2.6, 2.5, target.z - 3.4);
+            cam.setTarget(new Vector3(target.x, 2.0, target.z - 2.4));
+          }
           window.__cats = "loaded";
         } catch (error) {
           window.__cats = "failed: " + error;
