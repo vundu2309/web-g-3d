@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:146d0bd0f0cc02870279ca1a7ee87c61e3a587c45c4f542cdf72d79efaf4aeb2",
+  "pageVersion": "sha256:582accd3f8bedd64b584c7831528dab7983c1ab7bbe86acb1a61ba910bf195c0",
   "claims": [
     {
       "id": "claim_03a139e079a247eeb4d84350a1873a5c",
@@ -66,7 +66,7 @@
     },
     {
       "id": "claim_b03a3504a37944ba8593ac790dd6c311",
-      "statement": "save.ts lưu vị trí và kho cá trên thiết bị theo tài khoản; dữ liệu đọc lại được kiểm tra, vị trí không hợp lệ rơi về bến thay vì thả thuyền lên đảo.",
+      "statement": "save.ts lưu vị trí thuyền, kho cá và số cá đã bắt (caught) trên thiết bị theo tài khoản; dữ liệu đọc lại được kiểm tra, vị trí không hợp lệ rơi về bến thay vì thả thuyền lên đảo, còn kho cá được giữ.",
       "evidence": [
         {
           "resource": "repo://src/ocean/save.ts#L1-L40",
@@ -77,6 +77,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-20T02:01:25.414Z"
+    "at": "2026-11-20T03:06:03.643Z"
   }
 }

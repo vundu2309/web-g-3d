@@ -24,7 +24,7 @@ sources:
 generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-20T02:01:25.414Z
+    at: 2026-11-20T03:06:03.643Z
 ---
 
 # Quy trình mô hình 3D và bảng màu

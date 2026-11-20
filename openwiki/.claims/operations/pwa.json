@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:5fcde5d322f532b74b89263e31340f9f929d458f86d1690ed826aeea949a3568",
+  "pageVersion": "sha256:bcc2cb3034c18e1edd3e1b5f1894548555188efab815128a6015d54ea2695176",
   "claims": [
     {
       "id": "claim_36eb6868133740c2b9b12b0cfa109cc8",
@@ -80,21 +80,25 @@
     },
     {
       "id": "claim_c62d5b42230a43fab9727ad259c4de06",
-      "statement": "Sau khi cài xong, worker mới gọi skipWaiting nhưng không tự reload trang; cập nhật chỉ được áp dụng khi người chơi bấm “Cập nhật ngay”.",
+      "statement": "Sau khi cài xong, worker mới gọi skipWaiting; trang tự tải lại chỉ khi canReload (không có ?view, hộp thoại mở hay ô nhập đang focus) sau khi bản mới nhận quyền điều khiển hoặc khi tab ẩn; nút “Cập nhật ngay” áp dụng khi người chơi xác nhận.",
       "evidence": [
         {
           "resource": "repo://scripts/service-worker.js#L10-L26",
           "version": "repo-lines-v1:sha256:a3d2ed0748ab35e6752a02a5af97f4a77d39aa05fc899f0329f07bcdc5be7183:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzYjQyYmQ3M2Q1YmQ0MGViNmQ1ZjczMjkyMWUwZWZjYzY4NjAwMjQwZmJmYWFiMmJmMzAwYjRkMThiZGU3NjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVmZDQyY2Q3ZjkyMmVkZGZmYjExNjdhYmQ5NGNlOTI3MGU4N2RmMmJlNzhkYjc3MDkyMGFkYjRkNmU2NWM4ZDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjMDk4N2YzZjMxOWY4MGRkN2FlMDdmZWFjYTMwODIzNDM2YmQ4YWM3NmQ4MWMwNDY2MTdkMGQ3ZWJjY2VkYTQifQ"
         },
         {
-          "resource": "repo://src/platform/pwa.ts#L1-L12",
-          "version": "repo-lines-v1:sha256:ecf8c9323a39508b4aaa4fb459c0dee207fb42f6441b69f31343e85bde54a6ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViNTU1ZDgyYWM4Y2E2ZWM0NjM5MWUwY2U1YzYyYTE0MDE5OGI5ZTlmOTkzMWM4YzQxNzZkZTZhY2ZjZmFmOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3ZjYwZWFlZjllOWRjYzQzNmJkYjQwZDUzNGI0ZTU2MTk5YjIyYWQ2YWY3Yjg2NjE4NGY4MDY4MzhlZjc4ZWQifQ"
+          "resource": "repo://src/app/pwa.ts#L158-L161",
+          "version": "repo-lines-v1:sha256:98e7503dc5436763d915cf9c2f9ef8d489d056128f46114c464c91907022ef24:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI1NmQzM2YyNTg0ZGEwY2FkNTMxYzlhMzdiMzY1OWI0OWQ5YTBkZjBkZWU3Njk3ZjM2Y2VjY2JhNzE5NmUzZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjI1YThmOGM3YzJlNTI5MDNiMWU0NmI4MjAzOTg2MzZhNjM5ODcxODY3NTYwMzY3NTQxN2JmYTNhNWFiNzQ2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzY2MjdkZWMwMDhmMTE3ZGQzZWNlZDg3OWRmMTVlZGVhOGUxOGYzZTU5ZDIzNzZmYzhlYzk1Y2MwMGU0ZDUxNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzM3MzgyYTU5ODk5NDc5OTJhNzE0ZWQ4Y2I0MDhmZGE0NzNiYTg2NTEzZWZjZDY5MjM3MmRjMzRlZjc1NDU3MCJ9"
+        },
+        {
+          "resource": "repo://src/platform/pwa.ts#L44-L80",
+          "version": "repo-lines-v1:sha256:da76a00e7d90bcae0d5f477fbf3593e023ebcd812a66875814b393ecec6d314c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjOGFhYjI1N2Y3ZDYzZDU3OWRiMjY2NjhmZDFiMTMwYjEwZGY4MzcwYzczMzQwNDIwOWRmMDM5NzQ3ZmI1NTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5YzdjZWVlZjVmOTk0YTc0Y2NlYWZiMTRlOTE5MzBlNTc1Yzg0Y2Y3ODZkZjFhNjZkYjAzNTYxNjMyMWJmMzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3M2U2NTQ3NjhhMDQyOTk5NGVmZjEwMWI5MDJkZGNjZWI0ZTdjNzc5ZmE0MTlhM2IzMmZhNmRmNTA3N2I1MzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOGQ5ZTJlYzE5OTk3MzRmNGI0NGIzMWRlMmVjYWIxZjNmMGJlN2U4MGIxN2Q1YTcyMDE5MTZlNjZiZWM3MzAifQ"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-20T02:01:25.414Z"
+    "at": "2026-11-20T03:06:03.643Z"
   }
 }

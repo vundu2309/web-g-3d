@@ -7,9 +7,6 @@ tags:
   - ocean
   - budget
   - operations
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-20T02:01:25.414Z
 sources:
   - id: openwiki-source-31c19986b3dccb7e5f94f641
     resource: repo://src/ocean/clear-water.ts
@@ -22,6 +19,9 @@ sources:
   - id: openwiki-source-bb95ce7cbb173b2e53b25ce5
     resource: repo://src/ocean/wildlife.ts
 generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-20T03:06:03.643Z
 ---
 
 # Hiệu năng: ngân sách, mẫu và cách báo cáo chi phí
