@@ -49,13 +49,7 @@ import { preloadFishModels } from "./fish-models.ts";
 import { placeVendors } from "./market-vendor.ts";
 import { WakeMesh } from "./wake-mesh.ts";
 import { WakeTrail } from "./wake-trail.ts";
-import {
-  HARBOR,
-  islands,
-  lighthouseIslands,
-  type Boat,
-  type Pose,
-} from "./model.ts";
+import { islands, lighthouseIslands, type Boat, type Pose } from "./model.ts";
 import { FishSchools } from "./fish-schools.ts";
 import { FishingGear, type GearInput } from "./fishing-gear.ts";
 import { paletteIndex } from "./palette.ts";
