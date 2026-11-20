@@ -4,6 +4,7 @@ import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
 import { Effect } from "@babylonjs/core/Materials/effect";
 import { Constants } from "@babylonjs/core/Engines/constants";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import { beaconLevel } from "./atmosphere.ts";
@@ -170,6 +171,8 @@ export function createBeacon(
  */
 export interface LampLight {
   update(time: number): number;
+  /** Hides the halo and the pool (the boat is switched off and no longer updates them). */
+  hide(): void;
   dispose(): void;
 }
 
@@ -205,8 +208,11 @@ export function createLampLight(
     return { mat, mesh };
   };
   const halo = make("halo", options.haloSize);
+  // The halo faces the camera, and a billboard under a turned, scaled parent lands off its place:
+  // it hangs from no parent, and is put at the lamp's world position every frame.
   halo.mesh.billboardMode = Mesh.BILLBOARDMODE_ALL;
-  halo.mesh.position.set(options.at.x, options.at.y, options.at.z);
+  halo.mesh.parent = null;
+  const lamp = new Vector3(options.at.x, options.at.y, options.at.z);
   const pool = make("pool", options.poolSize);
   // Lying flat on the water: the quad faces up (its +Z turned to +Y).
   pool.mesh.rotation.x = Math.PI / 2;
@@ -215,6 +221,13 @@ export function createLampLight(
     update(time) {
       const level = beaconLevel(SEA.grade.y, SEA.weather.y, SEA.weather.z);
       const on = level > 0.01;
+      parent.computeWorldMatrix(true);
+      Vector3.TransformCoordinatesToRef(
+        lamp,
+        parent.getWorldMatrix(),
+        halo.mesh.position,
+      );
+      halo.mesh.scaling.setAll(parent.absoluteScaling.x);
       halo.mesh.isVisible = on;
       pool.mesh.isVisible = on;
       if (!on) return 0;
@@ -227,6 +240,10 @@ export function createLampLight(
       halo.mat.setFloat("level", 0.8 * level * waver);
       pool.mat.setFloat("level", 0.42 * level * waver);
       return Math.max(level * waver, 0);
+    },
+    hide() {
+      halo.mesh.isVisible = false;
+      pool.mesh.isVisible = false;
     },
     dispose() {
       for (const part of [halo, pool]) {

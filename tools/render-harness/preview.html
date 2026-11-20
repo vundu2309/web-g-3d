@@ -347,7 +347,12 @@
         catKit?.update();
         for (const c of catBoats)
           c.boat.update(
-            { x: target.x + c.dx, z: target.z, heading: 0, effort: c.effort },
+            {
+              x: target.x + c.dx,
+              z: target.z,
+              heading: Number(q.get("catheading") ?? 0),
+              effort: c.effort,
+            },
             T,
             (x, z) => waveHeight(x, z, T),
           );

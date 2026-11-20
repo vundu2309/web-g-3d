@@ -271,6 +271,7 @@ export class CatBoat {
 
   setEnabled(on: boolean) {
     this.root.setEnabled(on);
+    if (!on) this.lantern.hide();
   }
 
   /** Writes the world position of a point just under the lantern's glass into `out`. */

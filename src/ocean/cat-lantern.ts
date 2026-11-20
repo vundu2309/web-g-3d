@@ -73,6 +73,8 @@ export function createLanternKit(
 export interface Lantern {
   /** Each frame: the light follows the time of day (`time`: the sea's clock, for the flame's waver). */
   update(time: number): void;
+  /** The boat is switched off: the halo and the pool go out. */
+  hide(): void;
   dispose(): void;
 }
 
@@ -103,6 +105,9 @@ export function createLantern(
   return {
     update(time) {
       light.update(time);
+    },
+    hide() {
+      light.hide();
     },
     dispose() {
       light.dispose();
