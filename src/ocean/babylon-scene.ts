@@ -272,9 +272,10 @@ export class OceanScene {
         .then((assets) => {
           if (this.scene.isDisposed) return;
           this.catBoat = new CatBoat(this.scene, assets, {
-            x: HARBOR.x + 8,
-            z: HARBOR.z - 4,
+            x: HARBOR.x,
+            z: HARBOR.z - 10,
           });
+          console.info("Rowing cats at", HARBOR.x, HARBOR.z - 10);
         })
         .catch((error) => console.warn("No rowing cats.", error));
     this.boatLoad = this.loadBoats();
