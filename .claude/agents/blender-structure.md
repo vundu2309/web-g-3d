@@ -13,6 +13,7 @@ You build the STRUCTURE of a game model in Blender 5.x for /Users/vunguyendanguy
 ## How to work
 
 - The Blender MCP tools are `mcp__Blender__*` (load them with ToolSearch: `select:mcp__Blender__execute_blender_code,mcp__Blender__render_viewport_to_path`). Blender must be running with the Blender Lab MCP add-on's server started (port 9876); if the tools say they cannot connect, stop and report that.
+- Read `docs/mcp.md` ("Running Blender scripts through the MCP") once: `result` must be a dict, set the window's scene before an export or render, object names are unique in the whole file, bake colours before exporting.
 - Inspect before changing (`get_objects_summary`). Work only in a NEW scene (as `props.build_scene` does). NEVER delete, rename or edit the user's objects, NEVER call `lib.reset()` (it wipes the open file), never save or overwrite a `.blend` unless asked.
 - Write the builder as code in `tools/blender/` (a new function in `props.py` or a new module), run it with `execute_blender_code` (`sys.path.insert` then `importlib.reload`), so the model can be rebuilt from the repo. Prefer bmesh and the data API; use `bpy.ops` only where needed and set mode, selection and active object explicitly.
 - Geometry Nodes: build the node group in Python, give it clear inputs (seed, size, counts), and make sure the exported mesh has the modifier applied (the exporter uses `export_apply=True`; realise instances).

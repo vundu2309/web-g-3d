@@ -21,7 +21,7 @@ You REFINE a model whose structure already exists (built by `blender-structure` 
 
 ## Limits
 
-Use the Blender MCP tools (`mcp__Blender__*`, load with ToolSearch) only in a NEW scene, never delete or edit the user's objects, never call `lib.reset()`, never save a `.blend` unless asked. If the structure is wrong (a floating part, bad proportions, a missing detail), stop and say so in the report instead of rebuilding it. Never commit or push.
+Read `docs/mcp.md` ("Running Blender scripts through the MCP") for what goes wrong when exporting (the window's scene, unique object names, `lib.bake_colors`). Use the Blender MCP tools (`mcp__Blender__*`, load with ToolSearch) only in a NEW scene, never delete or edit the user's objects, never call `lib.reset()`, never save a `.blend` unless asked. If the structure is wrong (a floating part, bad proportions, a missing detail), stop and say so in the report instead of rebuilding it. Never commit or push.
 
 ## Report (plain text, concise)
 
