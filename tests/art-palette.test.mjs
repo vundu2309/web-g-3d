@@ -82,6 +82,12 @@ test("only the shared light rig creates lights", async () => {
     // _sheet.ts renders the creature contact sheet off screen, outside the sea.
     if (!file.endsWith(".ts") || file === "_sheet.ts") continue;
     const source = readFileSync(`src/ocean/${file}`, "utf8");
+    // The rowing boat's lantern lights its own boat with one point light that reads only the
+    // boat's meshes (`includedOnlyMeshes`), so no other object's shader changes.
+    if (file === "cat-lantern.ts") {
+      assert.match(source, /includedOnlyMeshes/);
+      continue;
+    }
     assert.ok(
       !/new (Hemispheric|Directional|Point|Spot)Light\(/.test(source),
       `${file} adds a light of its own`,

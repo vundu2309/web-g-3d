@@ -1,3 +1,4 @@
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Scene } from "@babylonjs/core/scene";
 import {
   CatBoat,
@@ -5,6 +6,9 @@ import {
   type RowerAssets,
   type RowerKit,
 } from "./cat-boat.ts";
+import { createLampCast, type LampCast } from "./cat-lantern.ts";
+import { beaconLevel } from "./atmosphere.ts";
+import { SEA } from "./sea-atmosphere.ts";
 import {
   boatPose,
   makePlans,
@@ -30,6 +34,8 @@ export class CatFleet {
   private readonly boats = new Map<number, CatBoat>();
   private readonly scene: Scene;
   private readonly options: FleetOptions;
+  private readonly cast: LampCast;
+  private readonly lamp = new Vector3();
   private poses: CatBoatPose[] = [];
   private drawn: CatBoatPose[] = [];
 
@@ -38,6 +44,7 @@ export class CatFleet {
     this.options = options;
     this.kit = createRowerKit(scene, assets);
     this.plans = makePlans();
+    this.cast = createLampCast(scene, this.kit.lit);
   }
 
   /** Where every boat is now (for the minimap). */
@@ -73,6 +80,7 @@ export class CatFleet {
       .slice(0, limit);
     const show = new Set(order.map((item) => item.index));
     this.drawn = [];
+    let nearest: CatBoat | undefined;
     this.plans.forEach((_, index) => {
       const boat = this.boats.get(index);
       if (!show.has(index)) {
@@ -90,12 +98,22 @@ export class CatFleet {
       made.setEnabled(true);
       made.update(pose, time, height);
       this.drawn.push(pose);
+      if (index === order[0]?.index) nearest = made;
     });
+    // The lantern of the nearest boat lights that boat (its cats, oars and hull) at night.
+    if (nearest) {
+      nearest.lampPosition(this.lamp);
+      this.cast.place(
+        this.lamp,
+        beaconLevel(SEA.grade.y, SEA.weather.y, SEA.weather.z),
+      );
+    } else this.cast.place(this.lamp, 0);
   }
 
   dispose() {
     for (const boat of this.boats.values()) boat.dispose();
     this.boats.clear();
+    this.cast.dispose();
     this.kit.dispose();
   }
 }

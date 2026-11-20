@@ -303,6 +303,9 @@
         const { loadRowerAssets, createRowerKit, CatBoat } = await import(
           "/src/ocean/cat-boat.ts"
         );
+        const { createLampCast } = await import("/src/ocean/cat-lantern.ts");
+        const { beaconLevel } = await import("/src/ocean/atmosphere.ts");
+        const { SEA } = await import("/src/ocean/sea-atmosphere.ts");
         try {
           catKit = createRowerKit(scene, await loadRowerAssets(scene));
           // Two boats from the same models (instances), rowing and resting.
@@ -318,6 +321,15 @@
               effort: 0,
             },
           ];
+          const cast = createLampCast(scene, catKit.lit);
+          const lampAt = new Vector3();
+          scene.onBeforeRenderObservable.add(() => {
+            catBoats[0].boat.lampPosition(lampAt);
+            cast.place(
+              lampAt,
+              beaconLevel(SEA.grade.y, SEA.weather.y, SEA.weather.z),
+            );
+          });
           cam.position.set(target.x + 14, 3.6, target.z + 17);
           cam.setTarget(new Vector3(target.x + 7, 1.5, target.z));
           // &catcam=lantern: close to the first boat's bow lantern, from the side and a little ahead.

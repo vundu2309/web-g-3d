@@ -1,4 +1,6 @@
+import { PointLight } from "@babylonjs/core/Lights/pointLight";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
@@ -105,6 +107,38 @@ export function createLantern(
     dispose() {
       light.dispose();
       for (const copy of copies) copy.dispose();
+    },
+  };
+}
+
+/**
+ * The lantern's light on the boat itself: one real warm point light, which only the rowing boats'
+ * meshes read (`includedOnlyMeshes`), so no other object's shader changes. It is moved to the
+ * nearest boat's lantern and is off by day, so a day frame has no extra light anywhere.
+ */
+export interface LampCast {
+  /** Puts the light at `at` (world) with the lamp's brightness `level` (0 off). */
+  place(at: Vector3, level: number): void;
+  dispose(): void;
+}
+
+export function createLampCast(scene: Scene, meshes: Mesh[]): LampCast {
+  const light = new PointLight("cat-lamp-cast", Vector3.Zero(), scene);
+  light.diffuse = new Color3(1, 0.68, 0.32);
+  light.specular = new Color3(0, 0, 0);
+  light.range = 11;
+  light.includedOnlyMeshes = meshes;
+  light.setEnabled(false);
+  return {
+    place(at, level) {
+      const on = level > 0.01;
+      light.setEnabled(on);
+      if (!on) return;
+      light.position.copyFrom(at);
+      light.intensity = 5 * level;
+    },
+    dispose() {
+      light.dispose();
     },
   };
 }

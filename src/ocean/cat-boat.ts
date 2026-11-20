@@ -5,6 +5,7 @@ import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import { poleOf, solveArm, type V3 } from "./arm-ik.ts";
 import {
+  LANTERN,
   LANTERN_PARTS,
   createLantern,
   createLanternKit,
@@ -103,6 +104,8 @@ export async function loadRowerAssets(scene: Scene): Promise<RowerAssets> {
 export interface RowerKit {
   assets: RowerAssets;
   lantern: LanternKit;
+  /** The meshes the lantern's light falls on (the hidden templates the boats instance). */
+  lit: Mesh[];
   /** Once a frame. */
   update(): void;
   dispose(): void;
@@ -124,6 +127,7 @@ export function createRowerKit(scene: Scene, assets: RowerAssets): RowerKit {
   return {
     assets,
     lantern,
+    lit: [...templates, ...lantern.post],
     update: () => lantern.update(),
     dispose() {
       lantern.dispose();
@@ -267,6 +271,18 @@ export class CatBoat {
 
   setEnabled(on: boolean) {
     this.root.setEnabled(on);
+  }
+
+  /** Writes the world position of a point just under the lantern's glass into `out`. */
+  lampPosition(out: Vector3) {
+    this.root.computeWorldMatrix(true);
+    return Vector3.TransformCoordinatesFromFloatsToRef(
+      LANTERN.at.x,
+      LANTERN.at.y - 0.1,
+      LANTERN.at.z,
+      this.root.getWorldMatrix(),
+      out,
+    );
   }
 
   /** Each frame while the boat is near: `height(x, z)` is the sea's height there (m). */
