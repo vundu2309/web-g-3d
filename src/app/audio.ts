@@ -1,3 +1,4 @@
+import { cueVoices, type Cue } from "../ocean/audio-cues";
 import {
   parseAudioSettings,
   soundPlan,
@@ -19,6 +20,8 @@ function noiseBuffer(ctx: AudioContext): AudioBuffer {
 export interface SeaAudio {
   settings(): AudioSettings;
   set(next: Partial<AudioSettings>): void;
+  /** Plays a short sound (a cue); does nothing while sound is off or not yet unlocked. */
+  play(cue: Cue): void;
   /** Call every frame with the state of the sea; cheap (a few parameter ramps). */
   update(input: Omit<SoundInput, "volume" | "enabled">): void;
   dispose(): void;
@@ -50,6 +53,7 @@ export function createSeaAudio(): SeaAudio {
     speed: 0,
     rain: 0,
     gloom: 0,
+    tension: 0,
   };
   let nodes:
     | {
@@ -60,8 +64,14 @@ export function createSeaAudio(): SeaAudio {
         rain: GainNode;
         engine: GainNode;
         engineOsc: OscillatorNode;
+        line: GainNode;
+        lineOsc: OscillatorNode;
+        noise: AudioBuffer;
       }
     | undefined;
+  /** Cues sounding now; a burst of events cannot pile up more than this. */
+  let voicesNow = 0;
+  const MAX_VOICES = 24;
 
   function build(context: AudioContext) {
     const buffer = noiseBuffer(context);
@@ -103,6 +113,14 @@ export function createSeaAudio(): SeaAudio {
       .connect(engine)
       .connect(context.destination);
     engineOsc.start();
+    // The taut line: a thin tone whose pitch rises with the tension.
+    const lineOsc = context.createOscillator();
+    lineOsc.type = "triangle";
+    lineOsc.frequency.value = 220;
+    const line = context.createGain();
+    line.gain.value = 0;
+    lineOsc.connect(line).connect(context.destination);
+    lineOsc.start();
     nodes = {
       swell: swell.gain,
       swellFilter: swell.filter,
@@ -111,6 +129,9 @@ export function createSeaAudio(): SeaAudio {
       rain: rain.gain,
       engine,
       engineOsc,
+      line,
+      lineOsc,
+      noise: buffer,
     };
   }
 
@@ -153,6 +174,54 @@ export function createSeaAudio(): SeaAudio {
     ramp(nodes.rain.gain, plan.rain);
     ramp(nodes.engine.gain, plan.engine);
     ramp(nodes.engineOsc.frequency, plan.enginePitch);
+    ramp(nodes.line.gain, plan.line);
+    ramp(nodes.lineOsc.frequency, plan.linePitch);
+  }
+
+  /** One voice of a cue: built, shaped by a quick attack and an exponential fade, then freed. */
+  function sound(
+    context: AudioContext,
+    buffer: AudioBuffer,
+    voice: ReturnType<typeof cueVoices>[number],
+  ) {
+    const start = context.currentTime + voice.at;
+    const end = start + voice.dur;
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.linearRampToValueAtTime(
+      Math.max(0.0002, voice.gain),
+      start + 0.005,
+    );
+    gain.gain.exponentialRampToValueAtTime(0.0001, end);
+    gain.connect(context.destination);
+    let source: AudioScheduledSourceNode;
+    if (voice.kind === "tone") {
+      const osc = context.createOscillator();
+      osc.type = voice.wave;
+      osc.frequency.setValueAtTime(voice.from, start);
+      if (voice.to !== voice.from)
+        osc.frequency.exponentialRampToValueAtTime(voice.to, end);
+      osc.connect(gain);
+      source = osc;
+    } else {
+      const src = context.createBufferSource();
+      src.buffer = buffer;
+      src.loop = true;
+      const filter = context.createBiquadFilter();
+      filter.type = voice.filter;
+      filter.frequency.setValueAtTime(voice.cutoff, start);
+      if (voice.cutoffTo !== voice.cutoff)
+        filter.frequency.exponentialRampToValueAtTime(voice.cutoffTo, end);
+      src.connect(filter).connect(gain);
+      source = src;
+    }
+    voicesNow++;
+    source.onended = () => {
+      voicesNow--;
+      gain.disconnect();
+    };
+    source.start(start);
+    source.stop(end + 0.02);
   }
 
   return {
@@ -169,6 +238,12 @@ export function createSeaAudio(): SeaAudio {
       }
       resume();
       apply();
+    },
+    play(cue) {
+      if (!ctx || !nodes || ctx.state !== "running" || disposed) return;
+      const voices = cueVoices(cue, settings.volume, settings.enabled);
+      if (!voices.length || voicesNow + voices.length > MAX_VOICES) return;
+      for (const voice of voices) sound(ctx, nodes.noise, voice);
     },
     update(input) {
       last = input;

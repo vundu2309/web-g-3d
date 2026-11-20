@@ -7,7 +7,14 @@ import {
   DEFAULT_AUDIO,
 } from "../src/ocean/audio-plan.ts";
 
-const calm = { speed: 0, rain: 0, gloom: 0, volume: 1, enabled: true };
+const calm = {
+  speed: 0,
+  rain: 0,
+  gloom: 0,
+  tension: 0,
+  volume: 1,
+  enabled: true,
+};
 
 test("off or zero volume is silent", () => {
   assert.equal(soundPlan({ ...calm, enabled: false }), SILENT);
@@ -63,4 +70,14 @@ test("saved settings are read safely", () => {
     parseAudioSettings('{"enabled":"x","volume":"y"}'),
     DEFAULT_AUDIO,
   );
+});
+
+test("the line hums only when it is really pulling, higher as it nears the snap", () => {
+  assert.equal(soundPlan({ ...calm, tension: 0.2 }).line, 0, "slack is silent");
+  const mid = soundPlan({ ...calm, tension: 0.6 });
+  const taut = soundPlan({ ...calm, tension: 1 });
+  assert.ok(mid.line > 0 && taut.line > mid.line);
+  assert.ok(taut.linePitch > mid.linePitch);
+  assert.equal(soundPlan({ ...calm, tension: 1, enabled: false }).line, 0);
+  assert.ok(Number.isFinite(soundPlan({ ...calm, tension: NaN }).line));
 });

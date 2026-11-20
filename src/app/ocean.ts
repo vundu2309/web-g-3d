@@ -356,6 +356,7 @@ export function startOcean(
       if (serverStore)
         void economy?.release(species).catch(() => void refreshStore());
     },
+    sound: (cue) => seaAudio.play(cue),
   });
   // The fish markets: a Bán button near a pier and the hub it opens (server economy only).
   const marketUi = createMarketUi({
@@ -375,6 +376,7 @@ export function startOcean(
       );
       void refreshStore();
     },
+    sound: (cue) => seaAudio.play(cue),
     stock: () => fishStock,
     setStock: (next, caughtOne) => {
       fishStock = next;
@@ -707,6 +709,7 @@ export function startOcean(
         speed: own ? Math.hypot(own.forwardSpeed, own.sideSpeed) : 0,
         rain: SEA.weather.z,
         gloom: SEA.weather.y,
+        tension: fishingUi.lineTension(now),
       });
       const began = performance.now();
       scene.update(

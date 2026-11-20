@@ -12,6 +12,8 @@ export interface SoundInput {
   /** Rain 0..1, cloud gloom 0..1 (from the shared atmosphere). */
   rain: number;
   gloom: number;
+  /** Tension of the fishing line while a fish is on, 0..1 (0 when no fight). */
+  tension: number;
   /** Master volume 0..1 and the on/off switch from Settings. */
   volume: number;
   enabled: boolean;
@@ -25,6 +27,8 @@ export interface SoundPlan {
   rain: number;
   engine: number;
   enginePitch: number;
+  line: number;
+  linePitch: number;
 }
 
 /** Top speed the plan scales against (m/s); boat-physics TOP_SPEED is 18. */
@@ -37,6 +41,8 @@ export const SILENT: SoundPlan = Object.freeze({
   rain: 0,
   engine: 0,
   enginePitch: 38,
+  line: 0,
+  linePitch: 220,
 });
 
 const clamp01 = (v: number) =>
@@ -49,6 +55,8 @@ export function soundPlan(input: SoundInput): SoundPlan {
   const run = clamp01(Math.abs(input.speed) / REFERENCE_SPEED);
   const rain = clamp01(input.rain);
   const gloom = clamp01(input.gloom);
+  // The taut line is heard only once it is really pulling, and rises as it nears the snap.
+  const pull = Math.max(0, (clamp01(input.tension) - 0.25) / 0.75);
   return {
     // A calm sea still murmurs; speed and bad weather make it louder and brighter.
     swell: volume * (0.3 + 0.35 * run + 0.15 * gloom),
@@ -59,6 +67,8 @@ export function soundPlan(input: SoundInput): SoundPlan {
     // The engine idles quietly at rest, which says "the boat is on".
     engine: volume * (0.05 + 0.2 * run),
     enginePitch: 38 + 52 * run,
+    line: volume * 0.08 * pull * pull,
+    linePitch: 220 + 520 * pull,
   };
 }
 

@@ -1,4 +1,5 @@
 import { createHaptics } from "./haptics";
+import type { Cue } from "../ocean/audio-cues";
 import { showFishThumb } from "./fish-thumb";
 import { createHubShell, type HubNav } from "./hub-shell";
 import {
@@ -48,6 +49,8 @@ export interface FishingUiOptions {
   onKeep?: (fish: Catch) => void;
   /** One fish of this species was put back from the store (the server keeps the store). */
   onPutBack?: (species: string) => void;
+  /** Plays a short sound (a cue); absent in tests. */
+  sound?: (cue: Cue) => void;
   /** Test only: runs the tug of war faster (1 is real time). */
   fightSpeed?: number;
 }
@@ -158,6 +161,8 @@ export function createFishingUi(options: FishingUiOptions) {
     options.fightSpeed ?? 1,
   );
 
+  const sound = (cue: Cue) => options.sound?.(cue);
+
   function handle(event: FishingEvent) {
     const scene = options.scene();
     switch (event.type) {
@@ -169,33 +174,42 @@ export function createFishingUi(options: FishingUiOptions) {
         power.classList.add("is-blocked", "is-fizzle");
         shake();
         vibrate([30, 40, 30]);
+        sound("blocked");
         break;
       case "splash":
         scene?.gearRipple();
+        sound("splash");
         break;
       case "nibble":
         scene?.gearRipple();
         vibrate(18);
+        sound("nibble");
         break;
       case "bite":
         scene?.gearRipple();
         place(ring, button.getBoundingClientRect());
         vibrate([70, 40, 70]);
+        sound("bite");
         break;
       case "escaped":
         shake();
         vibrate(40);
+        sound("escape");
         break;
       case "hooked":
         // The fish is on: the hook window's ring is done, the tug of war begins.
         ring.style.display = "none";
         vibrate([40, 30, 40]);
+        sound("hook");
         break;
       case "mood":
         // The surge itself is felt through haptics.tick (a steady buzz).
         break;
       case "lost":
-        if (event.reason !== "cancel") options.scene()?.gearSnap();
+        if (event.reason !== "cancel") {
+          options.scene()?.gearSnap();
+          sound("snap");
+        }
         hideSignals();
         shake();
         haptics.stop();
@@ -207,6 +221,7 @@ export function createFishingUi(options: FishingUiOptions) {
         hideSignals();
         haptics.stop();
         vibrate(30);
+        sound("catch");
         holdFish(event.fish);
         break;
     }
@@ -277,6 +292,8 @@ export function createFishingUi(options: FishingUiOptions) {
       { x: tip.x, z: tip.z },
       castDirection(options.boat().heading),
     );
+    // The line is out (a throw that fizzled leaves the angler idle and has its own sound).
+    if (angler.busy) sound("cast");
   }
 
   /** Keyboard or assistive activation without a held press: a medium throw. */
@@ -458,8 +475,12 @@ export function createFishingUi(options: FishingUiOptions) {
       options.setStock(addCatch(options.stock(), fish).inventory, true);
       options.onKeep?.(fish);
       vibrate(20);
+      sound("keep");
       scene?.leaveFish("keep");
-    } else scene?.leaveFish("drop");
+    } else {
+      sound("drop");
+      scene?.leaveFish("drop");
+    }
   }
 
   function openDialog() {
@@ -552,6 +573,10 @@ export function createFishingUi(options: FishingUiOptions) {
     cancel,
     tick,
     showStock,
+    /** Tension of the line while a fish is on (0..1), 0 otherwise: it drives the line's hum. */
+    lineTension(now: number) {
+      return angler.view(now).fight?.tension ?? 0;
+    },
     /** The line is out: the boat does not drive and others see it fishing. */
     get fishing() {
       return angler.fishing;

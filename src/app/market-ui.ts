@@ -11,6 +11,7 @@ import {
 } from "../platform/economy";
 import { showFishThumb } from "./fish-thumb";
 import { createHubShell, type HubNav } from "./hub-shell";
+import type { Cue } from "../ocean/audio-cues";
 
 /**
  * The fish market on the screen: a Bán button that appears when the boat is near a pier, and
@@ -35,6 +36,8 @@ export interface MarketUiOptions {
    * store must not show it. Not called for a network failure (retried) or "too fast" (retried).
    */
   onRejected?: (fish: SoldFish, failure: EconomyFailure) => void;
+  /** Plays a short sound (a cue); absent in tests. */
+  sound?: (cue: Cue) => void;
 }
 
 const coins = (value: number) => value.toLocaleString("vi-VN");
@@ -134,8 +137,10 @@ export function createMarketUi(options: MarketUiOptions) {
       for (const row of gone) stock = releaseOne(stock, row.species);
       options.setStock(stock, false);
       balance = result.coins;
+      options.sound?.("coin");
       await render(`+${coins(result.earned)} xu`);
     } catch (error) {
+      options.sound?.("error");
       await render(undefined, failureText(error));
     } finally {
       busy = false;
