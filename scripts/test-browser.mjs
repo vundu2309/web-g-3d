@@ -41,6 +41,7 @@ try {
   await run("tests/ocean-fishing-browser.mjs", port);
   await run("tests/ocean-cast-browser.mjs", port);
   await run("tests/ocean-market-browser.mjs", port);
+  await run("tests/ocean-server-store-browser.mjs", port);
   await run("tests/ocean-multiplayer-browser.mjs", port);
   await run("tests/account-signup-browser.mjs", port);
   await dev.close();

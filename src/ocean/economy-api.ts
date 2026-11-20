@@ -1,5 +1,10 @@
 import { CATCH_COOLDOWN_SECONDS, LEDGER_CAP, priceOf } from "./economy.ts";
-import { speciesById } from "./fishing.ts";
+import { speciesById, type Inventory } from "./fishing.ts";
+import { SEA_BOUND } from "./model.ts";
+
+/** The most fish the one-time import moves (the server says the same), and the count it accepts. */
+export const IMPORT_MAX_FISH = 100;
+export const POSE_SAVE_SECONDS = 10;
 
 /**
  * The player's money, as the app sees it: a wallet and a ledger of caught fish kept on the
@@ -17,6 +22,23 @@ export interface LedgerFish {
 export interface EconomyState {
   coins: number;
   ledger: LedgerFish[];
+}
+/**
+ * What the server keeps about the player besides money: fish caught, the heaviest fish of each
+ * species, and where the boat last was. `imported` says the fish store kept on the device has
+ * already been moved to the server (that happens once per account).
+ */
+export interface Profile {
+  caught: number;
+  /** Heaviest fish per species in kg. */
+  records: Record<string, number>;
+  imported: boolean;
+  /** The last saved boat position and how many seconds ago it was saved. */
+  pose?: { x: number; z: number; heading: number; age: number };
+}
+export interface ImportResult {
+  imported: number;
+  already: boolean;
 }
 export interface SoldFish {
   species: string;
@@ -52,6 +74,14 @@ export interface EconomyApi {
   recordCatch(fish: SoldFish): Promise<void>;
   /** Sells the listed fish, or everything when `fish` is null. */
   sell(fish: readonly SoldFish[] | null): Promise<SellResult>;
+  /** The profile (counts, records, boat position). */
+  profile(): Promise<Profile>;
+  /** Puts the lightest fish of a species back in the sea (it pays nothing). */
+  release(species: string): Promise<void>;
+  /** Saves where the boat is; the server keeps at most one save every 10 seconds. */
+  savePose(pose: { x: number; z: number; heading: number }): Promise<void>;
+  /** Moves the fish store kept on the device to the server, once per account. */
+  importLocal(fish: Inventory, caught: number): Promise<ImportResult>;
 }
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
@@ -65,6 +95,10 @@ export function memoryEconomy(
   let lastCatch: number | undefined;
   let nextId = 1;
   let ledger: { id: number; species: string; kg: number }[] = [];
+  let caught = 0;
+  let records: Record<string, number> = {};
+  let imported = false;
+  let pose: { x: number; z: number; heading: number; at: number } | undefined;
   const priced = (row: {
     id: number;
     species: string;
@@ -90,6 +124,78 @@ export function memoryEconomy(
       if (ledger.length >= LEDGER_CAP) throw new EconomyError("full");
       ledger.push({ id: nextId++, species: fish.species, kg });
       lastCatch = now();
+      caught = Math.min(1_000_000, caught + 1);
+      records = {
+        ...records,
+        [fish.species]: Math.max(records[fish.species] ?? 0, kg),
+      };
+    },
+    async profile() {
+      return {
+        caught,
+        records: { ...records },
+        imported,
+        pose: pose && {
+          x: pose.x,
+          z: pose.z,
+          heading: pose.heading,
+          age: Math.round((now() - pose.at) / 1000),
+        },
+      };
+    },
+    async release(species) {
+      const lightest = ledger
+        .filter((row) => row.species === species)
+        .sort((a, b) => a.kg - b.kg || a.id - b.id)[0];
+      if (!lightest) throw new EconomyError("invalid");
+      ledger = ledger.filter((row) => row !== lightest);
+    },
+    async savePose(next) {
+      const ok = [next.x, next.z, next.heading].every(Number.isFinite);
+      if (
+        !ok ||
+        Math.abs(next.x) > SEA_BOUND ||
+        Math.abs(next.z) > SEA_BOUND ||
+        Math.abs(next.heading) > 3.2
+      )
+        throw new EconomyError("invalid");
+      if (pose && now() - pose.at < POSE_SAVE_SECONDS * 1000) return;
+      pose = { x: next.x, z: next.z, heading: next.heading, at: now() };
+    },
+    async importLocal(fish, count) {
+      if (imported) return { imported: 0, already: true };
+      let moved = 0;
+      const claimed = (stock: { n?: unknown }) =>
+        Math.max(0, Math.min(100, Math.floor(Number(stock.n) || 0)));
+      const valid = Object.entries(fish)
+        .filter(([id, stock]) => speciesById(id) && stock)
+        .sort(([a], [b]) => (a < b ? -1 : 1));
+      const total = valid.reduce((sum, [, stock]) => sum + claimed(stock), 0);
+      const room = Math.max(
+        0,
+        Math.min(IMPORT_MAX_FISH, LEDGER_CAP - ledger.length),
+      );
+      // More claimed than fits: every species is cut by the same ratio.
+      const factor = total > room ? room / total : 1;
+      for (const [id, stock] of valid) {
+        const species = speciesById(id)!;
+        const n = Math.floor(claimed(stock) * factor);
+        for (let i = 0; i < n; i++)
+          ledger.push({ id: nextId++, species: id, kg: species.kg[0] });
+        moved += n;
+        const best = Number(stock.best);
+        if (Number.isFinite(best) && best >= species.kg[0])
+          records[id] = Math.max(
+            records[id] ?? 0,
+            round2(Math.min(best, species.kg[1])),
+          );
+      }
+      caught = Math.max(
+        caught,
+        Math.min(1_000_000, Math.max(0, Math.floor(count) || 0)),
+      );
+      imported = true;
+      return { imported: moved, already: false };
     },
     async sell(fish) {
       const picked: number[] = [];

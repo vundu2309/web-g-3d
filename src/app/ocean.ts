@@ -14,7 +14,8 @@ import { createBoatControl } from "../ocean/boat-control";
 import { FramePacer } from "../ocean/frame-pacing";
 import { bindInputLayer, type InputTarget } from "../ocean/input-layer";
 import { RemoteTracks, ServerClock } from "../ocean/remote";
-import { stockTotal, type Inventory } from "../ocean/fishing";
+import { releaseOne, stockTotal, type Inventory } from "../ocean/fishing";
+import { inventoryFrom } from "../ocean/server-store";
 import { createFishingUi } from "./fishing-ui";
 import { createMarketUi } from "./market-ui";
 import { createWeatherTestSection } from "./settings-weather";
@@ -46,7 +47,13 @@ import {
   renewableSessionMessage,
   type RetryOptions,
 } from "../ocean/connect";
-import { decodeSave, encodeSave, saveKey } from "../ocean/save";
+import {
+  decodeSave,
+  encodeSave,
+  safePose,
+  saveKey,
+  type RestoredSea,
+} from "../ocean/save";
 
 type Connection = Awaited<ReturnType<typeof connectOcean>>;
 export interface OceanOptions {
@@ -195,6 +202,16 @@ export function startOcean(
   let lastPose = "";
   let clockOffset = 0;
   let caught = 0;
+  // The server economy (none without VITE_ECONOMY: then no market and the store stays on the device).
+  const economy =
+    options.economy ?? (economyEnabled() ? supabaseEconomy() : undefined);
+  /**
+   * True when the SERVER keeps the fish store, the records, the catch count and the boat's
+   * position (decision 0016). False without an economy, or when the profile could not be read
+   * (migration not applied, no network): then the store stays on the device as before.
+   */
+  let serverStore = false;
+  let lastPoseSave = 0;
   let reconnecting = false;
   let connectFn: typeof connectOcean | undefined;
   let selfUid = "";
@@ -225,9 +242,60 @@ export function startOcean(
         z: pose.z,
         heading: pose.heading,
         caught,
-        fish: fishStock,
+        // The server holds the store: no second copy here that could be imported again.
+        fish: serverStore ? {} : fishStock,
       }),
     );
+    // The boat's position goes to the server too, at most every 30 s (it keeps one per 10 s).
+    const now = performance.now();
+    if (serverStore && economy && now - lastPoseSave > 30_000) {
+      lastPoseSave = now;
+      void economy.savePose(pose).catch(() => {});
+    }
+  }
+
+  /** Reads the store, records and count from the server again (after a failed call). */
+  async function refreshStore() {
+    if (!economy || !serverStore || disposed) return;
+    try {
+      const [profile, state] = await Promise.all([
+        economy.profile(),
+        economy.state(),
+      ]);
+      if (disposed) return;
+      fishStock = inventoryFrom(state.ledger, profile.records);
+      caught = profile.caught;
+      showStockCount();
+    } catch {
+      /* The device copy stays; the next refresh tries again. */
+    }
+  }
+
+  /**
+   * Enters with the server's store: the profile and the unsold fish. The first time, the fish
+   * store kept on this device is moved to the server (once per account, see the migration).
+   * Undefined when the server cannot say (the store then stays on the device).
+   */
+  async function loadServerStore(local: RestoredSea) {
+    if (!economy) return undefined;
+    try {
+      const read = async () =>
+        Promise.all([economy.profile(), economy.state()]);
+      let [profile, state] = await read();
+      if (!profile.imported) {
+        await economy.importLocal(local.fish, local.caught);
+        [profile, state] = await read();
+      }
+      return {
+        caught: profile.caught,
+        fish: inventoryFrom(state.ledger, profile.records),
+        pose: profile.pose
+          ? safePose(profile.pose.x, profile.pose.z, profile.pose.heading)
+          : undefined,
+      };
+    } catch {
+      return undefined;
+    }
   }
   /** The fish store: what is held now (and records), saved with the boat. */
   let fishStock: Inventory = {};
@@ -284,13 +352,29 @@ export function startOcean(
     reduced,
     hubs: hubNav,
     onKeep: (fish) => marketUi.recordCatch(fish),
+    onPutBack: (species) => {
+      if (serverStore)
+        void economy?.release(species).catch(() => void refreshStore());
+    },
   });
   // The fish markets: a Bán button near a pier and the hub it opens (server economy only).
   const marketUi = createMarketUi({
     button: root.querySelector<HTMLButtonElement>('[data-ocean="market"]')!,
     dialog,
-    economy:
-      options.economy ?? (economyEnabled() ? supabaseEconomy() : undefined),
+    economy,
+    onRejected: (fish, failure) => {
+      // The server will not hold this fish: take it out of the store and say why.
+      fishStock = releaseOne(fishStock, fish.species);
+      caught = Math.max(0, caught - 1);
+      showStockCount();
+      persist();
+      notify(
+        failure === "full"
+          ? "Kho đã đầy (200 con): hãy bán bớt cá ở chợ."
+          : "Con cá này chưa vào kho được.",
+      );
+      void refreshStore();
+    },
     stock: () => fishStock,
     setStock: (next, caughtOne) => {
       fishStock = next;
@@ -902,7 +986,7 @@ export function startOcean(
     return value;
   })();
   Promise.all([graphics, connecting])
-    .then(([created, value]) => {
+    .then(async ([created, value]) => {
       if (disposed || network.signal.aborted) {
         value.dispose();
         return;
@@ -912,9 +996,13 @@ export function startOcean(
       // (whatever start pose the server assigns, the client's own wins once published).
       selfUid = value.uid;
       const restored = decodeSave(stored.read(saveKey(value.uid)));
-      pose = restored.pose ?? spawn(value.uid);
-      caught = restored.caught;
-      fishStock = restored.fish;
+      const remote = await loadServerStore(restored);
+      if (disposed) return;
+      serverStore = remote !== undefined;
+      pose = remote?.pose ?? restored.pose ?? spawn(value.uid);
+      caught = remote ? remote.caught : restored.caught;
+      fishStock = remote ? remote.fish : restored.fish;
+      if (serverStore) persist();
       showStockCount();
       created.spawnSelf(value.uid, "Bạn", pose);
       step("enter", "done");
@@ -941,7 +1029,10 @@ export function startOcean(
     disposed = true;
     clearTimeout(graphicsTimer);
     clearTimeout(quietTimer);
+    // Leaving: save the boat now, whatever was saved a moment ago.
+    lastPoseSave = 0;
     persist();
+    marketUi.dispose();
     fishingUi.dispose();
     seaAudio.dispose();
     cancelAnimationFrame(frame);

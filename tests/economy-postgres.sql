@@ -127,5 +127,123 @@ do $$begin
   begin perform public.economy_record_catch('ca-com', 0.1); raise exception 'ledger cap not enforced';
   exception when program_limit_exceeded then null; end;
 end$$;
+
+-- ===== Profile (20261120120000_profile.sql) =====
+reset role;
+delete from economy_private.ledger;
+update economy_private.wallets set last_catch_at = null;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a2', true);
+
+-- Nobody signed in: the new calls are refused too.
+select set_config('request.jwt.claim.sub', '', true);
+do $$begin
+  begin perform public.economy_profile(); raise exception 'anonymous profile accepted';
+  exception when insufficient_privilege then null; end;
+  begin perform public.economy_save_pose(1, 1, 0); raise exception 'anonymous pose accepted';
+  exception when insufficient_privilege then null; end;
+  begin perform public.economy_release('ca-ngu'); raise exception 'anonymous release accepted';
+  exception when insufficient_privilege then null; end;
+  begin perform public.economy_import_local('{}'::jsonb, 0); raise exception 'anonymous import accepted';
+  exception when insufficient_privilege then null; end;
+end$$;
+do $$begin
+  begin perform * from economy_private.profiles; raise exception 'profile read accepted';
+  exception when insufficient_privilege then null; end;
+end$$;
+
+-- A new profile is empty; catches count and set records, a lighter fish does not.
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a2', true);
+do $$declare p jsonb; r jsonb; begin
+  p := public.economy_profile();
+  if (p->>'caught')::int <> 0 or p->'records' <> '{}'::jsonb or p->'pose' <> 'null'::jsonb or (p->>'imported')::boolean then
+    raise exception 'new profile %', p;
+  end if;
+  r := public.economy_record_catch('ca-ngu', 12.34);
+  if not (r->>'record')::boolean then raise exception 'first catch is a record'; end if;
+end$$;
+reset role;
+update economy_private.wallets set last_catch_at = clock_timestamp() - interval '7 seconds';
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a2', true);
+do $$declare r jsonb; p jsonb; begin
+  r := public.economy_record_catch('ca-ngu', 8.5);
+  if (r->>'record')::boolean then raise exception 'a lighter fish set a record'; end if;
+  p := public.economy_profile();
+  if (p->>'caught')::int <> 2 or (p->'records'->>'ca-ngu')::numeric <> 12.34 then raise exception 'profile after catches %', p; end if;
+end$$;
+
+-- Putting a fish back removes the LIGHTEST of that species and pays nothing; none held is refused.
+do $$declare s jsonb; begin
+  perform public.economy_release('ca-ngu');
+  s := public.economy_state();
+  if jsonb_array_length(s->'ledger') <> 1 or (s->'ledger'->0->>'kg')::numeric <> 12.34 or (s->>'coins')::bigint <> 0 then
+    raise exception 'release removed the wrong fish or paid: %', s;
+  end if;
+  begin perform public.economy_release('ca-map'); raise exception 'released a fish never held';
+  exception when invalid_parameter_value then null; end;
+  begin perform public.economy_release('no-such'); raise exception 'released an unknown species';
+  exception when invalid_parameter_value then null; end;
+  -- The record stays after the fish is gone.
+  if (public.economy_profile()->'records'->>'ca-ngu')::numeric <> 12.34 then raise exception 'record lost'; end if;
+end$$;
+
+-- The boat's position: validated, one write per 10 s (the next is ignored, not an error).
+do $$declare r jsonb; p jsonb; begin
+  begin perform public.economy_save_pose(99999, 0, 0); raise exception 'far position accepted';
+  exception when invalid_parameter_value then null; end;
+  begin perform public.economy_save_pose(0, 0, 9); raise exception 'bad heading accepted';
+  exception when invalid_parameter_value then null; end;
+  begin perform public.economy_save_pose(null, 0, 0); raise exception 'null position accepted';
+  exception when invalid_parameter_value then null; end;
+  r := public.economy_save_pose(10.5, -20.25, 1.5);
+  if not (r->>'saved')::boolean then raise exception 'first pose not saved'; end if;
+  r := public.economy_save_pose(500, 500, 0);
+  if (r->>'saved')::boolean then raise exception 'second pose within 10 s was saved'; end if;
+  p := public.economy_profile()->'pose';
+  if (p->>'x')::numeric <> 10.5 or (p->>'z')::numeric <> -20.25 or (p->>'heading')::numeric <> 1.5 then raise exception 'pose %', p; end if;
+end$$;
+
+-- Importing the device's old store: once, bounded, lightest weights, records from "best".
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+reset role;
+delete from economy_private.ledger where user_id = '00000000-0000-0000-0000-0000000000a1';
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+do $$declare r jsonb; s jsonb; p jsonb; begin
+  r := public.economy_import_local(
+    '{"ca-ngu": {"n": 3, "best": 20.5}, "ca-com": {"n": 2, "best": 99}, "no-such": {"n": 5, "best": 1}, "ca-thu": "x", "ca-map": {"n": "many"}}'::jsonb, 40);
+  if (r->>'imported')::int <> 5 or (r->>'already')::boolean then raise exception 'import result %', r; end if;
+  s := public.economy_state();
+  if jsonb_array_length(s->'ledger') <> 5 then raise exception 'ledger after import %', s; end if;
+  -- Every moved fish has the species' lightest weight (ca-ngu 5 kg, ca-com 0.05 kg).
+  if exists (select 1 from jsonb_array_elements(s->'ledger') e
+    where not ((e->>'species' = 'ca-ngu' and (e->>'kg')::numeric = 5) or (e->>'species' = 'ca-com' and (e->>'kg')::numeric = 0.05))) then
+    raise exception 'imported weights %', s;
+  end if;
+  p := public.economy_profile();
+  -- A record above the species' heaviest fish is clamped to it (ca-com tops out at 0.2).
+  if (p->'records'->>'ca-ngu')::numeric <> 20.5 or (p->'records'->>'ca-com')::numeric <> 0.2 then raise exception 'records %', p->'records'; end if;
+  if p->'records' ? 'no-such' then raise exception 'unknown species got a record'; end if;
+  if (p->>'caught')::int <> 40 or not (p->>'imported')::boolean then raise exception 'caught/imported %', p; end if;
+  -- A second import changes nothing.
+  r := public.economy_import_local('{"ca-ngu": {"n": 50, "best": 40}}'::jsonb, 9999);
+  if (r->>'imported')::int <> 0 or not (r->>'already')::boolean then raise exception 'second import %', r; end if;
+  if jsonb_array_length(public.economy_state()->'ledger') <> 5 or (public.economy_profile()->>'caught')::int <> 40 then raise exception 'second import changed the profile'; end if;
+end$$;
+
+-- A huge import is capped at 100 fish (and the ledger's 200), and the caught count at one million.
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a3', true);
+reset role;
+insert into auth.users(id) values ('00000000-0000-0000-0000-0000000000a3');
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a3', true);
+do $$declare r jsonb; begin
+  r := public.economy_import_local('{"ca-map": {"n": 9999, "best": 400}, "ca-ngu": {"n": 9999, "best": 45}}'::jsonb, 2000000000);
+  if (r->>'imported')::int <> 100 then raise exception 'import not capped: %', r; end if;
+  if jsonb_array_length(public.economy_state()->'ledger') <> 100 then raise exception 'ledger not capped'; end if;
+  if (select count(*) from jsonb_array_elements(public.economy_state()->'ledger') e where e->>'species' = 'ca-map') <> 50 then raise exception 'species not cut by the same ratio'; end if;
+  if (public.economy_profile()->>'caught')::int <> 1000000 then raise exception 'caught not capped'; end if;
+end$$;
 rollback;
 select 'economy ok' as result;

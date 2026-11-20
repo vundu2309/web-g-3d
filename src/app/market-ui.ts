@@ -1,8 +1,10 @@
+import { CATCH_COOLDOWN_SECONDS } from "../ocean/economy";
 import { heldSpecies, releaseOne, type Inventory } from "../ocean/fishing";
 import { marketAt, type Market } from "../ocean/market";
 import {
   EconomyError,
   type EconomyApi,
+  type EconomyFailure,
   type EconomyState,
   type LedgerFish,
   type SoldFish,
@@ -28,6 +30,11 @@ export interface MarketUiOptions {
   beforeOpen: () => void;
   /** The tabs of the hub shell: the way to the fish store, crew and settings pages. */
   hubs: HubNav;
+  /**
+   * The server refused a kept fish for good (the ledger is full, or the fish is not valid): the
+   * store must not show it. Not called for a network failure (retried) or "too fast" (retried).
+   */
+  onRejected?: (fish: SoldFish, failure: EconomyFailure) => void;
 }
 
 const coins = (value: number) => value.toLocaleString("vi-VN");
@@ -65,6 +72,8 @@ export function createMarketUi(options: MarketUiOptions) {
   let open: Market | undefined;
   /** Catches that could not be told to the server (no network): retried when the hub opens. */
   const pending: SoldFish[] = [];
+  /** Timers of catches waiting out the six second rule. */
+  const retries = new Set<number>();
   let busy = false;
   let balance: number | undefined;
 
@@ -251,12 +260,26 @@ export function createMarketUi(options: MarketUiOptions) {
       await render();
     },
     /** A fish was landed and kept: tell the server (retried later if the network fails). */
-    recordCatch(fish: SoldFish) {
+    recordCatch(fish: SoldFish, attempt = 0) {
       if (!economy) return;
       void economy.recordCatch(fish).catch((error) => {
-        if (error instanceof EconomyError && error.failure === "network")
-          pending.push(fish);
+        if (!(error instanceof EconomyError)) return;
+        if (error.failure === "network") pending.push(fish);
+        // Two catches in under six seconds: the second is told again once the wait is over.
+        else if (error.failure === "fast" && attempt < 3)
+          retries.add(
+            window.setTimeout(
+              () => this.recordCatch(fish, attempt + 1),
+              (CATCH_COOLDOWN_SECONDS + 0.5) * 1000,
+            ),
+          );
+        else if (error.failure !== "closed" && error.failure !== "signin")
+          options.onRejected?.(fish, error.failure);
       });
+    },
+    dispose() {
+      for (const id of retries) window.clearTimeout(id);
+      retries.clear();
     },
     get enabled() {
       return !!economy;

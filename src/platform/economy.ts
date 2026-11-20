@@ -2,6 +2,8 @@ import {
   EconomyError,
   type EconomyApi,
   type EconomyState,
+  type ImportResult,
+  type Profile,
   type SellResult,
 } from "../ocean/economy-api";
 
@@ -56,6 +58,22 @@ export function supabaseEconomy(): EconomyApi {
         p_kg: round2(fish.kg),
       });
     },
+    profile: () => call<Profile>("economy_profile"),
+    async release(species) {
+      await call("economy_release", { p_species: species });
+    },
+    async savePose(pose) {
+      await call("economy_save_pose", {
+        p_x: round2(pose.x),
+        p_z: round2(pose.z),
+        p_heading: Math.round(pose.heading * 1000) / 1000,
+      });
+    },
+    importLocal: (fish, caught) =>
+      call<ImportResult>("economy_import_local", {
+        p_fish: fish,
+        p_caught: Math.max(0, Math.floor(caught)),
+      }),
     sell: (fish) =>
       call<SellResult>("economy_sell", {
         p_fish: fish

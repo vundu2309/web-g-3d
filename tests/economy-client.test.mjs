@@ -73,3 +73,107 @@ test("the ledger holds at most 200 unsold fish", async () => {
   time.tick(10);
   await fails(money.recordCatch({ species: "ca-madeka", kg: 0.02 }), "full");
 });
+
+// ----- The profile kept on the server (docs/decisions/0016-server-profile.md) -----
+
+test("a catch counts and sets a record; a lighter fish of the same species does not", async () => {
+  const time = clock();
+  const money = memoryEconomy({ now: time.now });
+  time.tick(10);
+  await money.recordCatch({ species: "tom-hum", kg: 3 });
+  time.tick(10);
+  await money.recordCatch({ species: "tom-hum", kg: 1.5 });
+  const profile = await money.profile();
+  assert.equal(profile.caught, 2);
+  assert.equal(profile.records["tom-hum"], 3);
+  assert.equal(profile.imported, false);
+  assert.equal(profile.pose, undefined);
+});
+
+test("putting a fish back removes the lightest of that species, pays nothing and keeps the record", async () => {
+  const time = clock();
+  const money = memoryEconomy({ now: time.now });
+  for (const kg of [4, 1, 2.5]) {
+    time.tick(10);
+    await money.recordCatch({ species: "tom-hum", kg });
+  }
+  await money.release("tom-hum");
+  const state = await money.state();
+  assert.deepEqual(state.ledger.map((f) => f.kg).sort(), [2.5, 4]);
+  assert.equal(state.coins, 0);
+  assert.equal((await money.profile()).records["tom-hum"], 4);
+  await fails(money.release("ca-map"), "invalid");
+});
+
+test("the boat position is checked and saved at most once every ten seconds", async () => {
+  const time = clock();
+  const money = memoryEconomy({ now: time.now });
+  time.tick(100);
+  await fails(money.savePose({ x: 99999, z: 0, heading: 0 }), "invalid");
+  await fails(money.savePose({ x: 0, z: 0, heading: 9 }), "invalid");
+  await fails(money.savePose({ x: NaN, z: 0, heading: 0 }), "invalid");
+  await money.savePose({ x: 10, z: -20, heading: 1 });
+  time.tick(5);
+  await money.savePose({ x: 500, z: 500, heading: 0 });
+  assert.deepEqual(
+    { ...(await money.profile()).pose, age: 0 },
+    { x: 10, z: -20, heading: 1, age: 0 },
+    "the second save inside ten seconds is ignored",
+  );
+  time.tick(6);
+  await money.savePose({ x: 500, z: 500, heading: 0 });
+  assert.equal((await money.profile()).pose.x, 500);
+});
+
+test("the old store on the device moves once, at the lightest weight, bounded", async () => {
+  const money = memoryEconomy();
+  const lobster = SPECIES.find((s) => s.id === "tom-hum");
+  const result = await money.importLocal(
+    {
+      "tom-hum": { n: 9999, best: 4.2 },
+      "ca-map": { n: 9999, best: 9999 },
+      "no-such": { n: 5, best: 1 },
+    },
+    40,
+  );
+  assert.equal(result.already, false);
+  assert.equal(result.imported, 100, "at most 100 fish move");
+  const state = await money.state();
+  const lobsters = state.ledger.filter((f) => f.species === "tom-hum");
+  assert.equal(lobsters.length, 50, "each species is cut by the same ratio");
+  assert.ok(
+    lobsters.every((f) => f.kg === lobster.kg[0]),
+    "lightest weight",
+  );
+  assert.ok(state.ledger.every((f) => f.species !== "no-such"));
+  const profile = await money.profile();
+  assert.equal(profile.records["tom-hum"], 4.2);
+  assert.ok(
+    profile.records["ca-map"] <= SPECIES.find((s) => s.id === "ca-map").kg[1],
+    "a record above the heaviest possible fish is clamped",
+  );
+  assert.equal(profile.caught, 40);
+  assert.equal(profile.imported, true);
+  // A second import changes nothing.
+  const again = await money.importLocal({ "tom-hum": { n: 50, best: 5 } }, 999);
+  assert.deepEqual(again, { imported: 0, already: true });
+  assert.equal((await money.state()).ledger.length, 100);
+  assert.equal((await money.profile()).caught, 40);
+});
+
+test("an old store that fits moves whole, every fish at its species' lightest weight", async () => {
+  const money = memoryEconomy();
+  const result = await money.importLocal(
+    { "tom-hum": { n: 3, best: 4.2 }, "ca-map": { n: 2, best: 0 } },
+    5,
+  );
+  assert.equal(result.imported, 5);
+  const state = await money.state();
+  assert.equal(state.ledger.filter((f) => f.species === "tom-hum").length, 3);
+  assert.equal(state.ledger.filter((f) => f.species === "ca-map").length, 2);
+  assert.equal(
+    (await money.profile()).records["ca-map"],
+    undefined,
+    "a best of 0 is no record",
+  );
+});

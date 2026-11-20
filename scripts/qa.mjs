@@ -18,6 +18,7 @@ const GROUPS = {
     "ocean-fishing",
     "ocean-cast",
     "ocean-market",
+    "ocean-server-store",
     "ocean-input",
     "ocean-steer",
     "ocean-stick",

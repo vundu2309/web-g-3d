@@ -21,4 +21,6 @@ grant usage on schema auth to authenticated, anon;
 grant usage on schema public to authenticated, anon;
 SQL
 psql -v ON_ERROR_STOP=1 -q -d "$DB" -f supabase/migrations/20261113032223_economy.sql
+psql -v ON_ERROR_STOP=1 -q -d "$DB" -f supabase/migrations/20261118120000_sea_species.sql
+psql -v ON_ERROR_STOP=1 -q -d "$DB" -f supabase/migrations/20261120120000_profile.sql
 psql -v ON_ERROR_STOP=1 -q -t -d "$DB" -f tests/economy-postgres.sql | grep -v '^$' | tail -2

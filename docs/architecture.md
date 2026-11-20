@@ -31,7 +31,7 @@ Whether a new account must confirm its email is a Supabase Auth project setting;
 
 ## Data
 
-Per device (localStorage, `src/ocean/save.ts`): boat position, the fish store and the catch count. On the server: Supabase Auth users, and the economy schema `economy_private` (wallets, ledger, prices) behind three authenticated RPCs ([decision 0010](decisions/0010-server-economy.md)). The `hub_private` schema from the removed rooms hub may still exist in the live database (see decision 0012).
+On the server: Supabase Auth users, and the economy schema `economy_private` (wallets, the ledger of unsold fish, prices, and the profile: catch count, record weights, boat position) behind authenticated RPCs ([decision 0010](decisions/0010-server-economy.md), [decision 0016](decisions/0016-server-profile.md)). Per device (localStorage, `src/ocean/save.ts`) only as a fallback while the profile is not available: boat position, the fish store and the catch count. The `hub_private` schema from the removed rooms hub may still exist in the live database (see decision 0012).
 
 ## Installable static shell
 

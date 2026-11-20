@@ -46,6 +46,8 @@ export interface FishingUiOptions {
   hubs: HubNav;
   /** A landed fish was kept (the market tells the server about it). */
   onKeep?: (fish: Catch) => void;
+  /** One fish of this species was put back from the store (the server keeps the store). */
+  onPutBack?: (species: string) => void;
   /** Test only: runs the tug of war faster (1 is real time). */
   fightSpeed?: number;
 }
@@ -523,6 +525,7 @@ export function createFishingUi(options: FishingUiOptions) {
         '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v9M8.5 9 12 12.5 15.5 9"/><path d="M3 17c3-3 6 3 9 0s6 3 9 0"/></svg>';
       free.addEventListener("click", () => {
         options.setStock(releaseOne(options.stock(), species.id), false);
+        options.onPutBack?.(species.id);
         renderStock();
         dialog.querySelector<HTMLButtonElement>(".fish-release")?.focus();
       });
