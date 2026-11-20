@@ -18,6 +18,12 @@ export const PROBES = [
     label: "Nước trong suốt kiểu đọc độ sâu (thử)",
     feature: false,
   },
+  {
+    name: "cats",
+    off: "1",
+    label: "Thuyền mèo chèo (thử)",
+    feature: false,
+  },
 ] as const;
 
 const stored = (): Record<string, string> => {
