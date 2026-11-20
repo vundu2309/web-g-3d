@@ -4,6 +4,7 @@ import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import { poleOf, solveArm, type V3 } from "./arm-ik.ts";
+import { CAT_SCALE } from "./cat-pose.ts";
 import { createLantern, type Lantern } from "./cat-lantern.ts";
 import {
   loadMergedModel,
@@ -32,6 +33,9 @@ export function stroke(phase: number) {
     lean: 0.18 * Math.cos(a),
   };
 }
+
+/** The crew is drawn this much larger than its model (1 = life size for a small cat): the market cats are drawn at `CAT_SCALE`, and cats of 0.93 m next to the 7.4 m fishing boat looked tiny. */
+export const CREW_SCALE = CAT_SCALE;
 
 /** The layout of the models (boat space: x starboard, y up, z toward the stern; the bow is -Z). Numbers from tools/blender/rowers.py. */
 export const RIG = {
@@ -130,6 +134,7 @@ export class CatBoat {
     this.at = at;
     this.yaw = yaw;
     this.root = new TransformNode("cat-boat", scene);
+    this.root.scaling.setAll(CREW_SCALE);
     assets.hull.parent = this.root;
     this.lantern = createLantern(scene, this.root);
     const make = (
@@ -185,12 +190,13 @@ export class CatBoat {
     const { x, z } = this.at;
     const sin = Math.sin(this.yaw);
     const cos = Math.cos(this.yaw);
-    const fore = height(x - sin * 1.8, z - cos * 1.8);
-    const aft = height(x + sin * 1.8, z + cos * 1.8);
-    this.root.position.set(x, height(x, z) + RIG.lift, z);
+    const reach = 1.8 * CREW_SCALE;
+    const fore = height(x - sin * reach, z - cos * reach);
+    const aft = height(x + sin * reach, z + cos * reach);
+    this.root.position.set(x, height(x, z) + RIG.lift * CREW_SCALE, z);
     this.root.rotation.y = this.yaw;
     // The bow is -Z: a rise at the bow tilts the boat about X.
-    this.root.rotation.x = Math.atan2(aft - fore, 3.6) * -1;
+    this.root.rotation.x = Math.atan2(aft - fore, 2 * reach) * -1;
     this.root.rotation.z = 0.03 * Math.sin(time * 0.8);
     this.lantern.update();
     const pose = stroke(time / STROKE);

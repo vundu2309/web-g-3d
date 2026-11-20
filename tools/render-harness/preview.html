@@ -305,8 +305,8 @@
         try {
           const assets = await loadRowerAssets(scene);
           catBoat = new CatBoat(scene, assets, { x: target.x, z: target.z });
-          cam.position.set(target.x + 5, 2.6, target.z + 8);
-          cam.setTarget(new Vector3(target.x, 1.0, target.z));
+          cam.position.set(target.x + 8, 3.6, target.z + 13);
+          cam.setTarget(new Vector3(target.x, 1.5, target.z));
           window.__cats = "loaded";
         } catch (error) {
           window.__cats = "failed: " + error;
