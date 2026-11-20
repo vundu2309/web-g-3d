@@ -657,6 +657,15 @@ export function startOcean(
     page.append(head, body, foot);
     if (!dialog.open) dialog.showModal();
   }
+  /** Sends the pose to the sea (the server's "too fast" reply is harmless; anything else ends the session). */
+  function publishPose(now: number, serialized: string) {
+    lastPublish = now;
+    lastPose = serialized;
+    void connection?.publish(pose).catch((error: unknown) => {
+      if (error instanceof HubError && /quá nhanh/.test(error.message)) return;
+      connectionLost(error);
+    });
+  }
   function visibleBoats() {
     return boats.filter(
       (boat) =>
@@ -708,16 +717,21 @@ export function startOcean(
       if (
         now - lastPublish >= (connection?.sendMs ?? 1000) &&
         (serialized !== lastPose || now - lastPublish >= 10000)
-      ) {
-        lastPublish = now;
-        lastPose = serialized;
-        void connection?.publish(pose).catch((error: unknown) => {
-          // The server's "too fast" reply is harmless; anything else ends the session.
-          if (error instanceof HubError && /quá nhanh/.test(error.message))
-            return;
-          connectionLost(error);
-        });
-      }
+      )
+        publishPose(now, serialized);
+    } else if (active && !document.hidden && now - lastPublish >= 10000) {
+      // A hub is open (the market, the store, Settings): the boat is still in the sea, at rest where
+      // it was, and the others hide a boat that has been silent for PRESENCE_MS, so it keeps
+      // announcing itself. A hidden page draws and sends nothing.
+      const state = scene?.selfState();
+      if (state)
+        pose = {
+          x: Math.max(-SEA_BOUND, Math.min(SEA_BOUND, state.x)),
+          z: Math.max(-SEA_BOUND, Math.min(SEA_BOUND, state.z)),
+          heading: state.heading,
+          fishing: pose.fishing,
+        };
+      publishPose(now, poseKey(pose));
     }
     const visible = active || reconnecting ? visibleBoats() : [];
     const text = active
