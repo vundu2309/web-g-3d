@@ -516,5 +516,61 @@ do $$declare b jsonb; begin
   -- b3 (7 fish) is behind the 25 new players, 2 tied leaders and b5: rank 29.
   if (b->'caught'->'me'->>'rank')::int <> 29 then raise exception 'rank off the top %', b->'caught'->'me'; end if;
 end$$;
+
+-- ---------------------------------------------------------------------------------------------
+-- Parked boats (supabase/migrations/20261121130000_parked_boats.sql): the last positions of the
+-- OTHER accounts seen within 7 days. b1 is recent and has a boat of tier 2, b2 was last seen 8 days
+-- ago, b3 never saved a position, b4 is the player asking.
+reset role;
+delete from economy_private.profiles; -- the earlier checks left others behind; this block counts exactly
+insert into auth.users(id, raw_user_meta_data) values
+  ('00000000-0000-0000-0000-0000000000c1', '{"display_name": "  Thuyền Lan  "}'),
+  ('00000000-0000-0000-0000-0000000000c2', '{"display_name": "Cũ"}'),
+  ('00000000-0000-0000-0000-0000000000c3', null),
+  ('00000000-0000-0000-0000-0000000000c4', null);
+insert into economy_private.profiles(user_id, x, z, heading, pose_at) values
+  ('00000000-0000-0000-0000-0000000000c1', 120.5, -40.25, 1.5, clock_timestamp() - interval '2 hours'),
+  ('00000000-0000-0000-0000-0000000000c2', 5, 5, 0, clock_timestamp() - interval '8 days'),
+  ('00000000-0000-0000-0000-0000000000c4', -7, 9, 0.5, clock_timestamp());
+insert into economy_private.profiles(user_id) values ('00000000-0000-0000-0000-0000000000c3');
+insert into economy_private.loadouts(user_id, boat) values ('00000000-0000-0000-0000-0000000000c1', 2);
+
+-- Nobody signed in: refused, and the private function is not reachable by a client role.
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '', true);
+do $$begin
+  begin perform public.economy_parked_boats(); raise exception 'anonymous parked boats accepted';
+  exception when insufficient_privilege then null; end;
+end$$;
+reset role;
+do $$begin
+  if has_function_privilege('anon', 'economy_private.parked_boats()', 'execute')
+     or has_function_privilege('authenticated', 'economy_private.parked_boats()', 'execute')
+     or has_function_privilege('anon', 'public.economy_parked_boats()', 'execute') then
+    raise exception 'parked boats reachable by the wrong role';
+  end if;
+end$$;
+
+set local role authenticated;
+-- b4 sees b1 only: not itself, not the boat last seen 8 days ago, not the account with no position.
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c4', true);
+do $$declare r jsonb; begin
+  r := public.economy_parked_boats();
+  if jsonb_array_length(r) <> 1 then raise exception 'parked boats %', r; end if;
+  if r->0->>'uid' <> '00000000-0000-0000-0000-0000000000c1' then raise exception 'wrong boat %', r; end if;
+  if r->0->>'name' <> 'Thuyền Lan' then raise exception 'name is trimmed: %', r->0->>'name'; end if;
+  if (r->0->>'x')::numeric <> 120.5 or (r->0->>'z')::numeric <> -40.25 or (r->0->>'heading')::numeric <> 1.5 then
+    raise exception 'position %', r; end if;
+  if (r->0->>'tier')::int <> 2 or (r->0->>'rod')::int <> 0 then raise exception 'tiers %', r; end if;
+  if (r->0->>'age')::bigint not between 7190 and 7300 then raise exception 'age %', r->0->>'age'; end if;
+end$$;
+-- b1 asking sees b4 (recent) and no one else; a player with no boat saved still sees the others.
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c1', true);
+do $$declare r jsonb; begin
+  r := public.economy_parked_boats();
+  if jsonb_array_length(r) <> 1 or r->0->>'uid' <> '00000000-0000-0000-0000-0000000000c4' then
+    raise exception 'b1 sees %', r; end if;
+  if r->0->>'name' <> 'Người đi biển' then raise exception 'default name: %', r->0->>'name'; end if;
+end$$;
 rollback;
 select 'economy ok' as result;
