@@ -71,14 +71,15 @@ try {
     .getByText("Đã vào biển chung", { exact: false })
     .waitFor({ timeout: 90000 });
 
-  // Sharp: a 3x phone draws at 2x the CSS size, not the old 1.5x cap or less.
+  // A touch screen starts at render scale 1 (the GPU is the weak part of a phone: 23 fps at 1.5x,
+  // 39 at 1x, see docs/ocean.md "Phone: scale 1"); the governor only lowers it from there.
   const size = await page.evaluate(() => {
     const canvas = document.querySelector("canvas.ocean-canvas");
     return { width: canvas.width, css: canvas.clientWidth };
   });
   assert.equal(
     size.width,
-    size.css * 2,
+    size.css,
     `drew ${size.width}px for ${size.css} CSS px`,
   );
 
@@ -88,9 +89,12 @@ try {
   assert.ok(cost.meshes >= 6, `meshes in view: ${cost.meshes}`);
   // Raised from 150,000 for the Blender island props (about 170,000 measured), then to 450,000
   // for the Blender bushes and the sea's reflection pass (412,768 measured, the reflection
-  // draws the scene again): looks first, performance pass later by the user's choice.
+  // draws the scene again), then to 470,000 for the upgrade shop (456,197 measured on 2026-11-20:
+  // the four rods, the lantern and the shipyards add about 9,000 to the 446,874 of before; the
+  // depth layer alone redraws the fish schools, 182,400 triangles): looks first, performance pass
+  // later by the user's choice. Not measured on a phone.
   assert.ok(
-    cost.triangles > 5000 && cost.triangles < 450000,
+    cost.triangles > 5000 && cost.triangles < 470000,
     `triangles ${cost.triangles}`,
   );
   // The see-through sea (clear-water.ts) is on and can be switched off for the opaque one; its

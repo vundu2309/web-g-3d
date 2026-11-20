@@ -1,5 +1,14 @@
 import { CATCH_COOLDOWN_SECONDS, LEDGER_CAP, priceOf } from "./economy.ts";
 import { speciesById, type Inventory } from "./fishing.ts";
+import {
+  canBuy,
+  isKind,
+  isTier,
+  loadoutOf,
+  upgradePrice,
+  type Loadout,
+  type UpgradeKind,
+} from "./upgrades.ts";
 import { SEA_BOUND } from "./model.ts";
 
 /** The most fish the one-time import moves (the server says the same), and the count it accepts. */
@@ -22,6 +31,8 @@ export interface LedgerFish {
 export interface EconomyState {
   coins: number;
   ledger: LedgerFish[];
+  /** The upgrades owned (rod, bait, boat) and the bait in use. */
+  loadout: Loadout;
 }
 /**
  * What the server keeps about the player besides money: fish caught, the heaviest fish of each
@@ -49,6 +60,11 @@ export interface SellResult {
   earned: number;
   coins: number;
 }
+/** What a purchase leaves: the wallet and the new loadout. */
+export interface BuyResult {
+  coins: number;
+  loadout: Loadout;
+}
 
 /** Why a call failed, in terms the screen can word. */
 export type EconomyFailure =
@@ -56,7 +72,10 @@ export type EconomyFailure =
   | "signin" // not signed in
   | "fast" // a catch reported too soon after the last one
   | "full" // too many unsold fish
-  | "invalid" // not a fish the ledger holds / out of range
+  | "invalid" // not a fish the ledger holds / out of range / not a kind or tier of the table
+  | "poor" // not enough coins for the upgrade
+  | "owned" // that tier is already owned (a double press charges once)
+  | "order" // a tier before it is not owned yet (no skipping; a bait not owned cannot be used)
   | "network";
 
 export class EconomyError extends Error {
@@ -82,13 +101,17 @@ export interface EconomyApi {
   savePose(pose: { x: number; z: number; heading: number }): Promise<void>;
   /** Moves the fish store kept on the device to the server, once per account. */
   importLocal(fish: Inventory, caught: number): Promise<ImportResult>;
+  /** Buys the NEXT tier of a kind: charges once, rejects a skipped, owned or unaffordable tier. */
+  buy(kind: UpgradeKind, tier: number): Promise<BuyResult>;
+  /** Chooses the bait in use among the owned ones. */
+  setBait(tier: number): Promise<Loadout>;
 }
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
 
 /** The same rules as the database, in memory (tests and development). */
 export function memoryEconomy(
-  options: { now?: () => number; coins?: number } = {},
+  options: { now?: () => number; coins?: number; loadout?: Loadout } = {},
 ): EconomyApi {
   const now = options.now ?? (() => Date.now());
   let coins = options.coins ?? 0;
@@ -99,6 +122,7 @@ export function memoryEconomy(
   let records: Record<string, number> = {};
   let imported = false;
   let pose: { x: number; z: number; heading: number; at: number } | undefined;
+  let loadout: Loadout = loadoutOf(options.loadout);
   const priced = (row: {
     id: number;
     species: string;
@@ -109,7 +133,7 @@ export function memoryEconomy(
   });
   return {
     async state() {
-      return { coins, ledger: ledger.map(priced) };
+      return { coins, ledger: ledger.map(priced), loadout: { ...loadout } };
     },
     async recordCatch(fish) {
       const species = speciesById(fish.species);
@@ -218,6 +242,27 @@ export function memoryEconomy(
       ledger = ledger.filter((row) => !picked.includes(row.id));
       coins += earned;
       return { sold: rows.length, earned, coins };
+    },
+    // The same order of checks as economy_private.buy (the database).
+    async buy(kind, tier) {
+      if (!isKind(kind) || !isTier(tier)) throw new EconomyError("invalid");
+      if (tier <= loadout[kind]) throw new EconomyError("owned");
+      if (tier > loadout[kind] + 1) throw new EconomyError("order");
+      if (!canBuy(loadout[kind], coins, kind, tier))
+        throw new EconomyError("poor");
+      coins -= upgradePrice(kind, tier);
+      // A newly bought bait is put in use at once; the older ones stay owned.
+      loadout =
+        kind === "bait"
+          ? { ...loadout, bait: tier, baitUsed: tier }
+          : { ...loadout, [kind]: tier };
+      return { coins, loadout: { ...loadout } };
+    },
+    async setBait(tier) {
+      if (!isTier(tier)) throw new EconomyError("invalid");
+      if (tier > loadout.bait) throw new EconomyError("order");
+      loadout = { ...loadout, baitUsed: tier };
+      return { ...loadout };
     },
   };
 }

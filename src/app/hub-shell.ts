@@ -4,10 +4,10 @@
  * draw their own page into it, so changing hub is one tap on the rail, not close and open again.
  * It owns the dialog's hub classes: a hub only fills the page it is given.
  */
-export type HubId = "stock" | "market" | "crew" | "settings";
+export type HubId = "stock" | "market" | "yard" | "crew" | "settings";
 
 export interface HubNav {
-  /** Whether the tab shows: the market only near a pier with a server economy. */
+  /** Whether the tab shows: the market only near a pier, the shipyard only near a yard (both with a server economy). */
   available(id: HubId): boolean;
   /** Opens another hub in the same dialog. */
   go(id: HubId): void;
@@ -18,6 +18,7 @@ const ICONS: Record<HubId | "close", string> = {
     '<path d="M3 12c3-5 9-6 13-3l5-3v12l-5-3c-4 3-10 2-13-3Z"/><circle cx="8" cy="11" r=".6" fill="currentColor"/>',
   market:
     '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5h4.5a1.8 1.8 0 0 1 0 3.5H9.5"/>',
+  yard: '<path d="M3 15h18l-3 5H6Z"/><path d="M12 15V4l5 5.5H12"/><path d="M12 4v-1"/>',
   crew: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 0 1 0 5.6M18 14.5c2 .8 3.4 2.6 3.4 5.5"/>',
   settings:
     '<circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.8 1.8M16.7 16.7l1.8 1.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8"/>',
@@ -27,12 +28,25 @@ const ICONS: Record<HubId | "close", string> = {
 const TABS: readonly { id: HubId; label: string }[] = [
   { id: "stock", label: "Kho cá" },
   { id: "market", label: "Chợ" },
+  { id: "yard", label: "Xưởng" },
   { id: "crew", label: "Thủy thủ" },
   { id: "settings", label: "Cài đặt" },
 ];
 
-const HUB_CLASSES = ["is-stock", "is-market", "is-crew-hub", "is-settings"];
-const classOf = (id: HubId) => (id === "crew" ? "is-crew-hub" : `is-${id}`);
+const HUB_CLASSES = [
+  "is-stock",
+  "is-market",
+  "is-yard",
+  "is-crew-hub",
+  "is-settings",
+];
+/** The classes of a hub; the shipyard's page is laid out like the market's, so it has the market's too. */
+const classOf = (id: HubId) =>
+  id === "crew"
+    ? ["is-crew-hub"]
+    : id === "yard"
+      ? ["is-market", "is-yard"]
+      : [`is-${id}`];
 
 const icon = (id: HubId | "close") =>
   `<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICONS[id]}</svg>`;
@@ -48,7 +62,7 @@ export function createHubShell(
 ): HTMLElement {
   const already = dialog.dataset.hub !== undefined;
   dialog.classList.remove(...HUB_CLASSES);
-  dialog.classList.add("is-stock", classOf(active));
+  dialog.classList.add("is-stock", ...classOf(active));
   dialog.dataset.hub = active;
   if (!already)
     dialog.addEventListener(

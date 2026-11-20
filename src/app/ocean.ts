@@ -53,6 +53,7 @@ import {
   saveKey,
   type RestoredSea,
 } from "../ocean/save";
+import { DEFAULT_LOADOUT, slotsOf, type Loadout } from "../ocean/upgrades";
 
 type Connection = Awaited<ReturnType<typeof connectOcean>>;
 export interface OceanOptions {
@@ -201,7 +202,7 @@ export function startOcean(
   let lastPose = "";
   let clockOffset = 0;
   let caught = 0;
-  // The server economy (none without VITE_ECONOMY: then no market and the store stays on the device).
+  // The server economy (none without VITE_ECONOMY: then no market, no upgrades, the default loadout, and the store stays on the device).
   const economy =
     options.economy ?? (economyEnabled() ? supabaseEconomy() : undefined);
   /**
@@ -321,14 +322,38 @@ export function startOcean(
     fishingUi.cancel();
     pose = { ...pose, fishing: false };
   }
+  /** The rod and bait the player owns, from the server; the fishing rules read it when a fish bites. */
+  let loadout: Loadout = DEFAULT_LOADOUT;
+  /** The market already told us (a purchase or a choice): a slower first answer must not undo it. */
+  let loadoutKnown = false;
+  /** Shows what the player owns on the sea: the boat (its model and body), the rod in the hand and the bait on the line. */
+  /** The boat and rod the server was last asked to tell the others about. */
+  let announced = "0,0";
+  function showLoadout() {
+    // A boat or a rod bought: the server reads the account again and tells the other players.
+    const fit = `${loadout.boat},${loadout.rod}`;
+    if (fit !== announced) {
+      announced = fit;
+      connection?.refit?.();
+    }
+    if (!scene) return;
+    scene.setRodTier(loadout.rod);
+    scene.setBait(loadout.baitUsed);
+    void scene.setBoatTier(loadout.boat);
+  }
   // The rail of the hub shell: one tap goes from the fish store to the market, crew or settings.
   const hubNav: HubNav = {
-    available: (id) => id !== "market" || marketUi.available,
+    available: (id) =>
+      id === "market"
+        ? marketUi.nearMarket
+        : id === "yard"
+          ? marketUi.nearYard
+          : true,
     go(id) {
       keys.clear();
       releaseStick();
       if (id === "stock") fishingUi.showStock();
-      else if (id === "market") void marketUi.openNearest();
+      else if (id === "market" || id === "yard") void marketUi.openNearest();
       else if (id === "crew") showCrew();
       else showSettings();
     },
@@ -356,6 +381,9 @@ export function startOcean(
         void economy?.release(species).catch(() => void refreshStore());
     },
     sound: (cue) => seaAudio.play(cue),
+    loadout: () => loadout,
+    // Without a server economy there is no boat to buy and no market to sell at: no cap.
+    slots: () => (economy ? slotsOf(loadout.boat) : Infinity),
   });
   // The fish markets: a Bán button near a pier and the hub it opens (server economy only).
   const marketUi = createMarketUi({
@@ -376,12 +404,21 @@ export function startOcean(
       void refreshStore();
     },
     sound: (cue) => seaAudio.play(cue),
+    onLoadout: (next) => {
+      loadout = next;
+      loadoutKnown = true;
+      showLoadout();
+      // A bigger boat has more slots: a fish waiting on the rod may fit now.
+      fishingUi.sync();
+    },
     stock: () => fishStock,
     setStock: (next, caughtOne) => {
       fishStock = next;
       if (caughtOne) caught++;
       showStockCount();
       persist();
+      // A sale made room: a fish waiting on the rod may be kept now.
+      fishingUi.sync();
     },
     beforeOpen: () => {
       keys.clear();
@@ -1006,6 +1043,7 @@ export function startOcean(
       if (serverStore) persist();
       showStockCount();
       created.spawnSelf(value.uid, "Bạn", pose);
+      showLoadout();
       step("enter", "done");
       setChromeColor(CHROME_COLORS.sea);
       active = true;
@@ -1015,6 +1053,26 @@ export function startOcean(
       lastPose = "";
       fishButton.disabled = false;
       hideLoading();
+      // What the player bought is on the server: fish with it from the first cast, not only
+      // after the market was opened. A failure keeps the default (the market asks again).
+      // A failed read is tried again a few times (2, 6 and 15 s later) rather than fishing the whole
+      // session as the free boat, rod and bait for one network blip; the market asks again too.
+      const readLoadout = (retries: number[]) => {
+        void economy
+          ?.state()
+          .then((state) => {
+            if (disposed || loadoutKnown) return;
+            loadout = state.loadout;
+            showLoadout();
+            fishingUi.sync();
+          })
+          .catch(() => {
+            const [wait, ...rest] = retries;
+            if (wait === undefined || disposed || loadoutKnown) return;
+            window.setTimeout(() => readLoadout(rest), wait);
+          });
+      };
+      readLoadout([2000, 6000, 15000]);
       notify("Đã vào biển chung. Lái thuyền và thả câu khi bạn muốn.", true);
     })
     .catch((error: unknown) => {

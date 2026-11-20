@@ -1,9 +1,9 @@
 /**
  * Switches for finding what costs frames, for the developer: `?reflect=0`, `?fish=0`, `?props=0`,
- * `?scale=1` in the page address (tests and the render harness use them). The player has none of
- * them: every part of the graphics is on and Settings has no switch for it (2026-11-20, the user's
- * decision), so nothing a device stored earlier can leave a part out: only `waves` (the "Thử sóng
- * biển" card) is still read from the device.
+ * `?tiers=0`, `?yards=0`, `?scale=1` in the page address (tests and the render harness use them).
+ * The player has none of them: every part of the graphics is on and Settings has no switch for it
+ * (2026-11-20, the user's decision), so nothing a device stored earlier can leave a part out: only
+ * `waves` (the "Thử sóng biển" card) is still read from the device.
  */
 const KEY = "sea-probe";
 /** The only switch read from what the device stored; the others come from the page address alone. */
@@ -14,6 +14,13 @@ export const PROBES = [
   { name: "reflect", off: "0", label: "Phản chiếu nước", feature: true },
   { name: "fish", off: "0", label: "Đàn cá", feature: true },
   { name: "props", off: "0", label: "Dừa, bụi, nhà, đá", feature: true },
+  {
+    name: "tiers",
+    off: "0",
+    label: "Thuyền lớn (mô hình bậc cao)",
+    feature: true,
+  },
+  { name: "yards", off: "0", label: "Xưởng tàu (ba bến)", feature: true },
   { name: "scale", off: "1", label: "Ép độ phân giải 1x", feature: false },
 ] as const;
 

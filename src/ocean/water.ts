@@ -31,13 +31,14 @@ import {
   COLLAR,
   CREST_FOAM,
   EDGE_PER_METRE,
-  HULL_REACH,
+  HULL_REACH_MAX,
   HULL_WATER,
   RING_FADE,
   glslCollarWidth,
   glslHullEdge,
 } from "./hull-water.ts";
 import { SHADOW } from "./boat-shadow.ts";
+import { boatTierIndex, glslBoatShape } from "./boat-tier.ts";
 import {
   COAST_SAMPLES,
   coastPixels,
@@ -77,12 +78,14 @@ export interface BoatSpot {
   heading: number;
   /** How much of the hull is in the water, 0 (lifted clear of it) to 1 (the default). */
   wet?: number;
+  /** Which boat it is (boat-tier.ts, 0 to 3): its shadow and the water round its hull follow the hull. Tier 0 when not given. */
+  tier?: number;
 }
 export { HULL_WATER } from "./hull-water.ts";
 /**
- * Packs boats into the shader's vec4 array: x, z, heading, and 1 plus how wet the hull is for a
- * boat (1 to 2) or 0 for an empty slot, so "is there a boat" stays `w > 0.5` and the wetness is
- * `w - 1`.
+ * Packs boats into the shader's vec4 array: x, z, heading, and the fourth number w: 0 for an empty
+ * slot, else 1 + 2 x the tier (boat-tier.ts) + how wet the hull is (0 to 1). "Is there a boat" stays
+ * `w > 0.5`; the tier is `floor((w - 1) / 2)` and the wetness is what is left of `w - 1`.
  */
 export function packBoats(boats: readonly BoatSpot[]): number[] {
   const out = new Array<number>(BOAT_MAX * 4).fill(0);
@@ -93,7 +96,9 @@ export function packBoats(boats: readonly BoatSpot[]): number[] {
       boat.x,
       boat.z,
       boat.heading,
-      1 + Math.min(1, Math.max(0, boat.wet ?? 1)),
+      1 +
+        2 * boatTierIndex(boat.tier) +
+        Math.min(1, Math.max(0, boat.wet ?? 1)),
     );
   });
   return out;
@@ -212,6 +217,7 @@ float visibilitySmith(float nl, float nv, float a) {
   float k = a * 0.5;
   return 0.25 / ((nl * (1.0 - k) + k) * (nv * (1.0 - k) + k));
 }
+${glslBoatShape()}
 // The shadow of the boats on the water: the sun is low, so each hull throws a long shadow
 // downwind. A boat is three parts (hull, wheelhouse, mast), each swept through its own range of
 // heights, and the shadow of a height is the part's footprint shifted along the sun's ground
@@ -230,16 +236,19 @@ float boatShadow(vec2 p, vec3 sunDir) {
   float dark = 0.0;
   for (int i = 0; i < ${BOAT_MAX}; i++) {
     vec4 boat = boats[i];
-    if (boat.w < 0.5 || distance(p, boat.xy) > 22.0) continue;
+    if (boat.w < 0.5) continue;
+    // Each boat has its own hull, wheelhouse and mast (boat-tier.ts); a taller mast throws a longer shadow.
+    BoatShape s = boatShape(1.0 + floor((boat.w - 1.0) * 0.5));
+    if (distance(p, boat.xy) > 22.0 + 3.0 * max(s.mastTo - 3.82, 0.0)) continue;
     vec2 fwd = vec2(sin(boat.z), -cos(boat.z));
     vec2 side = vec2(cos(boat.z), sin(boat.z));
     vec2 d = p - boat.xy;
     // The hull, from the waterline to the gunwale.
-    for (int k = 0; k < 4; k++) dark = max(dark, shadowSlice(d, away, fwd, side, float(k) * 0.57, 3.9, 1.5, 0.0));
+    for (int k = 0; k < 4; k++) dark = max(dark, shadowSlice(d, away, fwd, side, s.hullTop * float(k) / 3.0, s.hullLength, s.hullWidth, 0.0));
     // The wheelhouse, forward of amidships, from the deck to the top of its roof.
-    for (int k = 0; k < 4; k++) dark = max(dark, shadowSlice(d, away, fwd, side, 0.8 + float(k) * 0.47, 0.95, 0.85, 1.0));
+    for (int k = 0; k < 4; k++) dark = max(dark, shadowSlice(d, away, fwd, side, mix(s.houseFrom, s.houseTo, float(k) / 3.0), s.houseLength, s.houseWidth, s.houseShift));
     // The mast and lantern: thin, so a faint stripe that joins the roof's shadow.
-    for (int k = 0; k < 10; k++) dark = max(dark, 0.8 * shadowSlice(d, away, fwd, side, 2.2 + float(k) * 0.18, 0.5, 0.45, 0.7));
+    for (int k = 0; k < 10; k++) dark = max(dark, 0.8 * shadowSlice(d, away, fwd, side, mix(s.mastFrom, s.mastTo, float(k) / 9.0), 0.5, 0.45, s.mastShift));
   }
   return dark;
 }
@@ -263,23 +272,26 @@ vec3 hullWater(vec2 p, float t) {
   for (int i = 0; i < ${BOAT_MAX}; i++) {
     vec4 boat = boats[i];
     vec2 d = p - boat.xy;
-    if (boat.w < 0.5 || dot(d, d) > ${(HULL_REACH * HULL_REACH).toFixed(1)}) continue;
-    // A hull lifted out of the water laps and ripples nothing.
-    float wet = clamp(boat.w - 1.0, 0.0, 1.0);
+    if (boat.w < 0.5 || dot(d, d) > ${(HULL_REACH_MAX * HULL_REACH_MAX).toFixed(1)}) continue;
+    // w is 1 + 2 x the tier + how wet the hull is: a hull lifted out of the water laps and ripples nothing.
+    float code = boat.w - 1.0;
+    float tierCode = floor(code * 0.5);
+    float wet = clamp(code - 2.0 * tierCode, 0.0, 1.0);
     if (wet <= 0.0) continue;
+    BoatShape s = boatShape(1.0 + tierCode);
     vec2 fwd = vec2(sin(boat.z), -cos(boat.z));
     vec2 side = vec2(cos(boat.z), sin(boat.z));
     float u = dot(d, fwd) + ${HULL_WATER.shift.toFixed(2)};
     float v = dot(d, side);
     // Metres from the waterline (times a constant), the same along the keel and across it.
-    float edge = hullEdge(u, v);
+    float edge = hullEdge(u, v, s.lineLength, s.lineBeam, s.lineStern, s.lineTip);
     // The collar: a narrow ragged lap of foam along the waterline, cut into pieces in places
     // (hull-water.ts: a splash at the stem that stops at the tip, a modest wash behind the
     // transom that the wake strips take on). Its width is in metres from the waterline.
     float lap = softNoise(p * 3.4 + vec2(t * 0.35, -t * 0.28));
     float gap = noise(p * 1.9 + vec2(-t * 0.21, t * 0.17));
     float metres = edge / ${EDGE_PER_METRE.toFixed(4)};
-    float width = max(collarWidth(u, lap), 0.03);
+    float width = max(collarWidth(u, lap, s.lineLength), 0.03);
     float collar = (1.0 - smoothstep(0.02, width, metres)) * smoothstep(${COLLAR.gaps.from.toFixed(2)}, ${COLLAR.gaps.to.toFixed(2)}, gap) * (0.85 + 0.15 * lap);
     // Rings: a slow pulse (the boat rocks), each ring spreading about a metre a second. The rings
     // are never perfect ellipses: the distance they are measured from is warped by slow noise,

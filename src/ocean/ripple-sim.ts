@@ -24,6 +24,8 @@
  * window is trusted (SIM_FADE_FROM to SIM_FADE_TO, see `simMask`); the edge is a sponge that eats
  * waves so none wraps round.
  */
+import { boatTier, hullSamples } from "./boat-tier.ts";
+
 /** Cells each way and metres in one (the window is SIM_SIZE metres across). */
 export const SIM_N = 128;
 export const SIM_CELL = 1;
@@ -41,10 +43,14 @@ export const SIM_STEP = 0.04;
 export const SIM_FADE_FROM = 0.34 * SIM_SIZE;
 export const SIM_FADE_TO = 0.46 * SIM_SIZE;
 
-/** The reach of the hull's propeller wash along and across its keel, and how far behind its middle the stern is (m). */
-export const HULL_LENGTH = 3.2;
-export const HULL_WIDTH = 1.2;
-export const HULL_STERN = 2.8;
+/**
+ * The reach of a hull's push along and across its keel, and how far behind its middle the stern is
+ * (m): the first boat's. The boats of the upgrade shop push farther (boat-tier.ts `wake`), and a
+ * hull says which boat it is with `tier`.
+ */
+export const HULL_LENGTH = boatTier(0).wake.length;
+export const HULL_WIDTH = boatTier(0).wake.width;
+export const HULL_STERN = boatTier(0).wake.stern;
 /** Metres of height a hull lifts per metre per second of speed, per second (all its points together). */
 export const HULL_PUSH = 0.6;
 /** White water per second under the stern at full speed. */
@@ -113,6 +119,8 @@ export interface Hull {
    * the game knows of another player's boat.
    */
   points?: readonly HullPoint[];
+  /** Which boat it is (boat-tier.ts, 0 to 3); the first boat when not given. */
+  tier?: number;
 }
 
 export interface SimSample {
@@ -142,7 +150,7 @@ export function pointsOf(hull: Hull): readonly HullPoint[] {
   const fz = -Math.cos(hull.heading);
   const rx = Math.cos(hull.heading);
   const rz = Math.sin(hull.heading);
-  return HULL_POINTS.map(([lx, lz]) => ({
+  return hullSamples(hull.tier).map(({ x: lx, z: lz }) => ({
     x: hull.x + rx * lx - fx * lz,
     z: hull.z + rz * lx - fz * lz,
     vx: fx * hull.speed,
@@ -322,7 +330,8 @@ export class RippleSim {
     const fz = -Math.cos(hull.heading);
     const rx = Math.cos(hull.heading);
     const rz = Math.sin(hull.heading);
-    const reach = 9;
+    const { wake } = boatTier(hull.tier);
+    const reach = wake.reach;
     const i0 = Math.floor((hull.x - reach) / SIM_CELL);
     const i1 = Math.floor((hull.x + reach) / SIM_CELL);
     const j0 = Math.floor((hull.z - reach) / SIM_CELL);
@@ -337,8 +346,8 @@ export class RippleSim {
         const along = dx * fx + dz * fz;
         const across = dx * rx + dz * rz;
         const at = wrap(cj) * SIM_N + wrap(ci);
-        const lateral = (across * across) / (HULL_WIDTH * HULL_WIDTH);
-        const back = (along + HULL_STERN) / 2.2;
+        const lateral = (across * across) / (wake.width * wake.width);
+        const back = (along + wake.stern) / 2.2;
         const wash = Math.exp(-back * back - lateral);
         if (wash > 0.02)
           this.foam[at] = Math.min(

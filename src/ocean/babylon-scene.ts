@@ -21,7 +21,14 @@ import {
   createBoatTemplate,
   createFishingLine,
 } from "./boat-visual.ts";
-import { dressBoat, loadBoatModels, type BoatModels } from "./boat-model.ts";
+import {
+  dressBoat,
+  loadBoatModels,
+  showBoatLevel,
+  type BoatModels,
+} from "./boat-model.ts";
+import { boatLevelOf } from "./boat-lod.ts";
+import { boatTier, boatTierIndex, boxRatio, cameraScale } from "./boat-tier.ts";
 import { createHavok } from "./havok.ts";
 import { createIsland, type IslandVisual } from "./island-visual.ts";
 import { createSeabed, type Seabed } from "./seabed-visual.ts";
@@ -44,6 +51,8 @@ import {
 } from "./chase-camera.ts";
 import { MARKETS, seaObstacles } from "./market.ts";
 import { createMarket } from "./market-visual.ts";
+import { createShipyards, type ShipyardVisuals } from "./shipyard-visual.ts";
+import { SHIPYARDS } from "./shipyard.ts";
 import { loadCats } from "./cats.ts";
 import { preloadFishModels } from "./fish-models.ts";
 import { placeVendors } from "./market-vendor.ts";
@@ -53,6 +62,8 @@ import { islands, lighthouseIslands, type Boat, type Pose } from "./model.ts";
 import { FishSchools } from "./fish-schools.ts";
 import { FishingGear, type GearInput } from "./fishing-gear.ts";
 import { paletteIndex } from "./palette.ts";
+import { baitTierIndex } from "./bait-view.ts";
+import { rodPlan, rodTierIndex } from "./rod-plan.ts";
 import { RodVisual } from "./rod-visual.ts";
 import { FOG_DENSITY, HORIZON } from "./sea-style.ts";
 import { stepAtmosphere } from "./sea-atmosphere.ts";
@@ -77,7 +88,13 @@ interface Craft {
   /** The hull's meshes (instances): the code-built boat until the model is loaded, then the model. */
   look: AbstractMesh[];
   palette: number;
+  /** Which boat it is (boat-tier.ts, 0 to 3): its model, its rod holder and its hull in the water. */
+  tier: number;
+  /** How much of the boat is drawn (boat-lod.ts): 0 whole, 1 middle, 2 far. The player's is always 0. */
+  level: number;
   rod: RodVisual;
+  /** Which rod it holds (rod-plan.ts, 0 to 3): bamboo, fibreglass, carbon fibre or gold. */
+  rodTier: number;
   label: HTMLElement;
   line?: Mesh;
   // Smoothed display pose of a remote boat.
@@ -87,9 +104,15 @@ interface Craft {
   seen: boolean;
 }
 
+/** How much higher than the first boat's a boat's name floats: its mast is as much taller (boat-tier.ts). */
+const labelLift = (tier: number) =>
+  Math.max(0, boatTier(tier).shadow.mast.to - boatTier(0).shadow.mast.to);
+
 const wrap = (angle: number) => Math.atan2(Math.sin(angle), Math.cos(angle));
 const blend = (dt: number, rate: number) => 1 - Math.exp(-dt * rate);
 const NORMALIZED = new Viewport(0, 0, 1, 1);
+/** `?tiers=0` draws every boat with the first boat's model (a switch for finding what costs frames; also in Settings, probe.ts). */
+const tiersOff = () => probe("tiers") === "0";
 
 /**
  * Babylon.js + Havok sea. The player's boat is a Havok body floating on the shared
@@ -105,9 +128,26 @@ export class OceanScene {
   private readonly rain: Rain;
   private readonly beacons: Beacon[] = [];
   private readonly templates: Mesh[];
-  /** The Blender boat, once loaded (until then, and if the load fails, the code-built one). */
-  private boatModels: BoatModels | undefined;
-  private readonly boatLoad: Promise<void>;
+  /**
+   * The Blender boats, by tier, as each has loaded (the first boat's is awaited by `ready()`, the
+   * others load when a boat of that tier is first needed). Until then, and if a load fails, a
+   * boat keeps the model of tier 0, or the code-built one when that has not loaded either.
+   */
+  private readonly boatModels = new Map<number, BoatModels>();
+  private readonly boatLoads = new Map<
+    number,
+    Promise<BoatModels | undefined>
+  >();
+  private readonly boatLoad: Promise<unknown>;
+  /** The tier of the player's boat (applied by `setBoatTier`; what `spawnSelf` builds the body with). */
+  private tier = 0;
+  /** The tier of each other player's boat (`setRemoteBoatTier`), for boats that are not here yet. */
+  private readonly remoteTiers = new Map<string, number>();
+  /** The rod the player holds (applied by `setRodTier`) and the rod of each other player (`setRemoteRodTier`). */
+  private rodTier = 0;
+  /** The bait on the line (upgrades.ts tier 0 to 3), for a gear that is made after it was chosen. */
+  private bait = 0;
+  private readonly remoteRodTiers = new Map<string, number>();
   private readonly fleet = new Map<string, Craft>();
   private readonly observer: ResizeObserver;
   private self:
@@ -143,6 +183,8 @@ export class OceanScene {
   private readonly schools: FishSchools;
   private readonly wildlife: Wildlife;
   private readonly propFade: PropBatches;
+  /** The three shipyards on the shores (shipyard-visual.ts). */
+  private readonly yards: ShipyardVisuals;
   /** The water the boats stir, simulated: the sea draws it and the hulls float on it (ripple-sim.ts). */
   private readonly sim = new RippleSim();
   private readonly simPixels = new Float32Array(SIM_N * SIM_N * 4);
@@ -248,11 +290,12 @@ export class OceanScene {
     });
     // The fishing gear is built now, not at the first throw: building it (meshes, textures, shaders)
     // while the button is held made the first throw of a visit hitch, and `ready()` compiles it.
-    this.gear = new FishingGear(this.scene);
-    this.boatLoad = this.loadBoats();
+    this.gear = this.newGear();
+    this.boatLoad = this.ensureBoatModels(0);
     this.islandProps = this.placeIslandModels(visuals);
     // A fish market on the water off each island.
     this.markets = MARKETS.map((market) => createMarket(this.scene, market));
+    this.yards = createShipyards(this.scene);
     this.vendors = this.placeVendorCats();
     this.seaProps = new SeaProps(this.scene);
     this.schools = new FishSchools(this.scene);
@@ -264,28 +307,193 @@ export class OceanScene {
     this.engine.resize();
   }
 
-  /** Loads the Blender boat and swaps it in for every boat drawn so far (and those that follow). */
-  private async loadBoats() {
-    try {
-      const models = await loadBoatModels(this.scene);
-      if (this.scene.isDisposed) return;
-      this.boatModels = models;
-      if (this.self) this.dress(this.self.craft);
-      for (const craft of this.fleet.values()) this.dress(craft);
-    } catch (error) {
-      console.warn(
-        "The boat model did not load; the boat built from code stays.",
-        error,
-      );
+  /**
+   * Loads the Blender boat of a tier once (a second call gets the same promise) and swaps it in
+   * for every boat of that tier drawn so far (and those that follow). Resolves with the models, or
+   * undefined when the load failed (a warning is logged and a later call tries again).
+   */
+  private ensureBoatModels(tier: number): Promise<BoatModels | undefined> {
+    // With `?tiers=0` the bigger models are never loaded: every boat is drawn as the first.
+    const wanted = tiersOff() ? 0 : boatTierIndex(tier);
+    const known = this.boatModels.get(wanted);
+    if (known) return Promise.resolve(known);
+    let load = this.boatLoads.get(wanted);
+    if (!load) {
+      load = (async () => {
+        try {
+          const models = await loadBoatModels(this.scene, wanted);
+          if (this.scene.isDisposed) {
+            this.boatLoads.delete(wanted);
+            return undefined;
+          }
+          this.boatModels.set(wanted, models);
+          // Every boat of this tier gets its model; when it is the first boat's, so does every
+          // boat of a bigger tier whose own model has not arrived (it stands in for it).
+          for (const craft of [
+            ...(this.self ? [this.self.craft] : []),
+            ...this.fleet.values(),
+          ])
+            if (
+              craft.tier === wanted ||
+              (wanted === 0 && !this.boatModels.has(craft.tier))
+            )
+              this.dress(craft);
+          return models;
+        } catch (error) {
+          this.boatLoads.delete(wanted);
+          console.warn(
+            wanted === 0
+              ? "The boat model did not load; the boat built from code stays."
+              : `The model of boat tier ${wanted} did not load; the boat keeps its look.`,
+            error,
+          );
+          return undefined;
+        }
+      })();
+      this.boatLoads.set(wanted, load);
+    }
+    return load;
+  }
+
+  /** Gives a boat its hull: the model of its tier when it is loaded, else the first boat's, else the code-built one. */
+  private dress(craft: Craft) {
+    for (const mesh of craft.look) mesh.dispose();
+    const models = this.boatModels.get(craft.tier) ?? this.boatModels.get(0);
+    // The other players' boats also get coarser copies for when they are far (boat-lod.ts).
+    const others = craft !== this.self?.craft;
+    craft.look = models
+      ? dressBoat(models, craft.palette, craft.mesh, craft.mesh.name, others)
+      : this.codeBoat(craft);
+    if (others) showBoatLevel(craft.look, craft.level);
+  }
+
+  /** Draws another player's boat as the whole model, a coarser copy or a far copy by how big it looks (boat-lod.ts). */
+  private pickLevel(craft: Craft) {
+    const level = boatLevelOf(
+      craft.tier,
+      Math.hypot(
+        craft.x - this.camera.position.x,
+        craft.z - this.camera.position.z,
+      ),
+      craft.level,
+    );
+    if (level === craft.level) return;
+    craft.level = level;
+    showBoatLevel(craft.look, level);
+    craft.rod.setVisible(level < 2);
+  }
+
+  /** A boat of another tier: its model, and its rod at its own holder. */
+  private refit(craft: Craft, tier: number) {
+    craft.tier = tier;
+    this.dress(craft);
+    this.newRod(craft);
+  }
+
+  /** The craft's rod, built again for its boat's holder and its rod tier (a boat or a rod was changed). */
+  private newRod(craft: Craft) {
+    craft.rod.dispose();
+    craft.rod = new RodVisual(
+      this.scene,
+      craft.mesh,
+      boatPalettes[craft.palette],
+      undefined,
+      boatTier(craft.tier).rod,
+      craft.rodTier,
+    );
+    if (craft.level >= 2) craft.rod.setVisible(false);
+  }
+
+  /** The fishing gear, with the chosen bait already on its line. */
+  private newGear(): FishingGear {
+    const gear = new FishingGear(this.scene);
+    gear.setBait(this.bait);
+    return gear;
+  }
+
+  /**
+   * Puts a bait on the line (upgrades.ts tier 0 to 3): the orange lure for the default bait, the
+   * bait's own model for the others (bait-view.ts). An invalid tier is the default bait.
+   */
+  setBait(tier: number) {
+    this.bait = baitTierIndex(tier);
+    this.gear?.setBait(this.bait);
+  }
+
+  /**
+   * Gives the player the rod of a tier (rod-plan.ts, 0 to 3), in their hand at once: a bought rod
+   * is on the boat the moment it is chosen. Before `spawnSelf` it only says which rod will be
+   * built. What the rod does to a fight is not here (upgrades.ts); this is the picture. An invalid
+   * tier is the free bamboo rod.
+   */
+  setRodTier(tier: number) {
+    const wanted = rodTierIndex(tier);
+    this.rodTier = wanted;
+    const self = this.self;
+    if (self && self.craft.rodTier !== wanted) {
+      self.craft.rodTier = wanted;
+      this.newRod(self.craft);
     }
   }
 
-  /** Gives a boat its hull: the model when it is loaded, else the code-built one. */
-  private dress(craft: Craft) {
-    for (const mesh of craft.look) mesh.dispose();
-    craft.look = this.boatModels
-      ? dressBoat(this.boatModels, craft.palette, craft.mesh, craft.mesh.name)
-      : this.codeBoat(craft);
+  /**
+   * Says which rod another player holds (rod-plan.ts, 0 to 3): drawn in their boat's hands at
+   * once; a boat that is not here yet gets it when it arrives. An invalid tier is tier 0.
+   */
+  setRemoteRodTier(uid: string, tier: number) {
+    const wanted = rodTierIndex(tier);
+    this.remoteRodTiers.set(uid, wanted);
+    const craft = this.fleet.get(uid);
+    if (craft && craft.rodTier !== wanted && !this.scene.isDisposed) {
+      craft.rodTier = wanted;
+      this.newRod(craft);
+    }
+  }
+
+  /**
+   * Gives the player's boat the model, the body, the rod holder, the hull in the water and the
+   * shadow of a boat tier (boat-tier.ts, 0 to 3), all at once. The model of a tier that has not
+   * loaded yet is loaded first, so nothing changes until it can all change together; resolves
+   * `true` when the player's boat is now that tier, `false` when the model could not be loaded
+   * (nothing changed; asking again tries again). The body keeps its place and its velocity
+   * (boat-physics.ts `setTier`), so a purchase does not drop the boat. Before `spawnSelf` it only
+   * says which tier the body will be built with. Handling does not change with the tier.
+   */
+  async setBoatTier(tier: number): Promise<boolean> {
+    const wanted = boatTierIndex(tier);
+    if (wanted > 0 && !(await this.ensureBoatModels(wanted))) return false;
+    if (this.scene.isDisposed) return false;
+    this.tier = wanted;
+    const self = this.self;
+    if (self && self.craft.tier !== wanted) {
+      self.physics.setTier(wanted);
+      this.refit(self.craft, wanted);
+    }
+    return true;
+  }
+
+  /** Loads the model of a tier without using it, so a later `setBoatTier` (or a boat of that tier arriving) is instant. */
+  async preloadBoatTier(tier: number): Promise<boolean> {
+    return (await this.ensureBoatModels(tier)) !== undefined;
+  }
+
+  /**
+   * Says which boat another player has (boat-tier.ts, 0 to 3): their boat is drawn with that tier's
+   * model, rod holder and hull in the water, as soon as the model has loaded; a boat that is not
+   * here yet is made that tier when it arrives. An invalid tier is tier 0.
+   */
+  async setRemoteBoatTier(uid: string, tier: number): Promise<void> {
+    const wanted = boatTierIndex(tier);
+    this.remoteTiers.set(uid, wanted);
+    if (wanted > 0) await this.ensureBoatModels(wanted);
+    const craft = this.fleet.get(uid);
+    if (
+      craft &&
+      this.remoteTiers.get(uid) === wanted &&
+      craft.tier !== wanted &&
+      !this.scene.isDisposed
+    )
+      this.refit(craft, wanted);
   }
 
   private codeBoat(craft: Craft) {
@@ -297,7 +505,13 @@ export class OceanScene {
     return [hull];
   }
 
-  private craft(uid: string, name: string, isSelf: boolean): Craft {
+  private craft(
+    uid: string,
+    name: string,
+    isSelf: boolean,
+    tier = 0,
+    rodTier = 0,
+  ): Craft {
     const mesh = new TransformNode(`boat-${uid}`, this.scene);
     const palette = paletteIndex(uid);
     const label = document.createElement("span");
@@ -310,7 +524,17 @@ export class OceanScene {
       mesh,
       look: [],
       palette,
-      rod: new RodVisual(this.scene, mesh, boatPalettes[palette]),
+      tier,
+      level: 0,
+      rod: new RodVisual(
+        this.scene,
+        mesh,
+        boatPalettes[palette],
+        undefined,
+        boatTier(tier).rod,
+        rodTier,
+      ),
+      rodTier,
       label,
       x: 0,
       z: 0,
@@ -329,8 +553,11 @@ export class OceanScene {
       time: () => this.clock,
       extraHeight: (x, z) => this.sim.sample(x, z).height,
       start: { x: pose.x, z: pose.z, heading: pose.heading },
+      tier: this.tier,
     });
-    const craft = this.craft(uid, name, true);
+    const craft = this.craft(uid, name, true, this.tier, this.rodTier);
+    // A boat of a bigger tier is drawn with the first boat's model until its own has loaded.
+    if (this.tier > 0) void this.ensureBoatModels(this.tier);
     craft.mesh.parent = physics.view;
     craft.mesh.position.set(0, -0.25, 0);
     this.self = {
@@ -354,7 +581,12 @@ export class OceanScene {
 
   private setLine(craft: Craft, fishing: boolean) {
     if (fishing && !craft.line)
-      craft.line = createFishingLine(this.scene, craft.mesh);
+      craft.line = createFishingLine(
+        this.scene,
+        craft.mesh,
+        boatTier(craft.tier).rod,
+        rodPlan(craft.rodTier).restBend,
+      );
     if (!fishing && craft.line) {
       craft.line.dispose();
       craft.line = undefined;
@@ -368,17 +600,22 @@ export class OceanScene {
     z: number,
     heading: number,
     t: number,
+    tier = 0,
   ) {
     const fx = Math.sin(heading);
     const fz = -Math.cos(heading);
     const rx = Math.cos(heading);
     const rz = Math.sin(heading);
-    const bow = waveHeight(x + fx * 3.5, z + fz * 3.5, t);
-    const stern = waveHeight(x - fx * 3.5, z - fz * 3.5, t);
-    const starboard = waveHeight(x + rx * 1.4, z + rz * 1.4, t);
-    const port = waveHeight(x - rx * 1.4, z - rz * 1.4, t);
-    const pitch = Math.atan2(bow - stern, 7);
-    const roll = Math.atan2(starboard - port, 2.8);
+    // Where the waves are read follows the hull's size (the first boat: 3.5 m fore and aft, 1.4 m out).
+    const size = boxRatio(tier);
+    const half = 3.5 * size.length;
+    const out = 1.4 * size.width;
+    const bow = waveHeight(x + fx * half, z + fz * half, t);
+    const stern = waveHeight(x - fx * half, z - fz * half, t);
+    const starboard = waveHeight(x + rx * out, z + rz * out, t);
+    const port = waveHeight(x - rx * out, z - rz * out, t);
+    const pitch = Math.atan2(bow - stern, 7 * size.length);
+    const roll = Math.atan2(starboard - port, 2.8 * size.width);
     mesh.position.set(x, (bow + stern + starboard + port) / 4, z);
     mesh.rotationQuaternion = Quaternion.RotationAxis(Axis.Y, -heading)
       .multiply(Quaternion.RotationAxis(Axis.X, pitch))
@@ -386,7 +623,7 @@ export class OceanScene {
   }
 
   /** Records where a boat is and draws the white water it leaves. */
-  private leaveTrail(id: string, x: number, z: number, wet = 1) {
+  private leaveTrail(id: string, x: number, z: number, tier: number, wet = 1) {
     let entry = this.trails.get(id);
     if (!entry) {
       entry = {
@@ -396,7 +633,7 @@ export class OceanScene {
       this.trails.set(id, entry);
     }
     entry.trail.push(x, z, this.clock);
-    entry.mesh.update(entry.trail, this.clock, { x, z }, wet);
+    entry.mesh.update(entry.trail, this.clock, { x, z }, wet, tier);
   }
 
   /** How wet your hull is, 0 (lifted clear of the water) to 1, smoothed over about a tenth of a second so a wave that lets go of the hull for one step does not make the foam flicker. */
@@ -414,7 +651,7 @@ export class OceanScene {
    * boat also tells how each point of its hull moves (the turn, the slide, the heave), which is
    * what the physics knows; another player's boat only has its pose and speed.
    */
-  private hullOf(id: string, x: number, z: number): Hull {
+  private hullOf(id: string, x: number, z: number, tier: number): Hull {
     const newest = this.trails.get(id)?.trail.samples.at(-1);
     return {
       x,
@@ -422,6 +659,7 @@ export class OceanScene {
       heading: newest?.heading ?? 0,
       speed: newest?.speed ?? 0,
       points: id === "self" ? this.self?.physics.contacts() : undefined,
+      tier,
     };
   }
 
@@ -439,7 +677,7 @@ export class OceanScene {
       const models = await loadIslandModels(this.scene);
       if (this.scene.isDisposed) return;
       for (const visual of visuals)
-        this.propFade.add(placeIslandProps(visual, models, MARKETS));
+        this.propFade.add(placeIslandProps(visual, models, MARKETS, SHIPYARDS));
     } catch (error) {
       if (!this.scene.isDisposed)
         console.warn(
@@ -471,7 +709,12 @@ export class OceanScene {
    * shader has been compiled for the first frame.
    */
   async ready() {
-    await Promise.all([this.islandProps, this.vendors, this.boatLoad]);
+    await Promise.all([
+      this.islandProps,
+      this.vendors,
+      this.boatLoad,
+      this.yards.ready,
+    ]);
     await this.scene.whenReadyAsync();
     await this.clearWater?.compile();
     // The sea animals' files (about 1.4 MB) come after the first frame, never before it: a fish
@@ -514,7 +757,7 @@ export class OceanScene {
 
   /** A landed fish hangs from the rod (undefined puts it away at once). */
   holdFish(fish: { id: string; scale: number } | undefined) {
-    this.gear ??= new FishingGear(this.scene);
+    this.gear ??= this.newGear();
     this.gear.hold(fish);
   }
 
@@ -573,9 +816,24 @@ export class OceanScene {
         continue;
       }
       present.add(boat.uid);
+      // What the other player has bought (the server reads it from their account, never from them):
+      // their boat's model and their rod. Asked once per change; a boat that is not here yet is
+      // made that way below.
+      if (this.remoteTiers.get(boat.uid) !== boat.tier)
+        void this.setRemoteBoatTier(boat.uid, boat.tier);
+      if (this.remoteRodTiers.get(boat.uid) !== boat.rod)
+        this.setRemoteRodTier(boat.uid, boat.rod);
       let craft = this.fleet.get(boat.uid);
       if (!craft) {
-        craft = this.craft(boat.uid, boat.name, false);
+        craft = this.craft(
+          boat.uid,
+          boat.name,
+          false,
+          this.remoteTiers.get(boat.uid) ?? 0,
+          this.remoteRodTiers.get(boat.uid) ?? 0,
+        );
+        // A bigger boat shows the first boat's model until its own has loaded.
+        if (craft.tier > 0) void this.ensureBoatModels(craft.tier);
         craft.x = boat.x;
         craft.z = boat.z;
         craft.heading = boat.heading;
@@ -586,14 +844,24 @@ export class OceanScene {
       craft.x = boat.x;
       craft.z = boat.z;
       craft.heading = boat.heading;
-      this.rest(craft.mesh, craft.x, craft.z, craft.heading, this.clock);
+      this.rest(
+        craft.mesh,
+        craft.x,
+        craft.z,
+        craft.heading,
+        this.clock,
+        craft.tier,
+      );
       this.setLine(craft, boat.fishing);
+      this.pickLevel(craft);
       craft.label.dataset.x = String(boat.x);
       craft.label.dataset.z = String(boat.z);
     }
     for (const [id, craft] of this.fleet)
       if (!present.has(id)) {
         this.forgetTrail(id);
+        this.remoteTiers.delete(id);
+        this.remoteRodTiers.delete(id);
         craft.label.remove();
         craft.line?.dispose();
         craft.rod.dispose();
@@ -632,7 +900,7 @@ export class OceanScene {
         ? this.rodTip()
         : undefined;
     if (this.gearInput && tip) {
-      this.gear ??= new FishingGear(this.scene);
+      this.gear ??= this.newGear();
       this.gear.update({ ...this.gearInput, tip, time: this.clock });
     } else if (tip && this.gear?.recoiling)
       this.gear.updateRecoil(tip, this.clock);
@@ -644,6 +912,7 @@ export class OceanScene {
       ...this.fleet.values(),
     ]);
     this.wildlife.update(this.clock, this.camera.position);
+    this.yards.update(this.camera.position.x, this.camera.position.z);
     if (probe("props") !== "0")
       this.propFade.update(
         this.camera.position,
@@ -655,14 +924,20 @@ export class OceanScene {
     const spots: BoatSpot[] = [];
     if (this.self && state) {
       const wet = this.wetOf(this.self.physics.contacts(), step);
-      this.leaveTrail("self", state.x, state.z, wet);
-      hulls.push(this.hullOf("self", state.x, state.z));
-      spots.push({ x: state.x, z: state.z, heading: state.heading, wet });
+      const tier = this.self.craft.tier;
+      this.leaveTrail("self", state.x, state.z, tier, wet);
+      hulls.push(this.hullOf("self", state.x, state.z, tier));
+      spots.push({ x: state.x, z: state.z, heading: state.heading, wet, tier });
     }
     for (const [id, craft] of this.fleet) {
-      this.leaveTrail(id, craft.x, craft.z);
-      hulls.push(this.hullOf(id, craft.x, craft.z));
-      spots.push({ x: craft.x, z: craft.z, heading: craft.heading });
+      this.leaveTrail(id, craft.x, craft.z, craft.tier);
+      hulls.push(this.hullOf(id, craft.x, craft.z, craft.tier));
+      spots.push({
+        x: craft.x,
+        z: craft.z,
+        heading: craft.heading,
+        tier: craft.tier,
+      });
     }
     this.sim.recentre(this.camera.position.x, this.camera.position.z);
     this.sim.step(step, hulls);
@@ -716,8 +991,11 @@ export class OceanScene {
     const f = this.focus * this.focus * (3 - 2 * this.focus);
     // High and far behind, looking well ahead, so the sea, the islands and the horizon stay in
     // view (chase-camera.ts); closer and lower while fishing.
-    const back = CHASE.back + (CHASE.fishingBack - CHASE.back) * f;
-    const height = CHASE.height + (CHASE.fishingHeight - CHASE.height) * f;
+    // A bigger boat is framed from a little farther (boat-tier.ts `cameraScale`).
+    const fit = cameraScale(this.self?.craft.tier ?? 0);
+    const back = (CHASE.back + (CHASE.fishingBack - CHASE.back) * f) * fit;
+    const height =
+      (CHASE.height + (CHASE.fishingHeight - CHASE.height) * f) * fit;
     const want = new Vector3(state.x - fx * back, height, state.z - fz * back);
     const ahead = this.viewHeading + this.lead * (1 - f);
     const look = new Vector3(
@@ -850,13 +1128,19 @@ export class OceanScene {
     };
     if (this.self) {
       const s = this.self.physics.state();
-      place(this.self.craft, s.x, s.y + 4.4, s.z, false);
+      place(
+        this.self.craft,
+        s.x,
+        s.y + 4.4 + labelLift(this.self.craft.tier),
+        s.z,
+        false,
+      );
     }
     for (const craft of this.fleet.values())
       place(
         craft,
         craft.mesh.position.x,
-        craft.mesh.position.y + 6.2,
+        craft.mesh.position.y + 6.2 + labelLift(craft.tier),
         craft.mesh.position.z,
         true,
       );
@@ -947,6 +1231,7 @@ export class OceanScene {
     this.wildlife.dispose();
     this.propFade.dispose();
     for (const market of this.markets) market.dispose();
+    this.yards.dispose();
     for (const id of [...this.trails.keys()]) this.forgetTrail(id);
     this.self?.craft.label.remove();
     this.self?.physics.dispose();

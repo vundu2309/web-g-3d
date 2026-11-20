@@ -10,6 +10,7 @@ import {
 import { hullCss } from "../ocean/palette";
 import { BUOYS } from "../ocean/sea-layout";
 import { MARKETS } from "../ocean/market";
+import { SHIPYARDS } from "../ocean/shipyard";
 
 /**
  * A small map of the whole sea in the corner of the screen: islands, the harbor, the
@@ -181,6 +182,33 @@ export function createMinimap(canvas: HTMLCanvasElement) {
       c.moveTo(at.x + r * 0.28, at.y);
       c.lineTo(at.x + r * 0.62, at.y - r * 0.3);
       c.lineTo(at.x + r * 0.62, at.y + r * 0.3);
+      c.closePath();
+      c.fill();
+    }
+    // The shipyards: a gold disc with a small boat on it, like the markets' coin.
+    for (const yard of SHIPYARDS) {
+      const at = toMap(yard.x, yard.z, px);
+      const r = unit * 3.4;
+      c.beginPath();
+      c.arc(at.x, at.y, r, 0, Math.PI * 2);
+      c.fillStyle = "#ffd35a";
+      c.fill();
+      c.lineWidth = Math.max(1, unit * 0.9);
+      c.strokeStyle = INK;
+      c.stroke();
+      // The boat: a hull and a sail.
+      c.fillStyle = INK;
+      c.beginPath();
+      c.moveTo(at.x - r * 0.62, at.y + r * 0.12);
+      c.lineTo(at.x + r * 0.62, at.y + r * 0.12);
+      c.lineTo(at.x + r * 0.38, at.y + r * 0.5);
+      c.lineTo(at.x - r * 0.38, at.y + r * 0.5);
+      c.closePath();
+      c.fill();
+      c.beginPath();
+      c.moveTo(at.x - r * 0.05, at.y + r * 0.04);
+      c.lineTo(at.x - r * 0.05, at.y - r * 0.58);
+      c.lineTo(at.x + r * 0.42, at.y + r * 0.04);
       c.closePath();
       c.fill();
     }

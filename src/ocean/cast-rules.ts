@@ -17,7 +17,9 @@ export type PressAction =
   /** A landed fish hangs from the rod: keep it AND start charging the next throw. */
   | "keep-and-charge"
   /** A landed fish hangs and the rod is not ready yet: only keep it. */
-  | "keep";
+  | "keep"
+  /** A landed fish hangs and the store is full: it cannot be kept, so the press does nothing but say so (the fish can be put back, or room made at the market). */
+  | "full";
 
 export interface PressState {
   /** The sea accepts input (connected, no dialog, tab visible). */
@@ -28,11 +30,16 @@ export interface PressState {
   busy: boolean;
   /** The player's boat and rod exist, so a throw has somewhere to start. */
   hasRod: boolean;
+  /** The fish store has no slot left (fishing.ts `canKeep`); absent means it has room. */
+  storeFull?: boolean;
 }
 
 export function pressAction(state: PressState): PressAction {
   if (!state.enabled) return "ignore";
-  if (state.holdingFish) return state.hasRod ? "keep-and-charge" : "keep";
+  if (state.holdingFish) {
+    if (state.storeFull) return "full";
+    return state.hasRod ? "keep-and-charge" : "keep";
+  }
   if (state.busy) return "pull";
   return state.hasRod ? "charge" : "ignore";
 }

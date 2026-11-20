@@ -1,11 +1,13 @@
 import {
   EconomyError,
   type EconomyApi,
+  type BuyResult,
   type EconomyState,
   type ImportResult,
   type Profile,
   type SellResult,
 } from "../ocean/economy-api";
+import { loadoutOf } from "../ocean/upgrades";
 
 export * from "../ocean/economy-api";
 
@@ -28,6 +30,12 @@ function failureOf(error: {
       return new EconomyError("full");
     case "22023":
       return new EconomyError("invalid");
+    case "EC402":
+      return new EconomyError("poor");
+    case "EC409":
+      return new EconomyError("owned");
+    case "EC422":
+      return new EconomyError("order");
     case "PGRST202": // the function is not in the schema cache: migration not applied
     case "42883":
       return new EconomyError("closed");
@@ -51,7 +59,12 @@ export function supabaseEconomy(): EconomyApi {
     return response.data as T;
   };
   return {
-    state: () => call<EconomyState>("economy_state"),
+    // A server that has not got the upgrades migration yet answers without a loadout: the
+    // defaults then.
+    async state() {
+      const raw = await call<EconomyState>("economy_state");
+      return { ...raw, loadout: loadoutOf(raw.loadout) };
+    },
     async recordCatch(fish) {
       await call("economy_record_catch", {
         p_species: fish.species,
@@ -80,5 +93,15 @@ export function supabaseEconomy(): EconomyApi {
           ? fish.map((f) => ({ species: f.species, kg: round2(f.kg) }))
           : null,
       }),
+    async buy(kind, tier) {
+      const raw = await call<BuyResult>("economy_buy", {
+        p_kind: kind,
+        p_tier: tier,
+      });
+      return { coins: raw.coins, loadout: loadoutOf(raw.loadout) };
+    },
+    async setBait(tier) {
+      return loadoutOf(await call("economy_set_bait", { p_tier: tier }));
+    },
   };
 }

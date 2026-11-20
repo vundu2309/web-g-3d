@@ -60,13 +60,18 @@ export async function connectOcean(
       });
       fleet.clear();
       for (const boat of boats) fleet.set(boat.uid, boat);
+      lastServerTime = value.serverTime;
       onBoats(boats, value.serverTime);
     },
   );
   // Protocol 2: a full snapshot on entering, then only what changed each tick.
   const fleet = new Map<string, Boat>();
-  const publishBoats = (serverTime: number) =>
+  /** The server time of the last thing the server sent, for a change that comes with no time of its own. */
+  let lastServerTime = 0;
+  const publishBoats = (serverTime: number) => {
+    lastServerTime = serverTime;
     onBoats([...fleet.values()].slice(0, 100), serverTime);
+  };
   socket.on(
     "ocean:delta",
     (value: {
@@ -114,6 +119,29 @@ export async function connectOcean(
       for (const uid of Array.isArray(value.gone) ? value.gone : [])
         fleet.delete(uid);
       publishBoats(at);
+    },
+  );
+  // A player bought a boat or a rod: the server says which they have now. (The server also sends
+  // them with every boat that enters; older servers send neither, which reads as the first ones.)
+  const tierOf = (value: unknown) =>
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= 3
+      ? value
+      : 0;
+  socket.on(
+    "ocean:refit",
+    (value: { uid?: unknown; tier?: unknown; rod?: unknown }) => {
+      if (disposed || typeof value?.uid !== "string") return;
+      const known = fleet.get(value.uid);
+      if (!known) return;
+      fleet.set(known.uid, {
+        ...known,
+        tier: tierOf(value.tier),
+        rod: tierOf(value.rod),
+      });
+      publishBoats(lastServerTime);
     },
   );
   socket.on("ocean:error", (value: { error: string }) =>
@@ -195,6 +223,10 @@ export async function connectOcean(
       dispose: () => {
         listener.subscription.unsubscribe();
         dispose();
+      },
+      /** Bought a boat or a rod: ask the server to read what this player owns again and tell the others. */
+      refit: () => {
+        if (!disposed && modern && socket.connected) socket.emit("ocean:refit");
       },
       publish: async (pose: Pose) => {
         if (disposed) return;

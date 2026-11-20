@@ -75,7 +75,7 @@ Trình duyệt mô phỏng không đảm bảo trải nghiệm trên điện tho
 Repository có hai đường phát hành:
 
 - **Vercel**: `AGENTS.md` quy định mọi push lên `main` là deploy production, và các thay đổi UI/UX cần theo dõi build đến khi deploy xong; `vercel.json` cấu hình build Vite và cache của `sw.js`, `index.html`.
-- **GitHub Pages**: workflow `.github/workflows/pages.yml` chạy lint, format, typecheck và unit cho PR, `main` và dispatch thủ công; chỉ publish khi push có trailer chính xác `Pages-Deploy: true` hoặc khi dispatch thủ công. PR không deploy. Tài liệu `docs/workflow.md` vẫn mô tả quy trình Pages cũ, nên cần đối chiếu với `AGENTS.md` khi phát hành.
+- **GitHub Pages**: workflow `.github/workflows/pages.yml` chạy lint, format, typecheck và unit cho PR, `main` và dispatch thủ công; chỉ publish khi push có trailer chính xác `Pages-Deploy: true` hoặc khi dispatch thủ công. PR không deploy. `docs/workflow.md` mô tả cùng quy tắc trailer và phạm vi CI; khi có khác biệt, `AGENTS.md` là điểm vào chính.
 
 Thay đổi không có tác động UI/UX (tài liệu, test, công cụ, nội bộ) không cần trailer và không được ghi là đã lên production.
 

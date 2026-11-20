@@ -7,56 +7,64 @@ import type { Scene } from "@babylonjs/core/scene";
 import { hex } from "./mesh-parts.ts";
 import { ROD_BASE, ROD_LEAN, ROD_LENGTH, RodSim, type V3 } from "./rod.ts";
 import {
-  GUIDES,
   GUIDE_INNER,
   GUIDE_OUTER,
   GUIDE_SIDES,
-  ROD_RINGS,
   ROD_SIDES,
+  STUD_SIDES,
   joined,
   radiusAt,
+  ROD_COLOUR_NAMES,
+  rodPlan,
+  rodTierIndex,
+  type ReelPart,
   type RodColour,
+  type RodPlan,
 } from "./rod-plan.ts";
 import { boatPalettes, type BoatPalette } from "./palette.ts";
+import { rodColour } from "./rod-colours.ts";
 import { PAL } from "./art/colors.ts";
-import { Parts, SIDES } from "./art/shapes.ts";
+import { Parts } from "./art/shapes.ts";
 import { solidMaterial } from "./art/materials.ts";
 
 /**
- * The rod on the boat: a fat cork handle, a ferrule, a tapered blank in two alternating colours
- * (the boat's own hull and trim colours, so every rod matches its boat), line guides and a round
- * bright tip (the shape is in rod-plan.ts), plus a round reel with a crank. The blank and the
- * guides are one small mesh whose vertices follow RodSim every frame, so it bends and shakes; the
- * reel never moves. Every boat has one; only the player's is stepped.
+ * The rod on the boat: one of the four rods of the shop (rod-plan.ts: bamboo, fibreglass, carbon
+ * fibre, gold), a slim tapered blank with hard colour bands, line guides and a round bright tip,
+ * plus the reel that hangs under the handle. The blank and the guides are one small mesh whose
+ * vertices follow RodSim every frame, so it bends and shakes; the reel is one merged mesh that
+ * never moves. Every boat has one; only the player's is stepped.
  */
 const SAMPLES = 15;
-const CORK = hex(PAL.rod.cork);
-const CAP = hex(PAL.rod.cap);
-const FERRULE = hex(PAL.metal.light);
-const TIP = hex(PAL.rod.tip);
 
+/** The colours of a plan as the blank's vertex colours; only the bamboo's thread wrap is the boat's own trim colour. */
 const colours = (
   palette: BoatPalette,
-): Record<RodColour, ReturnType<typeof hex>> => ({
-  cap: CAP,
-  cork: CORK,
-  ferrule: FERRULE,
-  bandA: hex(palette.trim),
-  bandB: hex(palette.hull),
-  tip: TIP,
-  guide: FERRULE,
-});
+): Record<RodColour, ReturnType<typeof hex>> => {
+  const out = {} as Record<RodColour, ReturnType<typeof hex>>;
+  for (const name of ROD_COLOUR_NAMES)
+    out[name] = hex(rodColour(name, palette.trim));
+  return out;
+};
 
-const ringVertices = ROD_RINGS.length * ROD_SIDES;
-const GUIDE_VERTICES = GUIDE_SIDES * 2;
-const TOTAL_VERTICES = ringVertices + GUIDES.length * GUIDE_VERTICES;
+/** The colour of a reel part (Parts paints from a number); the reel has no boat colour. */
+const reelColour = (name: RodColour): number => rodColour(name, PAL.rod.cap);
+
+/** Vertices of the blank and what hangs on it: the rings, the guides, the studs on the guides. */
+const verticesOf = (plan: RodPlan) => ({
+  rings: plan.rings.length * ROD_SIDES,
+  guide: GUIDE_SIDES * 2,
+  stud: plan.stud ? STUD_SIDES * 2 : 0,
+});
 
 export class RodVisual {
   readonly sim: RodSim;
+  /** Which rod it is (rod-plan.ts, 0 to 3). */
+  readonly tier: number;
+  private readonly plan: RodPlan;
   private readonly blank: Mesh;
   private readonly fixed: Mesh;
-  private readonly positions = new Float32Array(TOTAL_VERTICES * 3);
-  private readonly normals = new Float32Array(TOTAL_VERTICES * 3);
+  private readonly positions: Float32Array;
+  private readonly normals: Float32Array;
   private readonly points: V3[] = [];
   private readonly at = { x: 0, y: 0, z: 0 };
   private readonly ahead = { x: 0, y: 0, z: 0 };
@@ -67,35 +75,60 @@ export class RodVisual {
     parent: TransformNode,
     palette: BoatPalette = boatPalettes[0]!,
     rng?: () => number,
+    /** Where the boat's rod holder is (boat-tier.ts `rod`); the first boat's by default. */
+    base: V3 = ROD_BASE,
+    /** Which rod it is (rod-plan.ts, 0 to 3; an invalid tier is the free bamboo rod). */
+    tier = 0,
   ) {
-    this.sim = new RodSim(rng);
+    this.tier = rodTierIndex(tier);
+    const plan = rodPlan(this.tier);
+    this.plan = plan;
+    this.sim = new RodSim(rng, base, plan.restBend);
+    const per = verticesOf(plan);
+    const total = per.rings + plan.guides.length * (per.guide + per.stud);
+    this.positions = new Float32Array(total * 3);
+    this.normals = new Float32Array(total * 3);
     const paint = colours(palette);
     const indices: number[] = [];
     const colors: number[] = [];
-    for (const ring of ROD_RINGS) {
+    for (const ring of plan.rings) {
       const c = paint[ring.colour];
       for (let k = 0; k < ROD_SIDES; k++) colors.push(c.r, c.g, c.b, 1);
     }
-    for (let r = 0; r + 1 < ROD_RINGS.length; r++) {
-      if (!joined(r)) continue;
+    for (let r = 0; r + 1 < plan.rings.length; r++) {
+      if (!joined(plan, r)) continue;
       for (let k = 0; k < ROD_SIDES; k++) {
         const a = r * ROD_SIDES + k;
         const b = r * ROD_SIDES + ((k + 1) % ROD_SIDES);
         indices.push(a, b, a + ROD_SIDES, b, b + ROD_SIDES, a + ROD_SIDES);
       }
     }
-    const guide = paint.guide;
-    for (let g = 0; g < GUIDES.length; g++) {
-      const base = ringVertices + g * GUIDE_VERTICES;
-      for (let k = 0; k < GUIDE_VERTICES; k++)
+    const guide = paint[plan.guideColour];
+    for (let g = 0; g < plan.guides.length; g++) {
+      const first = per.rings + g * (per.guide + per.stud);
+      for (let k = 0; k < per.guide; k++)
         colors.push(guide.r, guide.g, guide.b, 1);
       for (let k = 0; k < GUIDE_SIDES; k++) {
         const n = (k + 1) % GUIDE_SIDES;
-        const o = base + k;
-        const o2 = base + n;
-        const i = base + GUIDE_SIDES + k;
-        const i2 = base + GUIDE_SIDES + n;
+        const o = first + k;
+        const o2 = first + n;
+        const i = first + GUIDE_SIDES + k;
+        const i2 = first + GUIDE_SIDES + n;
         indices.push(o, o2, i, o2, i2, i);
+      }
+      if (plan.stud) {
+        const stud = paint[plan.stud.colour];
+        const s0 = first + per.guide;
+        for (let k = 0; k < per.stud; k++)
+          colors.push(stud.r, stud.g, stud.b, 1);
+        for (let k = 0; k < STUD_SIDES; k++) {
+          const n = (k + 1) % STUD_SIDES;
+          const o = s0 + k;
+          const o2 = s0 + n;
+          const i = s0 + STUD_SIDES + k;
+          const i2 = s0 + STUD_SIDES + n;
+          indices.push(o, o2, i, o2, i2, i);
+        }
       }
     }
     this.blank = new Mesh("rod-blank", scene);
@@ -114,56 +147,28 @@ export class RodVisual {
     this.blank.alwaysSelectAsActiveMesh = true;
 
     // The reel hangs under the handle, facing the stern (the chase camera looks at its face):
-    // a round body, a lighter plate, a crank arm with a knob, and a stem to the handle.
+    // the parts of the plan, placed along the rod and on the side it leans away from.
     const fixed = new Parts(scene);
     const lean = ROD_LEAN;
     const along = { x: Math.sin(lean), y: Math.cos(lean) };
     const down = { x: Math.cos(lean), y: -Math.sin(lean) };
-    const centre = (s: number, off: number): [number, number, number] => [
-      ROD_BASE.x + along.x * ROD_LENGTH * s + down.x * off,
-      ROD_BASE.y + along.y * ROD_LENGTH * s + down.y * off,
-      ROD_BASE.z,
+    const place = (at: readonly [number, number, number]): V3Tuple => [
+      base.x + down.x * at[0] + along.x * at[2],
+      base.y + down.y * at[0] + along.y * at[2],
+      base.z + at[1],
     ];
-    const reelAt = centre(0.11, 0.45);
-    const faceZ = reelAt[2] + 0.1;
-    fixed.tube(
-      { top: 0.1, bottom: 0.1, height: 0.2, sides: SIDES.small },
-      PAL.metal.steel,
-      centre(0.11, 0.22),
-      [0, 0, Math.PI / 2 - lean],
-    );
-    fixed.tube(
-      { top: 0.5, bottom: 0.5, height: 0.2, sides: SIDES.round },
-      PAL.rod.reel,
-      reelAt,
-      [Math.PI / 2, 0, 0],
-    );
-    fixed.tube(
-      { top: 0.3, bottom: 0.3, height: 0.03, sides: SIDES.round },
-      PAL.metal.light,
-      [reelAt[0], reelAt[1], faceZ + 0.01],
-      [Math.PI / 2, 0, 0],
-    );
-    // The crank: an arm from the middle of the plate, and a knob on its end.
-    fixed.box(
-      [0.3, 0.06, 0.05],
-      PAL.metal.steel,
-      [reelAt[0] + 0.14, reelAt[1] - 0.04, faceZ + 0.05],
-      [0, 0, -0.3],
-    );
-    fixed.sphere(
-      0.13,
-      PAL.rod.accent,
-      [reelAt[0] + 0.28, reelAt[1] - 0.085, faceZ + 0.1],
-      undefined,
-      undefined,
-      SIDES.small,
-    );
+    for (const part of plan.reel) addReelPart(fixed, part, place, lean);
     this.fixed = fixed.merge("rod-fixed");
     this.fixed.material = solidMaterial(scene, "gloss");
     this.fixed.useVertexColors = true;
     this.fixed.parent = parent;
     this.fixed.isPickable = false;
+  }
+
+  /** Draws the rod or leaves it out (a far boat has none, boat-lod.ts). */
+  setVisible(visible: boolean) {
+    this.blank.setEnabled(visible);
+    this.fixed.setEnabled(visible);
   }
 
   /** Advances the spring and updates the mesh. `pull` is in the boat's axes. */
@@ -210,10 +215,12 @@ export class RodVisual {
   }
 
   private refresh() {
+    const plan = this.plan;
+    const per = verticesOf(plan);
     this.sim.points(SAMPLES, this.points);
     const delta = 0.03;
-    for (let r = 0; r < ROD_RINGS.length; r++) {
-      const ring = ROD_RINGS[r]!;
+    for (let r = 0; r < plan.rings.length; r++) {
+      const ring = plan.rings[r]!;
       const s = ring.s;
       const c = this.centre(s, this.at);
       const a = this.centre(Math.max(0, s - delta), this.behind);
@@ -242,9 +249,10 @@ export class RodVisual {
         this.normals[at + 2] = sin;
       }
     }
-    // The guides: flat eyelets on the underside, facing the stern.
-    for (let g = 0; g < GUIDES.length; g++) {
-      const s = GUIDES[g]!;
+    // The guides: flat eyelets on the underside, facing the stern, and a stud on each of the
+    // rarer rods'.
+    for (let g = 0; g < plan.guides.length; g++) {
+      const s = plan.guides[g]!;
       const c = this.centre(s, this.at);
       const a = this.centre(s - delta, this.behind);
       const b = this.centre(s + delta, this.ahead);
@@ -256,10 +264,10 @@ export class RodVisual {
       const ux = ty;
       const uy = -tx;
       // The eyelet's centre sits just outside the blank, so its edge touches the rod.
-      const off = radiusAt(s) + GUIDE_OUTER * 0.82;
+      const off = radiusAt(plan, s) + GUIDE_OUTER * 0.82;
       const cx = c.x + ux * off;
       const cy = c.y + uy * off;
-      const base = ROD_RINGS.length * ROD_SIDES + g * GUIDE_SIDES * 2;
+      const first = per.rings + g * (per.guide + per.stud);
       for (let k = 0; k < GUIDE_SIDES; k++) {
         const angle = (k / GUIDE_SIDES) * Math.PI * 2;
         const cos = Math.cos(angle);
@@ -268,7 +276,7 @@ export class RodVisual {
           [0, GUIDE_OUTER],
           [1, GUIDE_INNER],
         ] as const) {
-          const at = (base + row * GUIDE_SIDES + k) * 3;
+          const at = (first + row * GUIDE_SIDES + k) * 3;
           this.positions[at] = cx + (tx * cos + ux * sin) * radius;
           this.positions[at + 1] = cy + (ty * cos + uy * sin) * radius;
           this.positions[at + 2] = c.z;
@@ -277,11 +285,101 @@ export class RodVisual {
           this.normals[at + 2] = 1;
         }
       }
+      if (plan.stud) {
+        // A small fan standing on the eyelet's far side, a little toward the stern so it shows.
+        const sx = cx + tx * GUIDE_OUTER * 0.9;
+        const sy = cy + ty * GUIDE_OUTER * 0.9;
+        const s0 = first + per.guide;
+        for (let k = 0; k < STUD_SIDES; k++) {
+          const angle = (k / STUD_SIDES) * Math.PI * 2;
+          const cos = Math.cos(angle);
+          const sin = Math.sin(angle);
+          for (const [row, radius] of [
+            [0, plan.stud.radius],
+            [1, plan.stud.radius * 0.25],
+          ] as const) {
+            const at = (s0 + row * STUD_SIDES + k) * 3;
+            this.positions[at] = sx + (tx * cos + ux * sin) * radius;
+            this.positions[at + 1] = sy + (ty * cos + uy * sin) * radius;
+            this.positions[at + 2] = c.z + 0.012;
+            this.normals[at] = 0;
+            this.normals[at + 1] = 0;
+            this.normals[at + 2] = 1;
+          }
+        }
+      }
     }
   }
 
   dispose() {
     this.blank.dispose();
     this.fixed.dispose();
+  }
+}
+
+type V3Tuple = [number, number, number];
+
+/** Adds one part of a reel plan to `parts`, placed by `place` (reel frame to boat axes). */
+function addReelPart(
+  parts: Parts,
+  part: ReelPart,
+  place: (at: readonly [number, number, number]) => V3Tuple,
+  lean: number,
+) {
+  const at = place(part.at);
+  const color = reelColour(part.colour);
+  switch (part.kind) {
+    case "disc":
+      parts.tube(
+        {
+          top: part.radius * 2,
+          bottom: part.radius * 2,
+          height: part.depth,
+          sides: part.sides,
+        },
+        color,
+        at,
+        [Math.PI / 2, 0, 0],
+      );
+      break;
+    case "ball":
+      parts.sphere(
+        part.diameter,
+        color,
+        at,
+        undefined,
+        part.flat === undefined ? undefined : [1, 1, part.flat],
+        part.sides,
+      );
+      break;
+    case "arm":
+      parts.box(part.size, color, at, [0, 0, -lean - part.turn]);
+      break;
+    case "stem":
+      parts.tube(
+        {
+          top: part.radius * 2,
+          bottom: part.radius * 2,
+          height: part.length,
+          sides: part.sides,
+        },
+        color,
+        at,
+        [0, 0, Math.PI / 2 - lean],
+      );
+      break;
+    case "post":
+      parts.tube(
+        {
+          top: part.radius * 2,
+          bottom: part.radius * 2,
+          height: part.length,
+          sides: part.sides,
+        },
+        color,
+        at,
+        [0, 0, -lean],
+      );
+      break;
   }
 }

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { EconomyError, memoryEconomy } from "../src/ocean/economy-api.ts";
 import { priceOf } from "../src/ocean/economy.ts";
 import { SPECIES } from "../src/ocean/fishing.ts";
+import { UPGRADES } from "../src/ocean/upgrades.ts";
 
 // The in-memory economy follows the database's rules (tests/economy-postgres.sql), so the
 // market screens can be built and tested without a server.
@@ -176,4 +177,111 @@ test("an old store that fits moves whole, every fish at its species' lightest we
     undefined,
     "a best of 0 is no record",
   );
+});
+
+// Upgrades: the same rules as economy_private.buy / set_bait (tests/economy-postgres.sql).
+test("a new account owns only the free tiers", async () => {
+  const money = memoryEconomy();
+  assert.deepEqual((await money.state()).loadout, {
+    rod: 0,
+    bait: 0,
+    baitUsed: 0,
+    boat: 0,
+  });
+});
+
+test("buying charges the table's price and records the tier", async () => {
+  const money = memoryEconomy({ coins: 1000 });
+  const rod = await money.buy("rod", 1);
+  assert.equal(rod.coins, 1000 - UPGRADES.rod[1].price);
+  assert.equal(rod.loadout.rod, 1);
+  const boat = await money.buy("boat", 1);
+  assert.equal(
+    boat.coins,
+    1000 - UPGRADES.rod[1].price - UPGRADES.boat[1].price,
+  );
+  const state = await money.state();
+  assert.equal(state.coins, boat.coins);
+  assert.equal(state.loadout.rod, 1);
+  assert.equal(state.loadout.boat, 1);
+  assert.equal(state.loadout.bait, 0);
+});
+
+test("buying a tier too early, again, or without the coins changes nothing", async () => {
+  const money = memoryEconomy({ coins: 150 });
+  const before = await money.state();
+  await fails(money.buy("rod", 2), "order"); // tier 1 first
+  await fails(money.buy("rod", 3), "order");
+  await fails(money.buy("boat", 1), "poor"); // 200 coins, 150 held
+  await fails(money.buy("rod", 0), "owned"); // the free tier is owned from the start
+  await money.buy("rod", 1);
+  await fails(money.buy("rod", 1), "owned");
+  await fails(money.buy("rod", 2), "poor"); // 600 coins, 50 held
+  await fails(money.buy("sail", 1), "invalid");
+  await fails(money.buy("rod", 4), "invalid");
+  await fails(money.buy("rod", 1.5), "invalid");
+  await fails(money.buy("rod", -1), "invalid");
+  const after = await money.state();
+  assert.equal(after.coins, before.coins - UPGRADES.rod[1].price);
+  assert.deepEqual(after.loadout, { rod: 1, bait: 0, baitUsed: 0, boat: 0 });
+});
+
+test("the tiers are bought in order up to the top, then nothing is left", async () => {
+  const money = memoryEconomy({ coins: 1e6 });
+  for (const tier of [1, 2, 3]) await money.buy("boat", tier);
+  assert.equal((await money.state()).loadout.boat, 3);
+  await fails(money.buy("boat", 3), "owned");
+  const total = UPGRADES.boat.reduce((sum, t) => sum + t.price, 0);
+  assert.equal((await money.state()).coins, 1e6 - total);
+});
+
+test("a double press charges exactly once", async () => {
+  const money = memoryEconomy({ coins: 250 });
+  const results = await Promise.allSettled([
+    money.buy("rod", 1),
+    money.buy("rod", 1),
+  ]);
+  assert.equal(results.filter((r) => r.status === "fulfilled").length, 1);
+  const lost = results.find((r) => r.status === "rejected");
+  assert.ok(lost.reason instanceof EconomyError);
+  assert.equal(lost.reason.failure, "owned");
+  assert.equal((await money.state()).coins, 150);
+});
+
+test("bait: every bought bait is kept, one is in use, only an owned one can be chosen", async () => {
+  const money = memoryEconomy({ coins: 1000 });
+  await fails(money.setBait(1), "order"); // not owned yet
+  await fails(money.setBait(7), "invalid");
+  await fails(money.setBait(0.5), "invalid");
+  await money.buy("bait", 1);
+  assert.deepEqual((await money.state()).loadout, {
+    rod: 0,
+    bait: 1,
+    baitUsed: 1,
+    boat: 0,
+  });
+  await money.buy("bait", 2);
+  assert.equal((await money.state()).loadout.baitUsed, 2);
+  const back = await money.setBait(0);
+  assert.deepEqual(back, { rod: 0, bait: 2, baitUsed: 0, boat: 0 });
+  await money.setBait(1);
+  assert.equal((await money.state()).loadout.baitUsed, 1);
+  assert.equal(
+    (await money.state()).loadout.bait,
+    2,
+    "the better bait stays owned",
+  );
+  await fails(money.setBait(3), "order");
+  assert.equal(
+    (await money.state()).loadout.baitUsed,
+    1,
+    "a refused choice changes nothing",
+  );
+});
+
+test("the state hands out a copy of the loadout, not the live object", async () => {
+  const money = memoryEconomy({ coins: 100 });
+  const state = await money.state();
+  state.loadout.rod = 3;
+  assert.equal((await money.state()).loadout.rod, 0);
 });

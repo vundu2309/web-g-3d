@@ -117,13 +117,15 @@ export class WakeMesh {
    * Draws the bow wave at the boat's current position `at` (the trail's newest point when it is
    * not given; the trail only records every few hundredths of a second, so the game passes the
    * live position and the crest does not stutter against the hull). `wet` (0 to 1) is how much of
-   * the hull is in the water.
+   * the hull is in the water. `tier` is the boat (boat-tier.ts), whose stem the bow wave leaves
+   * from.
    */
   update(
     trail: WakeTrail,
     now: number,
     at?: { x: number; z: number },
     wet = 1,
+    tier = 0,
   ) {
     const newest = trail.samples[trail.samples.length - 1];
     // A hull lifted out of the water throws no crest and no spray: the speed counts as much as
@@ -135,6 +137,7 @@ export class WakeMesh {
         newest.heading,
         newest.speed * wet,
         now,
+        tier,
       );
   }
 

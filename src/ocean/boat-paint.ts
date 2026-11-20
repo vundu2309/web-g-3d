@@ -1,14 +1,20 @@
 import { boatPalettes, type BoatPalette } from "./palette.ts";
 
 /**
- * How the Blender boat (public/models/boat.glb, tools/blender/boat.py) is painted per player and
- * turned into the game's axes. Pure, no Babylon: tests read it directly.
+ * How the Blender boats (public/models/boat.glb, tools/blender/boat.py, and the bigger boat-2.glb,
+ * boat-3.glb and boat-4.glb of tools/blender/upgrade_boats.py; boat-tier.ts says which tier is which
+ * file) are painted per player and turned into the game's axes. Pure, no Babylon: tests read it
+ * directly.
  *
- * The model is built in the colours of the first palette. Two of them are ROLES: the hull paint
+ * Every model is built in the colours of the first palette. Two of them are ROLES: the hull paint
  * (the hull and the wheelhouse's domed roof) and the trim (rubbing strip, roof rim, the outboard's
- * band, the pennant). Every vertex whose colour is exactly a role colour takes the player's colour
- * for that role; all other vertices keep theirs.
+ * cowl band, and on the bigger boats the funnel band, the gantry and the rails' top bars). Every
+ * vertex whose colour is exactly a role colour takes the player's colour for that role; all other
+ * vertices keep theirs. The flag every boat flies is the flag of Vietnam in its own two colours
+ * (`PAL.flag`): it is NOT a role, so a player's paint never touches it (a test pins that no role
+ * colour is ever a flag colour).
  */
+/** The first boat's file (tier 0); the file of every tier is in boat-tier.ts. */
 export const BOAT_FILE = "boat.glb";
 
 /** The root node of the file and its parts (each with a pivot of its own). */
@@ -23,7 +29,7 @@ export const BOAT_PARTS = [
 ] as const;
 
 /**
- * The file is written with the bow at glTF +Z (and the rod holder at x = -1.25, z = -2.52). The
+ * The files are written with the bow at glTF +Z (the first boat's rod holder at x = -1.25, z = -2.52). The
  * sea's scene is right-handed, so the loader adds no flip and the bow would point to +Z; the
  * game's bow points to -Z with the rod holder at starboard (+X) of the stern (+Z). Turning the
  * model half a turn about Y does exactly that (x -> -x, z -> -z); it is baked into the vertices.

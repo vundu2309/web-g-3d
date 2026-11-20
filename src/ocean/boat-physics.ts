@@ -3,6 +3,8 @@ import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { PhysicsAggregate } from "@babylonjs/core/Physics/v2/physicsAggregate";
+import { PhysicsShapeBox } from "@babylonjs/core/Physics/v2/physicsShape";
+import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { PhysicsShapeType } from "@babylonjs/core/Physics/v2/IPhysicsEnginePlugin";
 import type { HavokPlugin } from "@babylonjs/core/Physics/v2/Plugins/havokPlugin";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
@@ -15,12 +17,18 @@ import type { HullPoint } from "./ripple-sim.ts";
 import {
   BODY_ANGULAR_DAMPING,
   KEEL_DRY_GRIP,
-  RUDDER,
-  YAW_INERTIA,
   YAW_WATER_DAMPING,
   blendFraction,
   crossForce,
+  handlingFor,
 } from "./hull-handling.ts";
+import {
+  HULL_MASS,
+  boatTier,
+  boatTierIndex,
+  bowAnchor,
+  hullSamples,
+} from "./boat-tier.ts";
 
 /**
  * Havok rigid-body boat. Havok integrates the body and resolves collisions; this
@@ -30,6 +38,12 @@ import {
  *
  * Local axes: the bow points to local -Z, matching the movement model (heading 0
  * moves toward -Z and a positive steer turns right, increasing heading).
+ *
+ * The body follows the boat's tier (boat-tier.ts): the box Havok collides with and the points the
+ * buoyancy is sampled at grow with the hull, and nothing else changes. The mass, the drive, the drag
+ * and the lift are the numbers the first boat was tuned on; the rudder torque and the lean follow
+ * the box's inertia and stiffness (hull-handling.ts `handlingFor`) so every tier turns and leans
+ * alike. `setTier` swaps the box of the live body in place: the pose and the velocity carry on.
  */
 export interface IslandBody {
   x: number;
@@ -72,6 +86,14 @@ export interface BoatPhysics {
    * with them. The list is reused every step: read it, do not keep it.
    */
   contacts(): readonly HullPoint[];
+  /** The tier of the body now. */
+  readonly tier: number;
+  /**
+   * Gives the live body the box, the buoyancy points and the handling of another tier, in place:
+   * it keeps its position, heading and velocity (a purchase must not drop the boat). The box's
+   * height and the mass do not change, so the waterline does not jump.
+   */
+  setTier(tier: number): void;
   dispose(): void;
 }
 export interface BoatPhysicsOptions {
@@ -81,6 +103,8 @@ export interface BoatPhysicsOptions {
   /** Extra height of the water on top of the waves, such as the boats' wakes (m). */
   extraHeight?: (x: number, z: number, t: number) => number;
   start?: { x: number; z: number; heading: number };
+  /** Which boat the body is (boat-tier.ts, 0 to 3); an invalid tier is 0. */
+  tier?: number;
 }
 
 /** The damped zone before the edge of the sea (m), its spring (N/m) and damping (N s/m). */
@@ -88,14 +112,19 @@ const EDGE_ZONE = 40;
 const EDGE_W = 0.4;
 const EDGE_K = 900 * EDGE_W * EDGE_W;
 const EDGE_C = 2 * 900 * EDGE_W;
-export const HULL = { width: 2.8, height: 1.4, length: 7.4, mass: 900 };
+/** The first boat's body (7.4 x 2.8 x 1.4 m, 900 kg); the other tiers have bigger boxes (boat-tier.ts). */
+export const HULL = {
+  width: boatTier(0).box.width,
+  height: boatTier(0).box.height,
+  length: boatTier(0).box.length,
+  mass: HULL_MASS,
+};
 const DRAFT = 0.45;
 const BOTTOM = -HULL.height / 2;
-// Six hull-bottom sample points: stern, midship and bow on each side.
-const SAMPLES = [-1, 1].flatMap((side) =>
-  [3, 0, -3].map((z) => new Vector3(side * 1.1, BOTTOM, z)),
-);
-const STIFFNESS = (HULL.mass * 9.81) / (SAMPLES.length * DRAFT); // N per metre submerged
+// Six hull-bottom sample points: stern, midship and bow on each side (their place in the box
+// follows the tier, boat-tier.ts `hullSamples`).
+const SAMPLE_COUNT = hullSamples(0).length;
+const STIFFNESS = (HULL.mass * 9.81) / (SAMPLE_COUNT * DRAFT); // N per metre submerged
 const HEAVE_DAMPING = 520; // N·s/m per sample
 /** A hull point counts as wet over its first CONTACT_DEPTH metres in the water; WAVE_RATE_STEP is the step the sea's own rise is measured over (s). */
 const CONTACT_DEPTH = 0.3;
@@ -125,7 +154,6 @@ const PLANE_TO = 10.5 * SPEED_SCALE;
 const PLANE_LIFT = 0.22 * WEIGHT; // N, at full planing, at the centre
 const PLANE_DRAG_CUT = 0.15; // the share of forward drag that goes away at full planing
 const BANK = 2800; // N·m·s: how hard the hull leans into a turn at speed
-const BOW = new Vector3(0, BOTTOM, -3.2);
 
 const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
@@ -160,9 +188,11 @@ export function createBoatPhysics(
   if (!physics)
     throw new Error("Enable physics on the scene before creating the boat.");
   const start = options.start ?? { x: 0, z: 0, heading: 0 };
+  let tier = boatTierIndex(options.tier);
+  const first = boatTier(tier).box;
   const mesh = MeshBuilder.CreateBox(
     "boat-body",
-    { width: HULL.width, height: HULL.height, depth: HULL.length },
+    { width: first.width, height: first.height, depth: first.length },
     scene,
   );
   mesh.isVisible = false;
@@ -175,6 +205,43 @@ export function createBoatPhysics(
     scene,
   );
   const body = aggregate.body;
+  // What follows the tier: the buoyancy points, where the bow's lift is applied and the handling
+  // numbers (the first boat's are the tuned ones, every ratio is 1 there).
+  let samples: Vector3[] = [];
+  let bow = new Vector3();
+  let handling = handlingFor({ mass: HULL_MASS, ...boatTier(0).hull });
+  // A boat whose collision box is wider than its hull (the flagship, over its outrigger booms) is
+  // given the inertia of its HULL, so the box that collides does not change how it turns or leans.
+  // Havok keeps what is set here when the shape is swapped; a boat whose box is its hull is left
+  // to Havok's own working-out (so tiers 0 to 2 stay as they were, to the last digit).
+  let inertiaSet = false;
+  const setInertia = (wanted: number) => {
+    const { box, hull } = boatTier(wanted);
+    const wide = box.width !== hull.width;
+    if (!wide && !inertiaSet) return;
+    // Havok's inertia is per unit of mass (the mass is applied by the engine).
+    const k = 1 / 12;
+    body.setMassProperties({
+      mass: HULL_MASS,
+      inertia: wide
+        ? new Vector3(
+            k * (box.height ** 2 + hull.length ** 2),
+            k * (hull.width ** 2 + hull.length ** 2),
+            k * (hull.width ** 2 + box.height ** 2),
+          )
+        : undefined,
+    });
+    inertiaSet = wide;
+  };
+  const useTier = (next: number) => {
+    tier = boatTierIndex(next);
+    const { hull } = boatTier(tier);
+    samples = hullSamples(tier).map((p) => new Vector3(p.x, BOTTOM, p.z));
+    bow = new Vector3(0, BOTTOM, -bowAnchor(tier));
+    handling = handlingFor({ mass: HULL_MASS, ...hull });
+    setInertia(tier);
+  };
+  useTier(tier);
   // The pose to draw: the hull's last two physics steps, blended by the time left over.
   const view = new TransformNode("boat-view", scene);
   view.rotationQuaternion = Quaternion.Identity();
@@ -244,7 +311,7 @@ export function createBoatPhysics(
   const surface = (x: number, z: number, t: number) =>
     waveHeight(x, z, t) + (options.extraHeight?.(x, z, t) ?? 0);
   // What the hull does to the water, per sample point (read by the ripple simulation).
-  const touching: HullPoint[] = SAMPLES.map(() => ({
+  const touching: HullPoint[] = samples.map(() => ({
     x: 0,
     z: 0,
     vx: 0,
@@ -255,7 +322,7 @@ export function createBoatPhysics(
   const feel = (t: number) => {
     body.getLinearVelocityToRef(velocity);
     body.getAngularVelocityToRef(spin);
-    SAMPLES.forEach((local, i) => {
+    samples.forEach((local, i) => {
       Vector3.TransformCoordinatesToRef(local, mesh.getWorldMatrix(), world);
       point.copyFrom(world).subtractInPlace(mesh.position);
       const contact = touching[i]!;
@@ -281,7 +348,7 @@ export function createBoatPhysics(
     const t = options.time();
     feel(t);
     // Buoyancy and heave damping at every sample point.
-    for (const local of SAMPLES) {
+    for (const local of samples) {
       Vector3.TransformCoordinatesToRef(local, mesh.getWorldMatrix(), world);
       const depth = surface(world.x, world.z, t) - world.y;
       if (depth <= 0) continue;
@@ -341,7 +408,7 @@ export function createBoatPhysics(
     // (a lift at the centre) as it speeds up.
     if (wet > 0 && speed > 0.5) {
       force.set(0, BOW_LIFT * hump * Math.sign(along) * wet * dt, 0);
-      Vector3.TransformCoordinatesToRef(BOW, mesh.getWorldMatrix(), world);
+      Vector3.TransformCoordinatesToRef(bow, mesh.getWorldMatrix(), world);
       body.applyImpulse(force, world);
       force.set(0, PLANE_LIFT * planing * wet * dt, 0);
       body.applyImpulse(force, mesh.position);
@@ -355,8 +422,8 @@ export function createBoatPhysics(
     body.getAngularVelocityToRef(velocity);
     spin.set(
       0,
-      (-clamp(input.steer, -1, 1) * RUDDER * authority -
-        velocity.y * YAW_INERTIA * YAW_WATER_DAMPING * keel) *
+      (-clamp(input.steer, -1, 1) * handling.rudder * authority -
+        velocity.y * handling.yawInertia * YAW_WATER_DAMPING * keel) *
         dt,
       0,
     );
@@ -367,6 +434,7 @@ export function createBoatPhysics(
       clamp(speed / (8 * SPEED_SCALE), 0, 1) *
       wet *
       BANK *
+      handling.bank *
       dt;
     spin.set(forward.x * lean, 0, forward.z * lean);
     body.applyAngularImpulse(spin);
@@ -399,6 +467,34 @@ export function createBoatPhysics(
     input,
     mesh,
     view,
+    get tier() {
+      return tier;
+    },
+    setTier(next: number) {
+      const wanted = boatTierIndex(next);
+      if (wanted === tier) return;
+      const box = boatTier(wanted).box;
+      // The box of the live body is swapped for another: Havok keeps the pose and the velocity,
+      // and works the inertia out again from the new box and the same mass.
+      const shape = new PhysicsShapeBox(
+        Vector3.Zero(),
+        Quaternion.Identity(),
+        new Vector3(box.width, box.height, box.length),
+        scene,
+      );
+      shape.material = aggregate.material;
+      const old = aggregate.shape;
+      body.shape = shape;
+      aggregate.shape = shape;
+      old.dispose();
+      // The hidden mesh is only a handle on the body: keep it the size of the box.
+      VertexData.CreateBox({
+        width: box.width,
+        height: box.height,
+        depth: box.length,
+      }).applyToMesh(mesh);
+      useTier(wanted);
+    },
     state() {
       place();
       Vector3.TransformNormalToRef(

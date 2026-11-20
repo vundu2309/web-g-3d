@@ -37,8 +37,8 @@ Mô hình 3D của biển được làm bằng Blender và commit thành GLB tro
 | --- | --- | --- |
 | Bảng màu nguồn | `src/ocean/art/colors.ts` (`PAL`) | Một nơi duy nhất cho màu theo vai trò; thuyền, đảo, prop, cần câu lấy màu từ đây. |
 | Xuất bảng màu | `scripts/export-palette.mjs` → `tools/blender/palette.json` | Sao chép `PAL` để Blender dùng đúng màu của game, không có bảng hex thứ hai. Chạy qua `npm run assets:palette`. |
-| Dựng tài nguyên | `tools/blender/build.py` cùng `lib.py` và `people.py` | Script headless bằng `bpy`, chỉ xuất `people-N.glb` vào `public/models`. `boat.py`, `props.py`, `vendors.py`, `sea_import.py` và `sea_real.py` có trong thư mục nhưng `build.py` không gọi. |
-| Tệp GLB | `public/models/*.glb` (29 tệp) | Thuyền `boat.glb`; đảo `bush-*` (3), `palm-*` (3), `rock-*` (3), `hut.glb`; cá `fish-*.glb` (10 tệp); mèo người bán `cat-*.glb` (3 tệp); người `people-1..5.glb` (5 tệp). |
+| Dựng tài nguyên | `tools/blender/build.py` cùng `lib.py` và `people.py` | Script headless bằng `bpy`, chỉ xuất `people-N.glb` vào `public/models`. `boat.py`, `props.py`, `vendors.py` và `sea_import.py` có trong thư mục nhưng `build.py` không gọi. |
+| Tệp GLB | `public/models/*.glb` (29 tệp) | Thuyền `boat.glb`; đảo `bush-*` (3), `palm-*` (3), `rock-*` (3), `hut.glb`; cá `fish-*.glb` (10 tệp); mèo người bán `cat-*.glb` (3 tệp); người `people-1..5.glb` (5 tệp). Đây là 29 tệp được commit trong repository; GLB khác đang nằm trên máy phát triển nhưng chưa commit (bait, thuyền `boat-2..4`, `shipyard.glb`) và không được mô tả như một phần của repository. |
 | Nạp trong trình duyệt | `src/ocean/model-loader.ts`, `src/ocean/glb-parts.ts` | `loadMergedModel` gộp mesh thành một; phần GLB có thể hoạt hình được giữ tách. |
 | Ảnh thử | `tools/render-harness/` (`preview.html`, `shoot.mjs`) | Trang xem trước và script chụp ảnh để kiểm tra bằng mắt. |
 

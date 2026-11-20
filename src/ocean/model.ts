@@ -12,7 +12,19 @@ export interface Boat extends Pose {
   name: string;
   session: string;
   updatedAt: number;
+  /** Which boat it is (boat-tier.ts, 0 to 3) and which rod it holds (rod-plan.ts, 0 to 3). */
+  tier: number;
+  rod: number;
 }
+
+/** A boat's or a rod's tier from the network: a whole number from 0 to 3, anything else (or nothing: an older server) is 0. */
+const fitTier = (value: unknown): number =>
+  typeof value === "number" &&
+  Number.isInteger(value) &&
+  value >= 0 &&
+  value <= 3
+    ? value
+    : 0;
 export { islands, lighthouseIslands, type Island } from "./islands.ts";
 import { islands } from "./islands.ts";
 /**
@@ -115,5 +127,7 @@ export function readBoat(
     heading,
     fishing,
     updatedAt: stamp.toMillis(),
+    tier: fitTier(value.tier),
+    rod: fitTier(value.rod),
   };
 }

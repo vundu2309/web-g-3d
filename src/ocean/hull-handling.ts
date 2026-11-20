@@ -12,13 +12,32 @@
  * - the water damps the hull's turning (yaw) on top of Havok's damping, so the heading rate
  *   follows the rudder within about a third of a second and stops with it.
  */
+import { FIRST_BOX, HULL_MASS } from "./boat-tier.ts";
 
-/** Hull mass (kg) and the box it is, the same as `HULL` in boat-physics.ts. */
-export const HULL_BOX = { mass: 900, width: 2.8, length: 7.4 } as const;
+/** Hull mass (kg) and the box of a hull (m). */
+export interface HullBox {
+  mass: number;
+  width: number;
+  length: number;
+}
 
-/** Moment of inertia of the hull about the vertical axis (kg m^2). */
-export const YAW_INERTIA =
-  (HULL_BOX.mass / 12) * (HULL_BOX.width ** 2 + HULL_BOX.length ** 2);
+/**
+ * The first boat's box (7.4 x 2.8 m, 900 kg): every number below was tuned on it. The bigger boats
+ * of the upgrade shop have bigger boxes (boat-tier.ts) and the SAME mass; `handlingFor` keeps them
+ * turning and leaning exactly as this one does.
+ */
+export const HULL_BOX: HullBox = {
+  mass: HULL_MASS,
+  width: FIRST_BOX.width,
+  length: FIRST_BOX.length,
+};
+
+/** Moment of inertia of a box hull about the vertical axis (kg m^2). */
+export const yawInertiaOf = (box: HullBox) =>
+  (box.mass / 12) * (box.width ** 2 + box.length ** 2);
+
+/** Moment of inertia of the first boat's hull about the vertical axis (kg m^2). */
+export const YAW_INERTIA = yawInertiaOf(HULL_BOX);
 
 /** Sideways speed the keel removes per second at full grip (1 / s): about 0.2 s to settle. */
 export const KEEL_GRIP_RATE = 5;
@@ -62,16 +81,47 @@ export function crossForce(
   return -(quadratic * Math.abs(across) + linear + grip) * across;
 }
 
-/** Torque about the vertical axis (N m) that damps a yaw rate (rad/s) in the water. */
-export function yawDampingTorque(yawRate: number): number {
-  return -yawRate * YAW_INERTIA * YAW_WATER_DAMPING;
+/**
+ * What changes in the handling numbers when the box is not the first boat's. Havok works out the
+ * body's inertia from the box and the mass, so the same rudder torque would turn a longer hull
+ * more slowly and the same lean torque would lean a wider one less: the torques follow the
+ * inertia and the lean follows the stiffness of the buoyancy (which grows with the square of the
+ * sample points' spread). The result is a boat that turns at the same rate, leans as far and
+ * answers the helm in the same time, only bigger. Every ratio is exactly 1 for the first boat.
+ */
+export interface Handling {
+  /** Yaw inertia of the box (kg m^2): the water's damping of the turn is proportional to it. */
+  yawInertia: number;
+  /** Rudder torque at full deflection and authority (N m). */
+  rudder: number;
+  /** The lean into a turn is multiplied by this: the roll stiffness grows with the beam squared. */
+  bank: number;
 }
 
-/** The turn rate (rad/s) a full rudder settles to at full authority. */
-export function topTurnRate(authority = 1): number {
+export function handlingFor(box: HullBox): Handling {
+  const yawInertia = yawInertiaOf(box);
+  const width = box.width / HULL_BOX.width;
+  return {
+    yawInertia,
+    rudder: RUDDER * (yawInertia / YAW_INERTIA),
+    bank: width * width,
+  };
+}
+
+/** Torque about the vertical axis (N m) that damps a yaw rate (rad/s) in the water. */
+export function yawDampingTorque(
+  yawRate: number,
+  yawInertia: number = YAW_INERTIA,
+): number {
+  return -yawRate * yawInertia * YAW_WATER_DAMPING;
+}
+
+/** The turn rate (rad/s) a full rudder settles to at full authority, for a hull of `box`. */
+export function topTurnRate(authority = 1, box: HullBox = HULL_BOX): number {
+  const { rudder, yawInertia } = handlingFor(box);
   return (
-    (RUDDER * authority) /
-    (YAW_INERTIA * (BODY_ANGULAR_DAMPING + YAW_WATER_DAMPING))
+    (rudder * authority) /
+    (yawInertia * (BODY_ANGULAR_DAMPING + YAW_WATER_DAMPING))
   );
 }
 

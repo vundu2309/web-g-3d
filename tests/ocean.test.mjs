@@ -618,3 +618,47 @@ test("touch targets are never hit smaller than 44 px, and big ones are left alon
   );
   assert.equal(inside(box, 90, 115), false);
 });
+
+test("a boat read from the network carries its boat and rod tier, and anything else is the first one", async () => {
+  const { readBoat } = await import("../src/ocean/model.ts");
+  const base = {
+    name: "Minh",
+    session: "s",
+    x: 1,
+    z: 2,
+    heading: 0.5,
+    fishing: false,
+    updatedAt: { toMillis: () => 5 },
+  };
+  const boat = readBoat("u", { ...base, tier: 2, rod: 3 });
+  assert.equal(boat.tier, 2);
+  assert.equal(boat.rod, 3);
+  // an older server sends neither: the first boat and the first rod
+  const old = readBoat("u", base);
+  assert.deepEqual([old.tier, old.rod], [0, 0]);
+  for (const bad of [-1, 4, 1.5, NaN, "2", null, {}, Infinity])
+    assert.deepEqual(
+      [
+        readBoat("u", { ...base, tier: bad, rod: bad }).tier,
+        readBoat("u", { ...base, tier: bad, rod: bad }).rod,
+      ],
+      [0, 0],
+      String(bad),
+    );
+  // the rest of the boat is read as before
+  assert.deepEqual(
+    { ...boat, tier: undefined, rod: undefined },
+    {
+      uid: "u",
+      name: "Minh",
+      session: "s",
+      x: 1,
+      z: 2,
+      heading: 0.5,
+      fishing: false,
+      updatedAt: 5,
+      tier: undefined,
+      rod: undefined,
+    },
+  );
+});

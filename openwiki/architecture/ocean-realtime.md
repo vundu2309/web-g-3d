@@ -63,7 +63,7 @@ Tick chạy khi có thuyền và dừng khi biển trống, nên một instance 
 
 ## Ngắt kết nối và kết nối lại
 
-- `connect.ts` và `ocean-socket.ts` tắt kết nối tự động của Socket.IO (`reconnection: false`) để việc thử lại được kiểm soát ở đúng một chỗ. Khi mất kết nối, `ocean-socket.ts` báo “Mất kết nối biển chung” và trả lỗi qua `onError`.
+- `ocean-socket.ts` tắt kết nối tự động của Socket.IO (`reconnection: false`) để việc thử lại được kiểm soát ở đúng một chỗ. Khi mất kết nối, `src/app/ocean.ts` hiện “Mất kết nối biển chung” và thử lại qua `connectWithRetry`; `connect.ts` phân loại lỗi.
 - `src/app/ocean.ts` tự kết nối lại khi rớt giữa chừng, cùng một thuyền và vị trí, trong tối đa 90 giây (`deadlineMs`). Các lỗi không thể thử lại (đăng xuất, biển đủ người, bị giành chỗ ở cửa sổ khác) hiện ngay với lý do.
 - `AUTH_REQUIRED` của handshake và token hết hạn không được thử lại theo cách mù quáng: phiên phải được làm mới trước.
 - Khi client vào lại từ hub, `reconnecting` được đặt lại và biển mới được tạo; không có trạng thái cũ nào được lưu trên server.

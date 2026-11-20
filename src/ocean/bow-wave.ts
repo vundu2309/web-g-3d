@@ -16,9 +16,16 @@
  *    the speed, so there is no state, and the same droplet is drawn at every frame rate.
  */
 import { hullHalfWidth } from "./hull-water.ts";
+import { boatTier, type BoatTierSpec } from "./boat-tier.ts";
 
-/** How far ahead of the boat's position the stem is (m). */
-export const BOW_TIP = 3.7;
+/**
+ * Every function below takes the boat (boat-tier.ts: where its stem is and its waterline) as a last
+ * argument, the first boat by default: a longer hull throws its bow wave from farther ahead.
+ */
+const FIRST: BoatTierSpec = boatTier(0);
+
+/** How far ahead of the first boat's position the stem is (m). */
+export const BOW_TIP = FIRST.bowTip;
 /** Where the crest ends behind the stem along the hull (m ahead of the boat's position). */
 export const CREST_TAIL = 0.3;
 /** Points along the crest, from the port tail round the stem to the starboard tail (odd). */
@@ -84,28 +91,36 @@ export const crestGeometry = (): CrestGeometry => {
 export const crestVertex = (i: number, k: number) => i * CREST_ACROSS + k;
 
 /** The waterline point of the crest: `s` from -1 (port tail) through 0 (the stem) to 1 (starboard tail). */
-export function crestWaterline(s: number): { u: number; v: number } {
+export function crestWaterline(
+  s: number,
+  hull: BoatTierSpec = FIRST,
+): { u: number; v: number } {
   const a = Math.abs(s);
   // Most of the points sit along the sides, the stem is rounded.
-  const u = BOW_TIP - (BOW_TIP - CREST_TAIL) * Math.pow(a, 0.8);
-  const hw = hullHalfWidth(u - 0.2) * 1.02;
+  const u = hull.bowTip - (hull.bowTip - CREST_TAIL) * Math.pow(a, 0.8);
+  const hw = hullHalfWidth(u - 0.2, hull.waterline) * 1.02;
   return { u, v: Math.sign(s) * hw };
 }
 
 /** Fills `out` for a boat doing `speed` m/s at time `time` (s). */
-export function layCrest(speed: number, time: number, out: CrestGeometry) {
+export function layCrest(
+  speed: number,
+  time: number,
+  out: CrestGeometry,
+  hull: BoatTierSpec = FIRST,
+) {
   const level = crestLevel(speed);
   const height = CREST_HEIGHT * level * (0.85 + 0.15 * Math.sin(time * 5.1));
   const toe = CREST_TOE * (0.55 + 0.45 * level);
   let arc = 0;
-  let last = crestWaterline(-1);
+  let last = crestWaterline(-1, hull);
   for (let i = 0; i < CREST_POINTS; i++) {
     const s = (i / (CREST_POINTS - 1)) * 2 - 1;
-    const w = crestWaterline(s);
+    const w = crestWaterline(s, hull);
     // The outward direction: the normal of the waterline there (the tangent turned a quarter),
     // pointing forward at the stem and out to the side along the hull.
-    const e = crestWaterline(clamp(s + 0.02, -1, 1));
-    const d = crestWaterline(clamp(s - 0.02, -1, 1));
+    const e = crestWaterline(clamp(s + 0.02, -1, 1), hull);
+    const d = crestWaterline(clamp(s - 0.02, -1, 1), hull);
     let tu = e.u - d.u;
     let tv = e.v - d.v;
     const len = Math.hypot(tu, tv) || 1;
@@ -161,7 +176,12 @@ export const dropletActive = (i: number, speed: number) =>
   hash(i, 3) < smooth(BOW_SPRAY_FROM - 0.4, SPRAY_FULL, speed) * 0.95;
 
 /** Droplet `i` (0 to SPRAY_COUNT - 1) at time `time` (s) for a boat doing `speed` m/s. */
-export function dropletAt(i: number, time: number, speed: number): Droplet {
+export function dropletAt(
+  i: number,
+  time: number,
+  speed: number,
+  hull: BoatTierSpec = FIRST,
+): Droplet {
   const mist = hash(i, 11) < 0.2;
   const life = SPRAY_LIFE * (mist ? 1.35 : 1);
   const rate = 0.9 + hash(i, 5) * 0.7;
@@ -169,14 +189,15 @@ export function dropletAt(i: number, time: number, speed: number): Droplet {
   const side = hash(i, 9) < 0.5 ? -1 : 1;
   const fast = clamp((speed - BOW_SPRAY_FROM) / (SPRAY_FULL - BOW_SPRAY_FROM));
   // Leaves the crest a little behind the stem, on the side it is thrown to.
-  const u0 = BOW_TIP - 0.4 - hash(i, 13) * 1.6;
-  const hw = hullHalfWidth(u0 - 0.2);
+  const u0 = hull.bowTip - 0.4 - hash(i, 13) * 1.6;
+  const hw = hullHalfWidth(u0 - 0.2, hull.waterline);
   // Water that has left the boat stays where it was thrown: it falls behind the bow at the boat's
   // speed (less the push it was given forward).
   const u = u0 - (speed - 1.5) * 0.55 * age;
   // Never above the deck: beside the hull wherever the droplet has drifted to.
   const lateral = hw + 0.3 + (2.2 + hash(i, 17) * 2.6) * age;
-  const v = side * Math.max(lateral, hullHalfWidth(u - 0.2) + 0.35);
+  const v =
+    side * Math.max(lateral, hullHalfWidth(u - 0.2, hull.waterline) + 0.35);
   const lift = 2.6 + 2.2 * fast + hash(i, 19) * 1.4;
   const y = 0.35 + lift * age - 4.9 * age * age;
   const t = age / life;

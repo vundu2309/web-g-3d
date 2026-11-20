@@ -7,12 +7,17 @@ import type { Scene } from "@babylonjs/core/scene";
 import { ribbonPositions, type Point3 } from "./rope.ts";
 import { glowMaterial } from "./art/materials.ts";
 
-/** Width of the line (m): per metre of distance from the eye, at least, at most; the halo is wider by `halo`. */
+/**
+ * Width of the line (m): per metre of distance from the eye, at least, at most; the halo is wider
+ * by `halo`. Thinned on 2026-11-20 at the user's request ("too thick"): from 0.0045 / 0.02 / 0.15 /
+ * 1.7, about 1.8 to 2.3 px on a phone, to about 1.3 to 1.6 px (tests/rod-plan.test.mjs pins the
+ * range, and that it never goes under 1.1 px, where a strip breaks into dashes).
+ */
 export const LINE_WIDTH = {
-  perMetre: 0.0045,
-  min: 0.02,
-  max: 0.15,
-  halo: 1.7,
+  perMetre: 0.0032,
+  min: 0.014,
+  max: 0.14,
+  halo: 1.5,
 } as const;
 /** How dark the halo is, as a share of the line's own alpha. */
 const HALO_ALPHA = 0.42;

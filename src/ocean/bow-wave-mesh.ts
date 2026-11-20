@@ -18,6 +18,7 @@ import {
   layCrest,
 } from "./bow-wave.ts";
 import { waveHeight } from "./waves.ts";
+import { boatTier } from "./boat-tier.ts";
 
 const DRAW_CREST = false;
 
@@ -155,9 +156,18 @@ export class BowWaveMesh {
 
   /**
    * Lays the bow wave for a boat at (x, z) heading `heading` (0 is -Z, a quarter turn is +X)
-   * doing `speed` m/s, at sea time `now`.
+   * doing `speed` m/s, at sea time `now`. `tier` is the boat (boat-tier.ts): the spray leaves from
+   * its stem, along its waterline.
    */
-  update(x: number, z: number, heading: number, speed: number, now: number) {
+  update(
+    x: number,
+    z: number,
+    heading: number,
+    speed: number,
+    now: number,
+    tier = 0,
+  ) {
+    const hull = boatTier(tier);
     const fx = Math.sin(heading);
     const fz = -Math.cos(heading);
     const rx = Math.cos(heading);
@@ -171,7 +181,7 @@ export class BowWaveMesh {
     }
     if (crestOn) {
       const g = this.crestGeo;
-      layCrest(speed, now, g);
+      layCrest(speed, now, g, hull);
       for (let i = 0; i < CREST_POINTS * CREST_ACROSS; i++) {
         const wx = x + fx * g.u[i]! + rx * g.v[i]!;
         const wz = z + fz * g.u[i]! + rz * g.v[i]!;
@@ -191,7 +201,7 @@ export class BowWaveMesh {
     }
     if (sprayOn) {
       for (let i = 0; i < SPRAY_COUNT; i++) {
-        const d = dropletAt(i, now, speed);
+        const d = dropletAt(i, now, speed, hull);
         const wx = x + fx * d.u + rx * d.v;
         const wz = z + fz * d.u + rz * d.v;
         const wy = waveHeight(wx, wz, now) + LIFT + d.y;

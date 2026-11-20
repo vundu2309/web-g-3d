@@ -4,12 +4,17 @@ import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import type { Scene } from "@babylonjs/core/scene";
 import { hex, meshFrom, paint } from "./mesh-parts.ts";
-import { RodSim } from "./rod.ts";
+import { RodSim, type V3 } from "./rod.ts";
 
 /**
  * The fishing boat, built from code and merged into ONE mesh with vertex colours,
  * so a boat is one draw call and every other player's boat is a cheap instance.
  * The bow points to -Z and the hull origin is the waterline.
+ *
+ * This is only the FIRST boat (tier 0) and only what it looks like until its Blender model has
+ * loaded, or for good if the load fails. The tiers of the upgrade shop have no code-built twin: a
+ * boat of a higher tier keeps the look it has until its own model (boat-model.ts, boat-tier.ts) has
+ * loaded, and the scene changes tier only when it has (babylon-scene.ts `setBoatTier`).
  */
 import { boatPalettes, type BoatPalette } from "./palette.ts";
 import { PAL } from "./art/colors.ts";
@@ -205,7 +210,8 @@ export function createBoatTemplate(
     [-0.6, DECK_Y + 2.4, houseZ + 0.4],
   );
 
-  // Mast, derrick boom, pennant and lamp.
+  // Mast, derrick boom, the flag of Vietnam (red, with a yellow star, 3:2; this is what the boat
+  // looks like only until the Blender model has loaded, see boat-model.ts) and the lamp.
   parts.tube({ top: 0.14, bottom: 0.2, height: 3.3 }, PAL.wood.mid, [
     0,
     DECK_Y + 1.65,
@@ -218,9 +224,15 @@ export function createBoatTemplate(
     [Math.PI / 2.6, 0, -Math.PI / 4],
   );
   parts.box(
-    [0.55, 0.3, 0.02],
-    palette.trim,
-    [0.3, DECK_Y + 3.05, mastZ],
+    [0.72, 0.48, 0.02],
+    PAL.flag.red,
+    [0.38, DECK_Y + 3.05, mastZ],
+    [0, 0.25, 0],
+  );
+  parts.box(
+    [0.2, 0.2, 0.05],
+    PAL.flag.star,
+    [0.38, DECK_Y + 3.05, mastZ],
     [0, 0.25, 0],
   );
   parts.sphere(0.26, PAL.light.lamp, [0, DECK_Y + 3.38, mastZ]);
@@ -385,7 +397,14 @@ export function createBoatTemplate(
 }
 
 /** Thin line shown while fishing; one small mesh per boat that is casting. */
-export function createFishingLine(scene: Scene, parent: TransformNode) {
+export function createFishingLine(
+  scene: Scene,
+  parent: TransformNode,
+  /** Where the boat's rod holder is (boat-tier.ts `rod`); the first boat's by default. */
+  base?: V3,
+  /** How far the rod rests bent (rod-plan.ts `restBend`): the line hangs from where its tip really is. */
+  rest = 0,
+) {
   const line = cylinderMesh(
     scene,
     { top: 0.025, bottom: 0.025, height: 2.6, sides: 4 },
@@ -393,8 +412,8 @@ export function createFishingLine(scene: Scene, parent: TransformNode) {
   );
   line.material = glowMaterial(scene, "fishing-line-material");
   line.parent = parent;
-  const rest = new RodSim().tip();
-  line.position.set(rest.x, 0.35, rest.z);
+  const tip = new RodSim(undefined, base, rest).tip();
+  line.position.set(tip.x, 0.35, tip.z);
   line.isPickable = false;
   return line;
 }

@@ -15,6 +15,7 @@ import { simplifyPart } from "./simplify.ts";
 import { layoutIsland, type KeepOut, type Spot } from "./island-layout.ts";
 import type { IslandVisual } from "./island-visual.ts";
 import { GANGWAY_LANDING } from "./market.ts";
+import { SHIPYARD_HALF_WIDTH } from "./shipyard.ts";
 
 /**
  * The Blender-made island props (public/models, built by tools/blender/props.py): three coconut
@@ -204,6 +205,35 @@ export function gangwayKeepOut(
 }
 
 /**
+ * Where a shipyard stands on this island, as a keep-out capsule over its footprint (in the island's
+ * frame): from just seaward of its origin to the back of the workshop, as wide as the yard.
+ * `yards` are in world coordinates; yards on other islands are ignored.
+ */
+export function yardKeepOut(
+  visual: IslandVisual,
+  yards: readonly { x: number; z: number; facing: number }[],
+): KeepOut[] {
+  const { x: ox, z: oz } = visual.mesh.position;
+  return yards.flatMap((yard) => {
+    const px = yard.x - ox;
+    const pz = yard.z - oz;
+    if (Math.hypot(px, pz) > visual.radius * 1.08 + 20) return [];
+    // The unit vector out to sea: the heading whose forward is (sin facing, -cos facing).
+    const outX = Math.sin(yard.facing);
+    const outZ = -Math.cos(yard.facing);
+    return [
+      {
+        ax: px + outX * 6,
+        az: pz + outZ * 6,
+        bx: px - outX * 7.5,
+        bz: pz - outZ * 7.5,
+        r: SHIPYARD_HALF_WIDTH + 1,
+      },
+    ];
+  });
+}
+
+/**
  * Replaces an island's procedural palms, trees, boulders, bushes and hut with instances of the models.
  * Returns what was placed (the same object on a second call).
  */
@@ -211,6 +241,7 @@ export function placeIslandProps(
   visual: IslandVisual,
   models: IslandModels,
   piers: readonly { x: number; z: number }[] = [],
+  yards: readonly { x: number; z: number; facing: number }[] = [],
 ): PlacedProps {
   const done = placed.get(visual);
   if (done) return done;
@@ -220,7 +251,11 @@ export function placeIslandProps(
     peak: visual.peak,
     height: visual.height,
     coast: visual.coast,
-    keepOut: [...visual.keepOut, ...gangwayKeepOut(visual, piers)],
+    keepOut: [
+      ...visual.keepOut,
+      ...gangwayKeepOut(visual, piers),
+      ...yardKeepOut(visual, yards),
+    ],
   });
   visual.fallback?.dispose();
   visual.fallback = undefined;

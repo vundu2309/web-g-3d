@@ -55,7 +55,7 @@ Trong constructor của `OceanScene`:
 
 ## Mặt nước và phản chiếu
 
-`water.ts` là `ShaderMaterial` trên một lưới phẳng với đỉnh dời theo `glslWaveHeight`. Màu được trộn giữa nước sâu (`DEEP_WATER`, `DEEP_TEAL`), nước nông (`SHALLOW_WATER`) và đáy cát (`SEA_FLOOR`) theo `shore.ts`; sóng vỗ bờ và gợn (`ripples.ts`) và vệt thuyền (`wake.ts`) thêm vào. Mặt nước vẫn là shader **đục** và ghi độ sâu; lớp nước trong là việc riêng.
+`water.ts` là `ShaderMaterial` trên một lưới phẳng với đỉnh dời theo `glslWaveHeight`. Màu được trộn giữa nước sâu (`DEEP_WATER`, `DEEP_TEAL`), nước nông (`SHALLOW_WATER`) và đáy cát (`SEA_FLOOR`) theo `shore.ts`; sóng vỗ bờ và gợn (`ripples.ts`) và vệt thuyền (`wake-mesh.ts`) thêm vào. Mặt nước vẫn là shader **đục** và ghi độ sâu; lớp nước trong là việc riêng.
 
 Phản chiếu dùng `MirrorTexture`: mọi mesh trong scene được đưa vào, trừ các vật liệu bị loại (`reflectsInWater`). Kích thước phản chiếu do `reflectionSize` quyết định.
 

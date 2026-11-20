@@ -101,3 +101,27 @@ test("a quick tap throws the shortest throw from open water, and facing an islan
   );
   assert.ok(CAST_MIN > 0);
 });
+
+// A full store (the boat's slots, upgrades.ts): a landed fish cannot be kept, so a press does not
+// throw it away and does not throw the next cast; it says so (src/app/fishing-ui.ts).
+test("a press with a landed fish and no room left does nothing but refuse", () => {
+  const holding = { ...ready, holdingFish: true };
+  assert.equal(pressAction({ ...holding, storeFull: true }), "full");
+  assert.equal(
+    pressAction({ ...holding, storeFull: false }),
+    "keep-and-charge",
+  );
+  assert.equal(pressAction(holding), "keep-and-charge", "absent means room");
+  assert.equal(
+    pressAction({ ...holding, storeFull: true, hasRod: false }),
+    "full",
+    "with or without the rod ready",
+  );
+  // a full store only matters while a fish hangs
+  assert.equal(pressAction({ ...ready, storeFull: true }), "charge");
+  assert.equal(pressAction({ ...ready, busy: true, storeFull: true }), "pull");
+  assert.equal(
+    pressAction({ ...holding, storeFull: true, enabled: false }),
+    "ignore",
+  );
+});

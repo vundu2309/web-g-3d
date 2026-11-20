@@ -1,7 +1,7 @@
 ---
 type: architecture
 title: Câu cá, cuộc giằng co và vật lý thuyền
-description: Luật câu cá thuần (vùng biển, lượt ném, nibble và cắn câu, 20 loài, kho cá), máy trạng thái cuộc giằng co, cần câu và dây, vật lý thuyền Havok, lưu cá trên thiết bị và ranh giới client báo cáo cá.
+description: Luật câu cá thuần (vùng biển, lượt ném, nibble và cắn câu, 10 loài, kho cá), máy trạng thái cuộc giằng co, cần câu và dây, vật lý thuyền Havok, lưu cá trên thiết bị và ranh giới client báo cáo cá.
 tags:
   - fishing
   - ocean
@@ -52,7 +52,7 @@ Câu cá là một trò chơi phía client. Luật nằm trong các module thu�
 - trên `DEEP_RANGE` = 128 m và cũng xa bến cảng hơn 128 m: vùng **deep**;
 - còn lại: **open**.
 
-Mỗi loài có `zones` (trọng số `shore`, `open`, `deep`) và `rarity` (1, 2 hoặc 3). `rollFish` nhân trọng số vùng với trọng số hiếm (100, 40, 10); với điểm câu ngọt (xem dưới), loài hiếm 2 và 3 được nhân thêm 1,8. Cân nặng rút theo đường cong lũy thừa 2,4 trong khoảng của loài, nên cá nhỏ phổ biến hơn. Bảng `SPECIES` có 10 loài, từ mô hình cộng đồng ([decision 0013](../../docs/decisions/0013-community-sea-models.md)). Mỗi loài có dòng giá trong migration kinh tế, và `tests/economy.test.mjs` kiểm tra điều này.
+Mỗi loài có `zones` (trọng số `shore`, `open`, `deep`) và `rarity` (1, 2 hoặc 3). `rollFish` nhân trọng số vùng với trọng số hiếm (100, 40, 10); với điểm câu ngọt (xem dưới), loài hiếm 2 và 3 được nhân thêm 1,8. Cân nặng rút theo đường cong lũy thừa 2,4 trong khoảng của loài, nên cá nhỏ phổ biến hơn. Bảng `SPECIES` có 10 loài, từ mô hình cộng đồng ([decision 0013](../../docs/decisions/0013-community-sea-models.md)). Mỗi loài có dòng giá trong các migration kinh tế (`20261113032223_economy.sql` và `20261118120000_sea_species.sql`), và `tests/economy.test.mjs` kiểm tra điều này.
 
 ## Ném, nibble và cắn câu
 
@@ -95,7 +95,7 @@ Vật lý thuyền được kiểm tra bằng `tests/boat-physics.test.mjs` và 
 
 ## Lưu trên thiết bị
 
-`save.ts` lưu vị trí, kho cá và số cá trong localStorage, theo tài khoản (khóa `photyphu:sea:v1:<uid>` như ghi trong [biển chung](ocean.md)). Dữ liệu đọc lại được kiểm tra: vị trí không hợp lệ, quá cũ hoặc nằm trong đảo thì rơi về bến, nhưng kho cá được giữ. Đây là trạng thái của thiết bị, không phải tài sản của tài khoản.
+`save.ts` lưu vị trí thuyền, kho cá và số cá đã bắt (`caught`) trong localStorage, theo tài khoản (khóa `photyphu:sea:v1:<uid>` như ghi trong [biển chung](ocean.md)). Dữ liệu đọc lại được kiểm tra: vị trí không hợp lệ, quá cũ hoặc nằm trong đảo thì rơi về bến, nhưng kho cá được giữ. Đây là trạng thái của thiết bị, không phải tài sản của tài khoản.
 
 ## Ranh giới tin cậy
 

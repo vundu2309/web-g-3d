@@ -63,7 +63,7 @@ Các lỗi trên được `failureOf` ánh xạ sang `EconomyError`: `42501` th�
 
 ## Ranh giới tin cậy
 
-Việc câu cá chạy trên thiết bị (xem [câu cá](ocean-fishing.md)), nên mỗi lần bắt vẫn là **báo cáo của client**. Các giới hạn của database chỉ hạn chế mức thu nhập mà một client đã sửa có thể đạt được: giới hạn tốc độ, khoảng cân nặng, sức chứa sổ và giá do server tính. Chúng không ngăn một client sửa đổi tạo ra cá hợp lệ trong các giới hạn đó. Vì vậy trang này không mô tả kinh tế là phần thưởng có thể tin cậy tuyệt đối. thẩm quyền.
+Việc câu cá chạy trên thiết bị (xem [câu cá](ocean-fishing.md)), nên mỗi lần bắt vẫn là **báo cáo của client**. Các giới hạn của database chỉ hạn chế mức thu nhập mà một client đã sửa có thể đạt được: giới hạn tốc độ, khoảng cân nặng, sức chứa sổ và giá do server tính. Chúng không ngăn một client sửa đổi tạo ra cá hợp lệ trong các giới hạn đó. Vì vậy trang này không mô tả kinh tế là phần thưởng có thẩm quyền.
 
 Client không gửi giá hay số dư để được chấp nhận; số liệu hiển thị lấy lại từ `economy_state`.
 

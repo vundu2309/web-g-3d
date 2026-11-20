@@ -34,6 +34,12 @@ export function createApi({
     const user = await response.json();
     return user.id && !user.is_anonymous ? user : null;
   }
+  /** The player's boat and rod tiers, read with the player's own token (the RPC is the player's; no admin key). */
+  async function loadoutOf(token) {
+    const response = await upstream("/rest/v1/rpc/economy_loadout", token, {});
+    if (!response.ok) throw new Error("Loadout unavailable");
+    return response.json();
+  }
   const server = createServer(async (req, res) => {
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("X-Content-Type-Options", "nosniff");
@@ -55,6 +61,6 @@ export function createApi({
     return send(404, { error: "Không tìm thấy." });
   });
   server.io = attachSockets(server, { origins, authenticate, ready });
-  attachOcean(server.io, { authenticate, ready, now });
+  attachOcean(server.io, { authenticate, ready, now, loadoutOf });
   return server;
 }

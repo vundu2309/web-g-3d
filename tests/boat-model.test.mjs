@@ -175,7 +175,13 @@ test("both role colours are in the file, where the brief says they are", () => {
   assert.ok(countRoles(canopy).hull > 30, "the dome roof is hull paint");
   assert.ok(countRoles(canopy).trim > 10, "the roof rim");
   assert.ok(countRoles(engine).trim > 10, "the cowl band");
-  assert.ok(countRoles(flag).trim > 10, "the pennant");
+  // The flag is the flag of Vietnam in its own colours (PAL.flag), not the old trim-coloured
+  // pennant: it holds no role colour, so a player's paint never repaints it.
+  assert.deepEqual(
+    countRoles(flag),
+    { hull: 0, trim: 0 },
+    "the flag is no role",
+  );
   assert.equal(countRoles(coloursOf(nodeByName("lantern"))).hull, 0);
   // The model carries the first palette's roles exactly (whole bytes).
   assert.deepEqual(BOAT_ROLES, boatPalettes[0]);

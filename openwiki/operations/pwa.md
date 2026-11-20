@@ -28,7 +28,7 @@ Game là một PWA với `display: standalone`, `orientation: landscape` và `st
 
 ## Manifest và icon
 
-`public/manifest.webmanifest` khai báo tên “Ra khơi cùng bạn”, tên ngắn “Ra khơi”, `lang: vi`, màu chủ đề `#4b3a8f`, và ba icon: `icon-192.png`, `icon-512.png`, và `maskable-512.png` (purpose `maskable`). `index.html` cũng có `apple-touch-icon`, `apple-mobile-web-app-capable`, và `manifest` link. Icon và manifest được kiểm tra trong `tests/pwa-browser.mjs` trên bản build production.
+`public/manifest.webmanifest` khai báo tên “Ra khơi cùng bạn”, tên ngắn “Ra khơi”, `lang: vi`, màu chủ đề `#4b3a8f`, và ba icon trong thư mục `icons/`: `icon-192.png`, `icon-512.png`, và `maskable-512.png` (purpose `maskable`). `index.html` cũng có `apple-touch-icon`, `apple-mobile-web-app-capable`, và `manifest` link. Icon và manifest được kiểm tra trong `tests/pwa-browser.mjs` trên bản build production.
 
 ## Nút cài đặt
 
@@ -42,18 +42,20 @@ Một sự kiện tổng hợp trong trình duyệt không chứng minh việc c
 
 ## Service worker
 
-`scripts/service-worker.js` là file được build thay hai hằng số: `VERSION` và `FILES`. Phạm vi là `registration.scope` của ứng dụng.
+`scripts/service-worker.js` là file được `scripts/pwa-build.mjs` điền sẵn hai hằng số: `VERSION` và `FILES`. Phạm vi là `registration.scope` của ứng dụng.
 
 - **install**: mở cache có tên `photyphu-shell:<scope>:<version>` và nạp mọi file trong `FILES` với `cache: "reload"`. Nếu nạp lỗi thì xóa cache đó và ném lỗi, nên không có shell dở dang. Sau khi đủ, worker gọi `skipWaiting()`.
 - **activate**: xóa các cache cũ có cùng tiền tố nhưng khác phiên bản, rồi `clients.claim()`.
 - **fetch**: chỉ xử lý `GET` cùng origin. Điều hướng tới trang chính được trả về `index.html` đã cache. Các request khác chỉ được phục vụ từ cache khi URL nằm trong danh sách tĩnh và không có query. Mọi thứ khác (API, Supabase, URL ngoài, POST, URL có query) đi thẳng tới mạng.
-- **message**: `VERSION` trả phiên bản cho màn hình cài đặt; `APPLY_UPDATE` cho phép kích hoạt worker đang chờ, nhưng chỉ dành cho bản cũ.
+- **message**: `VERSION` trả phiên bản cho màn hình cài đặt; `APPLY_UPDATE` (do người chơi bấm “Cập nhật ngay”) trả `ok` rồi gọi `skipWaiting()` cho worker đang chờ.
 
 Vì vậy service worker không cache dữ liệu biển, phiên đăng nhập hay phản hồi từ API. `docs/pwa.md` và trang này dùng cùng quy tắc đó.
 
 ## Cập nhật không tự reload
 
-`src/platform/pwa.ts` cung cấp `shellUpdates()` và `shellVersion()`; logic kiểm tra thuần nằm trong `src/platform/update-check.ts` (`checkForUpdate`). `check()` chỉ báo kết quả (`latest`, `ready`), và `apply()` chỉ được gọi khi người chơi bấm “Cập nhật ngay” và xác nhận trong hộp `window.confirm` của `src/app/pwa.ts`. Không có lệnh reload nào tự chạy khi phiên đang diễn ra; `registerShell` chỉ hiển thị trạng thái cập nhật chờ. Đây là yêu cầu của dự án: không ép reload phiên đang hoạt động.
+`src/platform/pwa.ts` cung cấp `shellUpdates()` và `shellVersion()`; logic kiểm tra thuần nằm trong `src/platform/update-check.ts` (`checkForUpdate`). `check()` chỉ báo kết quả (`latest`, `ready`), và `apply()` chỉ được gọi khi người chơi bấm “Cập nhật ngay” và xác nhận trong hộp `window.confirm` của `src/app/pwa.ts`. Đây là yêu cầu của dự án: không ép reload phiên đang hoạt động.
+
+Trang tự reload trong hai trường hợp, và cả hai đều bị chặn bởi `canReload()` (`idle` trong `src/app/pwa.ts`: không có `?view` trong URL, không có hộp thoại mở, không có ô nhập đang focus): khi bản mới đã nhận quyền điều khiển (`controllerchange`), hoặc khi một cập nhật đang chờ và tab bị ẩn. Khi đang ở biển (`?view=ocean`) hoặc đang mở hộp thoại, trang không tự reload; bản mới chỉ hiện nút “Có phiên bản mới” để người chơi tự chọn. Mỗi lần mở trang và mỗi lần tab hiện lại sau hơn 60 giây, worker kiểm tra cập nhật.
 
 `tests/update-check.test.mjs` kiểm tra logic kiểm tra cập nhật thuần; `tests/pwa-browser.mjs` kiểm tra cài đặt, offline reload và cập nhật chờ trên bản build.
 

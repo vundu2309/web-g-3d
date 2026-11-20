@@ -1,4 +1,5 @@
 import { SEA_BOUND, spawn } from "../src/ocean/model.ts";
+import { clampTier } from "../src/ocean/upgrades.ts";
 
 /**
  * The shared sea is ephemeral on ONE API instance. No room/persistent economy writes.
@@ -15,6 +16,15 @@ import { SEA_BOUND, spawn } from "../src/ocean/model.ts";
  * Clients that do not announce protocol 2 (an older cached app) keep getting full
  * `ocean:state` snapshots and acknowledged commands, so a rollout is safe in either
  * order.
+ *
+ * What a boat looks like. Every boat has a `tier` (its boat, 0 to 3) and a `rod` (its rod,
+ * 0 to 3), which the other players draw (the upgrade shop). They are never taken from the
+ * client: the server reads them from the economy with the player's OWN token (`loadoutOf`) when
+ * the boat enters, and again when the client says it bought something (`ocean:refit`, at most
+ * once in two seconds), and sends them with the boat (`add` entries, full snapshots) or as
+ * `ocean:refit` to protocol 2 clients. A failed read (the economy unreachable, an older database)
+ * leaves the first boat and rod: a boat is never kept out of the sea for that. Older clients
+ * ignore the two extra fields.
  */
 export const OCEAN_PROTOCOL = 2;
 const MAX_BOATS = 100;
@@ -35,6 +45,12 @@ export function attachOcean(
     minMoveMs = 100,
     /** The same for acknowledged commands from an older client. */
     legacyMinMoveMs = 400,
+    /** Reads the player's boat and rod tiers with the player's own token: `{ boat, rod }`; a throw means unknown. */
+    loadoutOf = async () => ({ boat: 0, rod: 0 }),
+    /** How long entering waits for that read before the first boat is drawn (ms). */
+    fitWaitMs = 2500,
+    /** Minimum gap between two `ocean:refit` of one socket (ms). */
+    minRefitMs = 2000,
   },
 ) {
   const boats = new Map();
@@ -67,6 +83,8 @@ export function attachOcean(
             z: round(boat.z),
             heading: round(boat.heading),
             fishing: boat.fishing,
+            tier: boat.tier,
+            rod: boat.rod,
             updatedAt: boat.updatedAt,
           });
         else
@@ -98,6 +116,33 @@ export function attachOcean(
     clearInterval(timer);
     timer = undefined;
   }
+  /** The tiers of a loadout answer, each 0 to 3 (anything else is 0). */
+  const fitOf = (loadout) => ({
+    tier: clampTier(loadout?.boat),
+    rod: clampTier(loadout?.rod),
+  });
+  /**
+   * What the player's boat and rod are, or `undefined` when that cannot be told within `fitWaitMs`
+   * (the economy failed or was slow). The caller decides what unknown means: entering takes the
+   * first boat and rod, a refit keeps what the boat already shows (a hiccup must never demote a
+   * player in everyone's eyes).
+   */
+  async function readFit(token) {
+    let timer;
+    try {
+      return await Promise.race([
+        loadoutOf(token).then(fitOf),
+        new Promise((resolve) => {
+          timer = setTimeout(() => resolve(undefined), fitWaitMs);
+          timer.unref?.();
+        }),
+      ]);
+    } catch {
+      return undefined;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
   const validPose = (pose) =>
     pose &&
     Object.keys(pose).sort().join(",") === POSE_KEYS &&
@@ -114,6 +159,9 @@ export function attachOcean(
     let modern = false;
     let last = -Infinity;
     let lastToken = -Infinity;
+    let lastRefit = -Infinity;
+    /** A refit asked within the gap after the last one, waiting for the gap to end. */
+    let refitLater;
     let checking = false;
     let recheck;
     const leaveRooms = (target) => {
@@ -122,6 +170,7 @@ export function attachOcean(
     };
     const remove = () => {
       clearInterval(recheck);
+      clearTimeout(refitLater);
       if (boats.get(socket.data.uid)?.session === socket.id) {
         boats.delete(socket.data.uid);
         dirty.delete(socket.data.uid);
@@ -166,6 +215,9 @@ export function attachOcean(
           socket.disconnect(true);
           return;
         }
+        // What the boat looks like is read before anything below is decided, so nothing awaits between the
+        // capacity check, the replacement of an older session and the boat being set.
+        const fit = (await readFit(socket.data.token)) ?? { tier: 0, rod: 0 };
         if (!socket.connected) return;
         if (joined) return ack({ error: "Thuyền đã vào biển." });
         if (boats.size >= MAX_BOATS && !boats.has(user.id))
@@ -190,6 +242,7 @@ export function attachOcean(
               .slice(0, 24) || "Người đi biển",
           session: socket.id,
           ...pose,
+          ...fit,
           updatedAt: now(),
           socket,
           proto: modern ? OCEAN_PROTOCOL : 1,
@@ -245,6 +298,35 @@ export function attachOcean(
         error !== "Vị trí không hợp lệ."
       )
         socket.emit("ocean:error", { error });
+    });
+    // The client bought a boat or a rod: read what it owns again (never trust what it says) and tell
+    // the others. Quiet when not joined or nothing changed; one asked too soon after the last is not
+    // dropped (a second purchase within the gap must still reach the others) but done once the gap
+    // is over. A read that fails leaves the boat as it is.
+    async function refit() {
+      lastRefit = now();
+      const uid = socket.data.uid;
+      const fit = await readFit(socket.data.token);
+      if (!fit) return;
+      const boat = boats.get(uid);
+      if (!boat || boat.session !== socket.id) return;
+      if (boat.tier === fit.tier && boat.rod === fit.rod) return;
+      Object.assign(boat, fit);
+      io.to(modernRoom).emit("ocean:refit", { uid, ...fit });
+      // Older clients get it with the next full snapshot.
+      dirty.add(uid);
+      startTimer();
+    }
+    socket.on("ocean:refit", () => {
+      if (!modern || !joined || !ready()) return;
+      const wait = minRefitMs - (now() - lastRefit);
+      if (wait <= 0) return void refit();
+      if (refitLater) return;
+      refitLater = setTimeout(() => {
+        refitLater = undefined;
+        if (joined && socket.connected) void refit();
+      }, wait);
+      refitLater.unref?.();
     });
     // A refreshed access token for the open connection, so the session outlives the
     // first token (about one hour) without a reconnect.

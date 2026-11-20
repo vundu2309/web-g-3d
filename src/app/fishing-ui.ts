@@ -8,6 +8,7 @@ import {
   MAX_LINE,
   SWEET_POWER,
   addCatch,
+  canKeep,
   castDirection,
   castTarget,
   drawnLength,
@@ -20,6 +21,7 @@ import {
   type Inventory,
 } from "../ocean/fishing";
 import { FIZZLE_MS, castLook, pressAction } from "../ocean/cast-rules";
+import { DEFAULT_LOADOUT, slotsOf, type Loadout } from "../ocean/upgrades";
 import type { Pose } from "../ocean/model";
 import type { OceanScene } from "../ocean/babylon-scene";
 
@@ -51,6 +53,16 @@ export interface FishingUiOptions {
   onPutBack?: (species: string) => void;
   /** Plays a short sound (a cue); absent in tests. */
   sound?: (cue: Cue) => void;
+  /**
+   * The rod and bait the player owns (read when a fish takes the hook, so a purchase counts
+   * from the next fish). Default: the free rod and bait.
+   */
+  loadout?: () => Loadout;
+  /**
+   * How many fish the store holds (1 slot is 1 fish; the boat decides, upgrades.ts `slotsOf`).
+   * Default: the free boat's.
+   */
+  slots?: () => number;
   /** Test only: runs the tug of war faster (1 is real time). */
   fightSpeed?: number;
 }
@@ -123,7 +135,7 @@ export function createFishingUi(options: FishingUiOptions) {
   hang.className = "fish-hang";
   hang.hidden = true;
   hang.innerHTML =
-    '<div class="fish-hang-info"><span class="fish-hang-stars"></span><strong class="fish-hang-kg"></strong><span class="fish-hang-record" hidden>✦</span></div>' +
+    '<div class="fish-hang-info"><span class="fish-hang-stars"></span><strong class="fish-hang-kg"></strong><span class="fish-hang-record" hidden>✦</span><span class="fish-hang-full" hidden>Kho đầy</span></div>' +
     '<div class="fish-hang-actions">' +
     '<button type="button" class="fish-hang-drop" aria-label="Thả cá về biển"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v9M8.5 9 12 12.5 15.5 9"/><path d="M3 17c3-3 6 3 9 0s6 3 9 0"/></svg></button>' +
     '<button type="button" class="fish-hang-keep" aria-label="Lấy cá cất vào kho"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></button>' +
@@ -131,11 +143,39 @@ export function createFishingUi(options: FishingUiOptions) {
   const hangStars = hang.querySelector<HTMLElement>(".fish-hang-stars")!;
   const hangKg = hang.querySelector<HTMLElement>(".fish-hang-kg")!;
   const hangRecord = hang.querySelector<HTMLElement>(".fish-hang-record")!;
+  const hangFull = hang.querySelector<HTMLElement>(".fish-hang-full")!;
   const hangDrop = hang.querySelector<HTMLButtonElement>(".fish-hang-drop")!;
   const hangKeep = hang.querySelector<HTMLButtonElement>(".fish-hang-keep")!;
   screen.append(power, badge, vignette, ring, hang);
   /** The landed fish still on the rod. */
   let held: Catch | undefined;
+  const slots = () => options.slots?.() ?? slotsOf(DEFAULT_LOADOUT.boat);
+  /** The store has no slot left: a landed fish cannot be kept, only put back. */
+  const storeFull = () => !canKeep(options.stock(), slots());
+  /**
+   * Locks the keep button while the store is full (the fish can only be put back) and says so on
+   * the card; unlocks it when there is room again (a sale, a bigger boat). Called whenever the
+   * fish, the store or the boat changes.
+   */
+  function syncKeep() {
+    const full = held !== undefined && storeFull();
+    hangKeep.disabled = full;
+    hangKeep.setAttribute(
+      "aria-label",
+      full
+        ? "Kho đầy, không cất được; hãy thả cá về biển"
+        : "Lấy cá cất vào kho",
+    );
+    hangFull.hidden = !full;
+    hang.classList.toggle("is-full", full);
+  }
+  /** A press or a tap that wanted to keep a fish with no room: the card shakes once to say why not. */
+  function refuseKeep() {
+    hang.classList.remove("is-refused");
+    void hang.offsetWidth;
+    hang.classList.add("is-refused");
+    vibrate([30, 40, 30]);
+  }
   /** Until when the power bar stays up, red, after a throw that could not land (performance.now). */
   let fizzleUntil = 0;
 
@@ -159,6 +199,7 @@ export function createFishingUi(options: FishingUiOptions) {
     (event) => handle(event),
     Math.random,
     options.fightSpeed ?? 1,
+    options.loadout ?? (() => DEFAULT_LOADOUT),
   );
 
   const sound = (cue: Cue) => options.sound?.(cue);
@@ -252,8 +293,14 @@ export function createFishingUi(options: FishingUiOptions) {
       holdingFish: held !== undefined,
       busy: angler.busy,
       hasRod: !!options.scene()?.rodTip(),
+      storeFull: held !== undefined && storeFull(),
     });
     if (action === "ignore") return;
+    if (action === "full") {
+      syncKeep();
+      refuseKeep();
+      return;
+    }
     // A new throw keeps the fish still on the rod, and is not lost: the same press charges it.
     if (action === "keep" || action === "keep-and-charge") settle(true);
     if (action === "keep-and-charge" || action === "charge") {
@@ -299,7 +346,13 @@ export function createFishingUi(options: FishingUiOptions) {
   /** Keyboard or assistive activation without a held press: a medium throw. */
   function click() {
     if (!options.enabled()) return;
-    // A landed fish is kept and the throw goes on (as a press does).
+    // A landed fish is kept and the throw goes on (as a press does); with no room left it is not
+    // kept, so the throw does not go on either (the card says why), and the fish stays on the rod.
+    if (held && storeFull()) {
+      syncKeep();
+      refuseKeep();
+      return;
+    }
     if (held) settle(true);
     else if (angler.busy) {
       press();
@@ -316,8 +369,9 @@ export function createFishingUi(options: FishingUiOptions) {
   }
 
   function cancel() {
-    // Never lose a landed fish: leaving or opening the store keeps it.
-    settle(true);
+    // Never lose a landed fish: leaving or opening the store keeps it. With no room it stays on the
+    // rod instead (the market is a way to make room), and is put back or kept when the sea is back.
+    if (!storeFull()) settle(true);
     angler.cancel();
     hideSignals();
   }
@@ -454,6 +508,7 @@ export function createFishingUi(options: FishingUiOptions) {
     hangKg.textContent = kg(fish.kg);
     hangRecord.hidden = !addCatch(options.stock(), fish).record;
     hang.hidden = false;
+    syncKeep();
     // The catch card needs the right-hand column: the minimap steps aside while it shows.
     screen.classList.add("is-holding");
     options.scene()?.holdFish({
@@ -467,6 +522,12 @@ export function createFishingUi(options: FishingUiOptions) {
   function settle(keep: boolean) {
     const fish = held;
     if (!fish) return;
+    if (keep && storeFull()) {
+      // No slot: the fish stays on the rod, and only putting it back is possible.
+      syncKeep();
+      refuseKeep();
+      return;
+    }
     held = undefined;
     hang.hidden = true;
     screen.classList.remove("is-holding");
@@ -506,7 +567,9 @@ export function createFishingUi(options: FishingUiOptions) {
     title.textContent = "Kho cá";
     const total = document.createElement("span");
     total.className = "fish-total";
-    total.textContent = `Trong kho: ${stockTotal(stock)} con`;
+    total.textContent = Number.isFinite(slots())
+      ? `Trong kho: ${stockTotal(stock)}/${slots()} ô`
+      : `Trong kho: ${stockTotal(stock)} con`;
     head.append(title, total);
     const body = document.createElement("div");
     body.className = "fish-store-body";
@@ -571,6 +634,8 @@ export function createFishingUi(options: FishingUiOptions) {
     release,
     click,
     cancel,
+    /** The store or the boat changed (a sale, a purchase): the landed fish's keep button follows. */
+    sync: syncKeep,
     tick,
     showStock,
     /** Tension of the line while a fish is on (0..1), 0 otherwise: it drives the line's hum. */
