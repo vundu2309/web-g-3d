@@ -106,7 +106,7 @@ test("putting a fish back removes the lightest of that species, pays nothing and
   await fails(money.release("ca-map"), "invalid");
 });
 
-test("the boat position is checked and saved at most once every ten seconds", async () => {
+test("the boat position is checked and saved at most once every four seconds", async () => {
   const time = clock();
   const money = memoryEconomy({ now: time.now });
   time.tick(100);
@@ -114,16 +114,20 @@ test("the boat position is checked and saved at most once every ten seconds", as
   await fails(money.savePose({ x: 0, z: 0, heading: 9 }), "invalid");
   await fails(money.savePose({ x: NaN, z: 0, heading: 0 }), "invalid");
   await money.savePose({ x: 10, z: -20, heading: 1 });
-  time.tick(5);
+  time.tick(3);
   await money.savePose({ x: 500, z: 500, heading: 0 });
   assert.deepEqual(
     { ...(await money.profile()).pose, age: 0 },
     { x: 10, z: -20, heading: 1, age: 0 },
-    "the second save inside ten seconds is ignored",
+    "the second save inside four seconds is ignored",
   );
-  time.tick(6);
+  time.tick(2);
   await money.savePose({ x: 500, z: 500, heading: 0 });
-  assert.equal((await money.profile()).pose.x, 500);
+  assert.equal(
+    (await money.profile()).pose.x,
+    500,
+    "a save 5 s after the last is kept",
+  );
 });
 
 test("the old store on the device moves once, at the lightest weight, bounded", async () => {

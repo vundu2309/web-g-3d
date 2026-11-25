@@ -353,6 +353,40 @@ test("an off-screen player gets an arrow pointing toward them, on a ring inside 
   assert.ok(Number.isFinite(here.x) && Number.isFinite(here.y));
 });
 
+test("the position saved last wins on entry: the device's, or the server's when it is newer", async () => {
+  const { encodeSave, decodeSave, newerPose } = await import(
+    "../src/ocean/save.ts"
+  );
+  const now = 1_800_000_000_000;
+  const at = (x, z) => ({ x, z, heading: 0, fishing: false });
+  const device = (secondsAgo) =>
+    decodeSave(
+      encodeSave(
+        { x: 30, z: 40, heading: 0, caught: 0 },
+        now - secondsAgo * 1000,
+      ),
+      now,
+    );
+  const server = (secondsAgo) => ({ pose: at(-80, 90), age: secondsAgo });
+  // A reload right after sailing: the device saved 2 s ago, the server 25 s ago.
+  assert.deepEqual(newerPose(device(2), server(25), now), at(30, 40));
+  // Sailed on another device since: the server's copy is the newer one.
+  assert.deepEqual(newerPose(device(3600), server(20), now), at(-80, 90));
+  // One of them missing (or the server copy unsafe): the other.
+  assert.deepEqual(newerPose(device(60), undefined, now), at(30, 40));
+  assert.deepEqual(newerPose(device(60), { age: 5 }, now), at(30, 40));
+  assert.deepEqual(
+    newerPose({ caught: 0, fish: {} }, server(60), now),
+    at(-80, 90),
+  );
+  assert.equal(newerPose({ caught: 0, fish: {} }, undefined, now), undefined);
+  // An age that is not known loses to a device copy.
+  assert.deepEqual(
+    newerPose(device(600), { pose: at(-80, 90) }, now),
+    at(30, 40),
+  );
+});
+
 test("saved sea state restores a safe position and the catch count, and rejects anything doubtful", async () => {
   const { encodeSave, decodeSave, saveKey } = await import(
     "../src/ocean/save.ts"

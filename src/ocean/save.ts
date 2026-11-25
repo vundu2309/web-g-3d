@@ -20,6 +20,8 @@ export interface SeaSave {
 export interface RestoredSea {
   /** The boat's last position, or undefined when it is missing, stale or unsafe. */
   pose?: Pose;
+  /** When that position was saved on this device (ms since the epoch); set with `pose`. */
+  savedAt?: number;
   caught: number;
   fish: Inventory;
 }
@@ -87,7 +89,31 @@ export function decodeSave(
   if (now - savedAt > MAX_AGE_MS || savedAt - now > 60_000)
     return { caught, fish };
   const pose = safePose(x, z, heading);
-  return pose ? { pose, caught, fish } : { caught, fish };
+  return pose ? { pose, savedAt, caught, fish } : { caught, fish };
+}
+
+/**
+ * Which saved position to resume from: the one saved last. The device saves every 5 s and when
+ * the page closes (synchronously, so a reload keeps it); the server gets one every 5 s
+ * from a request that a reload can cut off, so on a reload the server copy is often the older
+ * one. Another device may have saved the later one, though, so the server copy still wins when
+ * it is newer. `serverAge` is how many seconds ago the server saved its position.
+ */
+export function newerPose(
+  local: RestoredSea | undefined,
+  server: { pose?: Pose; age?: number } | undefined,
+  now: number = Date.now(),
+): Pose | undefined {
+  const device =
+    local?.pose && local.savedAt !== undefined
+      ? { pose: local.pose, age: Math.max(0, (now - local.savedAt) / 1000) }
+      : undefined;
+  const remote = server?.pose
+    ? { pose: server.pose, age: server.age ?? Number.POSITIVE_INFINITY }
+    : undefined;
+  if (device && remote)
+    return device.age <= remote.age ? device.pose : remote.pose;
+  return (device ?? remote)?.pose;
 }
 
 /**

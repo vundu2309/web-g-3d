@@ -19,7 +19,7 @@ at its last position.
   boat and rod tiers and the position. Additive; no table changes.
 - **The API reads it with a player's own token** (no admin key), when a player enters and at most once
   a minute (`parkedOf`, `server/ocean.mjs`), and keeps what it knows: a boat that has just left is
-  parked at its LAST LIVE pose (newer than the saved one, which is at most 30 s old); the database
+  parked at its LAST LIVE pose (newer than the saved one, which is at most about 5 s old); the database
   fills in the others. A boat that comes back online is no longer parked; one the database no longer
   lists is removed. Entries have `off: 1`; older clients ignore it (and hide the old samples).
 - **Look**: the ordinary model and tier, standing on the waves, a dimmer name with "ngoại tuyến",

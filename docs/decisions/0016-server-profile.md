@@ -46,5 +46,7 @@ cleared, or on a second phone, is also wrong.
   fish was worth. That is the safe side of not knowing the real weight.
 - Fish kept on a device while the profile was unreadable and after the account was already imported are
   not imported a second time.
-- The boat position is saved at most every 30 s by the client and 10 s by the server, and on leaving; a
-  crash can lose a minute of movement.
+- The boat position is saved every 5 s by the client and refused by the server inside 4 s (migration
+  `20261125120000_pose_every_5s.sql`; it was 30 s and 10 s), and on leaving; a crash can lose a few
+  seconds of movement. On entry the position saved last wins, the device's or the server's (`newerPose`,
+  `save.ts`): a reload used to start from the server's older copy.
