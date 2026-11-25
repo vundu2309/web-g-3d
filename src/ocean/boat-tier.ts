@@ -7,8 +7,8 @@ import { ROD_BASE, type V3 } from "./rod.ts";
  * 1 to 3 are the bigger ones (boat-2.glb 8.4 m, boat-3.glb 9.6 m, boat-4.glb 10.8 m); an invalid
  * tier is tier 0. See docs/work/2026-11-19-upgrade-shop.md, step 6.
  *
- * A better boat has more slots, NOT more speed (the user's choice): the hull's mass, the drive and
- * every handling number stay as tuned, and only the body (the box Havok collides with, the points
+ * A better boat has more slots, NOT more speed (the user's choice), and is steadier on the waves
+ * (RIGHTING_EXTRA below): the hull's mass, the drive and every handling number stay as tuned, and only the body (the box Havok collides with, the points
  * the buoyancy is sampled at), the picture and the water round it follow the tier. Tier 0 is today's
  * boat to the last digit; tests/boat-tier.test.mjs pins it, and pins every other row against the
  * exported models, so a re-export that changes a size fails there.
@@ -38,6 +38,23 @@ export const PATROL_BOX = { width: 3.6, length: 10.4 } as const;
 export const HULL_MASS = 900;
 /** Height of the collision box (m), the same for every tier: it sets where the waterline is. */
 export const HULL_HEIGHT = 1.4;
+
+/**
+ * How much steadier each boat is on the waves (user request: the bigger the boat, the more stable).
+ * The bigger hulls only rolled and pitched 11 to 18 % less than the first boat, because the buoyancy
+ * points spread with the hull and the mass is the same, so a bigger boat followed the swell's slope as
+ * closely as a small one. Each tier gets an extra righting stiffness, as a share of the stiffness its
+ * own buoyancy points give (boat-physics.ts): the hull then tilts 1 / (1 + share) as far for the same
+ * slope of the sea. Tier 0 has none (it is today's boat to the last digit). Measured on the real
+ * physics (tests/boat-physics.test.mjs): the rolling while drifting is about 100 %, 80 %, 60 % and 45 %
+ * of the first boat's. It does not touch the speed, the turn rate or how high the hull bobs.
+ */
+export const RIGHTING_EXTRA: readonly number[] = [0, 0.12, 0.43, 0.82];
+
+/** The extra righting stiffness of a tier (a share of its buoyancy's); an invalid tier is tier 0. */
+export function rightingExtra(tier: unknown): number {
+  return RIGHTING_EXTRA[boatTierIndex(tier)] ?? 0;
+}
 
 /** The waterline outline the collar and the rings of hull-water.ts are measured from (m). */
 export interface Waterline {

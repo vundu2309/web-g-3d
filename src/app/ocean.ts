@@ -50,6 +50,7 @@ import {
 } from "../ocean/connect";
 import {
   decodeSave,
+  newerPose,
   encodeSave,
   safePose,
   saveKey,
@@ -213,6 +214,8 @@ export function startOcean(
    * (migration not applied, no network): then the store stays on the device as before.
    */
   let serverStore = false;
+  /** How often the boat's position goes to the server (the database refuses one inside 4 s). */
+  const POSE_SAVE_MS = 5000;
   let lastPoseSave = 0;
   let reconnecting = false;
   let connectFn: typeof connectOcean | undefined;
@@ -248,9 +251,9 @@ export function startOcean(
         fish: serverStore ? {} : fishStock,
       }),
     );
-    // The boat's position goes to the server too, at most every 30 s (it keeps one per 10 s).
+    // The boat's position goes to the server too, every 5 s (the server keeps one per 4 s).
     const now = performance.now();
-    if (serverStore && economy && now - lastPoseSave > 30_000) {
+    if (serverStore && economy && now - lastPoseSave > POSE_SAVE_MS) {
       lastPoseSave = now;
       void economy.savePose(pose).catch(() => {});
     }
@@ -294,6 +297,7 @@ export function startOcean(
         pose: profile.pose
           ? safePose(profile.pose.x, profile.pose.z, profile.pose.heading)
           : undefined,
+        poseAge: profile.pose?.age,
       };
     } catch {
       return undefined;
@@ -1089,7 +1093,12 @@ export function startOcean(
       const remote = await loadServerStore(restored);
       if (disposed) return;
       serverStore = remote !== undefined;
-      pose = remote?.pose ?? restored.pose ?? spawn(value.uid);
+      // The position saved last wins: the device's (saved on every reload) or the server's.
+      pose =
+        newerPose(
+          restored,
+          remote && { pose: remote.pose, age: remote.poseAge },
+        ) ?? spawn(value.uid);
       caught = remote ? remote.caught : restored.caught;
       fishStock = remote ? remote.fish : restored.fish;
       if (serverStore) persist();
