@@ -68,6 +68,13 @@ export const PAL = {
     shells: [0xfff1dc, 0xf6c9c0, 0xf2b27a, 0xe9e1d0],
     berries: [0xf08a4b, 0xe9573f],
   },
+  /**
+   * The national flag every boat flies (the official red and yellow of the Vietnamese flag).
+   * Fixed colours: they are NOT the boat's hull or trim role, so a player's paint never turns
+   * the flag into another colour, and neither may equal a role colour (boat-paint.ts matches
+   * roles by exact colour).
+   */
+  flag: { red: 0xda251d, star: 0xffff00 },
   gull: { grey: 0xc9d0d8, dark: 0x3b4048, beak: 0xf2b640 },
   /** The small hut and rowboat on each island. */
   hut: { wall: 0xf3e3b8, glass: 0x8fd0e8, rowboat: 0x3a6ea5 },

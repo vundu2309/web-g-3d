@@ -167,6 +167,12 @@ export interface FightOptions {
   /** The line is out of reach at this distance and the fish is gone. */
   maxLine: number;
   rng?: () => number;
+  /**
+   * Multiplier of how fast the line strain builds while reeling: the rod's `tension` from
+   * src/ocean/upgrades.ts (1 is the free rod, lower is a stronger line). It changes only the
+   * build-up: the snap level, the moods and the relax rule stay as they are. Default 1.
+   */
+  rodTension?: number;
 }
 
 const clamp = (value: number, low: number, high: number) =>
@@ -188,6 +194,7 @@ export class Fight {
   private readonly power: number;
   private readonly endurance: number;
   private readonly maxLine: number;
+  private readonly rodTension: number;
   private readonly rng: () => number;
 
   constructor(options: FightOptions) {
@@ -197,6 +204,7 @@ export class Fight {
     this.power = 0.75 + 0.6 * weight;
     this.endurance = 0.8 + 0.8 * weight;
     this.maxLine = options.maxLine;
+    this.rodTension = options.rodTension ?? 1;
     this.rng = options.rng ?? Math.random;
     this.distance = clamp(options.distance, 3, this.maxLine - 3);
     this.start = this.distance;
@@ -294,7 +302,8 @@ export class Fight {
     // --- Tension ---
     const mood = this.mood;
     if (reeling) {
-      this.tension += TENSION_GAIN[mood] * spec.tension * this.power * dt;
+      this.tension +=
+        TENSION_GAIN[mood] * spec.tension * this.power * this.rodTension * dt;
     } else {
       const floor = TENSION_FLOOR[mood];
       this.tension =

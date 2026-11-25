@@ -11,7 +11,11 @@
       // Render harness for the sea game: the real water, sky, the three islands with their Blender props
       // (placed by the game's own placeIslandProps), markets, sea props, one boat and the reflection pass.
       // ?m=chase|low|beach|surf|top|hut|grove|high|wide  &i=<island 0..2>  &a=<angle in degrees>  &t=<seconds>
-      // &refl=0 skips the reflection pass (faster); &models=0 keeps the procedural props. See README.md.
+      // &refl=0 skips the reflection pass (faster); &models=0 keeps the procedural props;
+      // &tier=0..3 is the boat (boat-tier.ts: 0 is boat.glb, 3 the 10.8 m flagship; default 0);
+      // &boat=code draws the code-built boat instead of the Blender model; &level=1|2 its middle / far copy. See README.md.
+      // m=pier / m=ring: the boat (still) where its collision box stops it, beside market &i (pier) or
+      // at the ring round island &i (a = angle round it).
       import {
         Engine,
         Scene,
@@ -19,6 +23,7 @@
         Matrix,
         FreeCamera,
         Color4,
+        TransformNode,
       } from "@babylonjs/core";
       import { FOG_DENSITY, HORIZON } from "/src/ocean/sea-style.ts";
       import { createSeaLights } from "/src/ocean/art/lighting.ts";
@@ -34,10 +39,20 @@
       import { createSeaReflection } from "/src/ocean/reflection.ts";
       import { createIsland, islandShape } from "/src/ocean/island-visual.ts";
       import { createBoatTemplate } from "/src/ocean/boat-visual.ts";
+      import {
+        dressBoat,
+        loadBoatModels,
+        showBoatLevel,
+      } from "/src/ocean/boat-model.ts";
+      import { boatTier, boxRatio, cameraScale } from "/src/ocean/boat-tier.ts";
+      import { RodVisual } from "/src/ocean/rod-visual.ts";
+      import { islandCollisionRadius } from "/src/ocean/model.ts";
       import { boatPalettes } from "/src/ocean/palette.ts";
       import { islands } from "/src/ocean/model.ts";
       import { MARKETS } from "/src/ocean/market.ts";
       import { createMarket } from "/src/ocean/market-visual.ts";
+      import { SHIPYARDS } from "/src/ocean/shipyard.ts";
+      import { createShipyards } from "/src/ocean/shipyard-visual.ts";
       import { SeaProps } from "/src/ocean/sea-props.ts";
       import { FishSchools } from "/src/ocean/fish-schools.ts";
       import { createClearWater } from "/src/ocean/clear-water-pass.ts";
@@ -111,7 +126,7 @@
       if (q.get("models") !== "0") {
         const models = await loadIslandModels(scene);
         visuals.forEach((v, i) => {
-          const p = placeIslandProps(v, models, MARKETS);
+          const p = placeIslandProps(v, models, MARKETS, SHIPYARDS);
           placedAll.push(p);
           batches?.add(p);
           console.log(
@@ -127,14 +142,22 @@
         });
       }
       MARKETS.forEach((m) => createMarket(scene, m));
+      // The three shipyards (shipyard-visual.ts); m=yard looks at yard `i` from the sea.
+      const yards = createShipyards(scene);
+      await yards.ready;
       const props = new SeaProps(scene);
       // &fish=0 leaves out the fish schools and the clear-water layer they are seen through.
       const schools =
         q.get("fish") !== "0" ? new FishSchools(scene) : undefined;
       const clear = schools ? createClearWater(scene, water) : undefined;
       clear?.setEnabled(true);
+      const tier = Math.min(3, Math.max(0, +(q.get("tier") || 0)));
+      const spec = boatTier(tier);
+      const size = boxRatio(tier);
       const tpl = createBoatTemplate(scene, boatPalettes[1], "b");
       tpl.isVisible = false;
+      const boatModels =
+        q.get("boat") === "code" ? null : await loadBoatModels(scene, tier);
       const isl = islands[idx];
       const shape = islandShape(11 + idx * 7, isl.radius);
       const ox = Math.cos(ang),
@@ -158,8 +181,11 @@
         const dx = tx * Math.cos(0.6) - ox * Math.sin(0.6),
           dz = tz * Math.cos(0.6) - oz * Math.sin(0.6);
         const h = Math.atan2(dx, -dz);
-        const back = mode === "low" ? CHASE.fishingBack : CHASE.back;
-        const height = mode === "low" ? CHASE.fishingHeight : CHASE.height;
+        // A bigger boat is framed from a little farther, as in the game (boat-tier.ts cameraScale).
+        const fit = cameraScale(tier);
+        const back = (mode === "low" ? CHASE.fishingBack : CHASE.back) * fit;
+        const height =
+          (mode === "low" ? CHASE.fishingHeight : CHASE.height) * fit;
         camPos = new Vector3(bx - dx * back, height, bz - dz * back);
         target = new Vector3(
           bx + dx * CHASE.lookAhead,
@@ -186,6 +212,61 @@
           camPos = new Vector3(bx + sx * 9 + dx * 2, 3.4, bz + sz * 9 + dz * 2);
           target = new Vector3(bx - dx * 0.5, 0.4, bz - dz * 0.5);
         }
+      } else if (mode === "pier" || mode === "ring") {
+        // The boat lies still where its collision box stops it. Pier: parallel to the market's
+        // long side, its side against the solid circle of the pier (MARKET_BODY_RADIUS 3.4 m).
+        // Ring: bow on to the island's collision ring.
+        if (mode === "pier") {
+          const m = MARKETS[idx];
+          const out = m.facing; // the pier faces out to sea (like a bow)
+          const ox2 = Math.sin(out),
+            oz2 = -Math.cos(out); // out to sea
+          const gap = 3.4 + spec.box.width / 2 + 0.02;
+          const bx = m.x + ox2 * gap,
+            bz = m.z + oz2 * gap;
+          // Along the pier's long side: heading turned a quarter from "out to sea".
+          const h = out + Math.PI / 2;
+          boatAt = { bx, bz, h };
+          // From beyond one end of the boat, along the pier's long side, a little out to sea and
+          // high, so the boat and the pier are side by side.
+          const fx2 = Math.sin(h),
+            fz2 = -Math.cos(h);
+          camPos = new Vector3(
+            bx - fx2 * 21 + ox2 * 7,
+            6,
+            bz - fz2 * 21 + oz2 * 7,
+          );
+          target = new Vector3((bx + m.x) / 2, 1.2, (bz + m.z) / 2);
+        } else {
+          const ring = islandCollisionRadius(isl);
+          const r = ring + spec.box.length / 2 + 0.02;
+          const bx = isl.x + ox * r,
+            bz = isl.z + oz * r;
+          // Heading toward the island's centre.
+          const h = Math.atan2(-ox, oz);
+          boatAt = { bx, bz, h };
+          // From the side and a little behind, looking over the boat to the beach beyond.
+          const sx = Math.cos(h),
+            sz = Math.sin(h);
+          camPos = new Vector3(
+            bx + sx * 15 + ox * 7,
+            5.5,
+            bz + sz * 15 + oz * 7,
+          );
+          target = new Vector3(bx - ox * 8, 1.2, bz - oz * 8);
+        }
+      } else if (mode === "yard") {
+        // A camera out to sea in front of yard `i`, a little off to one side and above the water,
+        // looking at its middle; &a=<deg> swings the camera round it (sea side, then the sides).
+        const y = SHIPYARDS[idx];
+        const out = { x: Math.sin(y.facing), z: -Math.cos(y.facing) };
+        const swing = ang + Math.atan2(out.z, out.x);
+        camPos = new Vector3(
+          y.x + Math.cos(swing) * 38,
+          9,
+          y.z + Math.sin(swing) * 38,
+        );
+        target = new Vector3(y.x, 3, y.z);
       } else if (mode === "beach") {
         const c = shape.coast(ang);
         const cx = isl.x + ox * (c + 6),
@@ -251,13 +332,28 @@
       // Plays the boat's last seconds into the water (20 steps a second).
       const stir = (s, p) => {
         sim.recentre(p.x, p.z);
-        sim.step(0.05, [{ x: p.x, z: p.z, heading: boatAt.h, speed }]);
+        sim.step(0.05, [{ x: p.x, z: p.z, heading: boatAt.h, speed, tier }]);
       };
       const wakeTrail = new WakeTrail();
       const wakeMesh = boatAt ? new WakeMesh(scene) : null;
       let boat = null;
       if (boatAt) {
-        boat = tpl.createInstance("b1");
+        boat = new TransformNode("b1", scene);
+        // &level=1|2 draws the middle / far copy of the boat (boat-lod.ts), as another player's boat far away.
+        if (boatModels) {
+          const level = +(q.get("level") || 0);
+          const look = dressBoat(boatModels, 1, boat, "b1", level > 0);
+          if (level > 0) showBoatLevel(look, level);
+        } else tpl.createInstance("b1-hull").parent = boat;
+        new RodVisual(
+          scene,
+          boat,
+          boatPalettes[1],
+          undefined,
+          spec.rod,
+          // &rod=0..3 puts the bamboo, fibreglass, carbon fibre or gold rod in the boat's holder.
+          Math.min(3, Math.max(0, +(q.get("rod") || 0))),
+        );
         const fx = Math.sin(boatAt.h),
           fz = -Math.cos(boatAt.h);
         const rx = Math.cos(boatAt.h),
@@ -269,17 +365,26 @@
         boatAt.pose = (now) => {
           const p = at(now);
           const h = (x, z) => waveHeight(x, z, now) + sim.sample(x, z).height;
-          const bow = h(p.x + fx * 3.5, p.z + fz * 3.5);
-          const stern = h(p.x - fx * 3.5, p.z - fz * 3.5);
-          const star = h(p.x + rx * 1.4, p.z + rz * 1.4);
-          const port = h(p.x - rx * 1.4, p.z - rz * 1.4);
+          // Where the waves are read follows the hull's size, as in the game (babylon-scene.ts rest).
+          const half = 3.5 * size.length,
+            out = 1.4 * size.width;
+          const bow = h(p.x + fx * half, p.z + fz * half);
+          const stern = h(p.x - fx * half, p.z - fz * half);
+          const star = h(p.x + rx * out, p.z + rz * out);
+          const port = h(p.x - rx * out, p.z - rz * out);
           boat.position.set(p.x, (bow + stern + star + port) / 4, p.z);
           boat.rotationQuaternion = Quaternion.RotationAxis(Axis.Y, -boatAt.h)
             .multiply(
-              Quaternion.RotationAxis(Axis.X, Math.atan2(bow - stern, 7)),
+              Quaternion.RotationAxis(
+                Axis.X,
+                Math.atan2(bow - stern, 7 * size.length),
+              ),
             )
             .multiply(
-              Quaternion.RotationAxis(Axis.Z, Math.atan2(star - port, 2.8)),
+              Quaternion.RotationAxis(
+                Axis.Z,
+                Math.atan2(star - port, 2.8 * size.width),
+              ),
             );
           return p;
         };
@@ -295,6 +400,7 @@
       cam.maxZ = 3200;
       cam.setTarget(target);
       scene.activeCamera = cam;
+      yards.update(cam.position.x, cam.position.z);
       window.scene = scene;
       // &cats=1: the rowing cats' boat (src/ocean/cat-boat.ts) at the camera's target, seen from a few metres.
       let catBoats = [];
@@ -362,8 +468,8 @@
         if (boatAt) {
           const p = boatAt.pose(T);
           wakeTrail.push(p.x, p.z, T);
-          wakeMesh.update(wakeTrail, T, p);
-          boatList[0] = { x: p.x, z: p.z, heading: boatAt.h };
+          wakeMesh.update(wakeTrail, T, p, tier);
+          boatList[0] = { x: p.x, z: p.z, heading: boatAt.h, tier };
         }
         sim.pack(simPixels);
         water.setStirred(simPixels, sim.centreX, sim.centreZ);

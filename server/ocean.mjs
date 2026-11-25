@@ -1,4 +1,5 @@
 import { SEA_BOUND, spawn } from "../src/ocean/model.ts";
+import { clampTier } from "../src/ocean/upgrades.ts";
 
 /**
  * The shared sea is ephemeral on ONE API instance. No room/persistent economy writes.
@@ -15,6 +16,15 @@ import { SEA_BOUND, spawn } from "../src/ocean/model.ts";
  * Clients that do not announce protocol 2 (an older cached app) keep getting full
  * `ocean:state` snapshots and acknowledged commands, so a rollout is safe in either
  * order.
+ *
+ * What a boat looks like. Every boat has a `tier` (its boat, 0 to 3) and a `rod` (its rod,
+ * 0 to 3), which the other players draw (the upgrade shop). They are never taken from the
+ * client: the server reads them from the economy with the player's OWN token (`loadoutOf`) when
+ * the boat enters, and again when the client says it bought something (`ocean:refit`, at most
+ * once in two seconds), and sends them with the boat (`add` entries, full snapshots) or as
+ * `ocean:refit` to protocol 2 clients. A failed read (the economy unreachable, an older database)
+ * leaves the first boat and rod: a boat is never kept out of the sea for that. Older clients
+ * ignore the two extra fields.
  */
 export const OCEAN_PROTOCOL = 2;
 const MAX_BOATS = 100;
@@ -35,23 +45,67 @@ export function attachOcean(
     minMoveMs = 100,
     /** The same for acknowledged commands from an older client. */
     legacyMinMoveMs = 400,
+    /** Reads the player's boat and rod tiers with the player's own token: `{ boat, rod }`; a throw means unknown. */
+    loadoutOf = async () => ({ boat: 0, rod: 0 }),
+    /** How long entering waits for that read before the first boat is drawn (ms). */
+    fitWaitMs = 2500,
+    /** Minimum gap between two `ocean:refit` of one socket (ms). */
+    minRefitMs = 2000,
+    /**
+     * Reads, with a player's own token, where the boats of the players who are not online were last
+     * left (the economy RPC `economy_parked_boats`): `[{ uid, name, x, z, heading, tier, rod, age }]`.
+     * Without it a boat leaves the sea with its player; with it the boat stays where it was (see below).
+     */
+    parkedOf,
+    /** How long a read of the parked boats is kept before the next player entering asks again (ms). */
+    parkedTtlMs = 60_000,
+    /** How long a boat stays where its player left it (ms); the database keeps the same 7 days. */
+    parkedKeepMs = 7 * 24 * 3600 * 1000,
   },
 ) {
+  const parking = typeof parkedOf === "function";
   const boats = new Map();
+  /**
+   * Parked boats: players who are not online keep their boat where it was left, for everyone to see
+   * (protocol 2 clients only: an entry has `off: 1`). Two sources: a boat that has just left the sea
+   * is parked at its last live pose (the newest), and the others are read from the database with a
+   * player's own token (no admin key) when someone enters, at most once per `parkedTtlMs`. What is
+   * known here wins over the database; a boat that comes back online is no longer parked.
+   */
+  const parked = new Map();
+  /** Parked boats not yet announced to the protocol 2 clients that are in the sea. */
+  const parkedAdded = new Set();
+  let parkedReadAt = -Infinity;
   const legacyRoom = "ocean:shared";
   const modernRoom = "ocean:v2";
   const dirty = new Set();
   const added = new Set();
   const gone = new Set();
   let timer;
-  const snapshot = () => ({
-    boats: [...boats.values()].map(({ socket, proto, ...boat }) => boat),
+  const parkedEntry = (boat) => ({
+    uid: boat.uid,
+    name: boat.name,
+    x: round(boat.x),
+    z: round(boat.z),
+    heading: round(boat.heading),
+    fishing: false,
+    tier: boat.tier,
+    rod: boat.rod,
+    updatedAt: boat.updatedAt,
+    off: 1,
+  });
+  /** The boats in the sea; protocol 2 clients also get the parked ones. */
+  const snapshot = (withParked = false) => ({
+    boats: [
+      ...[...boats.values()].map(({ socket, proto, ...boat }) => boat),
+      ...(withParked ? [...parked.values()].map(parkedEntry) : []),
+    ],
     serverTime: now(),
   });
   const members = (room) => io.sockets.adapter.rooms.get(room)?.size ?? 0;
   /** Sends everything that changed since the last flush, once per room. */
   function flush() {
-    if (!dirty.size && !gone.size) return;
+    if (!dirty.size && !gone.size && !parkedAdded.size) return;
     const t = now();
     if (members(modernRoom)) {
       const add = [];
@@ -67,6 +121,8 @@ export function attachOcean(
             z: round(boat.z),
             heading: round(boat.heading),
             fishing: boat.fishing,
+            tier: boat.tier,
+            rod: boat.rod,
             updatedAt: boat.updatedAt,
           });
         else
@@ -81,12 +137,17 @@ export function attachOcean(
             boat.updatedAt,
           ]);
       }
+      for (const uid of parkedAdded) {
+        const boat = parked.get(uid);
+        if (boat) add.push(parkedEntry(boat));
+      }
       io.to(modernRoom).emit("ocean:delta", { t, add, up, gone: [...gone] });
     }
     if (members(legacyRoom)) io.to(legacyRoom).emit("ocean:state", snapshot());
     dirty.clear();
     added.clear();
     gone.clear();
+    parkedAdded.clear();
     if (!boats.size) stopTimer();
   }
   function startTimer() {
@@ -97,6 +158,112 @@ export function attachOcean(
   function stopTimer() {
     clearInterval(timer);
     timer = undefined;
+  }
+  const finite = (value, bound) =>
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    Math.abs(value) <= bound;
+  /** Takes what the database says about the parked boats; what is wrong in it is left out. */
+  function mergeParked(list) {
+    const at = now();
+    const seen = new Set();
+    for (const raw of list) {
+      if (!raw || typeof raw.uid !== "string" || raw.uid.length > 64) continue;
+      const x = Number(raw.x);
+      const z = Number(raw.z);
+      const turn = Number(raw.heading);
+      if (!finite(x, SEA_BOUND) || !finite(z, SEA_BOUND) || !finite(turn, 3.2))
+        continue;
+      // Saved rounded to three decimals: 3.142 is a hair past pi, which the clients refuse.
+      const heading = round(Math.atan2(Math.sin(turn), Math.cos(turn)));
+      seen.add(raw.uid);
+      // Online, or parked a moment ago here (the newest): leave it.
+      if (boats.has(raw.uid)) continue;
+      const known = parked.get(raw.uid);
+      if (known && known.source === "live") continue;
+      const age = Math.max(0, Number(raw.age) || 0);
+      const next = {
+        uid: raw.uid,
+        name:
+          String(raw.name || "Người đi biển")
+            .trim()
+            .slice(0, 24) || "Người đi biển",
+        x,
+        z,
+        heading,
+        ...fitOf({ boat: raw.tier, rod: raw.rod }),
+        updatedAt: at - age * 1000,
+        source: "db",
+      };
+      if (
+        known &&
+        known.x === x &&
+        known.z === z &&
+        known.heading === heading &&
+        known.tier === next.tier &&
+        known.rod === next.rod
+      )
+        continue;
+      parked.set(raw.uid, next);
+      parkedAdded.add(raw.uid);
+    }
+    for (const [uid, boat] of parked) {
+      const expired = at - boat.updatedAt > parkedKeepMs;
+      const forgotten = boat.source === "db" && !seen.has(uid);
+      if (!expired && !forgotten) continue;
+      parked.delete(uid);
+      parkedAdded.delete(uid);
+      gone.add(uid);
+    }
+  }
+  /** Asks the database for the parked boats with this player's token, unless it was asked a moment ago. */
+  async function readParked(token) {
+    if (!parking || now() - parkedReadAt < parkedTtlMs) return;
+    parkedReadAt = now();
+    let timer;
+    try {
+      const list = await Promise.race([
+        parkedOf(token),
+        new Promise((resolve) => {
+          timer = setTimeout(() => resolve(undefined), fitWaitMs);
+          timer.unref?.();
+        }),
+      ]);
+      // Unreachable, or an older database: ask again with the next player.
+      if (!Array.isArray(list)) parkedReadAt = -Infinity;
+      else mergeParked(list);
+    } catch {
+      parkedReadAt = -Infinity;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  /** The tiers of a loadout answer, each 0 to 3 (anything else is 0). */
+  const fitOf = (loadout) => ({
+    tier: clampTier(loadout?.boat),
+    rod: clampTier(loadout?.rod),
+  });
+  /**
+   * What the player's boat and rod are, or `undefined` when that cannot be told within `fitWaitMs`
+   * (the economy failed or was slow). The caller decides what unknown means: entering takes the
+   * first boat and rod, a refit keeps what the boat already shows (a hiccup must never demote a
+   * player in everyone's eyes).
+   */
+  async function readFit(token) {
+    let timer;
+    try {
+      return await Promise.race([
+        loadoutOf(token).then(fitOf),
+        new Promise((resolve) => {
+          timer = setTimeout(() => resolve(undefined), fitWaitMs);
+          timer.unref?.();
+        }),
+      ]);
+    } catch {
+      return undefined;
+    } finally {
+      clearTimeout(timer);
+    }
   }
   const validPose = (pose) =>
     pose &&
@@ -114,6 +281,9 @@ export function attachOcean(
     let modern = false;
     let last = -Infinity;
     let lastToken = -Infinity;
+    let lastRefit = -Infinity;
+    /** A refit asked within the gap after the last one, waiting for the gap to end. */
+    let refitLater;
     let checking = false;
     let recheck;
     const leaveRooms = (target) => {
@@ -122,11 +292,18 @@ export function attachOcean(
     };
     const remove = () => {
       clearInterval(recheck);
-      if (boats.get(socket.data.uid)?.session === socket.id) {
+      clearTimeout(refitLater);
+      const boat = boats.get(socket.data.uid);
+      if (boat?.session === socket.id) {
         boats.delete(socket.data.uid);
         dirty.delete(socket.data.uid);
         added.delete(socket.data.uid);
-        gone.add(socket.data.uid);
+        if (parking) {
+          // The boat stays where its player left it; protocol 2 clients get it as a parked boat
+          // in place of the online one (no `gone`), older clients simply no longer see it.
+          parked.set(boat.uid, { ...boat, source: "live", socket: undefined });
+          parkedAdded.add(boat.uid);
+        } else gone.add(socket.data.uid);
         flush();
       }
     };
@@ -166,6 +343,13 @@ export function attachOcean(
           socket.disconnect(true);
           return;
         }
+        // What the boat looks like is read before anything below is decided, so nothing awaits between the
+        // capacity check, the replacement of an older session and the boat being set.
+        const [read] = await Promise.all([
+          readFit(socket.data.token),
+          readParked(socket.data.token),
+        ]);
+        const fit = read ?? { tier: 0, rod: 0 };
         if (!socket.connected) return;
         if (joined) return ack({ error: "Thuyền đã vào biển." });
         if (boats.size >= MAX_BOATS && !boats.has(user.id))
@@ -190,10 +374,14 @@ export function attachOcean(
               .slice(0, 24) || "Người đi biển",
           session: socket.id,
           ...pose,
+          ...fit,
           updatedAt: now(),
           socket,
           proto: modern ? OCEAN_PROTOCOL : 1,
         });
+        // The boat is online again: it is no longer parked.
+        parked.delete(user.id);
+        parkedAdded.delete(user.id);
         dirty.add(user.id);
         added.add(user.id);
         joined = true;
@@ -214,7 +402,7 @@ export function attachOcean(
           }
         }, authRecheckMs);
         recheck.unref?.();
-        if (modern) socket.emit("ocean:state", snapshot());
+        if (modern) socket.emit("ocean:state", snapshot(true));
         ack({
           data: modern
             ? {
@@ -245,6 +433,35 @@ export function attachOcean(
         error !== "Vị trí không hợp lệ."
       )
         socket.emit("ocean:error", { error });
+    });
+    // The client bought a boat or a rod: read what it owns again (never trust what it says) and tell
+    // the others. Quiet when not joined or nothing changed; one asked too soon after the last is not
+    // dropped (a second purchase within the gap must still reach the others) but done once the gap
+    // is over. A read that fails leaves the boat as it is.
+    async function refit() {
+      lastRefit = now();
+      const uid = socket.data.uid;
+      const fit = await readFit(socket.data.token);
+      if (!fit) return;
+      const boat = boats.get(uid);
+      if (!boat || boat.session !== socket.id) return;
+      if (boat.tier === fit.tier && boat.rod === fit.rod) return;
+      Object.assign(boat, fit);
+      io.to(modernRoom).emit("ocean:refit", { uid, ...fit });
+      // Older clients get it with the next full snapshot.
+      dirty.add(uid);
+      startTimer();
+    }
+    socket.on("ocean:refit", () => {
+      if (!modern || !joined || !ready()) return;
+      const wait = minRefitMs - (now() - lastRefit);
+      if (wait <= 0) return void refit();
+      if (refitLater) return;
+      refitLater = setTimeout(() => {
+        refitLater = undefined;
+        if (joined && socket.connected) void refit();
+      }, wait);
+      refitLater.unref?.();
     });
     // A refreshed access token for the open connection, so the session outlives the
     // first token (about one hour) without a reconnect.

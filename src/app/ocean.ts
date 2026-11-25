@@ -14,13 +14,18 @@ import { createBoatControl } from "../ocean/boat-control";
 import { FramePacer } from "../ocean/frame-pacing";
 import { bindInputLayer, type InputTarget } from "../ocean/input-layer";
 import { RemoteTracks, ServerClock } from "../ocean/remote";
-import { stockTotal, type Inventory } from "../ocean/fishing";
+import { releaseOne, stockTotal, type Inventory } from "../ocean/fishing";
+import { inventoryFrom } from "../ocean/server-store";
 import { createFishingUi } from "./fishing-ui";
 import { createMarketUi } from "./market-ui";
+import { createRankUi } from "./rank-ui";
 import { createWeatherTestSection } from "./settings-weather";
+import { createSeaAudio } from "./audio";
+import { createAudioSection } from "./settings-audio";
+import { SEA } from "../ocean/sea-atmosphere";
 import {
   createPerfSection,
-  createProbeSection,
+  createWavesSection,
   loadPerfPref,
   savePerfPref,
 } from "./settings-perf";
@@ -42,7 +47,14 @@ import {
   renewableSessionMessage,
   type RetryOptions,
 } from "../ocean/connect";
-import { decodeSave, encodeSave, saveKey } from "../ocean/save";
+import {
+  decodeSave,
+  encodeSave,
+  safePose,
+  saveKey,
+  type RestoredSea,
+} from "../ocean/save";
+import { DEFAULT_LOADOUT, slotsOf, type Loadout } from "../ocean/upgrades";
 
 type Connection = Awaited<ReturnType<typeof connectOcean>>;
 export interface OceanOptions {
@@ -151,6 +163,7 @@ export function startOcean(
   let pose: Pose = { x: 0, z: 0, heading: 0, fishing: false };
   let boats: Boat[] = [];
   let disposed = false;
+  const seaAudio = createSeaAudio();
   let active = false;
   let frame = 0;
   let lastDraw = 0;
@@ -190,6 +203,16 @@ export function startOcean(
   let lastPose = "";
   let clockOffset = 0;
   let caught = 0;
+  // The server economy (none without VITE_ECONOMY: then no market, no upgrades, the default loadout, and the store stays on the device).
+  const economy =
+    options.economy ?? (economyEnabled() ? supabaseEconomy() : undefined);
+  /**
+   * True when the SERVER keeps the fish store, the records, the catch count and the boat's
+   * position (decision 0016). False without an economy, or when the profile could not be read
+   * (migration not applied, no network): then the store stays on the device as before.
+   */
+  let serverStore = false;
+  let lastPoseSave = 0;
   let reconnecting = false;
   let connectFn: typeof connectOcean | undefined;
   let selfUid = "";
@@ -220,9 +243,60 @@ export function startOcean(
         z: pose.z,
         heading: pose.heading,
         caught,
-        fish: fishStock,
+        // The server holds the store: no second copy here that could be imported again.
+        fish: serverStore ? {} : fishStock,
       }),
     );
+    // The boat's position goes to the server too, at most every 30 s (it keeps one per 10 s).
+    const now = performance.now();
+    if (serverStore && economy && now - lastPoseSave > 30_000) {
+      lastPoseSave = now;
+      void economy.savePose(pose).catch(() => {});
+    }
+  }
+
+  /** Reads the store, records and count from the server again (after a failed call). */
+  async function refreshStore() {
+    if (!economy || !serverStore || disposed) return;
+    try {
+      const [profile, state] = await Promise.all([
+        economy.profile(),
+        economy.state(),
+      ]);
+      if (disposed) return;
+      fishStock = inventoryFrom(state.ledger, profile.records);
+      caught = profile.caught;
+      showStockCount();
+    } catch {
+      /* The device copy stays; the next refresh tries again. */
+    }
+  }
+
+  /**
+   * Enters with the server's store: the profile and the unsold fish. The first time, the fish
+   * store kept on this device is moved to the server (once per account, see the migration).
+   * Undefined when the server cannot say (the store then stays on the device).
+   */
+  async function loadServerStore(local: RestoredSea) {
+    if (!economy) return undefined;
+    try {
+      const read = async () =>
+        Promise.all([economy.profile(), economy.state()]);
+      let [profile, state] = await read();
+      if (!profile.imported) {
+        await economy.importLocal(local.fish, local.caught);
+        [profile, state] = await read();
+      }
+      return {
+        caught: profile.caught,
+        fish: inventoryFrom(state.ledger, profile.records),
+        pose: profile.pose
+          ? safePose(profile.pose.x, profile.pose.z, profile.pose.heading)
+          : undefined,
+      };
+    } catch {
+      return undefined;
+    }
   }
   /** The fish store: what is held now (and records), saved with the boat. */
   let fishStock: Inventory = {};
@@ -249,14 +323,41 @@ export function startOcean(
     fishingUi.cancel();
     pose = { ...pose, fishing: false };
   }
+  /** The rod and bait the player owns, from the server; the fishing rules read it when a fish bites. */
+  let loadout: Loadout = DEFAULT_LOADOUT;
+  /** The market already told us (a purchase or a choice): a slower first answer must not undo it. */
+  let loadoutKnown = false;
+  /** Shows what the player owns on the sea: the boat (its model and body), the rod in the hand and the bait on the line. */
+  /** The boat and rod the server was last asked to tell the others about. */
+  let announced = "0,0";
+  function showLoadout() {
+    // A boat or a rod bought: the server reads the account again and tells the other players.
+    const fit = `${loadout.boat},${loadout.rod}`;
+    if (fit !== announced) {
+      announced = fit;
+      connection?.refit?.();
+    }
+    if (!scene) return;
+    scene.setRodTier(loadout.rod);
+    scene.setBait(loadout.baitUsed);
+    void scene.setBoatTier(loadout.boat);
+  }
   // The rail of the hub shell: one tap goes from the fish store to the market, crew or settings.
   const hubNav: HubNav = {
-    available: (id) => id !== "market" || marketUi.available,
+    available: (id) =>
+      id === "market"
+        ? marketUi.nearMarket
+        : id === "yard"
+          ? marketUi.nearYard
+          : id === "rank"
+            ? economy !== undefined
+            : true,
     go(id) {
       keys.clear();
       releaseStick();
       if (id === "stock") fishingUi.showStock();
-      else if (id === "market") void marketUi.openNearest();
+      else if (id === "market" || id === "yard") void marketUi.openNearest();
+      else if (id === "rank") rankUi.show();
       else if (id === "crew") showCrew();
       else showSettings();
     },
@@ -279,19 +380,49 @@ export function startOcean(
     reduced,
     hubs: hubNav,
     onKeep: (fish) => marketUi.recordCatch(fish),
+    onPutBack: (species) => {
+      if (serverStore)
+        void economy?.release(species).catch(() => void refreshStore());
+    },
+    sound: (cue) => seaAudio.play(cue),
+    loadout: () => loadout,
+    // Without a server economy there is no boat to buy and no market to sell at: no cap.
+    slots: () => (economy ? slotsOf(loadout.boat) : Infinity),
   });
   // The fish markets: a Bán button near a pier and the hub it opens (server economy only).
   const marketUi = createMarketUi({
     button: root.querySelector<HTMLButtonElement>('[data-ocean="market"]')!,
     dialog,
-    economy:
-      options.economy ?? (economyEnabled() ? supabaseEconomy() : undefined),
+    economy,
+    onRejected: (fish, failure) => {
+      // The server will not hold this fish: take it out of the store and say why.
+      fishStock = releaseOne(fishStock, fish.species);
+      caught = Math.max(0, caught - 1);
+      showStockCount();
+      persist();
+      notify(
+        failure === "full"
+          ? "Kho đã đầy (200 con): hãy bán bớt cá ở chợ."
+          : "Con cá này chưa vào kho được.",
+      );
+      void refreshStore();
+    },
+    sound: (cue) => seaAudio.play(cue),
+    onLoadout: (next) => {
+      loadout = next;
+      loadoutKnown = true;
+      showLoadout();
+      // A bigger boat has more slots: a fish waiting on the rod may fit now.
+      fishingUi.sync();
+    },
     stock: () => fishStock,
     setStock: (next, caughtOne) => {
       fishStock = next;
       if (caughtOne) caught++;
       showStockCount();
       persist();
+      // A sale made room: a fish waiting on the rod may be kept now.
+      fishingUi.sync();
     },
     beforeOpen: () => {
       keys.clear();
@@ -299,6 +430,17 @@ export function startOcean(
       fishingUi.cancel();
     },
     hubs: hubNav,
+  });
+  // The fishing leaderboard: a tab of the hub rail (server economy only).
+  const rankUi = createRankUi({
+    dialog,
+    economy,
+    hubs: hubNav,
+    beforeOpen: () => {
+      keys.clear();
+      releaseStick();
+      fishingUi.cancel();
+    },
   });
   // Other boats are drawn slightly in the past, interpolated between received samples,
   // so they glide at any publish rate instead of jumping when a packet arrives.
@@ -321,6 +463,9 @@ export function startOcean(
     return list.map((boat) => {
       if (boat.uid === connection?.uid) return boat;
       const played = tracks.sample(boat.uid, at);
+      // A parked boat is not fishing, whatever its last played sample says.
+      if (boat.offline)
+        return played ? { ...boat, ...played, fishing: false } : boat;
       return played ? { ...boat, ...played } : boat;
     });
   }
@@ -436,11 +581,13 @@ export function startOcean(
     fishingUi.cancel();
     const page = createHubShell(dialog, hubNav, "crew");
     dialog.setAttribute("aria-label", "Thủy thủ");
-    const here = visibleBoats().map((boat) => ({
-      boat,
-      you: boat.uid === connection?.uid,
-      meters: Math.round(Math.hypot(boat.x - pose.x, boat.z - pose.z)),
-    }));
+    const here = visibleBoats()
+      .filter((boat) => !boat.offline)
+      .map((boat) => ({
+        boat,
+        you: boat.uid === connection?.uid,
+        meters: Math.round(Math.hypot(boat.x - pose.x, boat.z - pose.z)),
+      }));
     here.sort((a, b) => Number(b.you) - Number(a.you) || a.meters - b.meters);
     const head = document.createElement("header");
     head.className = "fish-store-head";
@@ -509,9 +656,10 @@ export function startOcean(
     const body = document.createElement("div");
     body.className = "fish-store-body settings-body";
     body.append(
+      createAudioSection(seaAudio),
       createWeatherTestSection(),
       createPerfSection(perfPanel),
-      createProbeSection(persist),
+      createWavesSection(persist),
       createUpdateSection({ beforeApply: persist }),
     );
     const foot = document.createElement("footer");
@@ -529,10 +677,20 @@ export function startOcean(
     page.append(head, body, foot);
     if (!dialog.open) dialog.showModal();
   }
+  /** Sends the pose to the sea (the server's "too fast" reply is harmless; anything else ends the session). */
+  function publishPose(now: number, serialized: string) {
+    lastPublish = now;
+    lastPose = serialized;
+    void connection?.publish(pose).catch((error: unknown) => {
+      if (error instanceof HubError && /quá nhanh/.test(error.message)) return;
+      connectionLost(error);
+    });
+  }
   function visibleBoats() {
     return boats.filter(
       (boat) =>
         boat.uid === connection?.uid ||
+        boat.offline === true ||
         Date.now() + clockOffset - boat.updatedAt < PRESENCE_MS,
     );
   }
@@ -580,20 +738,27 @@ export function startOcean(
       if (
         now - lastPublish >= (connection?.sendMs ?? 1000) &&
         (serialized !== lastPose || now - lastPublish >= 10000)
-      ) {
-        lastPublish = now;
-        lastPose = serialized;
-        void connection?.publish(pose).catch((error: unknown) => {
-          // The server's "too fast" reply is harmless; anything else ends the session.
-          if (error instanceof HubError && /quá nhanh/.test(error.message))
-            return;
-          connectionLost(error);
-        });
-      }
+      )
+        publishPose(now, serialized);
+    } else if (active && !document.hidden && now - lastPublish >= 10000) {
+      // A hub is open (the market, the store, Settings): the boat is still in the sea, at rest where
+      // it was, and the others hide a boat that has been silent for PRESENCE_MS, so it keeps
+      // announcing itself. A hidden page draws and sends nothing.
+      const state = scene?.selfState();
+      if (state)
+        pose = {
+          x: Math.max(-SEA_BOUND, Math.min(SEA_BOUND, state.x)),
+          z: Math.max(-SEA_BOUND, Math.min(SEA_BOUND, state.z)),
+          heading: state.heading,
+          fishing: pose.fishing,
+        };
+      publishPose(now, poseKey(pose));
     }
     const visible = active || reconnecting ? visibleBoats() : [];
+    // The count and the crew list are the players who are online; parked boats are only drawn.
+    const online = visible.filter((boat) => !boat.offline).length;
     const text = active
-      ? `${visible.length} thuyền`
+      ? `${online} thuyền`
       : reconnecting
         ? "Đang kết nối lại…"
         : "Chưa kết nối";
@@ -618,6 +783,13 @@ export function startOcean(
           now / 1000,
         );
       }
+      const own = scene.selfState();
+      seaAudio.update({
+        speed: own ? Math.hypot(own.forwardSpeed, own.sideSpeed) : 0,
+        rain: SEA.weather.z,
+        gloom: SEA.weather.y,
+        tension: fishingUi.lineTension(now),
+      });
       const began = performance.now();
       scene.update(
         shown,
@@ -898,7 +1070,7 @@ export function startOcean(
     return value;
   })();
   Promise.all([graphics, connecting])
-    .then(([created, value]) => {
+    .then(async ([created, value]) => {
       if (disposed || network.signal.aborted) {
         value.dispose();
         return;
@@ -908,11 +1080,16 @@ export function startOcean(
       // (whatever start pose the server assigns, the client's own wins once published).
       selfUid = value.uid;
       const restored = decodeSave(stored.read(saveKey(value.uid)));
-      pose = restored.pose ?? spawn(value.uid);
-      caught = restored.caught;
-      fishStock = restored.fish;
+      const remote = await loadServerStore(restored);
+      if (disposed) return;
+      serverStore = remote !== undefined;
+      pose = remote?.pose ?? restored.pose ?? spawn(value.uid);
+      caught = remote ? remote.caught : restored.caught;
+      fishStock = remote ? remote.fish : restored.fish;
+      if (serverStore) persist();
       showStockCount();
       created.spawnSelf(value.uid, "Bạn", pose);
+      showLoadout();
       step("enter", "done");
       setChromeColor(CHROME_COLORS.sea);
       active = true;
@@ -922,6 +1099,26 @@ export function startOcean(
       lastPose = "";
       fishButton.disabled = false;
       hideLoading();
+      // What the player bought is on the server: fish with it from the first cast, not only
+      // after the market was opened. A failure keeps the default (the market asks again).
+      // A failed read is tried again a few times (2, 6 and 15 s later) rather than fishing the whole
+      // session as the free boat, rod and bait for one network blip; the market asks again too.
+      const readLoadout = (retries: number[]) => {
+        void economy
+          ?.state()
+          .then((state) => {
+            if (disposed || loadoutKnown) return;
+            loadout = state.loadout;
+            showLoadout();
+            fishingUi.sync();
+          })
+          .catch(() => {
+            const [wait, ...rest] = retries;
+            if (wait === undefined || disposed || loadoutKnown) return;
+            window.setTimeout(() => readLoadout(rest), wait);
+          });
+      };
+      readLoadout([2000, 6000, 15000]);
       notify("Đã vào biển chung. Lái thuyền và thả câu khi bạn muốn.", true);
     })
     .catch((error: unknown) => {
@@ -937,8 +1134,12 @@ export function startOcean(
     disposed = true;
     clearTimeout(graphicsTimer);
     clearTimeout(quietTimer);
+    // Leaving: save the boat now, whatever was saved a moment ago.
+    lastPoseSave = 0;
     persist();
+    marketUi.dispose();
     fishingUi.dispose();
+    seaAudio.dispose();
     cancelAnimationFrame(frame);
     stopLoadingArt?.();
     abort.abort();

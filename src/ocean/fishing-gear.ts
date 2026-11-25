@@ -4,6 +4,7 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import type { Scene } from "@babylonjs/core/scene";
 import { drawnLength, speciesById, type FishingView } from "./fishing.ts";
@@ -22,11 +23,17 @@ import {
   swimPose,
 } from "./underwater.ts";
 import { UnderLine, UnderwaterSkin } from "./underwater-material.ts";
-import type { ClearWater } from "./clear-water-pass.ts";
-import { CLEAR } from "./clear-water.ts";
 import { PAL } from "./art/colors.ts";
 import { Parts, SIDES } from "./art/shapes.ts";
-import { hex } from "./mesh-parts.ts";
+import { hex, meshFrom } from "./mesh-parts.ts";
+import {
+  BAIT_LENGTH,
+  baitFile,
+  baitTierIndex,
+  drawsModel,
+  endLook,
+} from "./bait-view.ts";
+import { loadFishModel } from "./fish-models.ts";
 import { glowMaterial, solidMaterial } from "./art/materials.ts";
 
 /**
@@ -229,7 +236,15 @@ export class FishingGear {
     size: number;
   }[] = [];
   private idleRipple = -9;
+  /** Where the end of the line is: it is moved, turned and scaled; the lure or a bait's model, and the hook, hang from it. */
+  private readonly end: TransformNode;
+  /** The orange fish lure, the default bait (bait-view.ts). */
   private readonly lure: Mesh;
+  /** Which bait is on the line (upgrades.ts tier 0 to 3), and the model meshes of the baits that have loaded. */
+  private bait = 0;
+  private readonly baitMeshes: (Mesh | undefined)[] = [];
+  /** Whether the end of the line is drawn at all this frame. */
+  private endShown = false;
   /** The hook under the lure: drawn only once the lure is in the water, where a fish can take it. */
   private readonly hook: Mesh;
   /** How the hooked fish and the bit of line below the surface are drawn through the water (underwater.ts). */
@@ -241,12 +256,6 @@ export class FishingGear {
   private readonly veeMaterial: StandardMaterial;
   /** Whether the fish now wears the underwater skin (else the shared satin one). */
   private wearing = false;
-  /**
-   * The clear-water layer (clear-water.ts), when the sea is see-through: it draws what is under the
-   * waves, so the fish wears the ordinary satin skin (the opaque water hides it by depth, the layer
-   * draws it) and the underwater line strip is drawn by the layer only. Undefined: the old way.
-   */
-  private clearWater: ClearWater | undefined;
   private readonly rope = new Rope(POINTS);
   private readonly smooth = new Float64Array(POINTS * 3);
   /** Where the line meets the water (or the fish's mouth), world. */
@@ -324,9 +333,11 @@ export class FishingGear {
     this.markerMaterial = marker.material;
     // A small, colourful fish-shaped lure where the line ends (nose to the rod); the hooked
     // fish takes its place in a fight.
+    this.end = new TransformNode("gear-end", scene);
     this.lure = lureMesh(scene);
+    this.lure.parent = this.end;
     this.hook = hookMesh(scene);
-    this.hook.parent = this.lure;
+    this.hook.parent = this.end;
     this.hook.isVisible = false;
     for (let i = 0; i < POINTS; i++) this.dive.push(new Vector3());
     this.skin = new UnderwaterSkin(scene, 1);
@@ -383,11 +394,65 @@ export class FishingGear {
     this.pull.shake = 0;
   }
 
+  /**
+   * Chooses the bait on the line (upgrades.ts tier 0 to 3): the orange lure for the default, the
+   * bait's own model for the others, as soon as its file has loaded (the lure stands in until then,
+   * and if the file never loads). An invalid tier is the default bait.
+   */
+  setBait(tier: number) {
+    this.bait = baitTierIndex(tier);
+    this.dressEnd();
+    if (!drawsModel(this.bait) || this.baitMeshes[this.bait]) return;
+    const wanted = this.bait;
+    void loadFishModel(baitFile(wanted)).then((template) => {
+      if (!template || this.scene.isDisposed || this.baitMeshes[wanted]) return;
+      const { positions, indices, colors, normals } = template.main;
+      const mesh = meshFrom(
+        `gear-bait-${wanted}`,
+        this.scene,
+        positions,
+        indices,
+        colors,
+        normals,
+      );
+      mesh.material = solidMaterial(this.scene, "gloss");
+      mesh.useVertexColors = true;
+      mesh.hasVertexAlpha = false;
+      mesh.isPickable = false;
+      mesh.isVisible = false;
+      // The model is 1 long, nose toward +X, centred: the same half metre as the lure.
+      mesh.scaling.setAll(BAIT_LENGTH / template.size);
+      mesh.parent = this.end;
+      this.baitMeshes[wanted] = mesh;
+      this.dressEnd();
+    });
+  }
+
+  /** Draws or hides the end of the line (the lure or the bait's model). */
+  private showEnd(on: boolean) {
+    if (on === this.endShown) return;
+    this.endShown = on;
+    this.dressEnd();
+  }
+
+  /** Shows the one thing that is on the end of the line now: the lure, or the chosen bait once it has loaded (bait-view.ts `endLook`). */
+  private dressEnd() {
+    const look = endLook(
+      this.bait,
+      this.baitMeshes.map((mesh) => mesh !== undefined),
+      this.endShown,
+    );
+    this.lure.isVisible = look.lure;
+    this.baitMeshes.forEach((mesh, tier) => {
+      if (mesh) mesh.isVisible = tier === look.model;
+    });
+  }
+
   private setVisible(on: boolean) {
     this.shown = on;
     this.line.isVisible = on;
     if (!on) {
-      this.lure.isVisible = false;
+      this.showEnd(false);
       this.hook.isVisible = false;
       this.underOff();
     }
@@ -474,21 +539,6 @@ export class FishingGear {
     this.fish?.root.setEnabled(id !== undefined);
   }
 
-  /**
-   * Draws the fish and the line under the water through the clear-water layer (or, with undefined,
-   * through the special underwater skin as before). Can be switched at any frame: the quality
-   * governor does it when the frames are slow.
-   */
-  setClearWater(layer: ClearWater | undefined) {
-    this.clearWater = layer;
-    const strip = this.lineSkin.material;
-    // The strip is drawn by the layer; the main pass draws nothing of it (it lies under the sea).
-    strip.disableColorWrite = !!layer;
-    strip.disableDepthWrite = !!layer;
-    strip.forceDepthWrite = !layer;
-    if (layer) layer.dress(this.underLine.mesh, layer.lineMaterial);
-  }
-
   /** Dresses the fish in the underwater skin (or the shared satin one) and feeds the skin its frame. */
   private wear(
     wanted: boolean,
@@ -499,8 +549,7 @@ export class FishingGear {
     turquoise = 0,
   ) {
     if (!this.fish) return;
-    // With the clear-water layer the fish keeps its satin skin: the water hides what is below it.
-    const on = wanted && !this.clearWater;
+    const on = wanted;
     if (on) this.skin.update(time, surface, cut, fade, turquoise);
     if (on === this.wearing) return;
     this.wearing = on;
@@ -728,12 +777,7 @@ export class FishingGear {
       );
     }
     this.line.draw(this.dive, eye);
-    this.underLine.draw(
-      this.entry,
-      points[n - 1]!,
-      eye,
-      this.clearWater ? CLEAR.lineWiden : 1,
-    );
+    this.underLine.draw(this.entry, points[n - 1]!, eye);
     this.underLine.isVisible = true;
   }
 
@@ -784,17 +828,17 @@ export class FishingGear {
       } else if (!dip) this.pull.strength = 0.05;
     }
     this.entry.set(ex, ey, ez);
-    this.lure.position.set(ex, ey + 0.2, ez);
-    this.lure.isVisible = true;
+    this.end.position.set(ex, ey + 0.2, ez);
+    this.showEnd(true);
     // Far from the camera a half-metre lure is a speck: it grows with the distance, as the fish does.
     const eye = this.eye();
-    this.lure.scaling.setAll(
+    this.end.scaling.setAll(
       clamp(Math.hypot(ex - eye.x, ez - eye.z) * 0.05, 1, 2.4),
     );
     this.hook.isVisible = !flying;
     // The nose is tied to the line: it points at the rod, tipped up a little, and bobs.
     const flat = Math.hypot(tip.x - ex, tip.z - ez) || 1;
-    this.lure.rotation.set(
+    this.end.rotation.set(
       0,
       Math.atan2(-(tip.z - ez), tip.x - ex),
       Math.max(0.3, Math.atan2(tip.y - ey, flat)) +
@@ -917,7 +961,7 @@ export class FishingGear {
     const mouthY = surface - depth;
     this.mouth.set(fx, mouthY, fz);
     this.entry.copyFrom(this.mouth);
-    this.lure.isVisible = false;
+    this.showEnd(false);
     this.hook.isVisible = false;
     this.top.set(fx, surface + 2.2, fz);
     const wanted2 = Math.atan2(-headZ + pose.yaw * 0.15, headX);
@@ -962,7 +1006,6 @@ export class FishingGear {
     const lineTint = lineColourFor(fight.tension);
     this.lineSkin.update(time, surface, true, fade, turquoise);
     this.lineSkin.tint(lineTint);
-    this.clearWater?.lineMaterial.setColor3("tint", lineTint);
     this.drawRope(
       lineTint,
       lineTremble(fight.tension),
@@ -1086,6 +1129,8 @@ export class FishingGear {
     this.line.dispose();
     this.hook.dispose();
     this.lure.dispose();
+    for (const mesh of this.baitMeshes) mesh?.dispose();
+    this.end.dispose();
     this.skin.dispose();
     this.lineSkin.dispose();
     this.underLine.dispose();

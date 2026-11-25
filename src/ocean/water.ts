@@ -19,12 +19,7 @@ import {
 import { RIPPLE_RANGE, RIPPLE_SIZE, ripplePixels } from "./ripples.ts";
 import { glslSkyModel } from "./sky-model.ts";
 import { glslReflection } from "./reflection-model.ts";
-import {
-  CLEAR,
-  LAYER_REACH,
-  glslSeeThrough,
-  glslUnderLayer,
-} from "./clear-water.ts";
+import { LAYER_REACH, glslSeeThrough } from "./clear-water.ts";
 import type { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
 import { createSwash } from "./swash.ts";
 import { SEA_FLOOR, WATER_ABSORPTION } from "./sea-style.ts";
@@ -36,13 +31,14 @@ import {
   COLLAR,
   CREST_FOAM,
   EDGE_PER_METRE,
-  HULL_REACH,
+  HULL_REACH_MAX,
   HULL_WATER,
   RING_FADE,
   glslCollarWidth,
   glslHullEdge,
 } from "./hull-water.ts";
 import { SHADOW } from "./boat-shadow.ts";
+import { boatTierIndex, glslBoatShape } from "./boat-tier.ts";
 import {
   COAST_SAMPLES,
   coastPixels,
@@ -80,13 +76,30 @@ export interface BoatSpot {
   x: number;
   z: number;
   heading: number;
+  /** How much of the hull is in the water, 0 (lifted clear of it) to 1 (the default). */
+  wet?: number;
+  /** Which boat it is (boat-tier.ts, 0 to 3): its shadow and the water round its hull follow the hull. Tier 0 when not given. */
+  tier?: number;
 }
 export { HULL_WATER } from "./hull-water.ts";
-/** Packs boats into the shader's vec4 array: x, z, heading, 1 for a boat and 0 for empty. */
+/**
+ * Packs boats into the shader's vec4 array: x, z, heading, and the fourth number w: 0 for an empty
+ * slot, else 1 + 2 x the tier (boat-tier.ts) + how wet the hull is (0 to 1). "Is there a boat" stays
+ * `w > 0.5`; the tier is `floor((w - 1) / 2)` and the wetness is what is left of `w - 1`.
+ */
 export function packBoats(boats: readonly BoatSpot[]): number[] {
   const out = new Array<number>(BOAT_MAX * 4).fill(0);
   boats.slice(0, BOAT_MAX).forEach((boat, i) => {
-    out.splice(i * 4, 4, boat.x, boat.z, boat.heading, 1);
+    out.splice(
+      i * 4,
+      4,
+      boat.x,
+      boat.z,
+      boat.heading,
+      1 +
+        2 * boatTierIndex(boat.tier) +
+        Math.min(1, Math.max(0, boat.wet ?? 1)),
+    );
   });
   return out;
 }
@@ -144,7 +157,6 @@ ${glslSkyModel()}
 ${glslShore(true)}
 ${glslHorizontalFade()}
 ${glslReflection()}
-${glslUnderLayer()}
 ${glslSeeThrough()}
 // Absorption of clear sea water per metre (red goes first, then green): turquoise shallows.
 const vec3 absorb = vec3(${WATER_ABSORPTION.map((v) => v.toFixed(4)).join(", ")});
@@ -205,6 +217,7 @@ float visibilitySmith(float nl, float nv, float a) {
   float k = a * 0.5;
   return 0.25 / ((nl * (1.0 - k) + k) * (nv * (1.0 - k) + k));
 }
+${glslBoatShape()}
 // The shadow of the boats on the water: the sun is low, so each hull throws a long shadow
 // downwind. A boat is three parts (hull, wheelhouse, mast), each swept through its own range of
 // heights, and the shadow of a height is the part's footprint shifted along the sun's ground
@@ -223,16 +236,19 @@ float boatShadow(vec2 p, vec3 sunDir) {
   float dark = 0.0;
   for (int i = 0; i < ${BOAT_MAX}; i++) {
     vec4 boat = boats[i];
-    if (boat.w < 0.5 || distance(p, boat.xy) > 22.0) continue;
+    if (boat.w < 0.5) continue;
+    // Each boat has its own hull, wheelhouse and mast (boat-tier.ts); a taller mast throws a longer shadow.
+    BoatShape s = boatShape(1.0 + floor((boat.w - 1.0) * 0.5));
+    if (distance(p, boat.xy) > 22.0 + 3.0 * max(s.mastTo - 3.82, 0.0)) continue;
     vec2 fwd = vec2(sin(boat.z), -cos(boat.z));
     vec2 side = vec2(cos(boat.z), sin(boat.z));
     vec2 d = p - boat.xy;
     // The hull, from the waterline to the gunwale.
-    for (int k = 0; k < 4; k++) dark = max(dark, shadowSlice(d, away, fwd, side, float(k) * 0.57, 3.9, 1.5, 0.0));
+    for (int k = 0; k < 4; k++) dark = max(dark, shadowSlice(d, away, fwd, side, s.hullTop * float(k) / 3.0, s.hullLength, s.hullWidth, 0.0));
     // The wheelhouse, forward of amidships, from the deck to the top of its roof.
-    for (int k = 0; k < 4; k++) dark = max(dark, shadowSlice(d, away, fwd, side, 0.8 + float(k) * 0.47, 0.95, 0.85, 1.0));
+    for (int k = 0; k < 4; k++) dark = max(dark, shadowSlice(d, away, fwd, side, mix(s.houseFrom, s.houseTo, float(k) / 3.0), s.houseLength, s.houseWidth, s.houseShift));
     // The mast and lantern: thin, so a faint stripe that joins the roof's shadow.
-    for (int k = 0; k < 10; k++) dark = max(dark, 0.8 * shadowSlice(d, away, fwd, side, 2.2 + float(k) * 0.18, 0.5, 0.45, 0.7));
+    for (int k = 0; k < 10; k++) dark = max(dark, 0.8 * shadowSlice(d, away, fwd, side, mix(s.mastFrom, s.mastTo, float(k) / 9.0), 0.5, 0.45, s.mastShift));
   }
   return dark;
 }
@@ -256,20 +272,26 @@ vec3 hullWater(vec2 p, float t) {
   for (int i = 0; i < ${BOAT_MAX}; i++) {
     vec4 boat = boats[i];
     vec2 d = p - boat.xy;
-    if (boat.w < 0.5 || dot(d, d) > ${(HULL_REACH * HULL_REACH).toFixed(1)}) continue;
+    if (boat.w < 0.5 || dot(d, d) > ${(HULL_REACH_MAX * HULL_REACH_MAX).toFixed(1)}) continue;
+    // w is 1 + 2 x the tier + how wet the hull is: a hull lifted out of the water laps and ripples nothing.
+    float code = boat.w - 1.0;
+    float tierCode = floor(code * 0.5);
+    float wet = clamp(code - 2.0 * tierCode, 0.0, 1.0);
+    if (wet <= 0.0) continue;
+    BoatShape s = boatShape(1.0 + tierCode);
     vec2 fwd = vec2(sin(boat.z), -cos(boat.z));
     vec2 side = vec2(cos(boat.z), sin(boat.z));
     float u = dot(d, fwd) + ${HULL_WATER.shift.toFixed(2)};
     float v = dot(d, side);
     // Metres from the waterline (times a constant), the same along the keel and across it.
-    float edge = hullEdge(u, v);
+    float edge = hullEdge(u, v, s.lineLength, s.lineBeam, s.lineStern, s.lineTip);
     // The collar: a narrow ragged lap of foam along the waterline, cut into pieces in places
     // (hull-water.ts: a splash at the stem that stops at the tip, a modest wash behind the
     // transom that the wake strips take on). Its width is in metres from the waterline.
     float lap = softNoise(p * 3.4 + vec2(t * 0.35, -t * 0.28));
     float gap = noise(p * 1.9 + vec2(-t * 0.21, t * 0.17));
     float metres = edge / ${EDGE_PER_METRE.toFixed(4)};
-    float width = max(collarWidth(u, lap), 0.03);
+    float width = max(collarWidth(u, lap, s.lineLength), 0.03);
     float collar = (1.0 - smoothstep(0.02, width, metres)) * smoothstep(${COLLAR.gaps.from.toFixed(2)}, ${COLLAR.gaps.to.toFixed(2)}, gap) * (0.85 + 0.15 * lap);
     // Rings: a slow pulse (the boat rocks), each ring spreading about a metre a second. The rings
     // are never perfect ellipses: the distance they are measured from is warped by slow noise,
@@ -281,11 +303,11 @@ vec3 hullWater(vec2 p, float t) {
     float phase = warped * k - 6.2832 * ${HULL_WATER.rate.toFixed(2)} * t;
     // The ripples fade out well inside the shader's reach (hull-water.ts), so nothing is cut off.
     float fade = exp(-edge / 3.2) * smoothstep(0.0, 0.5, edge) * (1.0 - smoothstep(${RING_FADE.from.toFixed(1)}, ${RING_FADE.to.toFixed(1)}, edge));
-    slope += normalize(d + 0.0001) * ${HULL_WATER.height.toFixed(3)} * k * cos(phase) * fade * pulse;
+    slope += normalize(d + 0.0001) * ${HULL_WATER.height.toFixed(3)} * k * cos(phase) * fade * pulse * wet;
     // The crests of the first rings catch a little foam, in broken patches that thin out quickly.
     float broken = smoothstep(0.42, 0.72, noise(p * 1.25 + vec2(t * 0.22, -t * 0.17)) * 0.65 + softNoise(p * 3.3 - vec2(t * 0.3, t * 0.2)) * 0.35);
     float crest = smoothstep(0.55, 0.95, cos(phase)) * (1.0 - smoothstep(0.4, ${FOAM_REACH.toFixed(1)}, edge)) * smoothstep(0.1, 0.5, edge) * (0.45 + 0.55 * pulse) * (0.35 + 0.65 * lap) * broken;
-    foam = max(foam, max(collar, crest * ${CREST_FOAM.toFixed(2)}));
+    foam = max(foam, wet * max(collar, crest * ${CREST_FOAM.toFixed(2)}));
   }
   return vec3(foam, slope);
 }
@@ -499,17 +521,6 @@ void main() {
   float shape = (1.0 + faceSun * 0.55) * mix(${SWELL_SHADING.trough.toFixed(2)}, ${SWELL_SHADING.crest.toFixed(2)}, smoothstep(-0.4, 0.5, hNorm));
   incident *= mix(1.0, shape, openSea);
   vec3 body = floorColor * transmit + scatterColor * incident * 0.4 * (1.0 - transmit);
-  // ----- What is under the water (clear-water.ts) -----
-  // Boat hulls, piles, rocks, buoys, the hooked fish and the line are drawn on a layer of their own,
-  // below the waves only, already dimmed and tinted by the depth (red first). Where the layer has
-  // something, the water shows it through itself, fading into its own body with depth (clearer over
-  // the shallows); the Fresnel mirror, the glitter and the foam come over it, as over everything.
-  // Switched off (underOn 0) the sea is the opaque one it always was: no texture read at all.
-  // Beyond the layer's reach nothing is drawn on it, so the read is skipped (most of a phone's pixels).
-  if (underOn > 0.5 && underOn < 1.5 && dist < ${(LAYER_REACH + 40).toFixed(1)}) {
-    vec4 under = underLayerAt(vWorld, slope, smoothstep(3.0, 13.0, depth));
-    body = mix(body, under.rgb * incident * ${CLEAR.light.toFixed(2)}, under.a);
-  }
   // Light through the waves: crests seen against the sun glow green-blue (subsurface), and so
   // does the thin face of a breaker about to curl.
   float against = pow(clamp(dot(-view, normalize(vec3(sunDir.x, 0.0, sunDir.z))) * 0.5 + 0.5, 0.0, 1.0), 3.0);
@@ -619,8 +630,10 @@ void main() {
   vec3 haze = skyRadiance(normalize(vec3(-view.x, 0.015, -view.z)), false);
   float fog = 1.0 - exp(-fogDensity * fogDensity * dist * dist);
   color = mix(color, haze, clamp(fog, 0.0, 1.0));
-  // The depth mode: the sea is thinner over a thing lying under it (underOn 2); otherwise opaque.
-  float seeAlpha = underOn > 1.5 ? seeThroughAlpha(dist) : 1.0;
+  // What is under the water (clear-water.ts): the sea is thinner over a thing lying under it, so the
+  // main pass's hulls, piles, rocks and fish show through. Switched off (underOn 0) the sea is opaque.
+  // Beyond the layer's reach nothing is drawn on it, so the read is skipped (most of a phone's pixels).
+  float seeAlpha = (underOn > 0.5 && dist < ${(LAYER_REACH + 40).toFixed(1)}) ? seeThroughAlpha(dist) : 1.0;
   gl_FragColor = vec4(toScreen(color), seeAlpha);
 }`;
 
@@ -633,10 +646,7 @@ export interface Water {
   /** Gives the water the grid of the water the boats stir (ripple-sim.ts `pack`), whose window is centred at (cx, cz). */
   setStirred(pixels: Float32Array, cx: number, cz: number): void;
   /** Gives the water the layer of what lies under it (clear-water.ts); undefined is the opaque sea. */
-  setUnderlayer(
-    texture: BaseTexture | undefined,
-    mode?: "layer" | "depth",
-  ): void;
+  setUnderlayer(texture: BaseTexture | undefined): void;
   /** Keeps the grid centred under the camera and advances the wave clock. */
   update(
     cameraX: number,
@@ -812,11 +822,11 @@ export function createWater(scene: Scene): Water {
       reflection = texture;
       material.setTexture("reflectionMap", texture ?? noReflection);
     },
-    setUnderlayer(texture, mode = "layer") {
+    setUnderlayer(texture) {
       material.setTexture("underMap", texture ?? noUnder);
-      material.setFloat("underOn", texture ? (mode === "depth" ? 2 : 1) : 0);
-      // The depth mode blends the sea over what is drawn before it (after the opaque meshes).
-      const blend = !!texture && mode === "depth";
+      material.setFloat("underOn", texture ? 1 : 0);
+      // With the layer the sea blends over what is drawn before it (after the opaque meshes).
+      const blend = !!texture;
       material.alpha = blend ? 0.999 : 1;
       material.alphaMode = Constants.ALPHA_COMBINE;
       mesh.alphaIndex = blend ? 0 : Number.MAX_SAFE_INTEGER;

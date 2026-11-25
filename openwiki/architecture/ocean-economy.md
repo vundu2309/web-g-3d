@@ -8,9 +8,6 @@ tags:
   - rpc
   - market
   - architecture
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-17T08:18:15.877Z
 sources:
   - id: openwiki-source-8fa3dc9f08f4cf4f5eb0bca9
     resource: repo://docs/decisions/0010-server-economy.md
@@ -22,7 +19,10 @@ sources:
     resource: repo://src/platform/economy.ts
   - id: openwiki-source-00f8ef8b12a88c41e2cb46b0
     resource: repo://supabase/migrations/20261113032223_economy.sql
-generated: { by: "claude-code", at: "2026-11-17T08:18:15.877Z" }
+generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-20T03:06:03.643Z
 ---
 
 # Kinh tế biển và chợ cá
@@ -55,7 +55,7 @@ Quyền được siết chặt: các hàm nội bộ bị thu hồi từ `public
 ## Quy tắc trong database
 
 - **Danh tính**: `economy_private.me()` lấy `auth.uid()` và ném lỗi `42501` (chưa đăng nhập) nếu không có.
-- **Bảng giá**: `economy_private.fish_prices` có 20 loài, mỗi loài có `base`, `min_kg`, `max_kg`. Giá bán do `price(species, kg)` tính: `base` nhân với từ 0,6 (nhẹ nhất) đến 1,5 (nặng nhất) theo vị trí cân nặng trong khoảng của loài. Client không gửi giá.
+- **Bảng giá**: `economy_private.fish_prices` có 24 loài: 20 dòng từ `20261113032223_economy.sql` và 4 loài thêm từ `20261118120000_sea_species.sql` (các dòng cũ được giữ nguyên). Mỗi loài có `base`, `min_kg`, `max_kg`. Giá bán do `price(species, kg)` tính: `base` nhân với từ 0,6 (nhẹ nhất) đến 1,5 (nặng nhất) theo vị trí cân nặng trong khoảng của loài. Client không gửi giá.
 - **Bắt cá** (`record_catch`): từ chối loài lạ (`22023`), cân nặng ngoài khoảng `[min_kg, max_kg]` (`22023`), lần bắt cách lần trước dưới 6 giây (`55000`, dùng `clock_timestamp()`), và sổ đã có từ 200 con (`54000`). Cân nặng được làm tròn hai chữ số trước khi kiểm tra. Lần bắt được ghi vào `ledger` và cập nhật `last_catch_at` của ví.
 - **Bán cá** (`sell`): khóa dòng ví (`for update`), tối đa 200 phần tử trong danh sách; mỗi phần tử phải khớp một con cá còn trong sổ theo loài và cân nặng (`fish not in the ledger`, `22023`), không dùng lại cùng một dòng. Số tiền thu được cộng vào `coins`, và các dòng bị xóa khỏi sổ trong cùng giao dịch.
 
@@ -69,7 +69,7 @@ Client không gửi giá hay số dư để được chấp nhận; số liệu 
 
 ## Đồng bộ với kiểm thử
 
-- `tests/economy.test.mjs` đọc chính file migration và so với `priceTable()` của client; lệch giá hay khoảng cân nặng làm kiểm thử thất bại. Cùng file kiểm tra các hằng cooldown và sức chứa.
+- `tests/economy.test.mjs` đọc hai file migration (`20261113032223_economy.sql` và `20261118120000_sea_species.sql`) và so với `priceTable()` của client; lệch giá hay khoảng cân nặng, hoặc một loài được định giá hai lần, làm kiểm thử thất bại. Cùng file kiểm tra các hằng cooldown và sức chứa.
 - `tests/economy-client.test.mjs` kiểm tra adapter và ánh xạ lỗi.
 - `tests/economy-postgres.sql` và `tests/economy-postgres.sh` chạy các kịch bản SQL trong PostgreSQL dùng một lần, không bao giờ trên production.
 

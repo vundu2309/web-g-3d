@@ -222,6 +222,49 @@ export function parseFishGlb(data: ArrayBuffer | Uint8Array): FishTemplate {
 }
 
 /**
+ * Every mesh node of a GLB as ONE part (a node's translation added in, no rotation or scale: the
+ * files of boats and the shipyard bake those into their vertices), with the final vertex colours.
+ * For models that are drawn as a whole or shown as a still picture (the shipyard, the boats of the
+ * shipyard's cards); `skip` leaves out nodes by name (a boat's lantern glass, say). Throws if
+ * there is no mesh at all.
+ */
+export function parseMeshesGlb(
+  data: ArrayBuffer | Uint8Array,
+  skip: readonly string[] = [],
+): { main: FishPart; min: V3; max: V3; size: number } {
+  const { json, bin } = readContainer(data);
+  const main: FishPart = {
+    positions: [],
+    normals: [],
+    indices: [],
+    colors: [],
+  };
+  const zero: V3 = [0, 0, 0];
+  for (const node of json.nodes) {
+    if (node.mesh === undefined || skip.includes(node.name ?? "")) continue;
+    const part = readMesh(json, bin, node.mesh, vec3(node.translation, zero));
+    const offset = main.positions.length / 3;
+    for (const key of ["positions", "normals", "colors"] as const)
+      for (const value of part[key]) main[key].push(value);
+    for (const index of part.indices) main.indices.push(offset + index);
+  }
+  if (!main.indices.length) throw new Error("GLB has no mesh");
+  const min: [number, number, number] = [Infinity, Infinity, Infinity];
+  const max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
+  for (let i = 0; i < main.positions.length; i++) {
+    const k = i % 3;
+    min[k] = Math.min(min[k]!, main.positions[i]!);
+    max[k] = Math.max(max[k]!, main.positions[i]!);
+  }
+  return {
+    main,
+    min,
+    max,
+    size: Math.max(max[0] - min[0], max[1] - min[1], max[2] - min[2]),
+  };
+}
+
+/**
  * The model as the game's `Creature`. Positions, normals, colours and indices are the template's
  * (shared, read-only): every animal of a species draws from the same arrays.
  */

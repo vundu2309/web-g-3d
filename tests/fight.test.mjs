@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { UPGRADES, TIER_COUNT } from "../src/ocean/upgrades.ts";
 import {
   Fight,
   FIGHT_STYLES,
@@ -203,4 +204,143 @@ test("the fight is deterministic, ignores frame length and resting tension follo
     Math.abs(calm.view().tension - TENSION_FLOOR[calm.view().mood]) < 0.1,
   );
   assert.ok(LANDED_WITHIN > 0);
+});
+
+// ----- The rod: a better rod slows how fast the line strain builds -----
+
+const rodTier = (tier) => UPGRADES.rod[tier].tension;
+const makeRod = (tier, style, weight, seed) =>
+  new Fight({
+    style,
+    weight,
+    distance: 25,
+    maxLine: 48,
+    rng: seeded(seed),
+    rodTension: rodTier(tier),
+  });
+
+/** A hasty player: sees the fish `lag` frames late and reels while strong and under `limit`. */
+function hasty(limit, lag) {
+  const seen = [];
+  return (view) => {
+    seen.push(view);
+    const late = seen[Math.max(0, seen.length - 1 - lag)];
+    return (
+      late.mood === "tired" || (late.mood === "strong" && late.tension < limit)
+    );
+  };
+}
+
+/** The share of fights a hasty bot loses to a snapped line, over fixed seeds, at a rod tier. */
+function snapShare(tier, styles) {
+  let snapped = 0;
+  let total = 0;
+  for (const style of styles)
+    for (const lag of [3, 4, 5, 6])
+      for (const limit of [0.5, 0.6])
+        for (let seed = 1; seed <= 100; seed++)
+          for (const weight of [0.5, 1]) {
+            const { end } = play(
+              makeRod(tier, style, weight, seed),
+              hasty(limit, lag),
+            );
+            if (end === "snap") snapped++;
+            total++;
+          }
+  return snapped / total;
+}
+
+test("a better rod snaps the line less often: the share of snapped fights falls with each tier", () => {
+  assert.equal(TIER_COUNT, 4);
+  for (const styles of [["heavy"], ["heavy", "runner", "jet"]]) {
+    const shares = [0, 1, 2, 3].map((tier) => snapShare(tier, styles));
+    // Measured (hasty bot, 1,600 fights per style and tier): heavy 0.48 0.22 0.10 0.03,
+    // heavy+runner+jet 0.29 0.20 0.08 0.02.
+    for (let tier = 1; tier < 4; tier++)
+      assert.ok(
+        shares[tier] < shares[tier - 1],
+        `${styles}: tier ${tier} ${shares[tier].toFixed(3)} < tier ${tier - 1} ${shares[tier - 1].toFixed(3)}`,
+      );
+    assert.ok(shares[0] > 0.2, `${styles}: the free rod snaps often enough`);
+    assert.ok(shares[3] < 0.1, `${styles}: the best rod rarely snaps`);
+  }
+});
+
+test("a better rod still snaps for a player who never lets go, at every tier and style", () => {
+  for (let tier = 0; tier < TIER_COUNT; tier++)
+    for (const style of STYLES)
+      for (const weight of [0, 1])
+        for (let seed = 1; seed <= 6; seed++) {
+          const { end } = play(makeRod(tier, style, weight, seed), () => true);
+          assert.equal(
+            end,
+            "snap",
+            `tier ${tier} ${style} w${weight} #${seed}`,
+          );
+        }
+});
+
+test("a careful player lands every fish with every rod, and a better rod is never slower to snap", () => {
+  for (let tier = 0; tier < TIER_COUNT; tier++)
+    for (const style of STYLES)
+      for (const weight of [0, 1]) {
+        const { end } = play(makeRod(tier, style, weight, 7), careful);
+        assert.equal(end, "landed", `tier ${tier} ${style} w${weight}`);
+      }
+  // Holding the button: the time to the snap grows as the rod gets better.
+  for (const style of STYLES) {
+    const times = [0, 1, 2, 3].map(
+      (tier) => play(makeRod(tier, style, 0.5, 3), () => true).t,
+    );
+    for (let tier = 1; tier < 4; tier++)
+      assert.ok(times[tier] > times[tier - 1], `${style} ${times}`);
+  }
+});
+
+test("the default rod is today's fight exactly: a recorded fight is unchanged with no option, with tier 0 and with 1", () => {
+  assert.equal(rodTier(0), 1);
+  assert.equal(SNAP, 1);
+  // Recorded from fight.ts before the rod option existed: a heavy fish of weight 0.4 from 25 m,
+  // rng seed 21, the button held for 5 frames in every 40, at 30 fps.
+  const RECORDED = [
+    [60, "strong", 0.29335, 28.357667, 0.692262],
+    [120, "strong", 0.18, 28.632667, 0.647619],
+    [180, "strong", 0.18, 28.682667, 0.594048],
+    [240, "tired", 0.05, 32.185333, 0.296429],
+    [300, "tired", 0.05, 31.018667, 0.296429],
+  ];
+  const sample = (fight) => {
+    const out = [];
+    for (let i = 0; i < 300; i++) {
+      fight.reel(i % 40 < 5);
+      fight.update(1 / 30);
+      if (i % 60 === 59) {
+        const v = fight.view();
+        out.push([
+          i + 1,
+          v.mood,
+          +v.tension.toFixed(6),
+          +v.distance.toFixed(6),
+          +v.stamina.toFixed(6),
+        ]);
+      }
+    }
+    return out;
+  };
+  const base = { style: "heavy", weight: 0.4, distance: 25, maxLine: 48 };
+  assert.deepEqual(sample(new Fight({ ...base, rng: seeded(21) })), RECORDED);
+  assert.deepEqual(
+    sample(new Fight({ ...base, rng: seeded(21), rodTension: rodTier(0) })),
+    RECORDED,
+  );
+  // A better rod changes only how fast the strain builds: 15 % and 45 % less for tiers 1 and 3.
+  const gain = (tier) => {
+    const fight = makeRod(tier, "crawler", 0.5, 1);
+    const before = fight.view().tension;
+    fight.reel(true);
+    fight.update(0.5);
+    return fight.view().tension - before;
+  };
+  assert.ok(Math.abs(gain(1) / gain(0) - 0.85) < 1e-9);
+  assert.ok(Math.abs(gain(3) / gain(0) - 0.55) < 1e-9);
 });

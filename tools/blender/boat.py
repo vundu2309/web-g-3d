@@ -3,7 +3,7 @@
 A chunky rounded hull with a sheer rising to a raked bow, a painted bottom, a cream boot stripe and
 a chunky rubbing strip, a wooden gunwale cap and cream bulwarks inside; a small wheelhouse forward
 of midship (front window, portholes, a door and a life ring on its back wall) under a domed roof;
-a mast on the roof with a lantern and a pennant; a cute outboard on the transom; cleats, bow
+a mast on the roof with a lantern and the flag of Vietnam; a cute outboard on the transom; cleats, bow
 lights, a rubber bow bumper, a rope coil, a rod holder where the game's rod sits (rod.ts ROD_BASE)
 and a fish crate on an open stern deck that the chase camera looks down into. The rod itself is
 left out (the game draws and animates it).
@@ -12,7 +12,10 @@ Built with bmesh only, one material per palette colour (`c<hex>`, so `lib.bake_c
 them) plus ROLE materials the game recolours per player (boatPalettes in src/ocean/palette.ts):
 
     boat-hull   the hull paint and the wheelhouse roof dome       (BoatPalette.hull)
-    boat-trim   the rubbing strip, the roof's rim, the outboard's band and the pennant (BoatPalette.trim)
+    boat-trim   the rubbing strip, the roof's rim and the outboard's band              (BoatPalette.trim)
+
+The flag is NOT a role: it is the flag of Vietnam in its own colours (palette `flag.red`,
+`flag.star`), so the per-player repaint never touches it.
 
 Parts, each its own mesh under the empty `boat` (origin = waterline at midship):
 
@@ -20,7 +23,7 @@ Parts, each its own mesh under the empty `boat` (origin = waterline at midship):
     boat-deck     deck planks and fittings: cleats, bow lights, rod holder, fish crate, rope coil
     boat-canopy   wheelhouse, windows, door, life ring, roof, mast     (origin at its floor centre)
     boat-engine   outboard motor                       (origin at its pivot on the transom top)
-    boat-flag     pennant                              (origin on the mast, where it is tied)
+    boat-flag     the flag of Vietnam (red, yellow star)  (origin on the mast, where it is tied)
     boat-lantern  the mast-top lantern                 (origin at its base)
 
 Axes: metres, Z up, the BOW points to Blender +Y (the exporter writes Y-up glTF, so +Y becomes the
@@ -100,6 +103,8 @@ C = {
     "fishEye": PAL["people"]["face"]["lash"],
     "water": mix_hex(PAL["fit"]["glass"], PAL["market"]["board"], 0.42),
     "floor": PAL["paint"]["white"],
+    "flagRed": PAL["flag"]["red"],
+    "flagStar": PAL["flag"]["star"],
 }
 
 # ------------------------------------------------------------------------------------------------
@@ -589,7 +594,7 @@ def build_deck(col):
     for sy in (-1, 1):
         box(m, (cx, cy + sy * (L / 2 - 0.03), z0 + H + 0.02), (W + 0.02, 0.07, 0.05), C["crateLid"])
         box(m, (cx, cy + sy * (L / 2 + 0.005), z0 + H * 0.78), (W * 0.4, 0.02, 0.07), C["rubber"])
-    box(m, (cx, cy, z0 + H - 0.02), (W - 0.08, L - 0.08, 0.04), C["chrome"])  # ice
+    box(m, (cx, cy, z0 + H - 0.01), (W - 0.08, L - 0.08, 0.04), C["chrome"])  # ice (0.01 m above the crate top: flush, it z-fought with it)
     for fx, fy, ang, colr in ((-0.10, -0.12, 0.35, C["fishA"]), (0.10, 0.10, -0.5, C["fishB"])):
         fish(m, Vector((cx + fx, cy + fy, z0 + H + 0.04)), ang, colr)
     # rope coil on the stern deck
@@ -619,7 +624,7 @@ def fish(m, c, ang, colr):
 
 
 # ------------------------------------------------------------------------------------------------
-# Wheelhouse (canopy), lantern, pennant
+# Wheelhouse (canopy), lantern, flag
 # ------------------------------------------------------------------------------------------------
 def build_canopy(col):
     K = CABIN
@@ -682,7 +687,7 @@ def build_canopy(col):
     quadbox(m, (-0.04, wall_y(zc, False) - 0.05, zc), (0.05, 0.05, 0.05), C["knob"])
     lr = Vector((0.40, wall_y(z0 + 0.62, False) - 0.10, z0 + 0.62))
     torus(m, lr, (0, -1, 0.15), 0.25, 0.075, lambda i: C["ringRed"] if (i // 3) % 2 == 0 else C["ringWhite"], n1=12, n2=6, phase=math.pi / 12)
-    # mast on the roof, toward the back so the pennant streams over the stern deck
+    # mast on the roof, toward the back so the flag streams over the stern deck
     mx, my = 0.0, cy - 0.35
     mz0 = rz1 + K["roofDome"] * 0.55
     mz1 = mz0 + K["mast"]
@@ -706,22 +711,60 @@ def build_lantern(base):
     return m
 
 
+FLAG = {
+    "length": 0.72,    # fly (along the boat, streaming aft); 3:2 with the hoist
+    "height": 0.48,    # hoist
+    "thick": 0.015,    # half thickness of the cloth
+    "wave": 0.06,      # sideways wave amplitude at the free end
+    "waves": 1.6,      # half waves along the fly
+    "yaw": 0.55,       # turn of the whole flag about the mast (radians, + swings the free end to port): a
+                       # flag streaming straight aft is edge-on to the chase camera behind the boat
+    "star": 0.6,       # star outer diameter as a share of the hoist
+    "proud": 0.006,    # how far the star stands off each face of the cloth
+}
+
+
 def build_flag(pivot, segs=5):
-    """A pennant streaming aft (toward -Y), with a gentle wave; tied to the mast at `pivot`."""
+    """The flag of Vietnam: a 3:2 red field with a yellow five-pointed star at its centre, streaming
+    aft (toward -Y) with a gentle wave, tied to the mast at `pivot`. The star is a separate fan on
+    each face, set proud of the cloth and following the wave, point up from both sides. Its colours
+    are the palette's `flag` pair, never a boat role (boat-paint.ts would repaint a role colour)."""
+    F = FLAG
     m = Mesh("boat-flag")
     p = Vector(pivot)
-    L, H, T = 0.78, 0.34, 0.015
+    L, H, T = F["length"], F["height"], F["thick"]
+    R = Matrix.Rotation(-F["yaw"], 3, "Z")
+
+    def at(f, v, side=0.0):
+        """Point on the cloth at fly share f (0 at the mast) and hoist share v (0 bottom, 1 top),
+        pushed `side` metres off the cloth along +X."""
+        x = F["wave"] * math.sin(f * math.pi * F["waves"]) * f + side
+        local = Vector((x, -0.05 - L * f, -H + H * v))
+        return p + R @ local
+
     rows = []
     for i in range(segs + 1):
         f = i / segs
-        y = p.y - 0.05 - L * f
-        x = p.x + 0.06 * math.sin(f * math.pi * 1.6) * f
-        h = H * (1 - f) * 0.5 + 0.012
-        zc = p.z - H * 0.5 - 0.02 * f
-        rows.append([Vector((x + T, y, zc - h)), Vector((x + T, y, zc + h)), Vector((x - T, y, zc + h)), Vector((x - T, y, zc - h))])
-    # winding so faces point out (the rows run toward -Y)
-    rows = [list(reversed(r)) for r in rows]
-    m.tube(rows, TRIM_PAINT, cap0=sum(rows[0], Vector()) / 4)
+        rows.append([at(f, 0, T), at(f, 1, T), at(f, 1, -T), at(f, 0, -T)])
+    rows = [list(reversed(r)) for r in rows]  # winding so faces point out (the rows run toward -Y)
+    m.tube(rows, C["flagRed"], cap0=sum(rows[0], Vector()) / 4, cap1=sum(rows[-1], Vector()) / 4)
+    # the star: 5 outer and 5 inner points round the centre of the field, in (fly, hoist) shares
+    ro = F["star"] * H / 2
+    ri = ro * 0.382  # a regular five-pointed star
+    for side in (1, -1):
+        off = side * (T + F["proud"])
+        pts = []
+        for k in range(10):
+            a = math.pi / 2 + math.pi * k / 5
+            r = ro if k % 2 == 0 else ri
+            # k = 0 is the top point; the star is symmetric about its upright axis, so the same
+            # points serve both faces (only the winding flips)
+            pts.append((0.5 - r * math.cos(a) / L, 0.5 + r * math.sin(a) / H))
+        c = m.v(at(0.5, 0.5, off))
+        vs = [m.v(at(f, v, off)) for f, v in pts]
+        for k in range(10):
+            a_, b_ = vs[k], vs[(k + 1) % 10]
+            m.face((c, a_, b_) if side > 0 else (c, b_, a_), C["flagStar"])
     cyl(m, (p.x, p.y, p.z - H - 0.05), (p.x, p.y, p.z + 0.02), 0.05, 0.05, C["mast"], n=6, caps=True)  # the halyard sleeve
     return m
 
@@ -1007,36 +1050,62 @@ GLB_NODES = {"hull": "boat-hull", "deck": "boat-deck", "canopy": "boat-canopy",
              "engine": "boat-engine", "flag": "boat-flag", "lantern": "boat-lantern"}
 
 
-def export_glb(out_path, scene_name="Boat"):
-    """Write public/models/boat.glb: the root `boat` with children hull, deck, canopy, engine, flag,
-    lantern (pivots kept), COLOR_0 baked from the materials (role colours stay their exact palette-0
-    hex: hull 0x2A6FB8, trim 0xFFD35A). The bow is Blender +Y here; the copy is turned 180 degrees
-    about Z (vertices and part origins, no node rotation) so the exporter's Y-up conversion puts the
-    bow at glTF +Z (Babylon -Z). The scene itself is untouched. Returns {node: triangles}."""
-    src = bpy.data.scenes[scene_name]
+def export_parts_glb(out_path, root, parts, root_name):
+    """Write a GLB from a root empty and its parts. `parts` maps the exported node name to one Blender
+    object or a list of them (a list is joined into ONE node whose pivot is the mean of the objects'
+    origins: tier 2's two outboards become the single `engine`). The scene itself is untouched: the
+    copies live in a temporary scene under a new empty called `root_name` (the source root takes a
+    `-src` name for the time; object names are global).
+
+    Colours: COLOR_0 baked from the materials (role colours keep their exact palette-0 hex). Axes:
+    the model's bow (Blender +Y) is turned 180 degrees about Z in the copy (vertices and part
+    origins, no node rotation), so the exporter's Y-up conversion puts the bow at glTF +Z. A sea side
+    (the shipyard's) works the same: Blender +Y, glTF +Z. Returns {node: triangles, "total": n}."""
     win = bpy.context.window
     prev = win.scene if win else None
+    for name in parts:
+        if bpy.data.objects.get(name) is not None:
+            raise RuntimeError(f"an object called `{name}` already exists: the export would name its node `{name}.001`")
+    old_root_name = root.name
+    root.name = root_name + "-src"
+    if bpy.data.objects.get(root_name) is not None:
+        root.name = old_root_name
+        raise RuntimeError(f"an object called `{root_name}` already exists")
     tmp = bpy.data.scenes.new("boat-export")
     if win:
         win.scene = tmp
     tris = {}
-    root = src.objects["boat"]
-    root.name = "boat-src"  # the copy takes the exact name (object names are global)
-    r2 = bpy.data.objects.new("boat", None)
+    r2 = bpy.data.objects.new(root_name, None)
     tmp.collection.objects.link(r2)
     turn = Matrix.Rotation(math.pi, 4, "Z")
     try:
-        for new, old in GLB_NODES.items():
-            o = src.objects[old]
-            c = o.copy()
-            c.data = o.data.copy()
+        for new, srcs in parts.items():
+            srcs = srcs if isinstance(srcs, (list, tuple)) else [srcs]
+            copies = []
+            for o in srcs:
+                c = o.copy()
+                c.data = o.data.copy()
+                c.parent = None
+                c.location = o.location
+                tmp.collection.objects.link(c)
+                copies.append(c)
+            c = copies[0]
+            if len(copies) > 1:
+                pivot = sum((o.location for o in srcs), Vector()) / len(srcs)
+                for x in bpy.data.objects:
+                    x.select_set(False)
+                for k in copies:
+                    k.select_set(True)
+                bpy.context.view_layer.objects.active = c
+                bpy.ops.object.join()
+                c.data.transform(Matrix.Translation(c.location - pivot))
+                c.location = pivot
             c.name = new
             c.data.name = new
-            tmp.collection.objects.link(c)
             c.parent = r2
             c.matrix_parent_inverse = Matrix.Identity(4)
             c.data.transform(turn)
-            c.location = turn @ o.location
+            c.location = turn @ c.location
             lib.bake_colors(c)
             tris[new] = lib.triangles(c)
         bpy.context.view_layer.update()
@@ -1055,9 +1124,17 @@ def export_glb(out_path, scene_name="Boat"):
             bpy.data.objects.remove(o, do_unlink=True)
             if me is not None:
                 bpy.data.meshes.remove(me)
-        root.name = "boat"
+        root.name = old_root_name
         if win and prev is not None:
             win.scene = prev
         bpy.data.scenes.remove(tmp)
     tris["total"] = sum(tris.values())
     return tris
+
+
+def export_glb(out_path, scene_name="Boat"):
+    """Write public/models/boat.glb from the `Boat` scene: the root `boat` with children hull, deck,
+    canopy, engine, flag, lantern (pivots kept). See export_parts_glb for the colours and the axes
+    (hull 0x2A6FB8 and trim 0xFFD35A stay exact). Returns {node: triangles}."""
+    src = bpy.data.scenes[scene_name]
+    return export_parts_glb(out_path, src.objects["boat"], {new: src.objects[old] for new, old in GLB_NODES.items()}, "boat")

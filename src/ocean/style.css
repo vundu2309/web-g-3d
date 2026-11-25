@@ -265,6 +265,11 @@
 .ocean-boat-label.is-self {
   background: #ffd35a;
 }
+/* A boat parked where its player left it (they are not online): a dimmer name. */
+.ocean-boat-label.is-offline {
+  background: #ffffffb8;
+  color: #153b80cc;
+}
 .ocean-dialog {
   color: #153b80;
   background: #f6fbff;
@@ -979,6 +984,422 @@
   font-weight: 800;
 }
 
+/* The market's second page (src/app/market-ui.ts, view model ocean/upgrade-view.ts): the rod and the
+   bait, four tiers each. A card says what it is by shape and colour: green check = owned (the green
+   frame = in use), yellow price button = next and affordable, the same button filling up as coins
+   come in = too poor, padlock and dashes = locked behind an earlier tier. */
+.is-market {
+  /* Tint of a row of tiers: the sky blue a little darker. */
+  --shop-row: #e9f3ff;
+  /* Tint of the card in use: the green accent, very pale. */
+  --shop-own-tint: #f1fbf4;
+  /* Tint of a locked card: the sky blue washed out. */
+  --shop-locked: #f3f7fc;
+  /* The state accent of what is owned and in use: the green the sell flash already uses. */
+  --shop-own: #1c7a3a;
+  /* Colour of the rarity stars, as in the fish store. */
+  --shop-star: #6a5a1a;
+}
+.market-tabs[hidden] {
+  display: none;
+}
+.is-market .fish-store-head {
+  flex-wrap: wrap;
+  row-gap: 0;
+}
+.market-tabs {
+  display: flex;
+  flex: none;
+  margin: 0 0 0 4px;
+  border: 2.5px solid #153b80;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+.market-tab {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: #fff;
+  color: #153b80;
+  font:
+    800 14px/1 "Be Vietnam Pro",
+    sans-serif;
+  white-space: nowrap;
+}
+.market-tab + .market-tab {
+  border-left: 2.5px solid #153b80;
+}
+.market-tab[aria-pressed="true"] {
+  background: #ffd35a;
+  cursor: default;
+}
+.ocean-dialog .market-tab:focus-visible {
+  outline-offset: -5px;
+}
+/* A message stays in view at the top of the scrolling page, wherever the tapped card was. */
+.is-market .fish-store-body > .market-error,
+.is-market .fish-store-body > .market-flash {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: 0 0 4px;
+  padding: 2px 0;
+  background: #f6fbff;
+  font-size: 16px;
+  line-height: 1.2;
+}
+.upgrade-page {
+  display: grid;
+  gap: 8px;
+  padding: 4px 2px 2px;
+}
+.upgrade-row {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 8px;
+  padding: 6px;
+  border: 2px solid #153b8030;
+  border-radius: 16px;
+  background: var(--shop-row);
+}
+.upgrade-row-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: #153b80;
+}
+.upgrade-row-head svg {
+  width: 32px;
+  height: 32px;
+}
+.upgrade-row-head h3 {
+  margin: 0;
+  font:
+    800 14px/1 "Baloo 2",
+    sans-serif;
+  letter-spacing: 0.04em;
+}
+.upgrade-tiers {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.upgrade-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 5px;
+  border: 2px solid #153b8040;
+  border-radius: 12px;
+  background: #fff;
+}
+.upgrade-top {
+  position: relative;
+  min-height: 54px;
+}
+.upgrade-icon {
+  display: flex;
+  justify-content: center;
+}
+.upgrade-icon svg {
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+/* The picture of a rod or a bait, drawn from its own model (app/item-thumb.ts); the tier's pips sit in
+   its top-left corner and the card's state in its bottom-right, the two corners a leaning rod leaves empty. */
+.upgrade-icon img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: 52px;
+  object-fit: contain;
+}
+.upgrade-pips {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  display: flex;
+  gap: 3px;
+  font:
+    800 12px/1 "Be Vietnam Pro",
+    sans-serif;
+  color: #385b8d;
+}
+.upgrade-pips i {
+  width: 9px;
+  height: 9px;
+  border: 2px solid #153b8080;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+.upgrade-pips i.is-on {
+  border-color: #153b80;
+  background: #ffd35a;
+}
+.upgrade-mark {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+}
+.upgrade-mark svg {
+  width: 20px;
+  height: 20px;
+}
+.upgrade-bars {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-height: 31px;
+}
+.upgrade-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 14px;
+}
+.upgrade-bar-value {
+  flex: none;
+  min-width: 22px;
+  text-align: right;
+  color: #153b80;
+  font:
+    800 12px/1 "Be Vietnam Pro",
+    sans-serif;
+}
+.upgrade-bar-tag {
+  flex: none;
+  width: 26px;
+  font:
+    800 10px/1 "Be Vietnam Pro",
+    sans-serif;
+  letter-spacing: -0.04em;
+  color: var(--shop-star);
+  text-align: center;
+}
+.upgrade-bar-tag svg {
+  display: block;
+  width: 20px;
+  height: 14px;
+  margin: 0 auto;
+  color: #153b80;
+}
+.upgrade-track {
+  position: relative;
+  flex: 1;
+  height: 9px;
+  border: 1.5px solid #153b8059;
+  border-radius: 5px;
+  background: #dceeff;
+}
+.upgrade-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--fill, 0) * 100%);
+  border-radius: 4px;
+  background: #ffd35a;
+  box-shadow: inset -2px 0 0 #153b80;
+}
+.upgrade-tick {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: calc(var(--base, 0) * 100% - 1px);
+  width: 2px;
+  border-radius: 1px;
+  background: #153b80;
+}
+.upgrade-buy,
+.upgrade-use,
+.upgrade-have {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 4px;
+  border-radius: 12px;
+  color: #153b80;
+  font:
+    900 16px/1 "Baloo 2",
+    sans-serif;
+}
+.upgrade-card button svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+/* "Đang dùng" has to fit one line on the narrowest card (667 px wide phones). */
+.upgrade-use,
+.upgrade-have {
+  gap: 3px;
+  padding: 0 2px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.upgrade-use svg,
+.upgrade-have svg {
+  width: 16px;
+  height: 16px;
+}
+.upgrade-buy,
+.upgrade-use {
+  border: 2.5px solid #153b80;
+  box-shadow: 0 3px 0 #153b80;
+}
+.upgrade-buy {
+  background: #ffd35a;
+}
+.upgrade-use {
+  background: #fff;
+  font:
+    800 12px/1 "Be Vietnam Pro",
+    sans-serif;
+}
+.upgrade-buy:active,
+.upgrade-use:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #153b80;
+}
+.upgrade-have {
+  font:
+    800 12px/1 "Be Vietnam Pro",
+    sans-serif;
+  color: var(--shop-own);
+}
+.ocean-dialog .upgrade-card:focus-visible {
+  outline: 3px solid #e97760;
+  outline-offset: 2px;
+}
+.ocean-dialog .upgrade-card button:focus-visible {
+  outline-offset: 2px;
+}
+/* Owned: a green check, the green frame and a solid green control for the one in use. */
+.upgrade-card.is-owned .upgrade-mark {
+  color: var(--shop-own);
+}
+.upgrade-card.is-using {
+  border: 3px solid var(--shop-own);
+  padding: 4px;
+  background: var(--shop-own-tint);
+}
+.upgrade-use[aria-pressed="true"],
+.is-using .upgrade-have {
+  border: 2.5px solid var(--shop-own);
+  background: var(--shop-own);
+  box-shadow: none;
+  color: #fff;
+  cursor: default;
+}
+.upgrade-use[aria-pressed="true"]:active {
+  transform: none;
+}
+/* The next tier and affordable: the card is raised, with an arrow up on the yellow. */
+.upgrade-card.is-next {
+  border-color: #153b80;
+  box-shadow: 0 3px 0 #153b80;
+}
+.upgrade-card.is-next .upgrade-mark {
+  border-radius: 50%;
+  background: #ffd35a;
+  color: #153b80;
+}
+/* Too poor: the same button is a gauge, filled as far as the coins reach. */
+.upgrade-buy[aria-disabled="true"] {
+  border-color: #153b8070;
+  background: linear-gradient(
+    90deg,
+    #ffd35a calc(var(--have, 0) * 100%),
+    #fff calc(var(--have, 0) * 100%)
+  );
+  box-shadow: none;
+  color: #385b8d;
+}
+.upgrade-buy[aria-disabled="true"]:active {
+  transform: none;
+}
+.upgrade-card.is-poor .upgrade-mark {
+  color: #385b8d;
+}
+/* Locked: dashed, faded, a padlock. */
+.upgrade-card.is-locked {
+  border-style: dashed;
+  background: var(--shop-locked);
+}
+.upgrade-card.is-locked .upgrade-icon,
+.upgrade-card.is-locked .upgrade-bars {
+  opacity: 0.45;
+}
+.upgrade-card.is-locked .upgrade-mark {
+  color: #385b8d;
+}
+.upgrade-buy:disabled {
+  border: 2.5px dashed #153b8050;
+  background: transparent;
+  box-shadow: none;
+  color: #385b8d;
+  opacity: 1;
+}
+.upgrade-buy:disabled svg {
+  opacity: 0.6;
+}
+/* A call is running: every button is off, the page dims a little. */
+.is-busy .upgrade-card button:disabled {
+  opacity: 0.6;
+}
+.upgrade-card.is-fresh {
+  animation: upgrade-pop 0.5s ease-out;
+}
+@keyframes upgrade-pop {
+  40% {
+    transform: scale(1.06);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .upgrade-card.is-fresh {
+    animation: none;
+  }
+}
+/* Portrait phones: the tabs take a line of their own, a row's title lies above its cards, two cards a line. */
+@media (max-aspect-ratio: 1/1) {
+  .market-tabs {
+    order: 3;
+    flex: 1 1 100%;
+    margin: 4px 0 0;
+  }
+  .market-tab {
+    flex: 1;
+  }
+  .upgrade-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  .upgrade-row-head {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+  .upgrade-row-head svg {
+    width: 26px;
+    height: 26px;
+  }
+  .upgrade-tiers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* The game's front door (src/app/harbor.ts): a still sea, a title, one big button. */
 .hub {
   position: fixed;
@@ -1335,6 +1756,36 @@ dialog.account-screen :is(input, textarea) {
   transform: translateY(2px);
   box-shadow: 0 1px 0 #153b80;
 }
+/* The store has no slot left: the fish can only be put back (the keep button is locked and says so). */
+.fish-hang-full {
+  padding: 2px 7px;
+  border-radius: 8px;
+  color: #fff;
+  background: #c4381f;
+  font:
+    800 12px/1.2 "Be Vietnam Pro",
+    sans-serif;
+}
+.fish-hang-full[hidden] {
+  display: none;
+}
+.fish-hang .fish-hang-keep:disabled {
+  color: #7d8aa2;
+  background: #dfe5ef;
+  box-shadow: 0 3px 0 #7d8aa2;
+  border-color: #7d8aa2;
+}
+.fish-hang.is-refused {
+  animation: fish-hang-refuse 0.3s ease-out;
+}
+@keyframes fish-hang-refuse {
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
 .fish-hang button:focus-visible {
   outline: 3px solid #e97760;
   outline-offset: 4px;
@@ -1346,7 +1797,8 @@ dialog.account-screen :is(input, textarea) {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .fish-hang {
+  .fish-hang,
+  .fish-hang.is-refused {
     animation: none;
   }
 }
@@ -1566,6 +2018,133 @@ dialog.account-screen :is(input, textarea) {
   color: #385b8d;
 }
 
+/* The Xếp hạng page (src/app/rank-ui.ts): two boards behind a pair of tabs, one numbered row for
+   each player (the player's own row is yellow, like the crew list), and a foot line with the
+   player's place when it is below the 20 shown. */
+.is-rank .fish-store-head {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+.is-rank .fish-store-head h2 {
+  flex: 1;
+}
+.rank-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: #153b8018;
+}
+.rank-tab {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #153b80;
+  font:
+    800 14px/1.1 "Be Vietnam Pro",
+    sans-serif;
+  cursor: pointer;
+}
+.rank-tab[aria-selected="true"] {
+  background: #ffd35a;
+  box-shadow: 0 0 0 2.5px #153b80 inset;
+}
+.rank-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 2px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 6px 10px;
+  align-content: start;
+}
+.rank-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 4px 8px;
+  border: 2px solid #153b8030;
+  border-radius: 14px;
+  background: #fff;
+  line-height: 1.2 !important;
+}
+.rank-row.is-you {
+  background: #fff6d6;
+  border-color: #ffd35a;
+}
+.rank-badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border: 2.5px solid #153b80;
+  border-radius: 50%;
+  background: #e9f3ff;
+  font:
+    900 15px/1 "Baloo 2",
+    sans-serif;
+}
+.rank-badge.is-podium {
+  background: #ffd35a;
+}
+.rank-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.rank-info strong {
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rank-info small {
+  font-size: 12px;
+  font-weight: 700;
+  color: #385b8d;
+}
+.rank-value {
+  flex: none;
+  font-size: 14px;
+  font-weight: 800;
+  color: #153b80;
+}
+.rank-foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 4px;
+  padding: 4px 10px;
+  border: 2px solid #ffd35a;
+  border-radius: 14px;
+  background: #fff6d6;
+  font-size: 14px;
+  font-weight: 800;
+}
+.rank-foot[hidden] {
+  display: none;
+}
+.rank-me-label {
+  flex: 1;
+}
+.rank-of {
+  font-size: 12px;
+  color: #385b8d;
+}
+.rank-retry {
+  margin-top: 6px;
+}
+
 /* Settings: two panels side by side (day and weather test, version) and the way back at the foot. */
 .crew-head h3 {
   flex: 1;
@@ -1698,4 +2277,13 @@ dialog.account-screen :is(input, textarea) {
 }
 .weather-chip.is-reset {
   width: 100%;
+}
+
+/* Settings: the sound card (on/off and volume). */
+.audio-volume {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: 6px 0 0;
+  accent-color: #153b80;
 }

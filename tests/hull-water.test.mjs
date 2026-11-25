@@ -96,10 +96,13 @@ test("the shader builds its hull maths from these numbers and cuts nothing off b
     water.includes("glslHullEdge()"),
     "the shader's hullEdge is generated",
   );
-  assert.ok(water.includes("hullEdge(u, v)"));
   assert.ok(
-    water.includes("HULL_REACH * HULL_REACH"),
-    "the reach is the constant, squared",
+    water.includes("hullEdge(u, v, s.lineLength"),
+    "the outline is the boat's own (boat-tier.ts)",
+  );
+  assert.ok(
+    water.includes("HULL_REACH_MAX * HULL_REACH_MAX"),
+    "the reach is the constant (the longest hull's), squared",
   );
   assert.ok(
     !water.includes("> 100.0)) continue"),
@@ -110,7 +113,11 @@ test("the shader builds its hull maths from these numbers and cuts nothing off b
     "the stretched ellipse is gone",
   );
   const glsl = glslHullEdge();
-  assert.ok(glsl.includes("float hullEdge(float u, float v)"));
+  assert.ok(
+    glsl.includes(
+      "float hullEdge(float u, float v, float halfLength, float beam, float stern, float tip)",
+    ),
+  );
   assert.ok(glsl.includes(EDGE_PER_METRE.toFixed(4)));
   // The collar and the rings are not made from a single value-noise lattice (boxy cells).
   assert.ok(water.includes("float softNoise(vec2 p)"));
@@ -217,22 +224,69 @@ test("the collar is broken up and soft, never a closed loop of white", () => {
 
 test("the shader's collar is the one generated from these numbers", () => {
   assert.ok(water.includes("glslCollarWidth()"));
-  assert.ok(water.includes("collarWidth(u, lap)"));
+  assert.ok(water.includes("collarWidth(u, lap, s.lineLength)"));
   assert.ok(water.includes("CREST_FOAM.toFixed(2)"));
   const glsl = glslCollarWidth();
-  assert.ok(glsl.includes("float collarWidth(float u, float lap)"));
+  assert.ok(glsl.includes("float collarWidth(float u, float lap, float L)"));
   assert.ok(glsl.includes(COLLAR.side.max.toFixed(4)));
   assert.ok(
     glsl.includes(
       COLLAR.bow.boost - 1 > 0 ? (COLLAR.bow.boost - 1).toFixed(4) : "x",
     ),
   );
-  // GLSL leaves smoothstep undefined when the first edge is not below the second.
-  for (const m of glsl.matchAll(/smoothstep\((-?[\d.]+), (-?[\d.]+),/g))
-    assert.ok(Number(m[1]) < Number(m[2]), m[0]);
+  // GLSL leaves smoothstep undefined when the first edge is not below the second: the edges now
+  // hold the hull's half length `L`, so they are checked for the half length of every boat.
+  const edges = [...glsl.matchAll(/smoothstep\(([^,]+), ([^,]+), u\)/g)];
+  assert.equal(edges.length, 4);
+  for (const m of edges)
+    for (const halfLength of [3.9, 4.4, 5.0, 5.6]) {
+      const [a, b] = new Function("L", `return [${m[1]}, ${m[2]}];`)(
+        halfLength,
+      );
+      assert.ok(a < b, `${m[0]} at L = ${halfLength}`);
+    }
   assert.ok(
     !water.includes("float push ="),
     "the fat 'push' at the bow is gone",
   );
   assert.ok(!water.includes("(0.8 + 1.4 * lap)"));
+});
+
+test("a hull lifted out of the water laps and ripples nothing, and a bow crest and spray need it wet", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const source = (name) =>
+    readFile(new URL(`../src/ocean/${name}`, import.meta.url), "utf8");
+  const water = await source("water.ts");
+  const hull = water.slice(water.indexOf("vec3 hullWater"));
+  // The packed fourth component is 1 + 2 x the tier + the wetness (water.ts packBoats): the wetness
+  // is what is left of it once the tier is taken out, and it stops the whole boat's effects.
+  assert.ok(hull.includes("float code = boat.w - 1.0;"));
+  assert.ok(hull.includes("float tierCode = floor(code * 0.5);"));
+  assert.ok(
+    hull.includes("float wet = clamp(code - 2.0 * tierCode, 0.0, 1.0);"),
+  );
+  assert.ok(hull.includes("if (wet <= 0.0) continue;"));
+  assert.ok(hull.includes("* pulse * wet;"), "the ripples");
+  assert.ok(hull.includes("foam = max(foam, wet * max(collar,"), "the foam");
+  // The shadow still needs only a boat (a lifted boat throws its shadow on the water).
+  const shadow = water.slice(
+    water.indexOf("float boatShadow"),
+    water.indexOf("vec3 hullWater"),
+  );
+  assert.ok(shadow.includes("if (boat.w < 0.5) continue;"));
+  assert.ok(
+    !shadow.includes("wet"),
+    "the shadow does not look at how wet the hull is",
+  );
+  const mesh = await source("wake-mesh.ts");
+  assert.ok(mesh.includes("newest.speed * wet"), "the bow crest and the spray");
+  const scene = await source("babylon-scene.ts");
+  assert.ok(
+    scene.includes('this.leaveTrail("self", state.x, state.z, tier, wet)'),
+  );
+  assert.match(
+    scene,
+    /heading: state\.heading,\s*wet\b/,
+    "the water is told how wet your hull is",
+  );
 });

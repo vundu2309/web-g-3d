@@ -10,13 +10,19 @@ export interface V3 {
   z: number;
 }
 
-/** Where the rod is held and how it points at rest (boat axes: +X starboard, +Y up). */
+/**
+ * Where the rod is held and how it points at rest (boat axes: +X starboard, +Y up): the first
+ * boat's holder. The bigger boats of the upgrade shop hold it at their own stern rail
+ * (boat-tier.ts `rod`), and a RodSim is given that base.
+ */
 export const ROD_BASE: V3 = { x: 1.25, y: 1.35, z: 2.52 };
 export const ROD_LENGTH = 4;
 /** Angle from the vertical, leaning out to starboard (rad). */
 export const ROD_LEAN = 0.95;
 
 const AXIS: V3 = { x: Math.sin(ROD_LEAN), y: Math.cos(ROD_LEAN), z: 0 };
+/** The side the rod bends toward when the line pulls: perpendicular to the rod, in the boat's plane, below it (the reel hangs there). */
+const DOWN: V3 = { x: Math.cos(ROD_LEAN), y: -Math.sin(ROD_LEAN), z: 0 };
 /** Natural frequency about 2 Hz; lightly damped so it rings a few times. */
 const STIFFNESS = 160;
 const DAMPING = 3.2;
@@ -33,9 +39,20 @@ export class RodSim {
   private offset: V3 = { x: 0, y: 0, z: 0 };
   private speed: V3 = { x: 0, y: 0, z: 0 };
   private readonly rng: () => number;
+  /** Where the butt is held (the boat's rod holder). */
+  readonly base: V3;
+  /**
+   * The slight curve the blank rests in, toward the side the line pulls (the reel's side): the
+   * tip offset it would have if it were pulled this far (m); the tip sits about 0.78 of it away
+   * from a straight rod. 0 is a straight rod. It is not part of the spring (`bend` and the pull
+   * leave it alone), so it never rings and never counts toward the rod's reach.
+   */
+  readonly rest: number;
 
-  constructor(rng: () => number = Math.random) {
+  constructor(rng: () => number = Math.random, base: V3 = ROD_BASE, rest = 0) {
     this.rng = rng;
+    this.base = base;
+    this.rest = rest;
   }
 
   /** How far the rod is bent, 0 (straight) to 1 (as far as it goes). */
@@ -100,13 +117,13 @@ export class RodSim {
    */
   points(count: number, out: V3[] = []): V3[] {
     const lean = {
-      x: this.offset.x / ROD_LENGTH,
-      y: this.offset.y / ROD_LENGTH,
-      z: this.offset.z / ROD_LENGTH,
+      x: (this.offset.x + DOWN.x * this.rest) / ROD_LENGTH,
+      y: (this.offset.y + DOWN.y * this.rest) / ROD_LENGTH,
+      z: (this.offset.z + DOWN.z * this.rest) / ROD_LENGTH,
     };
-    let x = ROD_BASE.x;
-    let y = ROD_BASE.y;
-    let z = ROD_BASE.z;
+    let x = this.base.x;
+    let y = this.base.y;
+    let z = this.base.z;
     const step = ROD_LENGTH / (count - 1);
     for (let i = 0; i < count; i++) {
       if (i > 0) {

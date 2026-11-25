@@ -31,7 +31,7 @@ How a change is planned, built by agents, checked, approved by the user and publ
 ## Rules that hold in every stage
 
 - **Evidence over claims.** Images and test output come from the lead's own runs or are marked as the agent's claim. Pictures are software-rendered; nothing here has been checked on a real phone, and no frame rate has been measured.
-- **Beauty first, performance later** (the owner's rule): log new cost under "Performance pass" in `docs/ocean.md`; do not trim looks to save triangles.
+- **Beauty first, performance later** (the owner's rule): log new cost under "Performance pass" in `docs/ocean.md`; do not trim looks to save triangles. The budget, the patterns and the reporting form are in [performance.md](performance.md).
 - **Parity.** The boats float on the surface the player sees: `waves.ts` is shared by CPU and shader.
 - **Secrets stay out.** No key, token or password in the repository, in a brief, in an image or in a report. If one appears in tool output, say so at once.
 - **One failure, one rerun.** If a browser test fails, rerun it once alone and report both outcomes; `ocean-fishing` is timing-sensitive under software WebGL. A failure that disappears is still reported.

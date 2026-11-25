@@ -25,6 +25,11 @@ import {
   SHORE_RANGE,
   DEEP_RANGE,
 } from "../src/ocean/fishing.ts";
+import {
+  UPGRADES,
+  TIER_COUNT,
+  DEFAULT_LOADOUT,
+} from "../src/ocean/upgrades.ts";
 import { SEA_BOUND, islands } from "../src/ocean/model.ts";
 import { shoreOf, shoreShape } from "../src/ocean/shore.ts";
 
@@ -452,4 +457,211 @@ test("a fish is drawn at a size that fits its species, never filling the boat", 
   // A heavier fish of the same kind is never drawn smaller.
   const s = by("tom-hum");
   assert.ok(drawnLength(s, s.kg[1]) >= drawnLength(s, s.kg[0]));
+});
+
+// ----- The bait: a better bait makes rare fish likelier -----
+
+const rareShares = (zone, tier, sweet = false, seed = 77, rolls = 20000) => {
+  const rng = seeded(seed);
+  let two = 0;
+  let three = 0;
+  for (let i = 0; i < rolls; i++) {
+    const { rarity } = speciesById(
+      rollFish(zone, rng, sweet, UPGRADES.bait[tier]).species,
+    );
+    if (rarity === 2) two++;
+    if (rarity === 3) three++;
+  }
+  return { two: two / rolls, three: three / rolls };
+};
+
+test("rollFish with no bait is the old roll: the same fish and the same rng draws as before the baits", () => {
+  // Recorded from rollFish before the bait parameter existed (rng seed 2024).
+  const RECORDED = [
+    "ca-madeka:0.05",
+    "sao-bien:0.18",
+    "cua-bien:1.95",
+    "sua:3.44",
+    "sua:2.86",
+    "sua:2.45",
+    "rua-bien:28.8",
+    "sua:3.11",
+    "ca-heo:60.3",
+    "ca-heo:85.1",
+    "sua:1.91",
+    "ca-map:94.8",
+    "sua:0.97",
+    "sua:0.35",
+    "sua:1.27",
+    "ca-he:0.24",
+  ];
+  const run = (bait) => {
+    const rng = seeded(2024);
+    const out = [];
+    for (const [zone, sweet] of [
+      ["shore", false],
+      ["open", true],
+      ["deep", false],
+      ["open", false],
+    ])
+      for (let i = 0; i < 4; i++) {
+        const c = rollFish(zone, rng, sweet, bait);
+        out.push(`${c.species}:${c.kg}`);
+      }
+    return { out, next: rng() };
+  };
+  for (const bait of [undefined, UPGRADES.bait[0]]) {
+    const { out, next } = run(bait);
+    assert.deepEqual(out, RECORDED);
+    // Two draws a roll, nothing more: the next draw is where the old code left the generator.
+    assert.equal(next, 0.11517729028128088);
+  }
+  assert.equal(DEFAULT_LOADOUT.baitUsed, 0);
+});
+
+test("a better bait makes rare fish likelier in every zone, with and without the sweet spot", () => {
+  assert.equal(TIER_COUNT, 4);
+  for (const zone of ["shore", "open", "deep"])
+    for (const sweet of [false, true]) {
+      const shares = [0, 1, 2, 3].map((tier) => rareShares(zone, tier, sweet));
+      for (let tier = 1; tier < 4; tier++) {
+        const rare = (s) => s.two + s.three;
+        assert.ok(
+          rare(shares[tier]) > rare(shares[tier - 1]),
+          `${zone} sweet=${sweet}: tier ${tier} ${rare(shares[tier]).toFixed(3)} > ${rare(shares[tier - 1]).toFixed(3)}`,
+        );
+        // Rarity 3 grows with every bait wherever it lives; rarity 2 wherever it lives.
+        if (shares[0].three > 0)
+          assert.ok(shares[tier].three > shares[tier - 1].three, `${zone} r3`);
+        if (shares[0].two > 0)
+          assert.ok(shares[tier].two > shares[tier - 1].two, `${zone} r2`);
+      }
+    }
+  // Measured (20,000 rolls, share of rarity 2 / rarity 3, no sweet spot), tiers 0 to 3:
+  //   shore 16.7/0.7  22.9/1.2  30.0/1.7  38.0/2.5
+  //   open  25.4/10.7 31.4/16.0 36.9/21.2 40.9/26.8
+  //   deep  0.0/37.5  0.0/52.1  0.0/64.3  0.0/74.7
+  assert.ok(rareShares("shore", 3).two > rareShares("shore", 0).two * 2);
+  assert.ok(rareShares("deep", 3).three > rareShares("deep", 0).three * 1.8);
+  assert.equal(
+    rareShares("deep", 3).two,
+    0,
+    "no rarity 2 lives in the deep sea",
+  );
+});
+
+test("a bait only changes the odds of the rare fish: the common ones stay possible and only live fish are caught", () => {
+  for (const zone of ["shore", "open", "deep"]) {
+    const rng = seeded(5);
+    const seen = new Set();
+    for (let i = 0; i < 6000; i++) {
+      const c = rollFish(zone, rng, true, UPGRADES.bait[3]);
+      assert.ok(speciesById(c.species).zones[zone] > 0, `${zone} ${c.species}`);
+      seen.add(speciesById(c.species).rarity);
+    }
+    assert.ok(
+      seen.has(1) || zone === "deep",
+      `${zone} still gives common fish`,
+    );
+  }
+  // Multipliers of exactly 1 change nothing.
+  assert.deepEqual(
+    rollFish("open", seeded(9), true, { rare2: 1, rare3: 1 }),
+    rollFish("open", seeded(9), true),
+  );
+});
+
+/** An Angler with a loadout; its rng is 0.5 until `live.on`, then `random` (so the bite is on time). */
+function loadoutHarness(loadout, random = () => 0.5) {
+  const events = [];
+  const live = { on: false };
+  const angler = new Angler(
+    (e) => events.push(e),
+    () => (live.on ? random() : 0.5),
+    1,
+    loadout ? () => loadout : undefined,
+  );
+  return { angler, events, live, types: () => events.map((e) => e.type) };
+}
+/** Hooks a fish at the first bite; the roll and the fight use the live rng. */
+function hookLive(h, distance = 22) {
+  const start = cast(h.angler) + FLIGHT_MS;
+  const biteAt = start + 4550;
+  for (let t = start; t <= biteAt + 60; t += 16) h.angler.update(t);
+  h.live.on = true;
+  h.angler.pull(biteAt + 100, distance);
+  return biteAt + 100;
+}
+
+test("the angler reads the loadout when the fish takes the hook: the bait in use picks the fish, the rod sets the line", () => {
+  const rareOf = (loadout) => {
+    let rare = 0;
+    const n = 400;
+    for (let seed = 1; seed <= n; seed++) {
+      const h = loadoutHarness(loadout, seeded(seed));
+      hookLive(h);
+      const hooked = h.events.find((e) => e.type === "hooked");
+      if (speciesById(hooked.fish.species).rarity > 1) rare++;
+    }
+    return rare / n;
+  };
+  const none = rareOf(undefined);
+  assert.equal(
+    rareOf({ ...DEFAULT_LOADOUT }),
+    none,
+    "the default loadout is no loadout",
+  );
+  const best = rareOf({ rod: 0, bait: 3, baitUsed: 3, boat: 0 });
+  assert.ok(best > none * 1.2, `bait 3 ${best} against ${none}`);
+  // Every bait bought is kept but only the one in use counts.
+  assert.equal(rareOf({ rod: 0, bait: 3, baitUsed: 0, boat: 0 }), none);
+  assert.ok(rareOf({ rod: 0, bait: 2, baitUsed: 2, boat: 0 }) > none);
+  // A bait tier that does not exist is the free bait.
+  assert.equal(rareOf({ rod: 0, bait: 9, baitUsed: 9, boat: 0 }), none);
+
+  // The rod: the same fish and the same rng, button held, the line lasts longer with a better rod.
+  const holdTime = (rod) => {
+    const h = loadoutHarness({ rod, bait: 0, baitUsed: 0, boat: 0 });
+    const start = hookLive(h);
+    const end = fightOn(h, start, () => true);
+    assert.ok(h.types().includes("lost"), `rod ${rod} snapped (${h.types()})`);
+    assert.equal(h.events.find((e) => e.type === "lost").reason, "snap");
+    return end - start;
+  };
+  const times = [0, 1, 2, 3].map(holdTime);
+  for (let tier = 1; tier < 4; tier++)
+    assert.ok(times[tier] > times[tier - 1], `rod ${times}`);
+  assert.equal(
+    holdTime(0),
+    (() => {
+      const h = harness(() => 0.5);
+      const start = hook(h);
+      return fightOn(h, start, () => true) - start;
+    })(),
+    "the free rod holds as long as an Angler without a loadout",
+  );
+});
+
+test("a store keeps a fish only while it has a slot, and one that holds more than it has is left alone", async () => {
+  const {
+    canKeep,
+    stockTotal,
+    addCatch: add,
+  } = await import("../src/ocean/fishing.ts");
+  let store = {};
+  for (let i = 0; i < 19; i++)
+    store = add(store, { species: "ca-he", kg: 1, cm: 30 }).inventory;
+  assert.equal(stockTotal(store), 19);
+  assert.equal(canKeep(store, 20), true, "19 of 20: one more fits");
+  store = add(store, { species: "ca-map", kg: 2, cm: 40 }).inventory;
+  assert.equal(stockTotal(store), 20);
+  assert.equal(canKeep(store, 20), false, "20 of 20: full");
+  assert.equal(canKeep(store, 50), true, "a bigger boat makes room");
+  // a store from before the slots: more fish than slots. It is not trimmed, it only takes no more.
+  const legacy = { "ca-he": { n: 35, best: 3 } };
+  assert.equal(canKeep(legacy, 20), false);
+  assert.equal(stockTotal(legacy), 35, "nothing is taken away");
+  assert.equal(canKeep(legacy, 35), false, "exactly full");
+  assert.equal(canKeep(legacy, 36), true);
+  assert.equal(canKeep({}, 20), true);
 });

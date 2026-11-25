@@ -1,15 +1,12 @@
 ---
 type: architecture
 title: Câu cá, cuộc giằng co và vật lý thuyền
-description: Luật câu cá thuần (vùng biển, lượt ném, nibble và cắn câu, 20 loài, kho cá), máy trạng thái cuộc giằng co, cần câu và dây, vật lý thuyền Havok, lưu cá trên thiết bị và ranh giới client báo cáo cá.
+description: Luật câu cá thuần (vùng biển, lượt ném, nibble và cắn câu, 10 loài, kho cá), máy trạng thái cuộc giằng co, cần câu và dây, vật lý thuyền Havok, lưu cá trên thiết bị và ranh giới client báo cáo cá.
 tags:
   - fishing
   - ocean
   - havok
   - architecture
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-17T08:18:15.877Z
 sources:
   - id: openwiki-source-d21d117910c861b03d3f6aa2
     resource: repo://src/app/market-ui.ts
@@ -23,7 +20,10 @@ sources:
     resource: repo://src/ocean/fishing.ts
   - id: openwiki-source-b30da6bbf3782f1926011771
     resource: repo://src/ocean/save.ts
-generated: { by: "claude-code", at: "2026-11-17T08:18:15.877Z" }
+generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-20T03:06:03.643Z
 ---
 
 # Câu cá, cuộc giằng co và vật lý thuyền
@@ -52,12 +52,12 @@ Câu cá là một trò chơi phía client. Luật nằm trong các module thu�
 - trên `DEEP_RANGE` = 128 m và cũng xa bến cảng hơn 128 m: vùng **deep**;
 - còn lại: **open**.
 
-Mỗi loài có `zones` (trọng số `shore`, `open`, `deep`) và `rarity` (1, 2 hoặc 3). `rollFish` nhân trọng số vùng với trọng số hiếm (100, 40, 10); với điểm câu ngọt (xem dưới), loài hiếm 2 và 3 được nhân thêm 1,8. Cân nặng rút theo đường cong lũy thừa 2,4 trong khoảng của loài, nên cá nhỏ phổ biến hơn. Bảng có 20 loài, khớp với seed giá trong migration kinh tế.
+Mỗi loài có `zones` (trọng số `shore`, `open`, `deep`) và `rarity` (1, 2 hoặc 3). `rollFish` nhân trọng số vùng với trọng số hiếm (100, 40, 10); với điểm câu ngọt (xem dưới), loài hiếm 2 và 3 được nhân thêm 1,8. Cân nặng rút theo đường cong lũy thừa 2,4 trong khoảng của loài, nên cá nhỏ phổ biến hơn. Bảng `SPECIES` có 10 loài, từ mô hình cộng đồng ([decision 0013](../../docs/decisions/0013-community-sea-models.md)). Mỗi loài có dòng giá trong các migration kinh tế (`20261113032223_economy.sql` và `20261118120000_sea_species.sql`), và `tests/economy.test.mjs` kiểm tra điều này.
 
 ## Ném, nibble và cắn câu
 
 1. **Nạp và ném**: giữ nút 1,4 s (`CHARGE_MS`). Khoảng ném từ 8 m (`CAST_MIN`) đến 40 m (`CAST_MAX`); điểm ngọt là 22 đến 30 m (`SWEET_FROM`, `SWEET_TO`). Lượt ném rơi vào đảo hoặc ngoài biển không thành công; `castLook` trả `blocked` để hiện màu đỏ và dây không bị bỏ qua trong im lặng.
-2. **Nibble**: dây treo chùng; một round có 1 đến 3 lần nibble, mỗi lần có thể là một dấu hiệu “!”. Một trong năm con cá bỏ đi và con khác đến sau.
+2. **Nibble**: dây treo chùng; một round có 1 đến 3 lần nibble, mỗi lần có thể là một dấu hiệu “!”. Khoảng 80% round có cắn; round còn lại cá bỏ đi và một con khác có thể đến sau.
 3. **Cắn**: dây căng và rung, nút chuyển thành lệnh giật. Người chơi có **1 giây** (`HOOK_WINDOW_MS`) để giật; quá thời gian cá bỏ đi.
 4. **Bắt**: cá treo ở đầu cần với thẻ (sao hiếm, cân nặng, ✦ với kỷ lục loài). Giữ cá đưa vào kho; thả cá trả lại biển. Cá chỉ vào kho khi được giữ.
 
@@ -95,7 +95,7 @@ Vật lý thuyền được kiểm tra bằng `tests/boat-physics.test.mjs` và 
 
 ## Lưu trên thiết bị
 
-`save.ts` lưu vị trí, kho cá và số cá trong localStorage, theo tài khoản (khóa `photyphu:sea:v1:<uid>` như ghi trong [biển chung](ocean.md)). Dữ liệu đọc lại được kiểm tra: vị trí không hợp lệ, quá cũ hoặc nằm trong đảo thì rơi về bến, nhưng kho cá được giữ. Đây là trạng thái của thiết bị, không phải tài sản của tài khoản.
+`save.ts` lưu vị trí thuyền, kho cá và số cá đã bắt (`caught`) trong localStorage, theo tài khoản (khóa `photyphu:sea:v1:<uid>` như ghi trong [biển chung](ocean.md)). Dữ liệu đọc lại được kiểm tra: vị trí không hợp lệ, quá cũ hoặc nằm trong đảo thì rơi về bến, nhưng kho cá được giữ. Đây là trạng thái của thiết bị, không phải tài sản của tài khoản.
 
 ## Ranh giới tin cậy
 

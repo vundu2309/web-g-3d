@@ -2,9 +2,6 @@
 type: "Tham khảo"
 title: "Biển, bầu trời, đảo, thuyền và nước trong"
 openwiki_generated: true
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-17T08:18:15.877Z
 sources:
   - id: openwiki-source-69220ba068a830c8d6971aab
     resource: repo://src/ocean/babylon-scene.ts
@@ -22,7 +19,10 @@ sources:
     resource: repo://src/ocean/shore.ts
   - id: openwiki-source-eb96b0ed9ab24df7884e4079
     resource: repo://src/ocean/waves.ts
-generated: { by: "claude-code", at: "2026-11-17T08:18:15.877Z" }
+generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-20T03:06:03.643Z
 ---
 
 
@@ -44,7 +44,7 @@ Ba thứ phải khớp nhau giữa CPU và GPU, nên được viết một lần
 
 Trong constructor của `OceanScene`:
 
-1. Canvas và `Engine`, với `powerPreference: "low-power"`; độ sắc ban đầu là `1 / min(devicePixelRatio, 2)` và `ScaleGovernor` có thể làm thô hơn.
+1. Canvas và `Engine`, với `powerPreference: "low-power"`; độ sắc ban đầu là `1 / min(devicePixelRatio, 2)` trên chuột, và `1` trên màn cảm ứng (`pointer: coarse`); `ScaleGovernor` có thể làm thô hơn.
 2. Scene với sương mù mũ (`FOGMODE_EXP2`) có màu bằng `HORIZON`, camera tự do không nhận đầu vào (điều khiển do `chase-camera.ts` và `orbit-camera.ts`).
 3. `enableSeaPhysics` gắn plugin Havok (`havok.ts` tải WASM từ asset của Vite, không từ CDN).
 4. Ánh sáng, nước (`water.ts`), trời (`sky.ts`), phản chiếu (`reflection.ts`, mặt phẳng gương, loại trừ vật liệu nước trong `reflection-model.ts`).
@@ -55,7 +55,7 @@ Trong constructor của `OceanScene`:
 
 ## Mặt nước và phản chiếu
 
-`water.ts` là `ShaderMaterial` trên một lưới phẳng với đỉnh dời theo `glslWaveHeight`. Màu được trộn giữa nước sâu (`DEEP_WATER`, `DEEP_TEAL`), nước nông (`SHALLOW_WATER`) và đáy cát (`SEA_FLOOR`) theo `shore.ts`; sóng vỗ bờ và gợn (`ripples.ts`) và vệt thuyền (`wake.ts`) thêm vào. Mặt nước vẫn là shader **đục** và ghi độ sâu; lớp nước trong là việc riêng.
+`water.ts` là `ShaderMaterial` trên một lưới phẳng với đỉnh dời theo `glslWaveHeight`. Màu được trộn giữa nước sâu (`DEEP_WATER`, `DEEP_TEAL`), nước nông (`SHALLOW_WATER`) và đáy cát (`SEA_FLOOR`) theo `shore.ts`; sóng vỗ bờ và gợn (`ripples.ts`) và vệt thuyền (`wake-mesh.ts`) thêm vào. Mặt nước vẫn là shader **đục** và ghi độ sâu; lớp nước trong là việc riêng.
 
 Phản chiếu dùng `MirrorTexture`: mọi mesh trong scene được đưa vào, trừ các vật liệu bị loại (`reflectsInWater`). Kích thước phản chiếu do `reflectionSize` quyết định.
 
@@ -84,7 +84,7 @@ Lớp này là lớp nặng nhất và là lớp đầu tiên bị tắt khi khu
 Có hai bộ điều tiết, theo thứ tự:
 
 1. **Nhịp vẽ** (`frame-pacing.ts`): chế độ `full` vẽ theo khung hình của màn hình, nhưng không nhanh hơn khoảng 100 fps; chế độ `eco` vẽ khoảng 30 fps. Khi `full` không ổn định, nó chuyển sang `eco`, và sau một lúc thử lại `full`.
-2. **Độ phân giải** (`render-scale.ts`, `ScaleGovernor`): cửa sổ 2 giây; khoảng thời gian trung bình trên 0,052 giây là chậm, dưới 0,04 giây là nhanh. Mức thô nhất là 2. Trong bốn giây đầu (`WARMUP`) không quyết định gì, vì biên dịch shader và tải WASM làm số liệu không đại diện.
+2. **Độ phân giải** (`render-scale.ts`, `ScaleGovernor`): cửa sổ 2 giây; khoảng thời gian trung bình trên 0,04 giây (khoảng 25 khung hình mỗi giây) là chậm, và phải chậm hai cửa sổ liên tiếp mới hạ một bước 0,25; dưới 0,03 giây là nhanh, và phải nhanh năm cửa sổ liên tiếp mới nâng lại. Mức thô nhất mặc định là 2. Trong bốn giây đầu (`WARMUP`) không quyết định gì, vì biên dịch shader và tải WASM làm số liệu không đại diện.
 
 `ClearWaterGovernor` chạy trước `ScaleGovernor`: khi khung chậm, lớp nước trong tắt trước, và độ phân giải chỉ giảm khi lớp này đã tắt (tham số `hold` của `ScaleGovernor`).
 

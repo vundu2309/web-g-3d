@@ -4,158 +4,25 @@ import { readFileSync } from "node:fs";
 import {
   CLEAR,
   ClearWaterGovernor,
+  DEPTH_RANGE,
   QUALITY,
-  UNDER_FRAGMENT,
-  UNDER_SAMPLES,
+  UNDER_DEPTH_FRAGMENT,
   UNDER_SCALE,
   UNDER_VERTEX,
-  deepness,
-  glslUnderLayer,
-  lightPath,
-  refractedDown,
-  shownAt,
-  shownSight,
-  sight,
-  transmit,
+  glslSeeThrough,
   underSize,
   underwaterCapable,
   underwaterReach,
-  viewPath,
-  waterlineFade,
 } from "../src/ocean/clear-water.ts";
-import { WATER_ABSORPTION } from "../src/ocean/sea-style.ts";
+import { PROBES } from "../src/ocean/probe.ts";
 import { MAX_WAVE_HEIGHT } from "../src/ocean/waves.ts";
 import { ScaleGovernor } from "../src/ocean/render-scale.ts";
 
 const read = (file) =>
   readFileSync(new URL(`../src/ocean/${file}`, import.meta.url), "utf8");
 
-// Clear water (clear-water.ts): the rules are pure and pinned here; the shaders are read as text
-// (no GPU), and the scene part is checked with a headless engine at the bottom.
-
-test("light that goes through the water loses red first, then green, and the more the deeper", () => {
-  for (const path of [0.5, 1, 2, 4, 8]) {
-    const [r, g, b] = transmit(path, WATER_ABSORPTION);
-    assert.ok(r < g && g < b, `${path} m: red goes first, then green`);
-    assert.ok(r > 0 && b <= 1);
-  }
-  assert.deepEqual(transmit(0, WATER_ABSORPTION), [1, 1, 1]);
-  let last = 1;
-  for (let path = 0.25; path <= 10; path += 0.25) {
-    const [r] = transmit(path, WATER_ABSORPTION);
-    assert.ok(r < last, "more water, less red");
-    last = r;
-  }
-  // At two metres down (the water is clearer now: murk 1.3) a white hull has lost most of its red and keeps most of its blue.
-  const [r, g, b] = transmit(lightPath(2, 0.6), WATER_ABSORPTION);
-  assert.ok(r < 0.12, `red ${r}`);
-  assert.ok(g > 0.5 && b > 0.6, `green ${g}, blue ${b}`);
-});
-
-test("a thing under the water is seen less the deeper it is, and about 8 to 12 m is the limit", () => {
-  assert.equal(sight(0), 1);
-  let last = 1;
-  for (let d = 0.1; d <= 6; d += 0.1) {
-    const s = shownAt(d, 0.7, 40);
-    assert.ok(s < last, "deeper is dimmer");
-    last = s;
-  }
-  // A keel a metre down is clearly there; the floor is still seen at four metres (the water is
-  // clearer than it was, so the real sea floor shows down to about ten metres) and nearly gone at twelve.
-  assert.ok(shownAt(0.8, 0.7, 40) > 0.5, `keel ${shownAt(0.8, 0.7, 40)}`);
-  assert.ok(
-    shownAt(4, 0.7, 40) > 0.25 && shownAt(4, 0.7, 40) < 0.5,
-    `deep ${shownAt(4, 0.7, 40)}`,
-  );
-  assert.ok(shownAt(12, 0.7, 40) < 0.1);
-  // Nothing at all is left far below.
-  assert.ok(shownAt(30, 0.7, 40) < 0.01);
-});
-
-test("seen at a slant the path is longer, so a thing is fainter than straight below", () => {
-  assert.ok(viewPath(1, 0.3) > viewPath(1, 1));
-  assert.ok(shownAt(1, 0.3, 40) < shownAt(1, 1, 40));
-  // The refracted ray bends toward the vertical: never flatter than the view ray, never past the limit.
-  for (const up of [0.05, 0.3, 0.7, 1]) {
-    assert.ok(refractedDown(up) >= up - 1e-9);
-    assert.ok(viewPath(1, up) <= 1 / CLEAR.minDown + 1e-9);
-  }
-  assert.equal(refractedDown(1), 1);
-});
-
-test("the shallows are clearer than the deep, and nothing jumps where they meet", () => {
-  assert.equal(deepness(0), 0);
-  assert.equal(deepness(3), 0);
-  assert.equal(deepness(13), 1);
-  assert.equal(deepness(46), 1);
-  for (const depth of [0.5, 1.5, 3]) {
-    assert.ok(
-      shownAt(depth, 0.7, 2) > shownAt(depth, 0.7, 40),
-      `${depth} m: clearer in the shallows`,
-    );
-  }
-  // Moving the water depth from the shelf to the open sea changes what is shown smoothly.
-  for (const seen of [0.1, 0.4, 0.8]) {
-    let last = shownSight(seen, 0);
-    for (let water = 0; water <= 20; water += 0.05) {
-      const now = shownSight(seen, water);
-      assert.ok(
-        Math.abs(now - last) < 0.02,
-        `${seen} at ${water} m: ${last} -> ${now}`,
-      );
-      assert.ok(now <= last + 1e-12, "clearest in the shallows");
-      last = now;
-    }
-  }
-  // Nothing at all stays nothing, whatever the water: the open sea is unchanged where there is no object.
-  assert.equal(shownSight(0, 0), 0);
-  assert.equal(shownSight(0, 40), 0);
-});
-
-test("a faint sight is not raised into an outline: the shown sight is continuous in the sight, at every depth of water", () => {
-  for (const water of [0, 2, 6, 13, 40]) {
-    let last = shownSight(0, water);
-    assert.equal(last, 0);
-    for (let seen = 0.0005; seen <= 1; seen += 0.0005) {
-      const now = shownSight(seen, water);
-      assert.ok(
-        Math.abs(now - last) < 0.01,
-        `${water} m of water, sight ${seen.toFixed(4)}: ${last} -> ${now}`,
-      );
-      assert.ok(now >= last - 1e-12, "never less for more");
-      last = now;
-    }
-    assert.ok(Math.abs(last - 1) < 1e-9, "full sight stays full");
-  }
-  // A rim at the old cut-off (0.004) stays a rim: it is not brought to 0.06.
-  assert.ok(shownSight(0.004, 0) < 0.0045);
-  assert.ok(shownSight(0.05, 0) < 0.06);
-  // A clear thing is still brought forward over the shallows.
-  assert.ok(shownSight(0.5, 0) > 0.6);
-  // And the shader does the same: no cut-off branch, a blend.
-  const layer = glslUnderLayer();
-  assert.ok(!/sight > 0\.0\d+ \?/.test(layer));
-  assert.match(
-    layer,
-    /mix\(sight, boosted, smoothstep\(0\.1000, 0\.4000, sight\)\)/,
-  );
-});
-
-test("a lit thing fades in below the waterline, so a hull has no saw-tooth edge where it meets the waves", () => {
-  assert.equal(waterlineFade(0), 0);
-  assert.equal(waterlineFade(CLEAR.waterline), 1);
-  assert.equal(waterlineFade(2), 1);
-  let last = 0;
-  for (let d = 0.01; d <= 0.4; d += 0.01) {
-    const now = waterlineFade(d);
-    assert.ok(now >= last && now - last < 0.12);
-    last = now;
-  }
-  assert.match(
-    UNDER_FRAGMENT,
-    /seen \*= mix\(smoothstep\(0\.0, 0\.3000, depth\), 1\.0, unlit\);/,
-  );
-});
+// Clear water (clear-water.ts), read from depth: the rules are pure and pinned here; the shaders are
+// read as text (no GPU), and the scene part is checked with a headless engine at the bottom.
 
 test("the layer is three quarters of the canvas in each direction and never empty", () => {
   assert.equal(UNDER_SCALE, 0.75);
@@ -163,15 +30,13 @@ test("the layer is three quarters of the canvas in each direction and never empt
   assert.deepEqual(underSize(1, 1), { width: 2, height: 2 });
 });
 
-test("the layer is multisampled and read softly, so a hull's silhouette is not a staircase", () => {
-  assert.ok(UNDER_SAMPLES >= 4);
-  assert.match(
-    read("clear-water-pass.ts"),
-    /texture\.samples = depth \? 1 : UNDER_SAMPLES/,
-  );
+test("the depth layer holds a distance in two bytes: one sample, nearest reading, no mip maps", () => {
+  const pass = read("clear-water-pass.ts");
+  assert.match(pass, /texture\.samples = 1;/);
+  assert.match(pass, /Texture\.NEAREST_SAMPLINGMODE/);
   assert.ok(
-    CLEAR.blur >= 0.4 && CLEAR.blur <= 2,
-    "soft, but a fish and a pile stay readable",
+    DEPTH_RANGE > CLEAR.reach,
+    "the packed range reaches past the layer's reach",
   );
 });
 
@@ -187,7 +52,6 @@ test("only what can be under the water is drawn on the layer", () => {
     "buoy-5",
     "hooked-fish-body",
     "hooked-fish-tail-mesh",
-    "gear-under-line",
   ])
     assert.ok(underwaterCapable(name), name);
   for (const name of [
@@ -204,6 +68,9 @@ test("only what can be under the water is drawn on the layer", () => {
     "uid-1-lamp",
     "gear-ring-v",
     "gear-marker",
+    // The sea paints its own floor, and the gear keeps its own skin for the line.
+    "seabed-3",
+    "gear-under-line",
   ])
     assert.ok(!underwaterCapable(name), name);
 });
@@ -219,54 +86,55 @@ test("a big mesh of which only the piles are under the water is drawn only when 
   assert.match(read("clear-water-pass.ts"), /underwaterReach\(mesh\.name\)/);
 });
 
-test("the layer's shader keeps only what is under the real waves and tints it by the sea's absorption", () => {
-  // The shared wave function: the one the sea mesh and the boats use.
-  assert.match(UNDER_FRAGMENT, /float waveHeight\(vec2 p, float t\)/);
-  assert.match(UNDER_FRAGMENT, /seaHeight\(vWorld\.xz, time\) - vWorld\.y/);
-  assert.match(UNDER_FRAGMENT, /if \(depth < 0\.0\) discard;/);
-  // Above the highest wave a fragment is thrown away before any wave is summed.
+test("the layer's shader keeps only what is under the real waves and writes its distance", () => {
+  assert.match(UNDER_DEPTH_FRAGMENT, /float waveHeight\(vec2 p, float t\)/);
+  assert.match(
+    UNDER_DEPTH_FRAGMENT,
+    /seaHeight\(vWorld\.xz, time\) - vWorld\.y < 0\.0\) discard;/,
+  );
   const top = CLEAR.top.toFixed(4);
   assert.ok(CLEAR.top > MAX_WAVE_HEIGHT);
   assert.ok(
-    UNDER_FRAGMENT.indexOf(`vWorld.y > ${top}`) <
-      UNDER_FRAGMENT.indexOf("seaHeight(vWorld.xz, time)"),
+    UNDER_DEPTH_FRAGMENT.indexOf(`vWorld.y > ${top}`) <
+      UNDER_DEPTH_FRAGMENT.indexOf("seaHeight(vWorld.xz, time)"),
   );
-  // The sea's own absorption, red first.
-  const absorb = WATER_ABSORPTION.map((v) => v.toFixed(4)).join(", ");
-  assert.ok(UNDER_FRAGMENT.includes(`vec3(${absorb})`));
   assert.match(
-    UNDER_FRAGMENT,
-    /gl_FragColor = vec4\(albedo \* lit \* left \* seen, seen\)/,
+    UNDER_DEPTH_FRAGMENT,
+    /gl_FragColor = vec4\(high \/ 255\.0, d - high, 0\.0, 1\.0\)/,
   );
-  // Instanced and single meshes both work.
+  assert.ok(!/sunDirection|absorb|tint/.test(UNDER_DEPTH_FRAGMENT));
   assert.match(UNDER_VERTEX, /#ifdef INSTANCES/);
   assert.match(UNDER_VERTEX, /mat4\(world0, world1, world2, world3\)/);
 });
 
-test("the water shows the layer through itself, over its own body, under the mirror and the foam", () => {
-  assert.match(
-    glslUnderLayer(),
-    /vec4 underLayerAt\(vec3 plane, vec2 slope, float deepness\)/,
-  );
+test("the sea is thinner over what lies under it, and the colour layer is gone", () => {
+  assert.match(glslSeeThrough(), /float seeThroughAlpha\(float dist\)/);
+  assert.match(glslSeeThrough(), /exp\(-0\.2000 \* thick\)/);
+  assert.match(glslSeeThrough(), /smoothstep\(0\.0, 0\.3000, thick\)/);
   const water = read("water.ts");
-  assert.match(water, /glslUnderLayer\(\)/);
+  assert.match(water, /\$\{glslSeeThrough\(\)\}/);
+  assert.ok(
+    !/underLayerAt|glslUnderLayer/.test(water),
+    "the old colour layer is not read",
+  );
   assert.match(water, /uniform sampler2D underMap;/);
   assert.match(water, /uniform float underOn;/);
-  const body = water.indexOf("vec3 body = floorColor");
-  const layer = water.indexOf("underLayerAt(vWorld");
   const mirrored = water.indexOf("vec3 color = body * (1.0 - fresnel)");
-  const foam = water.indexOf("color = mix(color, foamColor, foam);");
-  assert.ok(body > 0 && layer > body, "the layer is mixed into the body");
-  assert.ok(mirrored > layer, "the Fresnel mirror is applied over it");
-  assert.ok(foam > mirrored, "and the foam over that");
-  // Off: the old opaque look, one uniform test, no texture read.
-  assert.match(water, /if \(underOn > 0\.5/);
-  // The sea's vertex shader and mesh are untouched by the layer.
+  const alpha = water.indexOf("float seeAlpha");
+  assert.ok(mirrored > 0 && alpha > mirrored);
+  assert.match(water, /underOn > 0\.5 && dist < /);
   const vertex = water.slice(
     water.indexOf('ShadersStore["seaVertexShader"]'),
     water.indexOf('ShadersStore["seaFragmentShader"]'),
   );
-  assert.ok(vertex.length > 200 && !/underLayer|underMap|underOn/.test(vertex));
+  assert.ok(vertex.length > 200 && !/underMap|underOn/.test(vertex));
+});
+
+test("there is one see-through mode and no setting for it: the old switches are gone", () => {
+  const names = PROBES.map((item) => item.name);
+  assert.ok(!names.includes("clearwater") && !names.includes("seemode"));
+  for (const file of ["babylon-scene.ts", "clear-water-pass.ts", "water.ts"])
+    assert.ok(!/seemode|clearwater|SeeMode/.test(read(file)), file);
 });
 
 test("the sea does not leave the opaque shader's wave function: waves.ts is the one source", () => {
@@ -386,13 +254,13 @@ test("the render scale waits while the layer is still on, and coarsens only when
 
 test("the scene wires the layer: created with the reflection, switched by the governor, the render scale held meanwhile", () => {
   const scene = read("babylon-scene.ts");
-  assert.match(scene, /createClearWater\(\s*this\.scene,\s*this\.water,/);
+  assert.match(scene, /createClearWater\(this\.scene, this\.water\)/);
   assert.match(scene, /ClearWaterGovernor/);
   assert.match(scene, /this\.governor\.sample\(dt, /);
   assert.match(scene, /clearWater: /, "stats report the layer");
 });
 
-test("the headless scene: the layer is a texture the water reads, the meshes under the sea are drawn through it and the fish is drawn by the layer", async () => {
+test("the headless scene: the layer is a texture the water reads, and the meshes under the sea are recorded in it", async () => {
   const noop = new Proxy(function () {}, {
     get: (_, key) => (key === "canvas" ? fake : noop),
     set: () => true,
@@ -429,7 +297,6 @@ test("the headless scene: the layer is a texture the water reads, the meshes und
   const boat = createBoatTemplate(scene, boatPalettes[0], "boat-0");
   assert.ok(boat);
   const gear = new FishingGear(scene);
-  gear.setClearWater(layer);
   const view = {
     phase: "fighting",
     power: 0,
@@ -457,23 +324,19 @@ test("the headless scene: the layer is a texture the water reads, the meshes und
     fish.position.y < waveHeight(fish.position.x, fish.position.z, 11.97),
   );
   const body = scene.getMeshByName("hooked-fish-body");
-  // With the layer the fish wears the ordinary satin skin (the water hides it by depth, the layer draws it).
-  assert.notEqual(body.material.name, "underwater-skin");
+  // The fish keeps the gear's underwater skin; the layer only records its distance for the sea.
+  assert.equal(body.material.name, "underwater-skin");
   const sea = scene.getMaterialByName("sea");
   assert.equal(sea._floats.underOn, 1, "the water reads the layer");
   assert.equal(sea._textures.underMap, layer.texture);
-  assert.ok(layer.isDrawnBy(body), "the layer draws the fish");
-  assert.ok(layer.isDrawnBy(scene.getMeshByName("gear-under-line")));
-  assert.ok(scene.getMeshByName("gear-under-line").isVisible);
-  // Switched off, the old look comes back by itself: the underwater skin, and the layer is not rendered.
-  layer.setEnabled(false);
-  gear.setClearWater(undefined);
-  for (let t = 12; t < 13; t += 1 / 30)
-    gear.update({ view, tip, preview: undefined, time: t });
-  assert.equal(
-    scene.getMeshByName("hooked-fish-body").material.name,
-    "underwater-skin",
+  assert.ok(layer.isDrawnBy(body), "the layer holds the fish's distance");
+  assert.ok(
+    !layer.isDrawnBy(scene.getMeshByName("gear-under-line")),
+    "the line keeps its own skin",
   );
+  assert.ok(scene.getMeshByName("gear-under-line").isVisible);
+  // Switched off (slow frames), the layer is not rendered and the sea is opaque again.
+  layer.setEnabled(false);
   assert.ok(!scene.customRenderTargets.includes(layer.texture));
   assert.equal(
     sea._floats.underOn,

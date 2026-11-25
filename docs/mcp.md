@@ -21,4 +21,31 @@ Claude Code asks the user to approve the servers of a project's `.mcp.json` the 
 
 The Blender MCP was left out of `.mcp.json` on purpose: its supported launcher is the Desktop extension, and a project entry would have to guess a different command (installing the server from `https://projects.blender.org/lab/blender_mcp.git`), which has not been tried here.
 
+## Running Blender scripts through the MCP: how it works and what goes wrong
+
+**How it works.** Two parts. The Desktop extension `Blender` (above) is the MCP server the AI talks to; the **MCP** add-on inside Blender 5.x opens a socket (port 9876) and runs what it is sent. The tools are `mcp__Blender__*` (load them with the client's tool search first). `execute_blender_code` runs Python with `bpy` inside the user's open Blender. Nothing else in the repository starts Blender, so the AI cannot use these tools unless Blender is open with the add-on's server started. A different AI client (for example Codex) needs the same Desktop extension or its own launcher of `blender-mcp`; it is not in `.mcp.json`, and no `.codex` agent exists for Blender.
+
+**The pattern to follow.** Keep the model as code in `tools/blender/*.py` and run it from the repository, so it can be rebuilt and reviewed:
+
+```python
+import sys, importlib
+sys.path.insert(0, "/path/to/repo/tools/blender")
+import lib, baits
+importlib.reload(lib); importlib.reload(baits)   # pick up edits made to the files
+result = baits.export_all("/path/to/repo/public/models")
+```
+
+Work in a NEW scene (`bpy.data.scenes.new`), never call `lib.reset()` (it wipes the open file) and never save the user's `.blend` (see the agent briefs).
+
+**What goes wrong** (each cost a failed run in the upgrade-shop work, 2026-11-20):
+
+- `result` must be a **dict**. Returning a list fails with "The `result` variable must be a dict" (after the code has run, so a failed return does not mean a failed export: check the files).
+- Export and render run on the **window's current scene**. Set `bpy.context.window.scene = scene` first, or the exporter fails with "Object cannot be selected because it is not in View Layer" and a render draws the wrong scene. Put it back afterwards if the user was looking at another scene.
+- **Object names are unique in the whole file**, and the glTF exporter writes them as node names. A `body` or `hook` that already exists in another scene turns yours into `body.001` and the game's parser (`parseFishGlb` looks nodes up by name) finds nothing. Step other objects of that name aside during the export and put them back (`baits.export_bait` does).
+- **`lib.bake_colors(obj)` before export.** The game reads colours from `COLOR_0`; without it the GLB has only material colours and `readAccessor` throws "no accessor undefined". Remove an old `Col` attribute first when you bake twice.
+- Model colours come from the palette (`lib.PAL`, `palette.json`), never a hex of their own; `npm run assets:palette` refreshes the file from `src/ocean/art/colors.ts`.
+- The camera of a render is orthographic: `ortho_scale` is the **longer side** of the picture, so a tall narrow image shows less width than the number suggests.
+- Not a Blender fault, but the same kind of trap when a model's box feeds the physics: Havok's mass properties are per unit of mass (the inertia of a box is `(h² + d²) / 12`, not that times the mass). `tests/boat-tier.test.mjs` pins it.
+- If a tool says "Cannot connect to Blender at localhost:9876", stop and tell the user; do not work around it.
+
 See also `docs/agent-briefs.md` (the agents and the render harness) and `docs/decisions/0011-sea-visual-overhaul.md`.

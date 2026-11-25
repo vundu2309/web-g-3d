@@ -14,8 +14,9 @@ Edit shared tokens in `src/style.css` (and `src/ocean/style.css`) rather than in
 | Input / secondary surface | `#FFFFFF` |
 | Small roof accent         | `#E97760` |
 | Supporting text           | `#385B8D` |
+| Owned / in use (shop)     | `#1C7A3A` |
 
-Use Baloo 2 800 for the brand and headings, Be Vietnam Pro 400/600/700 for controls and body text. Latin and Vietnamese subsets are self-hosted through Fontsource, never a runtime Google Fonts request. Controls have a moderate rounded shape and a short cobalt lower edge. Player slots have a different radius from buttons. Keep paper grain subtle and pointer-transparent.
+The green `#1C7A3A` (the `--shop-own` variable of `src/ocean/style.css`) marks what the player owns and what is in use in the market and the shipyard (the check mark, the "Đang dùng" button, the card's border); it is the one green of the shop and is not used for anything else. Use Baloo 2 800 for the brand and headings, Be Vietnam Pro 400/600/700 for controls and body text. Latin and Vietnamese subsets are self-hosted through Fontsource, never a runtime Google Fonts request. Controls have a moderate rounded shape and a short cobalt lower edge. Player slots have a different radius from buttons. Keep paper grain subtle and pointer-transparent.
 
 ## Interaction and scope
 

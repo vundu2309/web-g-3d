@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:6cf2b25b01f4dbb59ff5b762c9a78de5d1f55c8228b7f5428eea44bb442cffc8",
+  "pageVersion": "sha256:582accd3f8bedd64b584c7831528dab7983c1ab7bbe86acb1a61ba910bf195c0",
   "claims": [
     {
       "id": "claim_03a139e079a247eeb4d84350a1873a5c",
       "statement": "zoneAt phân vùng biển theo khoảng cách tới bờ gần nhất: dưới 30 m (SHORE_RANGE) là shore, trên 128 m (DEEP_RANGE) và cũng xa bến cảng hơn 128 m là deep, còn lại là open; mỗi loài có trọng số riêng theo vùng.",
       "evidence": [
         {
-          "resource": "repo://src/ocean/fishing.ts#L319-L338",
+          "resource": "repo://src/ocean/fishing.ts#L149-L168",
           "version": "repo-lines-v1:sha256:ba1877179a3068e7c367b89742948b527e556e83faef853d17d8e262458cdc9c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU2MzI5MGNlZWVjMjg3MDgwNzNmMDUxMDNhODE2MjQ0NmRjYjQ1YTI2NjZiNDExMjE5NmE1YTE1YzExMTYyYTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjNWZkYWMyZmZjNDQzMGRiZmMwYjc4Y2YzYWZkMmUwZTcwZTdiOGFlZWU0ZTA5MTY0MWZjYWE5NDY4NmFlOTkifQ"
         }
       ]
@@ -17,7 +17,7 @@
       "statement": "rollFish chọn loài theo trọng số vùng nhân độ hiếm (100, 40, 10), nhân 1,8 cho loài độ hiếm 2 và 3 khi điểm câu ngọt, và rút cân nặng theo đường cong lũy thừa 2,4 nên cá nhỏ phổ biến hơn.",
       "evidence": [
         {
-          "resource": "repo://src/ocean/fishing.ts#L345-L380",
+          "resource": "repo://src/ocean/fishing.ts#L175-L210",
           "version": "repo-lines-v1:sha256:faa85419464f0fbf17ee2b7057ab226d15d2288966b2396448b9d665384a8494:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxMmU3MmQ4Mjk1MDRiZDNkM2Y5ZDZmNjNiY2ZmNTk0NmEzZjMzMTAzNmNhNTkwYzBlOTA1N2Q5ZDQ5N2NkMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2MDYzYTRkZDZhZDgwNTdlNWYyZTRiNDA0NTRiNjJiMjY2NjdmMzM1MzE0MmQyMjMzZTAzOThlZWU4ZGFiNTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU0MDExZTg4MjgwMGZmZmZlZDg1MjJkMTA2NjVkMzVmMzlkZjlmOTk2ZGYyMjJlOTE3ZGY1MzgzMGRkYmUwNWUifQ"
         }
       ]
@@ -41,11 +41,11 @@
       "statement": "Việc câu cá và cuộc giằng co chạy trên thiết bị; khi giữ cá, UI gọi onKeep và chuyển vào marketUi.recordCatch, nơi chỉ lỗi network mới đưa cá vào hàng đợi còn lỗi khác bỏ cá đó.",
       "evidence": [
         {
-          "resource": "repo://src/app/market-ui.ts#L265-L271",
+          "resource": "repo://src/app/market-ui.ts#L254-L260",
           "version": "repo-lines-v1:sha256:9fb62b194bccbf4dabb9d72d84c5210b26894379a4b3027e87c5e35f4f680115:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTk1M2U0MjFmYTVkMWJjYTc3NzAzMDQ1MGM5NWUxNDQ2MjEwOWRmMTI1ODYyYWRlYjM2MDcwMDI0OGE0ZGE2MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWYwY2RiOTcyYTdiZmI3ZWQyNDZmOWZmNjcyMzg1ZTU1ZjQ5NjhmYzExMDQzZGM1YjY4NGQ1MWRmYTMxZGJjYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2YxNGUxYjNjNWRhNjlmM2MwZDMzZTM5Y2ZkODI5YTlmZDJhNzkyMzg2NTcxNzEyYWQwM2JkYzYyZDU2M2UxZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjVkZjkyNjc4ZmU4MDZkNmUxM2UxYTU0OWJkMzI2M2Q3YzUxZDIyNzcyMWJkMmYzNmM1YjcyZGJiY2Y2YTM0ZiJ9"
         },
         {
-          "resource": "repo://src/app/ocean.ts#L235-L235",
+          "resource": "repo://src/app/ocean.ts#L282-L282",
           "version": "repo-lines-v1:sha256:5bb6d4f4ff015d8604174f3823c436dfdc17bdf56528a102f503f43ed59e5a17:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWJiNmQ0ZjRmZjAxNWQ4NjA0MTc0ZjM4MjNjNDM2ZGZkYzE3YmRmNTY1MjhhMTAyZjUwM2Y0M2VkNTllNWExNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWJiNmQ0ZjRmZjAxNWQ4NjA0MTc0ZjM4MjNjNDM2ZGZkYzE3YmRmNTY1MjhhMTAyZjUwM2Y0M2VkNTllNWExNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTk2ZWQ2NjFiZWI4ZjczZGQ0ZDUwNGZlZTcyOTUzMTI0NjlhYjM4OGVmMzRkOTJmOGZmNWMzNzU3NTYxZWU1MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjBjMzMwYWMyODRlZWQ2N2ViN2NhMjA4MDE2ZmEyMzEwYzNmOGUyOTMxOTFmYjg2NWIyNzdhMzA4YmY4YzNhNiJ9"
         }
       ]
@@ -55,18 +55,18 @@
       "statement": "createBoatPhysics áp phao nổi theo hàm sóng dùng chung, lực cản nước, đẩy và lái dưới dạng xung lực × dt trước mỗi bước Havok, và mũi thuyền hướng về -Z khớp mô hình di chuyển.",
       "evidence": [
         {
-          "resource": "repo://src/ocean/boat-physics.ts#L141-L145",
+          "resource": "repo://src/ocean/boat-physics.ts#L155-L159",
           "version": "repo-lines-v1:sha256:938bf4e272dc25bfeaf0d1502fb29a9720de1c9a283a2514d1fe4661c852e0db:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGRjN2U3YmUwMjhjNjllOWQ1MDcxNzYzYzFiY2FhODQ3ZGE2YjExNzc4YjQ1YzczOGQ2OTVhMjcxNTMyNDllOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTY1ZWExMzgwYjMzZjJiNWVmMDA0Y2Y4MTY0MDcwOTkxYjRlZTNkZDQ2OThkMGU2YzRiY2QzYzg2NGY2MjMzZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWU0M2FhYjZlMmE2MmYyMDIwYTFjZGE2YTJjM2NiODk3MGJiNzViYjdlYjJjZDhmZTY5MjFiNTg5ZWQzZTMwMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzRlMzQxZGI4ZWVkZDRjYTdjZmY3ZDFiMjI5NzQ5OTZmYmY0ZGEwNTQzMzdjYzI2MGQzZWM5MGFmMzgyMWZmNSJ9"
         },
         {
-          "resource": "repo://src/ocean/boat-physics.ts#L24-L31",
+          "resource": "repo://src/ocean/boat-physics.ts#L25-L32",
           "version": "repo-lines-v1:sha256:a736588592382d8cc2a3ed7ebd78f39f7b494457b874cafc3b7785f3e5852ec6:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWFmMjJjZjA3MzI1OTJjMjQ3MTQxY2JlNjFlZmExMTAxMjYxMmY1YTMxMjJiOWFmOWJiYWY1MmY1NzI0ZDE5NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTQ0MzAwYzEyOWZhZWQ2ODkzZjEyOTdiNDg2MzdlZWQyNzRlNGM0OTY1MTAyMjQxOWJhNWRkYjI0OWU5MWIzYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGJiZTM5ZDA3MzUxOWUyNTk4YzdmZGM5YWNlOTY2MDMyNTM3ZmI2NGViMmViMDQ2NjE2M2Y5N2UyN2Y2ZGQ2YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDY5ZGUxNzhlN2E4OWYyNWNjOGFjNTU5YTRkOGU0ZTlmZmM0MTlmZDVjZGIzNzg2YmJkMGI0ZTAzZjJiYjVmMiJ9"
         }
       ]
     },
     {
       "id": "claim_b03a3504a37944ba8593ac790dd6c311",
-      "statement": "save.ts lưu vị trí và kho cá trên thiết bị theo tài khoản; dữ liệu đọc lại được kiểm tra, vị trí không hợp lệ rơi về bến thay vì thả thuyền lên đảo.",
+      "statement": "save.ts lưu vị trí thuyền, kho cá và số cá đã bắt (caught) trên thiết bị theo tài khoản; dữ liệu đọc lại được kiểm tra, vị trí không hợp lệ rơi về bến thay vì thả thuyền lên đảo, còn kho cá được giữ.",
       "evidence": [
         {
           "resource": "repo://src/ocean/save.ts#L1-L40",
@@ -77,6 +77,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-17T08:18:15.877Z"
+    "at": "2026-11-20T03:06:03.643Z"
   }
 }

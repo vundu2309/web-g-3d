@@ -82,16 +82,29 @@ export function decodeSave(
       : 0;
   const fish = cleanFish(data.fish);
   const { x, z, heading, savedAt } = data;
-  if (!finite(x) || !finite(z) || !finite(heading) || !finite(savedAt))
-    return { caught, fish };
-  // Fresh, from the past, inside the sea with some margin and not near any island.
+  if (!finite(savedAt)) return { caught, fish };
+  // Fresh, from the past, and a position the boat can start from.
   if (now - savedAt > MAX_AGE_MS || savedAt - now > 60_000)
     return { caught, fish };
-  if (Math.abs(heading) > Math.PI) return { caught, fish };
+  const pose = safePose(x, z, heading);
+  return pose ? { pose, caught, fish } : { caught, fish };
+}
+
+/**
+ * A saved position (from this device or from the server) turned into a pose, or undefined when
+ * it is not safe: not finite, outside the sea with some margin, and not near an island nor
+ * inside or beside a market pier (see market.ts).
+ */
+export function safePose(
+  x: unknown,
+  z: unknown,
+  heading: unknown,
+): Pose | undefined {
+  if (!finite(x) || !finite(z) || !finite(heading)) return undefined;
+  if (Math.abs(heading) > Math.PI) return undefined;
   if (Math.abs(x) > SEA_BOUND - 6 || Math.abs(z) > SEA_BOUND - 6)
-    return { caught, fish };
-  // Not near an island, nor inside or beside a market pier (see market.ts).
+    return undefined;
   if (seaObstacles().some((o) => Math.hypot(x - o.x, z - o.z) < o.radius + 5))
-    return { caught, fish };
-  return { pose: { x, z, heading, fishing: false }, caught, fish };
+    return undefined;
+  return { x, z, heading, fishing: false };
 }

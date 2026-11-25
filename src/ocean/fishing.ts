@@ -6,6 +6,12 @@ import {
   type FightStyle,
   type FightView,
 } from "./fight.ts";
+import {
+  DEFAULT_LOADOUT,
+  tierOf,
+  type BaitTier,
+  type Loadout,
+} from "./upgrades.ts";
 
 /**
  * Fishing rules. Pure maths and a small state machine, no rendering and no DOM:
@@ -177,17 +183,30 @@ const RARITY_WEIGHT: Record<Rarity, number> = { 1: 100, 2: 40, 3: 10 };
 /** Fishing the spot fish like (see castTarget) makes the better fish likelier. */
 const SWEET_BOOST = 1.8;
 
-/** Chooses a fish for a zone. Small fish are common, big ones rare within a species. */
+/**
+ * Chooses a fish for a zone. Small fish are common, big ones rare within a species. `bait` is
+ * the bait tier in use (a row of UPGRADES.bait): it multiplies the weight of rarity 2 and 3
+ * fish on top of the sweet spot. Without it every multiplier is 1, so the same rng gives the
+ * same fish and uses the same draws as before the baits existed.
+ */
 export function rollFish(
   zone: Zone,
   rng: () => number = Math.random,
   sweet = false,
+  bait?: Pick<BaitTier, "rare2" | "rare3">,
 ): Catch {
   const weights = SPECIES.map(
     (species) =>
       species.zones[zone] *
       RARITY_WEIGHT[species.rarity] *
-      (sweet && species.rarity > 1 ? SWEET_BOOST : 1),
+      (sweet && species.rarity > 1 ? SWEET_BOOST : 1) *
+      (bait
+        ? species.rarity === 2
+          ? bait.rare2
+          : species.rarity === 3
+            ? bait.rare3
+            : 1
+        : 1),
   );
   const total = weights.reduce((sum, weight) => sum + weight, 0);
   let pick = rng() * total;
@@ -365,16 +384,23 @@ export class Angler {
   private readonly rng: () => number;
   private readonly emit: (event: FishingEvent) => void;
   private readonly speed: number;
+  private readonly loadout: () => Loadout;
 
-  /** `speed` only exists so tests on a slow software renderer can run a fight faster. */
+  /**
+   * `speed` only exists so tests on a slow software renderer can run a fight faster.
+   * `loadout` says which rod and bait the player has; it is read when a fish takes the hook, so
+   * a purchase counts from the next fish. The default is the free rod and bait.
+   */
   constructor(
     emit: (event: FishingEvent) => void,
     rng: () => number = Math.random,
     speed = 1,
+    loadout: () => Loadout = () => DEFAULT_LOADOUT,
   ) {
     this.emit = emit;
     this.rng = rng;
     this.speed = speed;
+    this.loadout = loadout;
   }
 
   get busy() {
@@ -432,7 +458,13 @@ export class Angler {
     }
     if (this.phase === "biting" && this.round?.biteAt !== undefined) {
       if (now - this.round.biteAt <= HOOK_WINDOW_MS) {
-        const fish = rollFish(this.zone, this.rng, this.sweet);
+        const loadout = this.loadout();
+        const fish = rollFish(
+          this.zone,
+          this.rng,
+          this.sweet,
+          tierOf("bait", loadout.baitUsed),
+        );
         const species = speciesById(fish.species);
         const [low, high] = species?.kg ?? [0, 1];
         this.hooked = fish;
@@ -442,6 +474,7 @@ export class Angler {
           distance,
           maxLine: MAX_LINE,
           rng: this.rng,
+          rodTension: tierOf("rod", loadout.rod).tension,
         });
         this.lastTick = now;
         this.round = undefined;
@@ -617,6 +650,14 @@ export function addCatch(
     record,
   };
 }
+
+/**
+ * Whether one more fish fits in a store of `slots` (1 slot is 1 fish). A store that already holds
+ * more than it has slots (a fish store kept from before the slots, or a boat that was not
+ * there yet) is left alone, never trimmed: it only cannot take another until it has room.
+ */
+export const canKeep = (inventory: Inventory, slots: number): boolean =>
+  stockTotal(inventory) < slots;
 
 /** Puts one fish back in the sea; the record weight stays. */
 export function releaseOne(inventory: Inventory, id: string): Inventory {
