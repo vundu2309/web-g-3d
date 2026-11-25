@@ -333,6 +333,14 @@ export class PlaneFleet {
    * Each frame. `shared` is the shared clock in seconds (every player's planes are where it says),
    * `time` the sea's own clock (the flutter and the propeller), `camera` where the nearest are chosen.
    */
+  /** How far the nearest seaplane is from a point on the sea (m), for the engine's sound. */
+  nearestDistance(x: number, z: number): number {
+    let best = Number.POSITIVE_INFINITY;
+    for (const pose of this.poses)
+      best = Math.min(best, Math.hypot(pose.x - x, pose.z - z));
+    return best;
+  }
+
   update(shared: number, time: number, camera: { x: number; z: number }) {
     const dt = this.last === undefined ? 0 : Math.min(time - this.last, 0.25);
     this.last = time;

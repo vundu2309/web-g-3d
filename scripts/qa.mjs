@@ -24,6 +24,7 @@ const GROUPS = {
     "ocean-input",
     "ocean-steer",
     "ocean-stick",
+    "ocean-audio",
   ],
 };
 const args = process.argv.slice(2);

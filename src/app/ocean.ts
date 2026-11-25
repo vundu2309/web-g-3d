@@ -1,7 +1,9 @@
 import { createPerfPanel } from "./perf-panel.ts";
+import { shoreDistance } from "../ocean/audio-life";
 import {
   PRESENCE_MS,
   SEA_BOUND,
+  islands,
   spawn,
   type Boat,
   type Pose,
@@ -166,6 +168,14 @@ export function startOcean(
   let boats: Boat[] = [];
   let disposed = false;
   const seaAudio = createSeaAudio();
+  // Every hub (settings, fish store, market, ranking) opens and closes this one dialog, so one
+  // place gives them a sound.
+  const showModal = dialog.showModal.bind(dialog);
+  dialog.showModal = () => {
+    showModal();
+    seaAudio.play("open");
+  };
+  dialog.addEventListener("close", () => seaAudio.play("close"));
   let active = false;
   let frame = 0;
   let lastDraw = 0;
@@ -799,6 +809,9 @@ export function startOcean(
         rain: SEA.weather.z,
         gloom: SEA.weather.y,
         tension: fishingUi.lineTension(now),
+        daylight: SEA.grade.y,
+        shore: shoreDistance(pose.x, pose.z, islands),
+        plane: scene.skyPlanes()?.nearestDistance(pose.x, pose.z),
       });
       const began = performance.now();
       scene.update(

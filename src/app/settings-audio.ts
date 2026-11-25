@@ -1,6 +1,6 @@
 import type { SeaAudio } from "./audio";
 
-/** The "Âm thanh" card of the Settings screen: on/off and volume, saved on this device. */
+/** The "Âm thanh" card of the Settings screen: on/off, volume and the music, saved on this device. */
 export function createAudioSection(audio: SeaAudio): HTMLElement {
   const section = document.createElement("section");
   section.className = "update-card audio-card";
@@ -15,6 +15,10 @@ export function createAudioSection(audio: SeaAudio): HTMLElement {
   toggle.type = "button";
   toggle.className = "weather-chip is-reset";
   toggle.dataset.ocean = "audio-toggle";
+  const music = document.createElement("button");
+  music.type = "button";
+  music.className = "weather-chip is-reset";
+  music.dataset.ocean = "audio-music";
   const slider = document.createElement("input");
   slider.type = "range";
   slider.min = "0";
@@ -25,9 +29,12 @@ export function createAudioSection(audio: SeaAudio): HTMLElement {
   slider.dataset.ocean = "audio-volume";
 
   const refresh = () => {
-    const { enabled, volume } = audio.settings();
+    const { enabled, volume, music: musicOn } = audio.settings();
     toggle.setAttribute("aria-pressed", String(enabled));
     toggle.textContent = enabled ? "Âm thanh: Bật" : "Âm thanh: Tắt";
+    music.setAttribute("aria-pressed", String(musicOn));
+    music.textContent = musicOn ? "Nhạc nền: Bật" : "Nhạc nền: Tắt";
+    music.disabled = !enabled;
     slider.value = String(Math.round(volume * 100));
     slider.disabled = !enabled;
   };
@@ -35,10 +42,14 @@ export function createAudioSection(audio: SeaAudio): HTMLElement {
     audio.set({ enabled: !audio.settings().enabled });
     refresh();
   });
+  music.addEventListener("click", () => {
+    audio.set({ music: !audio.settings().music });
+    refresh();
+  });
   slider.addEventListener("input", () => {
     audio.set({ volume: Number(slider.value) / 100 });
   });
   refresh();
-  section.append(head, toggle, slider);
+  section.append(head, toggle, music, slider);
   return section;
 }
