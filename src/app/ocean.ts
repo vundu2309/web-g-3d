@@ -14,6 +14,7 @@ import { createBoatControl } from "../ocean/boat-control";
 import { FramePacer } from "../ocean/frame-pacing";
 import { bindInputLayer, type InputTarget } from "../ocean/input-layer";
 import { RemoteTracks, ServerClock } from "../ocean/remote";
+import { patrolBoats } from "../ocean/patrol-routes";
 import { releaseOne, stockTotal, type Inventory } from "../ocean/fishing";
 import { inventoryFrom } from "../ocean/server-store";
 import { createFishingUi } from "./fishing-ui";
@@ -766,7 +767,12 @@ export function startOcean(
     perfPanel.tick(now);
     // Draw the sea even while connecting or offline; boats appear once connected.
     if (scene && pacer.frame(now)) {
-      const shown = drawnBoats(visible, now);
+      // The patrol ships are placed by the server's clock (the smoothed one the other boats are played back
+      // with), the same for everybody.
+      const shown = [
+        ...drawnBoats(visible, now),
+        ...patrolBoats(serverClock.now(now) ?? Date.now() + clockOffset),
+      ];
       // The minimap is redrawn ten times a second, not every frame.
       if (now - lastMap >= 100) {
         lastMap = now;

@@ -17,6 +17,8 @@ export interface Boat extends Pose {
   rod: number;
   /** The player is not online: the boat is parked where it was left (the server's `off: 1`). */
   offline?: boolean;
+  /** A boat nobody owns, sailed by the clock (the patrol ships, patrol-routes.ts): no rod, no line, no name arrow. */
+  npc?: boolean;
 }
 
 /** A boat's or a rod's tier from the network: a whole number from 0 to 3, anything else (or nothing: an older server) is 0. */

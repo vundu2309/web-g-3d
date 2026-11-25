@@ -99,6 +99,8 @@ interface Craft {
   label: HTMLElement;
   /** The player is not online: the boat lies where it was left (a dimmer name, no line, a hard obstacle). */
   offline?: boolean;
+  /** A boat nobody owns, sailed by the clock (patrol-routes.ts): no rod, no line, no name arrow. */
+  npc?: boolean;
   line?: Mesh;
   // Smoothed display pose of a remote boat.
   x: number;
@@ -385,7 +387,7 @@ export class OceanScene {
     if (level === craft.level) return;
     craft.level = level;
     showBoatLevel(craft.look, level);
-    craft.rod.setVisible(level < 2);
+    craft.rod.setVisible(!craft.npc && level < 2);
   }
 
   /** A boat of another tier: its model, and its rod at its own holder. */
@@ -858,6 +860,12 @@ export class OceanScene {
         this.clock,
         craft.tier,
       );
+      // A patrol ship (nobody's boat): no rod in its hands, a name of its own colour.
+      if ((craft.npc ?? false) !== (boat.npc === true)) {
+        craft.npc = boat.npc === true;
+        craft.label.classList.toggle("is-npc", craft.npc);
+        craft.rod.setVisible(!craft.npc && craft.level < 2);
+      }
       // A parked boat (its player is not online) is named so, has no line out and is a hard obstacle.
       const offline = boat.offline === true;
       if ((craft.offline ?? false) !== offline) {
@@ -1123,6 +1131,7 @@ export class OceanScene {
       y: number,
       z: number,
       remote: boolean,
+      arrow = remote,
     ) => {
       const p = Vector3.Project(
         new Vector3(x, y, z),
@@ -1146,7 +1155,9 @@ export class OceanScene {
         label.style.top = `${p.y * 100}%`;
         return;
       }
-      if (!remote) {
+      // Only players who are online get an arrow at the edge; parked and patrol boats are named
+      // when they are in view and near, and otherwise left alone (a hundred arrows would bury the screen).
+      if (!arrow) {
         label.hidden = true;
         return;
       }
@@ -1176,6 +1187,7 @@ export class OceanScene {
         craft.mesh.position.y + 6.2 + labelLift(craft.tier),
         craft.mesh.position.z,
         true,
+        !craft.offline && !craft.npc,
       );
     this.separateNames();
   }

@@ -265,6 +265,12 @@
 .ocean-boat-label.is-self {
   background: #ffd35a;
 }
+/* A patrol ship (nobody's boat): the navy of the game's ink, white letters. */
+.ocean-boat-label.is-npc {
+  background: #153b80e6;
+  color: #fff;
+  border-color: #ffffff40;
+}
 /* A boat parked where its player left it (they are not online): a dimmer name. */
 .ocean-boat-label.is-offline {
   background: #ffffffb8;
