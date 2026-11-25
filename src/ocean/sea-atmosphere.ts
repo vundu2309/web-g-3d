@@ -3,6 +3,7 @@ import { Vector3, Vector4 } from "@babylonjs/core/Maths/math.vector";
 import type { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
 import {
   atmosphereWithPin,
+  DEFAULT_PIN,
   parsePin,
   type Atmosphere,
   type Rgb,
@@ -22,8 +23,8 @@ import {
 /**
  * The one shared, mutable look of the sea right now: the sky, the water, the swash, the lights,
  * the fog and the sea's mirror all read this object (the constants of sea-style.ts are only its
- * midday-clear starting values). `stepAtmosphere` rewrites it once per frame from the shared
- * UTC clock (atmosphere.ts) without allocating; the shaders hold these very Color3 / Vector3
+ * midday-clear starting values). `stepAtmosphere` rewrites it once per frame from the pinned
+ * time (a clear noon by default) or the shared UTC clock (atmosphere.ts) without allocating; the shaders hold these very Color3 / Vector3
  * objects as uniforms (`bindAtmosphere`), so they follow without being set again.
  */
 export const SEA = {
@@ -118,29 +119,29 @@ export function setAtmosphere(a: Atmosphere) {
 }
 
 // ---------------------------------------------------------------------------------------
-// The clock: the shared UTC time, or a pin for development and tests
+// The clock: a clear noon by default, a pin from the page address, or the shared UTC time
 
 type PinState = { hour?: number; weather?: WeatherKind } | undefined;
 
 let pin: PinState = (() => {
   try {
-    return parsePin(globalThis.location?.search ?? "");
+    return parsePin(globalThis.location?.search ?? "") ?? { ...DEFAULT_PIN };
   } catch {
-    return undefined;
+    return { ...DEFAULT_PIN };
   }
 })();
 
 /**
  * Pins the hour of the game day (0..24) and/or the weather, or `undefined` to follow the shared
- * clock again. Only development tools and tests call this, or the page address does
- * (`?daytime=21.5&weather=rain`); in normal play nothing pins and every player sees the
- * same UTC-derived time and weather.
+ * UTC clock (every player sees the same day and weather). The sea starts pinned to a clear noon
+ * (`DEFAULT_PIN`); the Settings card, development tools, tests and the page address
+ * (`?daytime=21.5&weather=rain`) change it.
  */
 export function pinAtmosphere(next: PinState) {
   pin = next;
 }
 
-/** The pin in force (undefined in normal play). */
+/** The pin in force (undefined when following the shared clock). */
 export const currentPin = () => pin;
 
 /** Advances the shared look to this UTC time (milliseconds); call once per frame. */

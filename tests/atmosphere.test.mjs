@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import {
   DAY_MS,
+  DEFAULT_PIN,
   WEATHER_SLOT_MS,
   WEATHER_FADE_MS,
   WEATHER_KINDS,
@@ -399,6 +400,37 @@ test("rain is one mesh with the same streaks on every client, and the sea's mirr
   assert.equal(reflectsInWater("rain", "rain"), false);
   assert.equal(reflectsInWater("beacon-halo", "beacon-halo"), false);
   assert.equal(reflectsInWater("island", "matte"), true);
+});
+
+test("the default sea is a clear noon at every real time, the shared clock is opt-in", () => {
+  assert.deepEqual(DEFAULT_PIN, { hour: 12, weather: "clear" });
+  const midnight = DAY_MS * 40; // the shared clock is at midnight here
+  assert.ok(atmosphereAt(midnight).daylight < 0.1, "the clock itself is dark");
+  const noon = atmosphereWithPin(midnight, DEFAULT_PIN);
+  assert.equal(noon.weather.kind, "clear");
+  assert.equal(noon.weather.cloud, 0, "no clouds: the sea's original look");
+  assert.ok(noon.daylight > 0.99, `full daylight (${noon.daylight})`);
+  assert.ok(
+    Math.abs(noon.sunHeight - NOON_HEIGHT) < 1e-6,
+    "the sun is at its noon height",
+  );
+  // The same look whatever the real time or weather slot is.
+  for (const t of [0, DAY_MS * 0.25, DAY_MS * 3.7, 123_456_789])
+    assert.deepEqual(atmosphereWithPin(t, DEFAULT_PIN), noon);
+  // Wired in: the sea starts on the default pin, "Theo giờ thật" turns the clock on.
+  const dir = new URL("../src/", import.meta.url);
+  const sea = readFileSync(new URL("ocean/sea-atmosphere.ts", dir), "utf8");
+  assert.match(
+    sea,
+    /\?\? \{ \.\.\.DEFAULT_PIN \}/,
+    "the initial pin is the default",
+  );
+  const card = readFileSync(new URL("app/settings-weather.ts", dir), "utf8");
+  assert.match(
+    card,
+    /pinAtmosphere\(undefined\)/,
+    "the reset follows the shared clock",
+  );
 });
 
 test("the atmosphere is one shared object that every look reads", () => {
