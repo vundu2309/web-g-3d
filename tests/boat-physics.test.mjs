@@ -39,7 +39,7 @@ before(async () => {
   havok = await HavokPhysics({ wasmBinary });
 });
 
-function world({ islands = [], start, extraHeight } = {}) {
+function world({ islands = [], start, extraHeight, tier } = {}) {
   const engine = new NullEngine();
   const scene = new Scene(engine);
   enableSeaPhysics(scene, new HavokPlugin(false, havok));
@@ -49,6 +49,7 @@ function world({ islands = [], start, extraHeight } = {}) {
     time: () => clock,
     extraHeight: extraHeight && ((x, z, t) => extraHeight(x, z, t)),
     start,
+    tier,
   });
   return {
     boat,
@@ -1025,5 +1026,70 @@ test("?waves=N makes every wave N times taller and nothing else; no switch is th
     Math.abs(
       big.reduce((sum, w) => sum + w.amplitude, 0) - 2.5 * MAX_WAVE_HEIGHT,
     ) < 1e-9,
+  );
+});
+
+// A bigger boat is steadier (user request): each tier has an extra righting stiffness
+// (boat-tier.ts RIGHTING_EXTRA), so the hull follows the slope of the sea less. Measured while
+// drifting on the real sea; the speed, the turn and the bobbing are not touched.
+test("a bigger boat rolls and pitches less on the waves, at the same speed and bobbing", () => {
+  const spread = (a) => {
+    const m = a.reduce((x, y) => x + y, 0) / a.length;
+    return Math.sqrt(a.reduce((x, y) => x + (y - m) ** 2, 0) / a.length);
+  };
+  const drift = (tier) => {
+    const w = world({ tier });
+    const roll = [];
+    const pitch = [];
+    const heave = [];
+    w.run(
+      50,
+      () => ({}),
+      (s, t) => {
+        if (t < 15) return;
+        roll.push(deg(s.roll));
+        pitch.push(deg(s.pitch));
+        heave.push(s.y);
+      },
+    );
+    w.dispose();
+    return { roll: spread(roll), pitch: spread(pitch), heave: spread(heave) };
+  };
+  const cruise = (tier) => {
+    const w = world({ tier });
+    let speed = 0;
+    w.run(
+      40,
+      () => ({ throttle: 1 }),
+      (s, t) => {
+        if (t > 35) speed = Math.max(speed, s.forwardSpeed);
+      },
+    );
+    w.dispose();
+    return speed;
+  };
+  const rows = [0, 1, 2, 3].map(drift);
+  const ratio = rows.map((r) => r.roll / rows[0].roll);
+  assert.ok(
+    ratio[1] < 0.9 && ratio[2] < 0.68 && ratio[3] < 0.52,
+    `rolls less with each boat: ${ratio.map((r) => r.toFixed(2))}`,
+  );
+  assert.ok(ratio[1] > ratio[2] && ratio[2] > ratio[3], "and steadily so");
+  for (let tier = 1; tier < 4; tier++) {
+    assert.ok(
+      rows[tier].pitch < rows[tier - 1].pitch,
+      `pitches less with each boat: ${rows.map((r) => r.pitch.toFixed(2))}`,
+    );
+    // It still rides the swell: the boat is not nailed to the water.
+    assert.ok(
+      Math.abs(rows[tier].heave - rows[0].heave) < 0.1 * rows[0].heave,
+      `bobs as high: ${rows.map((r) => r.heave.toFixed(2))}`,
+    );
+  }
+  // Not a faster or a slower boat.
+  const top = [0, 3].map(cruise);
+  assert.ok(
+    Math.abs(top[1] - top[0]) < 0.04 * top[0],
+    `same top speed: ${top.map((v) => v.toFixed(1))}`,
   );
 });

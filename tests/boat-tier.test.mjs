@@ -721,3 +721,18 @@ test("the chase camera is framed as it was for the first boat and a little farth
   for (let i = 1; i < scales.length; i++) assert.ok(scales[i] > scales[i - 1]);
   assert.ok(scales[3] > 1.2 && scales[3] < 1.3, `${scales}`);
 });
+
+test("a bigger boat has more righting stiffness; the first boat has none", async () => {
+  const { RIGHTING_EXTRA, rightingExtra, BOAT_TIER_COUNT } = await import(
+    "../src/ocean/boat-tier.ts"
+  );
+  assert.equal(RIGHTING_EXTRA.length, BOAT_TIER_COUNT);
+  assert.equal(rightingExtra(0), 0, "tier 0 is today's boat");
+  for (let tier = 1; tier < BOAT_TIER_COUNT; tier++)
+    assert.ok(
+      rightingExtra(tier) > rightingExtra(tier - 1),
+      `tier ${tier} is steadier than tier ${tier - 1}`,
+    );
+  for (const bad of [-1, 9, 1.5, "2", NaN, undefined])
+    assert.equal(rightingExtra(bad), 0, `an invalid tier is tier 0: ${bad}`);
+});
