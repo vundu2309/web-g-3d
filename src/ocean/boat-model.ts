@@ -9,7 +9,7 @@ import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import { loadModel } from "./model-loader.ts";
 import { BOAT_YAW, paintBoat, rgb } from "./boat-paint.ts";
-import { boatTier } from "./boat-tier.ts";
+import { PATROL_FILE, PATROL_MODEL, boatTier } from "./boat-tier.ts";
 import { boatPalettes } from "./palette.ts";
 import { PAL } from "./art/colors.ts";
 import { glowMaterial, useSolid } from "./art/materials.ts";
@@ -43,25 +43,34 @@ export interface BoatModels {
    */
   coarse: readonly (readonly Mesh[])[];
   lampFar: Mesh;
+  /**
+   * The patrol ships' light bar: its blue and its red lens as unlit glowing meshes of their own (found
+   * by their colour, `paint.beacon` and `paint.beaconRed`), which the patrol lights flash
+   * (patrol-lights.ts). Only the patrol model has them; for the others the colour is not in the file.
+   */
+  lenses?: { blue: Mesh; red: Mesh };
 }
 
 const LAMP = rgb(PAL.light.lamp);
+const LENS_BLUE = rgb(PAL.paint.beacon);
+const LENS_RED = rgb(PAL.paint.beaconRed);
 const SAME = 0.5 / 255;
 
-/** Whether every vertex of a mesh is the lamp colour (the exporter writes one mesh per colour). */
-function isLamp(mesh: Mesh) {
+/** Whether every vertex of a mesh is this colour (the exporter writes one mesh per colour). */
+function isColour(mesh: Mesh, colour: readonly number[]) {
   const colors = mesh.getVerticesData(VertexBuffer.ColorKind);
   if (!colors || colors.length < 3) return false;
   const stride = colors.length / mesh.getTotalVertices();
   for (let i = 0; i + 2 < colors.length; i += stride)
     if (
-      Math.abs(colors[i]! - LAMP[0]) > SAME ||
-      Math.abs(colors[i + 1]! - LAMP[1]) > SAME ||
-      Math.abs(colors[i + 2]! - LAMP[2]) > SAME
+      Math.abs(colors[i]! - colour[0]!) > SAME ||
+      Math.abs(colors[i + 1]! - colour[1]!) > SAME ||
+      Math.abs(colors[i + 2]! - colour[2]!) > SAME
     )
       return false;
   return true;
 }
+const isLamp = (mesh: Mesh) => isColour(mesh, LAMP);
 
 /** Merges meshes (their node transforms baked in) and turns the result into the game's axes. */
 function mergeTurned(meshes: Mesh[], name: string, file: string): Mesh {
@@ -119,8 +128,15 @@ export async function loadBoatModels(
   scene: Scene,
   tier = 0,
 ): Promise<BoatModels> {
-  const { file, tier: which } = boatTier(tier);
-  const prefix = which === 0 ? "boat-model" : `boat-model-t${which}`;
+  const patrol = tier === PATROL_MODEL;
+  const { file, tier: which } = patrol
+    ? { file: PATROL_FILE, tier: -1 }
+    : boatTier(tier);
+  const prefix = patrol
+    ? "boat-model-patrol"
+    : which === 0
+      ? "boat-model"
+      : `boat-model-t${which}`;
   const model = await loadModel(scene, file);
   try {
     if (scene.isDisposed) throw new Error("scene disposed while loading");
@@ -129,13 +145,32 @@ export async function loadBoatModels(
     for (const node of model.root.getDescendants(false))
       (node as TransformNode).computeWorldMatrix?.(true);
     const lampMeshes = model.meshes.filter(isLamp);
+    // The patrol ships' light-bar lenses are drawn by themselves (the others have none).
+    const blueMeshes = patrol
+      ? model.meshes.filter((mesh) => isColour(mesh, LENS_BLUE))
+      : [];
+    const redMeshes = patrol
+      ? model.meshes.filter((mesh) => isColour(mesh, LENS_RED))
+      : [];
     const bodyMeshes = model.meshes.filter(
-      (mesh) => !lampMeshes.includes(mesh),
+      (mesh) =>
+        !lampMeshes.includes(mesh) &&
+        !blueMeshes.includes(mesh) &&
+        !redMeshes.includes(mesh),
     );
     if (!lampMeshes.length || !bodyMeshes.length)
       throw new Error(`${file}: no lantern glass or no hull found`);
     const body = mergeTurned(bodyMeshes, `${prefix}-body`, file);
     const lampMerged = mergeTurned(lampMeshes, `${prefix}-lamp`, file);
+    // The lenses are merged before the model's nodes go (they are children of its root).
+    if (patrol && (!blueMeshes.length || !redMeshes.length))
+      throw new Error(`${file}: no light-bar lenses found`);
+    const lensMerged = patrol
+      ? {
+          blue: mergeTurned(blueMeshes, `${prefix}-lens-blue`, file),
+          red: mergeTurned(redMeshes, `${prefix}-lens-red`, file),
+        }
+      : undefined;
     model.root.dispose();
     const base = rgba(body, file);
     // The coarser copies, made from the model's own triangles (the model itself is not changed).
@@ -209,7 +244,32 @@ export async function loadBoatModels(
     lampFar.isVisible = false;
     lampFar.isPickable = false;
     lampFar.hasVertexAlpha = false;
-    return { tier: which, hulls, lamp, coarse, lampFar };
+    // The lenses: a glowing mesh each, hidden (the patrol lights hang instances of them on each ship).
+    let lenses: BoatModels["lenses"];
+    if (lensMerged) {
+      const lens = (merged: Mesh, kind: string, color: number) => {
+        merged.material = glowMaterial(
+          scene,
+          `${prefix}-lens-${kind}-material`,
+          { color: hex(color) },
+        );
+        merged.isVisible = false;
+        merged.isPickable = false;
+        return merged;
+      };
+      lenses = {
+        blue: lens(lensMerged.blue, "blue", PAL.paint.beacon),
+        red: lens(lensMerged.red, "red", PAL.paint.beaconRed),
+      };
+    }
+    return {
+      tier: which,
+      hulls,
+      lamp,
+      coarse,
+      lampFar,
+      ...(lenses ? { lenses } : {}),
+    };
   } catch (error) {
     model.root.dispose();
     throw error;

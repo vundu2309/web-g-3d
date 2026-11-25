@@ -399,6 +399,130 @@ test("the parked boats are replaced by the list given: a boat no longer listed i
   assert.equal(bodies().length, 0, "disposing the boat removes them all");
 });
 
+test("a patrol ship sailing across the bow shoves the boat aside, and the boat cannot push the ship off its course", () => {
+  // The ship (3.6 x 10.4 m) sails along +x at 6 m/s, its side 1 m into the bow of a boat at rest.
+  const SPEED = 6;
+  const ship = (t) => ({
+    uid: "npc:patrol-0",
+    x: -42 + SPEED * t,
+    z: -4.5,
+    heading: Math.PI / 2,
+    speed: SPEED,
+    width: 3.6,
+    length: 10.4,
+  });
+  // `every` physics steps between two reports of the ship's place: 1 is exact, 6 is a frame of 100 ms
+  // (the scene reports once a frame; the body is carried on at the ship's speed in between).
+  const sail = (withShip, every = 1) => {
+    const w = world();
+    let maxPush = 0;
+    let worst = 0;
+    let n = 0;
+    w.run(
+      15,
+      (t) => {
+        if (withShip && n++ % every === 0) w.boat.setShips([ship(t)]);
+        return {};
+      },
+      (state, t) => {
+        maxPush = Math.max(maxPush, Math.hypot(state.x, state.z));
+        if (withShip) {
+          const body = w.boat.mesh
+            .getScene()
+            .getMeshByName("ship-npc:patrol-0");
+          const want = ship(t);
+          worst = Math.max(
+            worst,
+            Math.hypot(body.position.x - want.x, body.position.z - want.z),
+          );
+        }
+      },
+    );
+    const final = w.boat.state();
+    w.dispose();
+    return { maxPush, worst, final };
+  };
+  const free = sail(false);
+  assert.ok(
+    free.maxPush < 0.3,
+    `a boat at rest stays: ${free.maxPush.toFixed(2)} m`,
+  );
+  for (const every of [1, 6]) {
+    const hit = sail(true, every);
+    assert.ok(
+      hit.maxPush > 0.8,
+      `every ${every}: the ship shoves the boat aside (${hit.maxPush.toFixed(2)} m)`,
+    );
+    assert.ok(
+      hit.worst < 1.0,
+      `every ${every}: the ship keeps its course, never off it by more than ${hit.worst.toFixed(2)} m`,
+    );
+    // Well past the boat at the end: the ship is not stuck on it.
+    assert.ok(
+      hit.final.x > -20 && hit.final.x < 20,
+      "the boat is not carried off",
+    );
+  }
+});
+
+test("the patrol ships are replaced by the list given: a ship kept keeps its body and is carried on at its speed, one no longer listed goes", () => {
+  const w = world();
+  const scene = w.boat.mesh.getScene();
+  const bodies = () => scene.meshes.filter((m) => m.name.startsWith("ship-"));
+  const a = {
+    uid: "a",
+    x: 40,
+    z: 40,
+    heading: Math.PI / 2,
+    speed: 6,
+    width: 3.6,
+    length: 10.4,
+  };
+  const b = {
+    uid: "b",
+    x: -40,
+    z: 40,
+    heading: 1,
+    speed: 6,
+    width: 3.6,
+    length: 10.4,
+  };
+  w.boat.setShips([a, b]);
+  assert.deepEqual(
+    bodies()
+      .map((m) => m.name)
+      .sort(),
+    ["ship-a", "ship-b"],
+  );
+  const first = bodies().find((m) => m.name === "ship-a");
+  w.run(1);
+  assert.equal(
+    bodies().find((m) => m.name === "ship-a"),
+    first,
+    "kept, not rebuilt",
+  );
+  assert.ok(
+    Math.abs(first.position.x - 46) < 0.4,
+    `carried on 6 m in a second (x ${first.position.x.toFixed(2)})`,
+  );
+  assert.ok(Math.abs(first.position.z - 40) < 0.2, "straight on");
+  // Reported somewhere else (a turn of the loop, a jump of the clock): it goes there and is carried on from there.
+  w.boat.setShips([{ ...a, x: 100 }, b]);
+  w.run(0.5);
+  assert.ok(
+    Math.abs(first.position.x - 103) < 0.4,
+    `reported again at 100: ${first.position.x.toFixed(2)}`,
+  );
+  w.boat.setShips([{ ...a, x: 100 }]);
+  assert.deepEqual(
+    bodies().map((m) => m.name),
+    ["ship-a"],
+    "the other goes",
+  );
+  w.dispose();
+  assert.equal(bodies().length, 0, "disposing the boat removes them all");
+});
+
 test("results repeat exactly for the same inputs", () => {
   const run = () => {
     const w = world();

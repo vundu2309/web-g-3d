@@ -201,7 +201,7 @@ test("the scene draws the other players' boats by level, loads a tier only when 
   );
   assert.ok(
     /private readonly boatModels = new Map/.test(scene) &&
-      scene.includes("ensureBoatModels(craft.tier)") &&
+      scene.includes("ensureBoatModels(this.modelKey(craft))") &&
       scene.includes("ensureBoatModels(this.tier)"),
     "one template per tier, made on first need",
   );

@@ -55,7 +55,12 @@ void main() {
 
 const COLOR = new Color3(1, 0.86, 0.5);
 
-function material(name: string, scene: Scene, shader: string) {
+export function lightMaterial(
+  name: string,
+  scene: Scene,
+  shader: string,
+  color: Color3 = COLOR,
+) {
   const m = new ShaderMaterial(
     name,
     scene,
@@ -69,7 +74,7 @@ function material(name: string, scene: Scene, shader: string) {
   m.backFaceCulling = false;
   m.disableDepthWrite = true;
   m.alphaMode = Constants.ALPHA_ONEONE;
-  m.setColor3("color", COLOR);
+  m.setColor3("color", color);
   m.setFloat("level", 0);
   return m;
 }
@@ -108,7 +113,7 @@ export function createBeacon(
   at: { x: number; y: number; z: number },
   name = "beacon",
 ): Beacon {
-  const haloMaterial = material(`${name}-halo`, scene, "beaconHalo");
+  const haloMaterial = lightMaterial(`${name}-halo`, scene, "beaconHalo");
   const halo = new Mesh(`${name}-halo`, scene);
   const size = 22;
   const quad = new VertexData();
@@ -132,7 +137,7 @@ export function createBeacon(
   halo.billboardMode = Mesh.BILLBOARDMODE_ALL;
   halo.material = haloMaterial;
 
-  const beamMaterial = material(`${name}-beam`, scene, "beaconBeam");
+  const beamMaterial = lightMaterial(`${name}-beam`, scene, "beaconBeam");
   const beam = new Mesh(`${name}-beam`, scene);
   const geometry = beamGeometry();
   const data = new VertexData();
@@ -197,7 +202,7 @@ export function createLampLight(
     return quad;
   };
   const make = (suffix: string, size: number) => {
-    const mat = material(`${name}-${suffix}`, scene, "beaconHalo");
+    const mat = lightMaterial(`${name}-${suffix}`, scene, "beaconHalo");
     const mesh = new Mesh(`${name}-${suffix}`, scene);
     quadOf(size).applyToMesh(mesh);
     mesh.material = mat;

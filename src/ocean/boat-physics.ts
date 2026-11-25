@@ -5,7 +5,10 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { PhysicsAggregate } from "@babylonjs/core/Physics/v2/physicsAggregate";
 import { PhysicsShapeBox } from "@babylonjs/core/Physics/v2/physicsShape";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
-import { PhysicsShapeType } from "@babylonjs/core/Physics/v2/IPhysicsEnginePlugin";
+import {
+  PhysicsMotionType,
+  PhysicsShapeType,
+} from "@babylonjs/core/Physics/v2/IPhysicsEnginePlugin";
 import type { HavokPlugin } from "@babylonjs/core/Physics/v2/Plugins/havokPlugin";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { Scene } from "@babylonjs/core/scene";
@@ -101,7 +104,28 @@ export interface BoatPhysics {
    * is already in place is not rebuilt.
    */
   setParked(boats: readonly ParkedBoat[]): void;
+  /**
+   * The patrol ships, which sail by the clock, as moving hard obstacles: a box each, of the ship's size,
+   * that Havok is TOLD to move to the pose given (a kinematic body: it pushes this boat and nothing
+   * pushes it back). Give the whole list of the ships worth colliding with now (the scene hands over
+   * the ones near this boat) every frame; a ship no longer listed is removed, one listed again
+   * keeps its body and moves it.
+   */
+  setShips(ships: readonly ShipBody[]): void;
   dispose(): void;
+}
+/**
+ * A patrol ship as a moving obstacle: where it is, which way it points, how fast it goes (m/s, along
+ * the heading) and the size of its box (m). Between two calls the body is carried on at that speed.
+ */
+export interface ShipBody {
+  uid: string;
+  x: number;
+  z: number;
+  heading: number;
+  speed: number;
+  width: number;
+  length: number;
 }
 /** A parked boat as an obstacle: where it lies and which boat it is (boat-tier.ts). */
 export interface ParkedBoat {
@@ -329,6 +353,32 @@ export function createBoatPhysics(
     parkedBodies.delete(uid);
   };
 
+  // Patrol ships: kinematic boxes, made once and moved to each pose given.
+  const shipBodies = new Map<
+    string,
+    {
+      mesh: Mesh;
+      aggregate: PhysicsAggregate;
+      /** Where the ship was when the scene last said so, its speed (x, z; m/s), how long ago (s of physics) and its turn. */
+      x: number;
+      z: number;
+      vx: number;
+      vz: number;
+      elapsed: number;
+      at: Vector3;
+      turn: Quaternion;
+      width: number;
+      length: number;
+    }
+  >();
+  const dropShip = (uid: string) => {
+    const ship = shipBodies.get(uid);
+    if (!ship) return;
+    ship.aggregate.dispose();
+    ship.mesh.dispose();
+    shipBodies.delete(uid);
+  };
+
   const input: BoatInput = { steer: 0, throttle: 0 };
   const world = new Vector3();
   const point = new Vector3();
@@ -377,6 +427,18 @@ export function createBoatPhysics(
   const beforeStep = () => {
     // Fixed sub-steps (see enableSeaPhysics): every step is exactly this long.
     const dt = physics.getTimeStep();
+    // A kinematic body keeps the speed it was last given, so each step it is told where the ship is
+    // by now (its last reported place, carried on at its speed): a body told only once a frame would
+    // run on at the speed of that one jump for the steps of the frame.
+    for (const ship of shipBodies.values()) {
+      ship.elapsed += dt;
+      ship.at.set(
+        ship.x + ship.vx * ship.elapsed,
+        -DRAFT - BOTTOM,
+        ship.z + ship.vz * ship.elapsed,
+      );
+      ship.aggregate.body.setTargetTransform(ship.at, ship.turn);
+    }
     mesh.computeWorldMatrix(true);
     const t = options.time();
     feel(t);
@@ -581,7 +643,65 @@ export function createBoatPhysics(
         });
       }
     },
+    setShips(list) {
+      const wanted = new Set(list.map((ship) => ship.uid));
+      for (const uid of [...shipBodies.keys()])
+        if (!wanted.has(uid)) dropShip(uid);
+      for (const ship of list) {
+        let body = shipBodies.get(ship.uid);
+        // A ship whose box changed is made again (a model that is not the one it was made for).
+        if (
+          body &&
+          (body.width !== ship.width || body.length !== ship.length)
+        ) {
+          dropShip(ship.uid);
+          body = undefined;
+        }
+        if (!body) {
+          const hull = MeshBuilder.CreateBox(
+            `ship-${ship.uid}`,
+            { width: ship.width, height: HULL.height, depth: ship.length },
+            scene,
+          );
+          hull.isVisible = false;
+          hull.position.set(ship.x, -DRAFT - BOTTOM, ship.z);
+          hull.rotationQuaternion = Quaternion.RotationAxis(
+            Axis.Y,
+            -ship.heading,
+          );
+          const aggregate = new PhysicsAggregate(
+            hull,
+            PhysicsShapeType.BOX,
+            { mass: 0, friction: 0.05, restitution: 0.12 },
+            scene,
+          );
+          aggregate.body.setMotionType(PhysicsMotionType.ANIMATED);
+          body = {
+            mesh: hull,
+            aggregate,
+            x: ship.x,
+            z: ship.z,
+            vx: 0,
+            vz: 0,
+            elapsed: 0,
+            at: new Vector3(),
+            turn: new Quaternion(),
+            width: ship.width,
+            length: ship.length,
+          };
+          shipBodies.set(ship.uid, body);
+        }
+        // Where it is now and how it is going (the bow is -z at heading 0, like every boat).
+        body.x = ship.x;
+        body.z = ship.z;
+        body.vx = Math.sin(ship.heading) * ship.speed;
+        body.vz = -Math.cos(ship.heading) * ship.speed;
+        body.elapsed = 0;
+        Quaternion.RotationAxisToRef(Axis.Y, -ship.heading, body.turn);
+      }
+    },
     dispose() {
+      for (const uid of [...shipBodies.keys()]) dropShip(uid);
       for (const uid of [...parkedBodies.keys()]) dropParked(uid);
       scene.onBeforePhysicsObservable.removeCallback(beforeStep);
       scene.onAfterPhysicsObservable.removeCallback(afterStep);

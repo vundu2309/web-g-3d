@@ -29,7 +29,14 @@ import {
   type BoatModels,
 } from "./boat-model.ts";
 import { boatLevelOf } from "./boat-lod.ts";
-import { boatTier, boatTierIndex, boxRatio, cameraScale } from "./boat-tier.ts";
+import {
+  PATROL_BOX,
+  PATROL_MODEL,
+  boatTier,
+  boatTierIndex,
+  boxRatio,
+  cameraScale,
+} from "./boat-tier.ts";
 import { createHavok } from "./havok.ts";
 import { createIsland, type IslandVisual } from "./island-visual.ts";
 import { createSeabed, type Seabed } from "./seabed-visual.ts";
@@ -51,6 +58,12 @@ import {
   turnLead,
 } from "./chase-camera.ts";
 import { MARKETS, seaObstacles } from "./market.ts";
+import { PATROL_SPEED } from "./patrol-routes.ts";
+import {
+  createPatrolLights,
+  updateLensGlow,
+  type PatrolLights,
+} from "./patrol-lights.ts";
 import { createMarket } from "./market-visual.ts";
 import { createShipyards, type ShipyardVisuals } from "./shipyard-visual.ts";
 import { SHIPYARDS } from "./shipyard.ts";
@@ -102,6 +115,10 @@ interface Craft {
   label: HTMLElement;
   /** The player is not online: the boat lies where it was left (a dimmer name, no line, a hard obstacle). */
   offline?: boolean;
+  /** A boat nobody owns, sailed by the clock (patrol-routes.ts): no rod, no line, no name arrow. */
+  npc?: boolean;
+  /** A patrol ship's lights (patrol-lights.ts): made once its own model, with the light-bar lenses, has loaded. */
+  lights?: PatrolLights;
   line?: Mesh;
   // Smoothed display pose of a remote boat.
   x: number;
@@ -114,6 +131,12 @@ interface Craft {
 const labelLift = (tier: number) =>
   Math.max(0, boatTier(tier).shadow.mast.to - boatTier(0).shadow.mast.to);
 
+/** Where a patrol ship's searchlight swings (0..1), from its name, so the ships do not swing together. */
+const lightPhase = (name: string) => {
+  let hash = 0;
+  for (const char of name) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return (hash % 1000) / 1000;
+};
 const wrap = (angle: number) => Math.atan2(Math.sin(angle), Math.cos(angle));
 const blend = (dt: number, rate: number) => 1 - Math.exp(-dt * rate);
 const NORMALIZED = new Viewport(0, 0, 1, 1);
@@ -343,9 +366,18 @@ export class OceanScene {
    * for every boat of that tier drawn so far (and those that follow). Resolves with the models, or
    * undefined when the load failed (a warning is logged and a later call tries again).
    */
+  /** Which model a craft is drawn with: its tier's, or the patrol ships' own. */
+  private modelKey(craft: Craft): number {
+    return craft.npc ? PATROL_MODEL : craft.tier;
+  }
+
   private ensureBoatModels(tier: number): Promise<BoatModels | undefined> {
     // With `?tiers=0` the bigger models are never loaded: every boat is drawn as the first.
-    const wanted = tiersOff() ? 0 : boatTierIndex(tier);
+    const wanted = tiersOff()
+      ? 0
+      : tier === PATROL_MODEL
+        ? PATROL_MODEL
+        : boatTierIndex(tier);
     const known = this.boatModels.get(wanted);
     if (known) return Promise.resolve(known);
     let load = this.boatLoads.get(wanted);
@@ -365,8 +397,8 @@ export class OceanScene {
             ...this.fleet.values(),
           ])
             if (
-              craft.tier === wanted ||
-              (wanted === 0 && !this.boatModels.has(craft.tier))
+              this.modelKey(craft) === wanted ||
+              (wanted === 0 && !this.boatModels.has(this.modelKey(craft)))
             )
               this.dress(craft);
           return models;
@@ -389,13 +421,25 @@ export class OceanScene {
   /** Gives a boat its hull: the model of its tier when it is loaded, else the first boat's, else the code-built one. */
   private dress(craft: Craft) {
     for (const mesh of craft.look) mesh.dispose();
-    const models = this.boatModels.get(craft.tier) ?? this.boatModels.get(0);
+    const models =
+      this.boatModels.get(this.modelKey(craft)) ?? this.boatModels.get(0);
     // The other players' boats also get coarser copies for when they are far (boat-lod.ts).
     const others = craft !== this.self?.craft;
     craft.look = models
       ? dressBoat(models, craft.palette, craft.mesh, craft.mesh.name, others)
       : this.codeBoat(craft);
     if (others) showBoatLevel(craft.look, craft.level);
+    // A patrol ship's lights need its own model (the lenses); until it has loaded there are none.
+    craft.lights?.dispose();
+    craft.lights = undefined;
+    if (craft.npc && models?.lenses)
+      craft.lights = createPatrolLights(
+        this.scene,
+        craft.mesh,
+        models.lenses,
+        craft.mesh.name,
+        lightPhase(craft.mesh.name),
+      );
   }
 
   /** Draws another player's boat as the whole model, a coarser copy or a far copy by how big it looks (boat-lod.ts). */
@@ -411,7 +455,7 @@ export class OceanScene {
     if (level === craft.level) return;
     craft.level = level;
     showBoatLevel(craft.look, level);
-    craft.rod.setVisible(level < 2);
+    craft.rod.setVisible(!craft.npc && level < 2);
   }
 
   /** A boat of another tier: its model, and its rod at its own holder. */
@@ -542,6 +586,7 @@ export class OceanScene {
     isSelf: boolean,
     tier = 0,
     rodTier = 0,
+    npc = false,
   ): Craft {
     const mesh = new TransformNode(`boat-${uid}`, this.scene);
     const palette = paletteIndex(uid);
@@ -550,6 +595,7 @@ export class OceanScene {
     label.textContent = isSelf ? "Bạn" : name;
     label.dataset.uid = uid;
     if (isSelf) label.classList.add("is-self");
+    if (npc) label.classList.add("is-npc");
     this.host.append(label);
     const craft: Craft = {
       mesh,
@@ -567,11 +613,14 @@ export class OceanScene {
       ),
       rodTier,
       label,
+      ...(npc ? { npc: true } : {}),
       x: 0,
       z: 0,
       heading: 0,
       seen: true,
     };
+    // A patrol ship holds no rod.
+    if (npc) craft.rod.setVisible(false);
     this.dress(craft);
     return craft;
   }
@@ -851,8 +900,11 @@ export class OceanScene {
     // The day and the weather: the shared UTC clock (atmosphere.ts), once per frame, before anything reads it.
     stepAtmosphere();
     const step = Math.min(dt, 0.1);
+    const lenses = this.boatModels.get(PATROL_MODEL)?.lenses;
+    if (lenses) updateLensGlow(lenses, time, reduced);
     const present = new Set<string>();
     const parked: ParkedBoat[] = [];
+    const ships: { uid: string; x: number; z: number; heading: number }[] = [];
     for (const boat of boats) {
       if (boat.uid === uid) {
         if (this.self) {
@@ -866,9 +918,10 @@ export class OceanScene {
       // What the other player has bought (the server reads it from their account, never from them):
       // their boat's model and their rod. Asked once per change; a boat that is not here yet is
       // made that way below.
-      if (this.remoteTiers.get(boat.uid) !== boat.tier)
+      // A patrol ship owns nothing: it takes its hull numbers from `boat.tier` and its own model.
+      if (!boat.npc && this.remoteTiers.get(boat.uid) !== boat.tier)
         void this.setRemoteBoatTier(boat.uid, boat.tier);
-      if (this.remoteRodTiers.get(boat.uid) !== boat.rod)
+      if (!boat.npc && this.remoteRodTiers.get(boat.uid) !== boat.rod)
         this.setRemoteRodTier(boat.uid, boat.rod);
       let craft = this.fleet.get(boat.uid);
       if (!craft) {
@@ -876,11 +929,13 @@ export class OceanScene {
           boat.uid,
           boat.name,
           false,
-          this.remoteTiers.get(boat.uid) ?? 0,
-          this.remoteRodTiers.get(boat.uid) ?? 0,
+          boat.npc ? boat.tier : (this.remoteTiers.get(boat.uid) ?? 0),
+          boat.npc ? 0 : (this.remoteRodTiers.get(boat.uid) ?? 0),
+          boat.npc === true,
         );
         // A bigger boat shows the first boat's model until its own has loaded.
-        if (craft.tier > 0) void this.ensureBoatModels(craft.tier);
+        if (this.modelKey(craft) > 0)
+          void this.ensureBoatModels(this.modelKey(craft));
         craft.x = boat.x;
         craft.z = boat.z;
         craft.heading = boat.heading;
@@ -899,6 +954,12 @@ export class OceanScene {
         this.clock,
         craft.tier,
       );
+      // A patrol ship (nobody's boat): no rod in its hands, a name of its own colour.
+      if ((craft.npc ?? false) !== (boat.npc === true)) {
+        craft.npc = boat.npc === true;
+        craft.label.classList.toggle("is-npc", craft.npc);
+        craft.rod.setVisible(!craft.npc && craft.level < 2);
+      }
       // A parked boat (its player is not online) is named so, has no line out and is a hard obstacle.
       const offline = boat.offline === true;
       if ((craft.offline ?? false) !== offline) {
@@ -916,19 +977,30 @@ export class OceanScene {
           heading: boat.heading,
           tier: craft.tier,
         });
+      if (craft.npc)
+        ships.push({
+          uid: boat.uid,
+          x: boat.x,
+          z: boat.z,
+          heading: boat.heading,
+        });
       this.setLine(craft, offline ? false : boat.fishing);
       this.pickLevel(craft);
+      craft.lights?.update(time, this.camera.position, reduced);
       craft.label.dataset.x = String(boat.x);
       craft.label.dataset.z = String(boat.z);
     }
-    // The parked boats near the player's own boat are solid (the farther ones are not worth a body).
+    // The parked boats near the player's own boat are solid (the farther ones are not worth a body),
+    // and so are the patrol ships near it, which move: Havok is told where each one goes.
     if (this.self) {
       const at = this.self.physics.state();
-      this.self.physics.setParked(
-        parked.filter(
-          (boat) =>
-            Math.hypot(boat.x - at.x, boat.z - at.z) < PARKED_SOLID_REACH,
-        ),
+      const near = (boat: { x: number; z: number }) =>
+        Math.hypot(boat.x - at.x, boat.z - at.z) < PARKED_SOLID_REACH;
+      this.self.physics.setParked(parked.filter(near));
+      this.self.physics.setShips(
+        ships
+          .filter(near)
+          .map((ship) => ({ ...ship, speed: PATROL_SPEED, ...PATROL_BOX })),
       );
     }
     for (const [id, craft] of this.fleet)
@@ -936,6 +1008,7 @@ export class OceanScene {
         this.forgetTrail(id);
         this.remoteTiers.delete(id);
         this.remoteRodTiers.delete(id);
+        craft.lights?.dispose();
         craft.label.remove();
         craft.line?.dispose();
         craft.rod.dispose();
@@ -1182,6 +1255,7 @@ export class OceanScene {
       y: number,
       z: number,
       remote: boolean,
+      arrow = remote,
     ) => {
       const p = Vector3.Project(
         new Vector3(x, y, z),
@@ -1205,7 +1279,9 @@ export class OceanScene {
         label.style.top = `${p.y * 100}%`;
         return;
       }
-      if (!remote) {
+      // Only players who are online get an arrow at the edge; parked and patrol boats are named
+      // when they are in view and near, and otherwise left alone (a hundred arrows would bury the screen).
+      if (!arrow) {
         label.hidden = true;
         return;
       }
@@ -1235,6 +1311,7 @@ export class OceanScene {
         craft.mesh.position.y + 6.2 + labelLift(craft.tier),
         craft.mesh.position.z,
         true,
+        !craft.offline && !craft.npc,
       );
     this.separateNames();
   }
