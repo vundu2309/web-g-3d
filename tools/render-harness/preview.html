@@ -402,7 +402,66 @@
       scene.activeCamera = cam;
       yards.update(cam.position.x, cam.position.z);
       window.scene = scene;
+      // &cats=1: the rowing cats' boat (src/ocean/cat-boat.ts) at the camera's target, seen from a few metres.
+      let catBoats = [];
+      let catKit;
+      if (q.get("cats") === "1") {
+        const { loadRowerAssets, createRowerKit, CatBoat } = await import(
+          "/src/ocean/cat-boat.ts"
+        );
+        const { createLampCast } = await import("/src/ocean/cat-lantern.ts");
+        const { beaconLevel } = await import("/src/ocean/atmosphere.ts");
+        const { SEA } = await import("/src/ocean/sea-atmosphere.ts");
+        try {
+          catKit = createRowerKit(scene, await loadRowerAssets(scene));
+          // Two boats from the same models (instances), rowing and resting.
+          catBoats = [
+            {
+              boat: new CatBoat(scene, catKit, "cat-boat-0"),
+              dx: 0,
+              effort: 1,
+            },
+            {
+              boat: new CatBoat(scene, catKit, "cat-boat-1"),
+              dx: 14,
+              effort: 0,
+            },
+          ];
+          const cast = createLampCast(scene, catKit.lit);
+          const lampAt = new Vector3();
+          scene.onBeforeRenderObservable.add(() => {
+            catBoats[0].boat.lampPosition(lampAt);
+            cast.place(
+              lampAt,
+              beaconLevel(SEA.grade.y, SEA.weather.y, SEA.weather.z),
+            );
+          });
+          cam.position.set(target.x + 14, 3.6, target.z + 17);
+          cam.setTarget(new Vector3(target.x + 7, 1.5, target.z));
+          // &catcam=lantern: close to the first boat's bow lantern, from the side and a little ahead.
+          if (q.get("catcam") === "lantern") {
+            cam.position.set(target.x + 2.6, 2.5, target.z - 3.4);
+            cam.setTarget(new Vector3(target.x, 2.0, target.z - 2.4));
+          }
+          window.__cats = "loaded";
+        } catch (error) {
+          window.__cats = "failed: " + error;
+          console.error(error);
+        }
+      }
       const tick = () => {
+        catKit?.update();
+        for (const c of catBoats)
+          c.boat.update(
+            {
+              x: target.x + c.dx,
+              z: target.z,
+              heading: Number(q.get("catheading") ?? 0),
+              effort: c.effort,
+            },
+            T,
+            (x, z) => waveHeight(x, z, T),
+          );
         stepAtmosphere(0);
         rain.update(T);
         for (const b of beacons) b.update(T);

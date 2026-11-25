@@ -81,7 +81,11 @@ export function startHarbor(root: HTMLElement) {
       const { startOcean } = await import("./ocean");
       if (disposed) return;
       playing = true;
-      history.replaceState(null, "", "?view=ocean");
+      // Keeps the other switches of the address (`?perf`, `?cats=1`, `?seemode=depth`...): the sea
+      // reads them when it starts, a moment later.
+      const params = new URLSearchParams(location.search);
+      params.set("view", "ocean");
+      history.replaceState(null, "", `?${params.toString()}`);
       stopGame = startOcean(root, () => {
         stopGame?.();
         stopGame = undefined;

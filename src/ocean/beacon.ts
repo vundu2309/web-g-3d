@@ -4,6 +4,8 @@ import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
 import { Effect } from "@babylonjs/core/Materials/effect";
 import { Constants } from "@babylonjs/core/Engines/constants";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import { beaconLevel } from "./atmosphere.ts";
 import { SEA } from "./sea-atmosphere.ts";
@@ -156,6 +158,98 @@ export function createBeacon(
       haloMaterial.setFloat("level", level);
       beamMaterial.setFloat("level", level);
       beam.rotation.y = time * SWEEP;
+    },
+  };
+}
+
+/**
+ * A lamp's light for a small boat's lantern, two soft glows on `parent`: a small halo round the lamp
+ * that always faces the camera, and a pool of light lying on the water under it (flat, at
+ * `water`, local height). Same shader and `beaconLevel` as the lighthouse lamp (dusk to dawn,
+ * dimmer in rain), drawn additively so it only adds light, off by day. The light wavers a little,
+ * like a flame. `update(time)` once a frame returns the level (0..1) for the lamp's glass.
+ */
+export interface LampLight {
+  update(time: number): number;
+  /** Hides the halo and the pool (the boat is switched off and no longer updates them). */
+  hide(): void;
+  dispose(): void;
+}
+
+export function createLampLight(
+  scene: Scene,
+  parent: TransformNode,
+  options: {
+    at: { x: number; y: number; z: number };
+    haloSize: number;
+    poolSize: number;
+    /** Local height of the water's surface under the lamp. */
+    water: number;
+  },
+  name = "lamp-light",
+): LampLight {
+  const quadOf = (size: number) => {
+    const quad = new VertexData();
+    const h = size / 2;
+    quad.positions = [-h, -h, 0, h, -h, 0, -h, h, 0, h, h, 0];
+    quad.uvs = [0, 0, 1, 0, 0, 1, 1, 1];
+    quad.indices = [0, 1, 2, 1, 3, 2];
+    return quad;
+  };
+  const make = (suffix: string, size: number) => {
+    const mat = material(`${name}-${suffix}`, scene, "beaconHalo");
+    const mesh = new Mesh(`${name}-${suffix}`, scene);
+    quadOf(size).applyToMesh(mesh);
+    mesh.material = mat;
+    mesh.parent = parent;
+    mesh.isPickable = false;
+    mesh.alwaysSelectAsActiveMesh = true;
+    mesh.isVisible = false;
+    return { mat, mesh };
+  };
+  const halo = make("halo", options.haloSize);
+  // The halo faces the camera, and a billboard under a turned, scaled parent lands off its place:
+  // it hangs from no parent, and is put at the lamp's world position every frame.
+  halo.mesh.billboardMode = Mesh.BILLBOARDMODE_ALL;
+  halo.mesh.parent = null;
+  const lamp = new Vector3(options.at.x, options.at.y, options.at.z);
+  const pool = make("pool", options.poolSize);
+  // Lying flat on the water: the quad faces up (its +Z turned to +Y).
+  pool.mesh.rotation.x = Math.PI / 2;
+  pool.mesh.position.set(options.at.x, options.water, options.at.z);
+  return {
+    update(time) {
+      const level = beaconLevel(SEA.grade.y, SEA.weather.y, SEA.weather.z);
+      const on = level > 0.01;
+      parent.computeWorldMatrix(true);
+      Vector3.TransformCoordinatesToRef(
+        lamp,
+        parent.getWorldMatrix(),
+        halo.mesh.position,
+      );
+      halo.mesh.scaling.setAll(parent.absoluteScaling.x);
+      halo.mesh.isVisible = on;
+      pool.mesh.isVisible = on;
+      if (!on) return 0;
+      // A flame's waver: two slow sines and a quick one, a few percent.
+      const waver =
+        1 +
+        0.04 * Math.sin(time * 5.3 + 1.1) +
+        0.03 * Math.sin(time * 9.7) +
+        0.03 * Math.sin(time * 2.1 + 0.4);
+      halo.mat.setFloat("level", 0.8 * level * waver);
+      pool.mat.setFloat("level", 0.42 * level * waver);
+      return Math.max(level * waver, 0);
+    },
+    hide() {
+      halo.mesh.isVisible = false;
+      pool.mesh.isVisible = false;
+    },
+    dispose() {
+      for (const part of [halo, pool]) {
+        part.mesh.dispose();
+        part.mat.dispose();
+      }
     },
   };
 }

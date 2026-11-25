@@ -20,6 +20,12 @@ export const PROBES = [
     label: "Thuyền lớn (mô hình bậc cao)",
     feature: true,
   },
+  {
+    name: "cats",
+    off: "0",
+    label: "Mèo chèo thuyền (NPC)",
+    feature: true,
+  },
   { name: "yards", off: "0", label: "Xưởng tàu (ba bến)", feature: true },
   { name: "scale", off: "1", label: "Ép độ phân giải 1x", feature: false },
 ] as const;

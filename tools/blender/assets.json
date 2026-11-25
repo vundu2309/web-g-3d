@@ -13,89 +13,49 @@
       "group": "bait",
       "source": "tools/blender/baits.py",
       "how": "export_all(out_dir)",
-      "nodes": [
-        "bait",
-        "body",
-        "hook"
-      ],
+      "nodes": ["bait", "body", "hook"],
       "maxTriangles": 570
     },
     "bait-giun.glb": {
       "group": "bait",
       "source": "tools/blender/baits.py",
       "how": "export_all(out_dir)",
-      "nodes": [
-        "bait",
-        "body",
-        "hook"
-      ],
+      "nodes": ["bait", "body", "hook"],
       "maxTriangles": 580
     },
     "bait-muc.glb": {
       "group": "bait",
       "source": "tools/blender/baits.py",
       "how": "export_all(out_dir)",
-      "nodes": [
-        "bait",
-        "body",
-        "hook"
-      ],
+      "nodes": ["bait", "body", "hook"],
       "maxTriangles": 610
     },
     "bait-tom.glb": {
       "group": "bait",
       "source": "tools/blender/baits.py",
       "how": "export_all(out_dir)",
-      "nodes": [
-        "bait",
-        "body",
-        "hook"
-      ],
+      "nodes": ["bait", "body", "hook"],
       "maxTriangles": 620
     },
     "boat-2.glb": {
       "group": "boat",
       "source": "tools/blender/upgrade_boats.py",
       "how": "export_all(out_dir)",
-      "nodes": [
-        "boat",
-        "canopy",
-        "deck",
-        "engine",
-        "flag",
-        "hull",
-        "lantern"
-      ],
+      "nodes": ["boat", "canopy", "deck", "engine", "flag", "hull", "lantern"],
       "maxTriangles": 5560
     },
     "boat-3.glb": {
       "group": "boat",
       "source": "tools/blender/upgrade_boats.py",
       "how": "export_all(out_dir)",
-      "nodes": [
-        "boat",
-        "canopy",
-        "deck",
-        "engine",
-        "flag",
-        "hull",
-        "lantern"
-      ],
+      "nodes": ["boat", "canopy", "deck", "engine", "flag", "hull", "lantern"],
       "maxTriangles": 5880
     },
     "boat-4.glb": {
       "group": "boat",
       "source": "tools/blender/upgrade_boats.py",
       "how": "export_all(out_dir)",
-      "nodes": [
-        "boat",
-        "canopy",
-        "deck",
-        "engine",
-        "flag",
-        "hull",
-        "lantern"
-      ],
+      "nodes": ["boat", "canopy", "deck", "engine", "flag", "hull", "lantern"],
       "maxTriangles": 8160
     },
     "boat-patrol.glb": {
@@ -117,313 +77,264 @@
       "group": "boat",
       "source": "tools/blender/upgrade_boats.py",
       "how": "export_all(out_dir)",
-      "nodes": [
-        "boat",
-        "canopy",
-        "deck",
-        "engine",
-        "flag",
-        "hull",
-        "lantern"
-      ],
+      "nodes": ["boat", "canopy", "deck", "engine", "flag", "hull", "lantern"],
       "maxTriangles": 3800
     },
     "bush-1.glb": {
       "group": "island-prop",
       "source": "tools/blender/props.py",
       "how": "export_glb(out_dir)",
-      "nodes": [
-        "bush-1"
-      ],
+      "nodes": ["bush-1"],
       "maxTriangles": 290
     },
     "bush-2.glb": {
       "group": "island-prop",
       "source": "tools/blender/props.py",
       "how": "export_glb(out_dir)",
-      "nodes": [
-        "bush-2"
-      ],
+      "nodes": ["bush-2"],
       "maxTriangles": 450
     },
     "bush-3.glb": {
       "group": "island-prop",
       "source": "tools/blender/props.py",
       "how": "export_glb(out_dir)",
-      "nodes": [
-        "bush-3"
-      ],
+      "nodes": ["bush-3"],
       "maxTriangles": 310
     },
     "cat-lan.glb": {
       "group": "vendor",
       "source": "tools/blender/vendors.py",
       "how": "export_glb(out_dir)",
-      "nodes": [
-        "arm-left",
-        "arm-right",
-        "body",
-        "head",
-        "tail",
-        "vendor-lan"
-      ],
+      "nodes": ["arm-left", "arm-right", "body", "head", "tail", "vendor-lan"],
       "maxTriangles": 3790
     },
     "cat-sau.glb": {
       "group": "vendor",
       "source": "tools/blender/vendors.py",
       "how": "export_glb(out_dir)",
-      "nodes": [
-        "arm-left",
-        "arm-right",
-        "body",
-        "head",
-        "tail",
-        "vendor-sau"
-      ],
+      "nodes": ["arm-left", "arm-right", "body", "head", "tail", "vendor-sau"],
       "maxTriangles": 3320
     },
     "cat-tu.glb": {
       "group": "vendor",
       "source": "tools/blender/vendors.py",
       "how": "export_glb(out_dir)",
-      "nodes": [
-        "arm-left",
-        "arm-right",
-        "body",
-        "head",
-        "tail",
-        "vendor-tu"
-      ],
+      "nodes": ["arm-left", "arm-right", "body", "head", "tail", "vendor-tu"],
       "maxTriangles": 3550
     },
     "fish-ca-he.glb": {
       "group": "fish",
       "source": "community",
       "how": "BlenderKit download, see docs/ocean.md 'Sea animal models'",
-      "nodes": [
-        "body",
-        "fish",
-        "hook"
-      ],
+      "nodes": ["body", "fish", "hook"],
       "maxTriangles": 11360
     },
     "fish-ca-heo.glb": {
       "group": "fish",
       "source": "community",
       "how": "BlenderKit download, see docs/ocean.md 'Sea animal models'",
-      "nodes": [
-        "body",
-        "fish",
-        "hook"
-      ],
+      "nodes": ["body", "fish", "hook"],
       "maxTriangles": 620
     },
     "fish-ca-madeka.glb": {
       "group": "fish",
       "source": "community",
       "how": "BlenderKit download, see docs/ocean.md 'Sea animal models'",
-      "nodes": [
-        "body",
-        "fish",
-        "hook"
-      ],
+      "nodes": ["body", "fish", "hook"],
       "maxTriangles": 6160
     },
     "fish-ca-map.glb": {
       "group": "fish",
       "source": "community",
       "how": "BlenderKit download, see docs/ocean.md 'Sea animal models'",
-      "nodes": [
-        "body",
-        "fish",
-        "hook"
-      ],
+      "nodes": ["body", "fish", "hook"],
       "maxTriangles": 7240
     },
     "fish-ca-ngua.glb": {
       "group": "fish",
       "source": "community",
       "how": "BlenderKit download, see docs/ocean.md 'Sea animal models'",
-      "nodes": [
-        "body",
-        "fish",
-        "hook"
-      ],
+      "nodes": ["body", "fish", "hook"],
       "maxTriangles": 36860
     },
     "fish-cua-bien.glb": {
       "group": "fish",
       "source": "community",
       "how": "BlenderKit download, see docs/ocean.md 'Sea animal models'",
-      "nodes": [
-        "body",
-        "fish",
-        "hook"
-      ],
+      "nodes": ["body", "fish", "hook"],
       "maxTriangles": 79610
     },
     "fish-rua-bien.glb": {
       "group": "fish",
       "source": "community",
       "how": "BlenderKit download, see docs/ocean.md 'Sea animal models'",
-      "nodes": [
-        "body",
-        "fish",
-        "hook"
-      ],
+      "nodes": ["body", "fish", "hook"],
       "maxTriangles": 17870
     },
     "fish-sao-bien.glb": {
       "group": "fish",
       "source": "community",
       "how": "BlenderKit download, see docs/ocean.md 'Sea animal models'",
-      "nodes": [
-        "body",
-        "fish",
-        "hook"
-      ],
+      "nodes": ["body", "fish", "hook"],
       "maxTriangles": 10950
     },
     "fish-sua.glb": {
       "group": "fish",
       "source": "community",
       "how": "BlenderKit download, see docs/ocean.md 'Sea animal models'",
-      "nodes": [
-        "body",
-        "fish",
-        "hook"
-      ],
+      "nodes": ["body", "fish", "hook"],
       "maxTriangles": 59940
     },
     "fish-tom-hum.glb": {
       "group": "fish",
       "source": "community",
       "how": "BlenderKit download, see docs/ocean.md 'Sea animal models'",
-      "nodes": [
-        "body",
-        "fish",
-        "hook"
-      ],
+      "nodes": ["body", "fish", "hook"],
       "maxTriangles": 10420
     },
     "hut.glb": {
       "group": "island-prop",
       "source": "tools/blender/props.py",
       "how": "export_glb(out_dir)",
-      "nodes": [
-        "hut"
-      ],
+      "nodes": ["hut"],
       "maxTriangles": 560
     },
     "palm-1.glb": {
       "group": "island-prop",
       "source": "tools/blender/props.py",
       "how": "export_glb(out_dir)",
-      "nodes": [
-        "palm-1"
-      ],
+      "nodes": ["palm-1"],
       "maxTriangles": 1020
     },
     "palm-2.glb": {
       "group": "island-prop",
       "source": "tools/blender/props.py",
       "how": "export_glb(out_dir)",
-      "nodes": [
-        "palm-2"
-      ],
+      "nodes": ["palm-2"],
       "maxTriangles": 1020
     },
     "palm-3.glb": {
       "group": "island-prop",
       "source": "tools/blender/props.py",
       "how": "export_glb(out_dir)",
-      "nodes": [
-        "palm-3"
-      ],
+      "nodes": ["palm-3"],
       "maxTriangles": 1020
     },
     "people-1.glb": {
       "group": "person",
       "source": "tools/blender/build.py",
       "how": "build_person(id, look)",
-      "nodes": [
-        "arm_wave",
-        "arm_wave_mesh",
-        "vendor_body"
-      ],
+      "nodes": ["arm_wave", "arm_wave_mesh", "vendor_body"],
       "maxTriangles": 5410
     },
     "people-2.glb": {
       "group": "person",
       "source": "tools/blender/build.py",
       "how": "build_person(id, look)",
-      "nodes": [
-        "arm_wave",
-        "arm_wave_mesh",
-        "vendor_body"
-      ],
+      "nodes": ["arm_wave", "arm_wave_mesh", "vendor_body"],
       "maxTriangles": 5410
     },
     "people-3.glb": {
       "group": "person",
       "source": "tools/blender/build.py",
       "how": "build_person(id, look)",
-      "nodes": [
-        "arm_wave",
-        "arm_wave_mesh",
-        "vendor_body"
-      ],
+      "nodes": ["arm_wave", "arm_wave_mesh", "vendor_body"],
       "maxTriangles": 5410
     },
     "people-4.glb": {
       "group": "person",
       "source": "tools/blender/build.py",
       "how": "build_person(id, look)",
-      "nodes": [
-        "arm_wave",
-        "arm_wave_mesh",
-        "vendor_body"
-      ],
+      "nodes": ["arm_wave", "arm_wave_mesh", "vendor_body"],
       "maxTriangles": 5410
     },
     "people-5.glb": {
       "group": "person",
       "source": "tools/blender/build.py",
       "how": "build_person(id, look)",
-      "nodes": [
-        "arm_wave",
-        "arm_wave_mesh",
-        "vendor_body"
-      ],
+      "nodes": ["arm_wave", "arm_wave_mesh", "vendor_body"],
       "maxTriangles": 5410
     },
     "rock-1.glb": {
       "group": "island-prop",
       "source": "tools/blender/props.py",
       "how": "export_glb(out_dir)",
-      "nodes": [
-        "rock-1"
-      ],
+      "nodes": ["rock-1"],
       "maxTriangles": 330
     },
     "rock-2.glb": {
       "group": "island-prop",
       "source": "tools/blender/props.py",
       "how": "export_glb(out_dir)",
-      "nodes": [
-        "rock-2"
-      ],
+      "nodes": ["rock-2"],
       "maxTriangles": 330
     },
     "rock-3.glb": {
       "group": "island-prop",
       "source": "tools/blender/props.py",
       "how": "export_glb(out_dir)",
-      "nodes": [
-        "rock-3"
-      ],
+      "nodes": ["rock-3"],
       "maxTriangles": 330
+    },
+    "rowboat.glb": {
+      "group": "rower",
+      "source": "tools/blender/rowers.py",
+      "how": "export_glb(out_dir)",
+      "nodes": ["hull", "rowboat"],
+      "maxTriangles": 1715
+    },
+    "rower-ginger.glb": {
+      "group": "rower",
+      "source": "tools/blender/rowers.py",
+      "how": "export_glb(out_dir)",
+      "nodes": [
+        "arm-left",
+        "arm-right",
+        "body",
+        "fore-left",
+        "fore-right",
+        "head",
+        "rower-ginger",
+        "tail"
+      ],
+      "maxTriangles": 1525
+    },
+    "rower-grey.glb": {
+      "group": "rower",
+      "source": "tools/blender/rowers.py",
+      "how": "export_glb(out_dir)",
+      "nodes": [
+        "arm-left",
+        "arm-right",
+        "body",
+        "fore-left",
+        "fore-right",
+        "head",
+        "rower-grey",
+        "tail"
+      ],
+      "maxTriangles": 1525
+    },
+    "rower-lantern.glb": {
+      "group": "rower",
+      "source": "tools/blender/rowers.py",
+      "how": "export_lantern(out_dir)",
+      "nodes": ["glass", "post", "rower-lantern"],
+      "maxTriangles": 666
+    },
+    "rower-oar-port.glb": {
+      "group": "rower",
+      "source": "tools/blender/rowers.py",
+      "how": "export_glb(out_dir)",
+      "nodes": ["oar", "oar-port"],
+      "maxTriangles": 241
+    },
+    "rower-oar-starboard.glb": {
+      "group": "rower",
+      "source": "tools/blender/rowers.py",
+      "how": "export_glb(out_dir)",
+      "nodes": ["oar", "oar-starboard"],
+      "maxTriangles": 241
     },
     "shipyard.glb": {
       "group": "shipyard",

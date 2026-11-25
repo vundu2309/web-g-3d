@@ -21,6 +21,7 @@ const GROUPS = new Set([
   "island-prop",
   "vendor",
   "person",
+  "rower",
   "fish",
 ]);
 
@@ -33,6 +34,7 @@ const NAMES = {
   "island-prop": /^(palm|rock|bush)-[1-9]\.glb$|^hut\.glb$/,
   vendor: /^cat-[a-z]+\.glb$/,
   person: /^people-[1-9]\.glb$/,
+  rower: /^rowboat\.glb$|^rower-[a-z]+(-[a-z]+)*\.glb$/,
   fish: /^fish-[a-z]+(-[a-z]+)*\.glb$/,
 };
 

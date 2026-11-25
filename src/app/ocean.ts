@@ -778,7 +778,14 @@ export function startOcean(
         lastMap = now;
         minimap.update(
           active && connection ? { ...pose, uid: connection.uid } : undefined,
-          shown.filter((boat) => boat.uid !== connection?.uid),
+          [
+            ...shown.filter((boat) => boat.uid !== connection?.uid),
+            ...scene.catBoats().map((boat, index) => ({
+              ...boat,
+              uid: `cat-${index}`,
+              fishing: false,
+            })),
+          ],
           now / 1000,
         );
       }
@@ -1018,6 +1025,8 @@ export function startOcean(
         throw new HubError("Đã rời biển.");
       }
       scene = created;
+      // The NPC rowing cats follow the server's clock, so every player sees them at the same places.
+      created.setSharedClock(() => (Date.now() + clockOffset) / 1000);
       options.onScene?.(created);
       // The loading screen stays until the sea, the boats and their shaders are really
       // ready, so the map never pops in half built (bounded: a stuck shader must not
