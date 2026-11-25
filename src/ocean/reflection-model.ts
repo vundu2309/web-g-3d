@@ -27,7 +27,16 @@ const NEVER = new Set([
   "rain",
 ]);
 // "wild-": the living animals (wildlife-scene.ts), some of them tens of thousands of triangles.
-const NEVER_PREFIX = ["swash-", "gear-ring-", "beacon", "seabed-", "wild-"];
+// "plane-", "banner-": the seaplanes high over the sea, a few blurred pixels in the half-size mirror.
+const NEVER_PREFIX = [
+  "swash-",
+  "gear-ring-",
+  "beacon",
+  "seabed-",
+  "wild-",
+  "plane-",
+  "banner-",
+];
 /**
  * Small props (palms, rocks, bushes, huts) and the fish schools are left out of the mirror on a
  * touch screen: the mirror draws the scene a second time, and a palm's reflection is a few blurred

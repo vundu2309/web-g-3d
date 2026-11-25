@@ -75,6 +75,7 @@ import { edgeIndicator, separateLabels } from "./indicator.ts";
 import { ScaleGovernor } from "./render-scale.ts";
 import { loadRowerAssets } from "./cat-boat.ts";
 import { CatFleet } from "./cat-fleet.ts";
+import { PlaneFleet } from "./plane-fleet.ts";
 import { createSeaReflection } from "./reflection.ts";
 import { createClearWater, type ClearWater } from "./clear-water-pass.ts";
 import { ClearWaterGovernor } from "./clear-water.ts";
@@ -167,6 +168,8 @@ export class OceanScene {
   private clock = 0;
   /** The NPC rowing cats (cat-fleet.ts), once their models have loaded; `sharedClock` is the clock they follow (seconds). */
   private cats: CatFleet | undefined;
+  /** The NPC seaplanes towing banners (plane-fleet.ts); `?planes=0` leaves them out. */
+  private planes: PlaneFleet | undefined;
   private sharedClock: () => number = () => Date.now() / 1000;
   private viewHeading = 0;
   private viewReady = false;
@@ -314,6 +317,12 @@ export class OceanScene {
         })
         .catch((error) => console.warn("No rowing cats.", error));
     this.boatLoad = this.ensureBoatModels(0);
+    // The NPC seaplanes towing a banner for the game, on the shared clock like the cats. `?planes=0` leaves them out.
+    if (probe("planes") !== "0")
+      this.planes = new PlaneFleet(this.scene, {
+        range: touch ? 380 : 560,
+        limit: touch ? 2 : 3,
+      });
     this.islandProps = this.placeIslandModels(visuals);
     // A fish market on the water off each island.
     this.markets = MARKETS.map((market) => createMarket(this.scene, market));
@@ -594,6 +603,11 @@ export class OceanScene {
   /** The clock the NPC rowing cats follow (seconds): the server's, so every player sees them at the same places. */
   setSharedClock(seconds: () => number) {
     this.sharedClock = seconds;
+  }
+
+  /** The NPC seaplanes, when there are any (`?planes=0` has none). */
+  skyPlanes(): PlaneFleet | undefined {
+    return this.planes;
   }
 
   /** Where the NPC rowing cats are now, for the minimap. */
@@ -973,6 +987,7 @@ export class OceanScene {
       this.camera.position,
       (x, z) => waveHeight(x, z, this.clock) + this.sim.sample(x, z).height,
     );
+    this.planes?.update(this.sharedClock(), this.clock, this.camera.position);
     this.schools.update(this.clock, this.camera.position, [
       ...(this.self ? [this.self.physics.state()] : []),
       ...this.fleet.values(),
@@ -1301,6 +1316,7 @@ export class OceanScene {
     this.observer.disconnect();
     for (const craft of this.fleet.values()) craft.label.remove();
     this.gear?.dispose();
+    this.planes?.dispose();
     this.clearWater?.dispose();
     this.seaProps.dispose();
     this.seabed.dispose();

@@ -46,6 +46,9 @@ test("the mirror holds the sky, islands, props, markets and boats but never the 
     "gear-ring-4",
     "gear-marker",
     "gear-shadow",
+    "plane-body-0",
+    "plane-prop-2",
+    "banner-1",
   ])
     assert.ok(!reflectsInWater(name), `${name} is not mirrored`);
 });

@@ -20,6 +20,7 @@ const GROUPS = {
     "ocean-market",
     "ocean-server-store",
     "ocean-rank",
+    "ocean-planes",
     "ocean-input",
     "ocean-steer",
     "ocean-stick",
