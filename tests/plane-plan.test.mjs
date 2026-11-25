@@ -8,8 +8,11 @@ import {
   PlaneSim,
   STEP,
   cycleOf,
+  homes,
   makePlans,
 } from "../src/ocean/plane-plan.ts";
+import { HARBOR } from "../src/ocean/model.ts";
+import { SHORE_ISLANDS } from "../src/ocean/shore.ts";
 
 const plans = makePlans();
 const poseOf = (sim, shared) => {
@@ -96,21 +99,21 @@ test("a flight begins and ends out of sight: at the change of flights the plane 
   }
 });
 
-test("mid-flight the planes are over the sea, and they turn at random: many headings, both sides", () => {
-  let overSea = 0;
+test("mid-flight each plane stays over its home, and turns at random: many headings, both sides", () => {
   for (const plan of plans) {
     const sim = new PlaneSim(plan);
     const { start } = cycleOf(plan, NOW);
     const headings = new Set();
     let rights = 0;
     let lefts = 0;
-    for (let t = start + 150; t < start + plan.period - LEAVE; t += 0.5) {
+    // Skip the way in from the ring (a far home takes about 170 s) and stop when it starts to leave.
+    for (let t = start + 260; t < start + plan.period - LEAVE; t += 0.5) {
       const p = poseOf(sim, t);
-      if (dist(p) < FLIGHT.roam * 1.7) overSea++;
-      else
-        assert.fail(
-          `plane ${plan.index} strayed ${dist(p).toFixed(0)} m at ${t - start} s`,
-        );
+      const away = Math.hypot(p.x - plan.home.x, p.z - plan.home.z);
+      assert.ok(
+        away < FLIGHT.roam * 1.7,
+        `plane ${plan.index} strayed ${away.toFixed(0)} m from its home at ${t - start} s`,
+      );
       headings.add(Math.round(p.heading * 3));
       if (sim.cur.rate > 0.05) rights++;
       if (sim.cur.rate < -0.05) lefts++;
@@ -124,7 +127,52 @@ test("mid-flight the planes are over the sea, and they turn at random: many head
       `plane ${plan.index}: rights ${rights}, lefts ${lefts}`,
     );
   }
-  assert.ok(overSea > 1000);
+});
+
+test("planes are given homes where players are: the harbour has the most, the rest are islands", () => {
+  const places = homes();
+  assert.deepEqual(places[0], { x: HARBOR.x, z: HARBOR.z });
+  for (const place of places.slice(1))
+    assert.ok(
+      SHORE_ISLANDS.some((i) => i.x === place.x && i.z === place.z),
+      "a home is an island",
+    );
+  const count = (home) =>
+    plans.filter((p) => p.home.x === home.x && p.home.z === home.z).length;
+  assert.equal(count(places[0]), 3, "three planes over the harbour");
+  assert.ok(
+    places.every((p) => count(p) >= 1),
+    "every home has a plane",
+  );
+  // The islands nearest the harbour come first and get the extra planes.
+  const d = (p) => Math.hypot(p.x - HARBOR.x, p.z - HARBOR.z);
+  for (let i = 2; i < places.length; i++)
+    assert.ok(d(places[i]) >= d(places[i - 1]) - 1e-9);
+  assert.ok(count(places[1]) >= 2 && count(places[2]) >= 2);
+});
+
+test("a player at the harbour or at a near island has a plane in sight almost all of the time", () => {
+  // Counted over two hours of the shared clock, every 5 s: a plane within the range a phone draws (450 m).
+  const sims = plans.map((plan) => new PlaneSim(plan));
+  const spots = [HARBOR, ...homes().slice(1, 3)];
+  const near = spots.map(() => 0);
+  const close = spots.map(() => 0);
+  let samples = 0;
+  for (let t = NOW; t < NOW + 7200; t += 5) {
+    const here = sims.map((sim) => ({ ...poseOf(sim, t) }));
+    spots.forEach((spot, i) => {
+      const nearest = Math.min(
+        ...here.map((p) => Math.hypot(p.x - spot.x, p.z - spot.z)),
+      );
+      if (nearest < 450) near[i]++;
+      if (nearest < 200) close[i]++;
+    });
+    samples++;
+  }
+  spots.forEach((_, i) => {
+    assert.ok(near[i] / samples > 0.9, `${i}: in 450 m ${near[i] / samples}`);
+    assert.ok(close[i] / samples > 0.3, `${i}: in 200 m ${close[i] / samples}`);
+  });
 });
 
 test("different planes fly different ways, and the same plane flies a different flight next time", () => {

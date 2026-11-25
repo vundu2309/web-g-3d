@@ -2,7 +2,7 @@
  * How an NPC seaplane flies, as plain numbers (no Babylon, so tests read it directly). Each plane
  * holds a speed and turns to a new random direction every few seconds, never faster than a plane
  * can bank, climbs and sinks between random heights, and is led back when it strays too far from
- * the middle of the sea.
+ * its HOME (a place players spend their time: the harbour or an island, see plane-plan.ts).
  *
  * The flight is deterministic: `spawnFlight(seed)` and fixed steps of `stepFlight` give the same
  * plane on every device, which is how every player sees the same planes at the same places
@@ -16,6 +16,9 @@ export interface Point {
   z: number;
 }
 
+/** The middle of the sea: flights begin and end on a ring round it, out beyond the edge. */
+export const SEA_MIDDLE: Point = { x: 0, z: 0 };
+
 export const FLIGHT = {
   /** Cruise speed (m/s), one value per plane. */
   speed: { min: 20, max: 27 },
@@ -26,12 +29,12 @@ export const FLIGHT = {
   /** The fastest the heading may change (rad/s) and how quickly that rate may build (rad/s²). */
   maxRate: 0.32,
   rateAccel: 0.25,
-  /** Farther than this (m) from the middle a plane is led home; it keeps turning at random inside. */
-  roam: 900,
-  /** A flight begins this far (m) from the middle, flying in, and ends this far out: beyond sight of any boat. */
+  /** Farther than this (m) from its home a plane is led back; it keeps turning at random inside. */
+  roam: 450,
+  /** A flight begins this far (m) from the middle of the sea, flying in, and ends this far out: beyond sight of any boat. */
   ring: 2300,
   /** Height above the sea (m) and the fastest it may climb or sink (m/s). */
-  altitude: { min: 55, max: 100 },
+  altitude: { min: 50, max: 85 },
   climb: 3.5,
   /** Bank (rad) per rad/s of turn, and the most a plane leans. */
   bankGain: 1.7,
@@ -88,8 +91,8 @@ export const wrap = (angle: number) => {
 export const headingTo = (from: Point, to: Point) =>
   Math.atan2(to.x - from.x, -(to.z - from.z));
 
-/** A plane that begins its flight on the ring round `centre`, heading in. */
-export function spawnFlight(seed: number, centre: Point): Flight {
+/** A plane that begins its flight on the ring round the middle of the sea, heading in toward its `home`. */
+export function spawnFlight(seed: number, home: Point): Flight {
   const flight: Flight = {
     x: 0,
     z: 0,
@@ -107,9 +110,9 @@ export function spawnFlight(seed: number, centre: Point): Flight {
     rng: seed | 0,
   };
   const angle = next(flight) * Math.PI * 2;
-  flight.x = centre.x + Math.cos(angle) * FLIGHT.ring;
-  flight.z = centre.z + Math.sin(angle) * FLIGHT.ring;
-  flight.heading = wrap(headingTo(flight, centre) + (next(flight) - 0.5) * 0.6);
+  flight.x = SEA_MIDDLE.x + Math.cos(angle) * FLIGHT.ring;
+  flight.z = SEA_MIDDLE.z + Math.sin(angle) * FLIGHT.ring;
+  flight.heading = wrap(headingTo(flight, home) + (next(flight) - 0.5) * 0.6);
   flight.targetHeading = flight.heading;
   flight.altitude = between(flight, FLIGHT.altitude);
   flight.targetAltitude = flight.altitude;
@@ -126,21 +129,21 @@ export function leave(flight: Flight) {
 }
 
 /** Chooses the next leg: a random turn, or the way home when it has strayed. */
-function chooseLeg(flight: Flight, centre: Point) {
+function chooseLeg(flight: Flight, home: Point) {
   flight.legLeft = between(flight, FLIGHT.leg);
   flight.targetAltitude = between(flight, FLIGHT.altitude);
   if (flight.leaving) {
-    // Straight out over the edge of the sea, a little off the radial so the planes do not all leave alike.
+    // Straight out over the edge of the sea (away from its middle), a little off the radial so the planes do not all leave alike.
     flight.targetHeading = wrap(
-      headingTo(centre, flight) + (next(flight) - 0.5) * 0.5,
+      headingTo(SEA_MIDDLE, flight) + (next(flight) - 0.5) * 0.5,
     );
     return;
   }
-  const away = Math.hypot(flight.x - centre.x, flight.z - centre.z);
+  const away = Math.hypot(flight.x - home.x, flight.z - home.z);
   if (away > FLIGHT.roam) {
     flight.homing = true;
     flight.targetHeading = wrap(
-      headingTo(flight, centre) + (next(flight) - 0.5) * 0.8,
+      headingTo(flight, home) + (next(flight) - 0.5) * 0.8,
     );
     return;
   }
@@ -151,11 +154,11 @@ function chooseLeg(flight: Flight, centre: Point) {
   );
 }
 
-/** Flies `dt` seconds (in place). `centre` is the middle of the sea the planes are kept over. */
-export function stepFlight(flight: Flight, dtSeconds: number, centre: Point) {
+/** Flies `dt` seconds (in place). `home` is the place the plane is kept over. */
+export function stepFlight(flight: Flight, dtSeconds: number, home: Point) {
   const dt = clamp(dtSeconds, 0, FLIGHT.maxStep);
   if (dt === 0) return;
-  const away = Math.hypot(flight.x - centre.x, flight.z - centre.z);
+  const away = Math.hypot(flight.x - home.x, flight.z - home.z);
   // A leaving plane keeps to the way out chosen when it began to leave (`leave`).
   if (!flight.leaving) {
     if (!flight.homing && away > FLIGHT.roam * 1.3) flight.legLeft = 0;
@@ -165,7 +168,7 @@ export function stepFlight(flight: Flight, dtSeconds: number, centre: Point) {
     }
   }
   flight.legLeft -= dt;
-  if (flight.legLeft <= 0) chooseLeg(flight, centre);
+  if (flight.legLeft <= 0) chooseLeg(flight, home);
 
   // The heading eases toward its target: the turn rate builds up and dies away, never a snap.
   const wanted = clamp(

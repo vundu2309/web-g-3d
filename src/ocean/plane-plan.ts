@@ -1,5 +1,7 @@
 import { TowTrail } from "./banner.ts";
+import { HARBOR } from "./model.ts";
 import {
+  SEA_MIDDLE,
   leave,
   spawnFlight,
   stepFlight,
@@ -7,6 +9,7 @@ import {
   type Flight,
   type Point,
 } from "./plane-flight.ts";
+import { SHORE_ISLANDS } from "./shore.ts";
 
 /**
  * Where the NPC seaplanes are, on the SHARED clock: the server's time the app already follows
@@ -20,14 +23,17 @@ import {
  * calls for. So the place of a plane at a given shared time is the same on every device, and the
  * direction changes are as random as a free-flying plane's.
  *
- * A flight begins on a ring far out at sea, heading in, and ends by flying out over the edge, so
- * the jump from one flight to the next happens where no boat can see it.
+ * Each plane has a HOME, a place players spend their time (the harbour or one of the nearest
+ * islands, the harbour with the most planes), and roams within a few hundred metres of it, so a
+ * player always has planes about. A flight begins on a ring far out at sea, heading in toward its
+ * home, and ends by flying out over the edge, so the jump from one flight to the next happens
+ * where no boat can see it.
  */
-export const PLANES = 8;
+export const PLANES = 12;
 /** The simulation step (s): fixed, so every device takes the same ones. */
 export const STEP = 0.25;
-/** The middle of the sea the planes are kept over. */
-export const CENTRE: Point = { x: 0, z: 0 };
+/** The middle of the sea, round which flights begin and end. */
+export const CENTRE: Point = SEA_MIDDLE;
 /** A plane starts to leave this long (s) before the end of its flight. */
 export const LEAVE = 200;
 /** The path behind the plane is kept for this many of the last steps of a replay. */
@@ -38,13 +44,40 @@ export interface PlanePlan {
   /** How long a flight lasts (s) and where the first one stands in time, so planes do not begin together. */
   period: number;
   offset: number;
+  /** The place it roams over. */
+  home: Point;
+}
+
+/**
+ * The places planes roam over: the harbour first, then the islands nearest to it. Planes are given
+ * a home in this order, round and round, with extra planes at the first three (the harbour, where
+ * players start, and the two islands nearest it).
+ */
+export function homes(): Point[] {
+  const near = [...SHORE_ISLANDS]
+    .sort(
+      (a, b) =>
+        Math.hypot(a.x - HARBOR.x, a.z - HARBOR.z) -
+        Math.hypot(b.x - HARBOR.x, b.z - HARBOR.z),
+    )
+    .slice(0, 7)
+    .map((island) => ({ x: island.x, z: island.z }));
+  return [{ x: HARBOR.x, z: HARBOR.z }, ...near];
 }
 
 /** The plans of the sea's planes: the same on every device. */
 export function makePlans(): PlanePlan[] {
+  const places = homes();
+  // Eight places, one plane each, then four more at the three busiest.
+  const order = [0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 0];
   return Array.from({ length: PLANES }, (_, index) => {
     const period = 640 + index * 53;
-    return { index, period, offset: (index * 197.3) % period };
+    return {
+      index,
+      period,
+      offset: (index * 197.3) % period,
+      home: places[order[index % order.length]!]!,
+    };
   });
 }
 
@@ -84,7 +117,7 @@ export class PlaneSim {
 
   constructor(plan: PlanePlan) {
     this.plan = plan;
-    this.cur = spawnFlight(seedOf(plan, 0), CENTRE);
+    this.cur = spawnFlight(seedOf(plan, 0), plan.home);
     this.prev = { ...this.cur };
   }
 
@@ -93,7 +126,7 @@ export class PlaneSim {
     this.start = start;
     this.steps = 0;
     this.trailing = false;
-    this.cur = spawnFlight(seedOf(this.plan, cycle), CENTRE);
+    this.cur = spawnFlight(seedOf(this.plan, cycle), this.plan.home);
     this.prev = { ...this.cur };
   }
 
@@ -107,7 +140,7 @@ export class PlaneSim {
     while (this.steps < target) {
       copyFlight(this.prev, this.cur);
       if (this.steps === leaveStep) leave(this.cur);
-      stepFlight(this.cur, STEP, CENTRE);
+      stepFlight(this.cur, STEP, this.plan.home);
       this.steps++;
       // The path is kept up to the step BEFORE the last one: the plane is drawn between the two,
       // and a sample ahead of it would fold the banner's rope back on itself.

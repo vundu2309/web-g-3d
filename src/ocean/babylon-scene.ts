@@ -343,8 +343,8 @@ export class OceanScene {
     // The NPC seaplanes towing a banner for the game, on the shared clock like the cats. `?planes=0` leaves them out.
     if (probe("planes") !== "0")
       this.planes = new PlaneFleet(this.scene, {
-        range: touch ? 380 : 560,
-        limit: touch ? 2 : 3,
+        range: touch ? 450 : 600,
+        limit: touch ? 3 : 4,
       });
     this.islandProps = this.placeIslandModels(visuals);
     // A fish market on the water off each island.
