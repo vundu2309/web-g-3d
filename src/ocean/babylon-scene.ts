@@ -1116,12 +1116,7 @@ export class OceanScene {
     );
     this.rain.update(this.clock);
     for (const beacon of this.beacons) beacon.update(this.clock);
-    this.sky.update(
-      this.camera.position.x,
-      this.camera.position.y,
-      this.camera.position.z,
-      this.clock,
-    );
+    this.sky.update(this.clock);
     this.clearWater?.update(this.clock, this.camera.position);
     this.engine.beginFrame();
     this.scene.render();

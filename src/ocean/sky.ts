@@ -108,7 +108,8 @@ export interface Sky {
   mesh: Mesh;
   /** The sun and moon discs are drawn, or not (the sea's mirror leaves them out: the water adds its own glitter). */
   showSun(on: boolean): void;
-  update(cameraX: number, cameraY: number, cameraZ: number, time: number): void;
+  /** Each frame: the dome is kept on the camera by Babylon itself (`infiniteDistance`), so only the clock is needed. */
+  update(time: number): void;
 }
 
 export function createSky(scene: Scene): Sky {
@@ -136,6 +137,11 @@ export function createSky(scene: Scene): Sky {
   bindAtmosphere(material);
   material.setFloat("sunDisc", 1);
   mesh.material = material;
+  // `infiniteDistance` puts the dome on the camera by itself: its world position is the camera's PLUS
+  // `position`. The position must therefore stay zero. (It was once set to the camera's too, which
+  // doubled it: harmless near the middle of the sea, but past about 1,200 m, the dome's radius, the
+  // camera was outside the dome and the sky showed its edge as a white shape.)
+  mesh.position.setAll(0);
   mesh.infiniteDistance = true;
   mesh.renderingGroupId = 0;
   mesh.isPickable = false;
@@ -145,8 +151,7 @@ export function createSky(scene: Scene): Sky {
     showSun(on) {
       material.setFloat("sunDisc", on ? 1 : 0);
     },
-    update(cameraX, cameraY, cameraZ, time) {
-      mesh.position.set(cameraX, cameraY, cameraZ);
+    update(time) {
       material.setFloat("time", time);
     },
   };

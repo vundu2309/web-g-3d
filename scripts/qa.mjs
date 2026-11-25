@@ -21,6 +21,7 @@ const GROUPS = {
     "ocean-server-store",
     "ocean-rank",
     "ocean-planes",
+    "ocean-edge",
     "ocean-input",
     "ocean-steer",
     "ocean-stick",
