@@ -1,5 +1,7 @@
 import { cueVoices, type Cue } from "../ocean/audio-cues";
+import { BAR_SECONDS, gullIn, musicBar } from "../ocean/audio-life";
 import {
+  nearShore,
   parseAudioSettings,
   soundPlan,
   type AudioSettings,
@@ -66,6 +68,13 @@ export function createSeaAudio(): SeaAudio {
         engineOsc: OscillatorNode;
         line: GainNode;
         lineOsc: OscillatorNode;
+        hull: GainNode;
+        hullFilter: BiquadFilterNode;
+        surf: GainNode;
+        surfFilter: BiquadFilterNode;
+        plane: GainNode;
+        planeOsc: OscillatorNode;
+        music: GainNode;
         noise: AudioBuffer;
       }
     | undefined;
@@ -99,6 +108,25 @@ export function createSeaAudio(): SeaAudio {
     lfo.connect(depth).connect(swell.filter.frequency);
     lfo.start();
     const wind = layer("bandpass", 600, 0.5);
+    // The hull's rush of spray and the surf on a beach: noise through their own filters (the
+    // surf's level breathes in `apply`, like waves arriving, one every ~9 s).
+    const hull = layer("bandpass", 1200, 0.6);
+    const surf = layer("lowpass", 700, 0.6);
+    // A seaplane's engine: a low buzz through a filter (its level follows the distance).
+    const planeOsc = context.createOscillator();
+    planeOsc.type = "sawtooth";
+    planeOsc.frequency.value = 100;
+    const planeFilter = context.createBiquadFilter();
+    planeFilter.type = "lowpass";
+    planeFilter.frequency.value = 700;
+    const plane = context.createGain();
+    plane.gain.value = 0;
+    planeOsc.connect(planeFilter).connect(plane).connect(context.destination);
+    planeOsc.start();
+    // The music has its own master gain, so it can be switched off alone.
+    const music = context.createGain();
+    music.gain.value = 0;
+    music.connect(context.destination);
     const rain = layer("highpass", 3200, 0.5);
     const engineOsc = context.createOscillator();
     engineOsc.type = "sawtooth";
@@ -131,6 +159,13 @@ export function createSeaAudio(): SeaAudio {
       engineOsc,
       line,
       lineOsc,
+      hull: hull.gain,
+      hullFilter: hull.filter,
+      surf: surf.gain,
+      surfFilter: surf.filter,
+      plane,
+      planeOsc,
+      music,
       noise: buffer,
     };
   }
@@ -176,6 +211,79 @@ export function createSeaAudio(): SeaAudio {
     ramp(nodes.engineOsc.frequency, plan.enginePitch);
     ramp(nodes.line.gain, plan.line);
     ramp(nodes.lineOsc.frequency, plan.linePitch);
+    ramp(nodes.hull.gain, plan.hull);
+    ramp(nodes.hullFilter.frequency, plan.hullCutoff);
+    // The surf breathes: its level swings by a third around the plan's.
+    ramp(
+      nodes.surf.gain,
+      plan.surf * (0.75 + 0.25 * Math.sin(ctx.currentTime * 0.7)),
+    );
+    ramp(nodes.surfFilter.frequency, plan.surfCutoff);
+    ramp(nodes.plane.gain, plan.plane);
+    ramp(nodes.planeOsc.frequency, plan.planePitch);
+    const music =
+      settings.enabled && settings.music ? settings.volume * 0.9 : 0;
+    nodes.music.gain.setTargetAtTime(music, ctx.currentTime, 0.8);
+  }
+
+  /** The gulls and the music are scheduled a little ahead of the audio clock, once a second. */
+  let nextGull = 0;
+  let musicBarAt = 0;
+  let musicBarNo = Math.floor(Date.now() / (BAR_SECONDS * 1000));
+  function tick() {
+    if (!ctx || !nodes || ctx.state !== "running" || disposed) return;
+    const now = ctx.currentTime;
+    const daylight = last.daylight ?? 1;
+    if (settings.enabled && settings.volume > 0) {
+      // Gulls: only by day and near a beach.
+      if (nextGull === 0) nextGull = now + 3;
+      if (now >= nextGull) {
+        const wait = gullIn(Math.random, nearShore(last.shore), daylight);
+        if (wait === undefined) nextGull = now + 4;
+        else {
+          nextGull = now + wait;
+          api.play("gull");
+        }
+      }
+      // Music: the next bar is started when the previous one is about to end.
+      if (settings.music) {
+        if (musicBarAt === 0) musicBarAt = now + 0.5;
+        while (musicBarAt < now + 2) {
+          for (const note of musicBar(musicBarNo, daylight))
+            musicNote(ctx, nodes.music, musicBarAt + note.at, note);
+          musicBarNo++;
+          musicBarAt += BAR_SECONDS;
+        }
+      } else musicBarAt = 0;
+    }
+  }
+  const ticker = window.setInterval(tick, 1000);
+
+  /** One note of the music: a slow swell up and a long fade, through a soft filter. */
+  function musicNote(
+    context: AudioContext,
+    out: AudioNode,
+    start: number,
+    note: ReturnType<typeof musicBar>[number],
+  ) {
+    const end = start + note.dur;
+    const osc = context.createOscillator();
+    osc.type = note.wave;
+    osc.frequency.value = note.freq;
+    const filter = context.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = 1400;
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.linearRampToValueAtTime(
+      note.gain,
+      start + Math.min(2.2, note.dur * 0.4),
+    );
+    gain.gain.exponentialRampToValueAtTime(0.0001, end);
+    osc.connect(filter).connect(gain).connect(out);
+    osc.onended = () => gain.disconnect();
+    osc.start(start);
+    osc.stop(end + 0.05);
   }
 
   /** One voice of a cue: built, shaped by a quick attack and an exponential fade, then freed. */
@@ -224,12 +332,13 @@ export function createSeaAudio(): SeaAudio {
     source.stop(end + 0.02);
   }
 
-  return {
+  const api: SeaAudio = {
     settings: () => ({ ...settings }),
     set(next) {
       settings = {
         enabled: next.enabled ?? settings.enabled,
         volume: Math.max(0, Math.min(1, next.volume ?? settings.volume)),
+        music: next.music ?? settings.music,
       };
       try {
         localStorage.setItem(AUDIO_KEY, JSON.stringify(settings));
@@ -254,9 +363,11 @@ export function createSeaAudio(): SeaAudio {
       disposed = true;
       for (const name of gestures) window.removeEventListener(name, unlock);
       document.removeEventListener("visibilitychange", visibility);
+      clearInterval(ticker);
       void ctx?.close().catch(() => {});
       ctx = undefined;
       nodes = undefined;
     },
   };
+  return api;
 }

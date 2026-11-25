@@ -35,3 +35,16 @@ test("the bite is two notes and the sale is brighter than the error", () => {
   assert.ok(bite[1].at > bite[0].at && bite[1].from > bite[0].from);
   assert.ok(CUES.coin[0].from > CUES.error[0].from * 4);
 });
+
+test("the interface cues are short and distinct, and a buy is the richest of them", () => {
+  for (const name of ["tap", "open", "close", "buy", "gull"])
+    assert.ok(CUES[name], name);
+  // Opening rises and closing falls.
+  assert.ok(CUES.open[0].to > CUES.open[0].from);
+  assert.ok(CUES.close[0].to < CUES.close[0].from);
+  assert.ok(CUES.tap[0].dur < 0.1, "a tap is a tick");
+  assert.ok(CUES.buy.length > CUES.coin.length, "more notes than a sale");
+  // The gull cries twice, each falling.
+  assert.equal(CUES.gull.length, 2);
+  for (const v of CUES.gull) assert.ok(v.to < v.from);
+});
