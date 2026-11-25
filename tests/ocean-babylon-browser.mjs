@@ -149,10 +149,9 @@ try {
 
   // Labels follow the boats and the player's own is marked.
   const labels = await page.evaluate(() =>
-    [...document.querySelectorAll(".ocean-boat-label")].map((l) => [
-      l.textContent,
-      l.hidden,
-    ]),
+    [...document.querySelectorAll(".ocean-boat-label:not(.is-npc)")].map(
+      (l) => [l.textContent, l.hidden],
+    ),
   );
   assert.deepEqual(labels.map(([name]) => name).sort(), ["Bạn", "Lan", "Minh"]);
   assert.equal(await page.locator(".ocean-boat-label.is-self").count(), 1);

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readGlb } from "./support/glb.mjs";
 import {
   BOAT_TIERS,
+  PATROL_BOX,
   PATROL_FILE,
   PATROL_HULL_TIER,
   PATROL_MODEL,
@@ -58,6 +59,30 @@ test("it fits the family: a hull between the flagship's and the trawler's length
   assert.ok(
     Math.abs(length - 10.4) < 0.25 && Math.abs(length - borrowed) < 1,
     `hull ${length.toFixed(2)} m long, built 10.4 m, borrowing the ${borrowed} m numbers of tier ${PATROL_HULL_TIER}`,
+  );
+});
+
+test("the collision box is the hull's: its length, and a beam inside the model's (the fenders hang outside the box)", () => {
+  const xs = [];
+  const zs = [];
+  const hull = node("hull");
+  const t = hull.translation ?? [0, 0, 0];
+  for (const p of gltf.meshes[hull.mesh].primitives) {
+    const a = accessor(p.attributes.POSITION);
+    for (let i = 0; i < a.count; i++) {
+      xs.push(a.data[i * 3] + t[0]);
+      zs.push(a.data[i * 3 + 2] + t[2]);
+    }
+  }
+  const beam = Math.max(...xs) - Math.min(...xs);
+  const length = Math.max(...zs) - Math.min(...zs);
+  assert.ok(
+    Math.abs(length - PATROL_BOX.length) < 0.3,
+    `box ${PATROL_BOX.length} m long, hull ${length.toFixed(2)} m`,
+  );
+  assert.ok(
+    PATROL_BOX.width < beam && PATROL_BOX.width > beam - 0.6,
+    `box ${PATROL_BOX.width} m wide, model ${beam.toFixed(2)} m with its fenders`,
   );
 });
 

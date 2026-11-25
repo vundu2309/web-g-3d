@@ -27,6 +27,12 @@ export const BOAT_TIER_COUNT = 4;
 export const PATROL_MODEL = 4;
 export const PATROL_HULL_TIER = 3;
 export const PATROL_FILE = "boat-patrol.glb";
+/**
+ * The box a patrol ship collides with (m): its hull's length and the width a hull of its beam has
+ * (the same share of the beam as the boats' boxes), measured on boat-patrol.glb
+ * (tests/patrol-boat.test.mjs). No booms or mast in it, like every other box.
+ */
+export const PATROL_BOX = { width: 3.6, length: 10.4 } as const;
 
 /** Hull mass (kg), the same for every tier: a better boat is not heavier to push. */
 export const HULL_MASS = 900;

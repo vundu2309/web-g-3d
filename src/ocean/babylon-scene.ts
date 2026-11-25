@@ -30,6 +30,7 @@ import {
 } from "./boat-model.ts";
 import { boatLevelOf } from "./boat-lod.ts";
 import {
+  PATROL_BOX,
   PATROL_MODEL,
   boatTier,
   boatTierIndex,
@@ -57,6 +58,12 @@ import {
   turnLead,
 } from "./chase-camera.ts";
 import { MARKETS, seaObstacles } from "./market.ts";
+import { PATROL_SPEED } from "./patrol-routes.ts";
+import {
+  createPatrolLights,
+  updateLensGlow,
+  type PatrolLights,
+} from "./patrol-lights.ts";
 import { createMarket } from "./market-visual.ts";
 import { createShipyards, type ShipyardVisuals } from "./shipyard-visual.ts";
 import { SHIPYARDS } from "./shipyard.ts";
@@ -109,6 +116,8 @@ interface Craft {
   offline?: boolean;
   /** A boat nobody owns, sailed by the clock (patrol-routes.ts): no rod, no line, no name arrow. */
   npc?: boolean;
+  /** A patrol ship's lights (patrol-lights.ts): made once its own model, with the light-bar lenses, has loaded. */
+  lights?: PatrolLights;
   line?: Mesh;
   // Smoothed display pose of a remote boat.
   x: number;
@@ -121,6 +130,12 @@ interface Craft {
 const labelLift = (tier: number) =>
   Math.max(0, boatTier(tier).shadow.mast.to - boatTier(0).shadow.mast.to);
 
+/** Where a patrol ship's searchlight swings (0..1), from its name, so the ships do not swing together. */
+const lightPhase = (name: string) => {
+  let hash = 0;
+  for (const char of name) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return (hash % 1000) / 1000;
+};
 const wrap = (angle: number) => Math.atan2(Math.sin(angle), Math.cos(angle));
 const blend = (dt: number, rate: number) => 1 - Math.exp(-dt * rate);
 const NORMALIZED = new Viewport(0, 0, 1, 1);
@@ -405,6 +420,17 @@ export class OceanScene {
       ? dressBoat(models, craft.palette, craft.mesh, craft.mesh.name, others)
       : this.codeBoat(craft);
     if (others) showBoatLevel(craft.look, craft.level);
+    // A patrol ship's lights need its own model (the lenses); until it has loaded there are none.
+    craft.lights?.dispose();
+    craft.lights = undefined;
+    if (craft.npc && models?.lenses)
+      craft.lights = createPatrolLights(
+        this.scene,
+        craft.mesh,
+        models.lenses,
+        craft.mesh.name,
+        lightPhase(craft.mesh.name),
+      );
   }
 
   /** Draws another player's boat as the whole model, a coarser copy or a far copy by how big it looks (boat-lod.ts). */
@@ -860,8 +886,11 @@ export class OceanScene {
     // The day and the weather: the shared UTC clock (atmosphere.ts), once per frame, before anything reads it.
     stepAtmosphere();
     const step = Math.min(dt, 0.1);
+    const lenses = this.boatModels.get(PATROL_MODEL)?.lenses;
+    if (lenses) updateLensGlow(lenses, time, reduced);
     const present = new Set<string>();
     const parked: ParkedBoat[] = [];
+    const ships: { uid: string; x: number; z: number; heading: number }[] = [];
     for (const boat of boats) {
       if (boat.uid === uid) {
         if (this.self) {
@@ -934,19 +963,30 @@ export class OceanScene {
           heading: boat.heading,
           tier: craft.tier,
         });
+      if (craft.npc)
+        ships.push({
+          uid: boat.uid,
+          x: boat.x,
+          z: boat.z,
+          heading: boat.heading,
+        });
       this.setLine(craft, offline ? false : boat.fishing);
       this.pickLevel(craft);
+      craft.lights?.update(time, this.camera.position, reduced);
       craft.label.dataset.x = String(boat.x);
       craft.label.dataset.z = String(boat.z);
     }
-    // The parked boats near the player's own boat are solid (the farther ones are not worth a body).
+    // The parked boats near the player's own boat are solid (the farther ones are not worth a body),
+    // and so are the patrol ships near it, which move: Havok is told where each one goes.
     if (this.self) {
       const at = this.self.physics.state();
-      this.self.physics.setParked(
-        parked.filter(
-          (boat) =>
-            Math.hypot(boat.x - at.x, boat.z - at.z) < PARKED_SOLID_REACH,
-        ),
+      const near = (boat: { x: number; z: number }) =>
+        Math.hypot(boat.x - at.x, boat.z - at.z) < PARKED_SOLID_REACH;
+      this.self.physics.setParked(parked.filter(near));
+      this.self.physics.setShips(
+        ships
+          .filter(near)
+          .map((ship) => ({ ...ship, speed: PATROL_SPEED, ...PATROL_BOX })),
       );
     }
     for (const [id, craft] of this.fleet)
@@ -954,6 +994,7 @@ export class OceanScene {
         this.forgetTrail(id);
         this.remoteTiers.delete(id);
         this.remoteRodTiers.delete(id);
+        craft.lights?.dispose();
         craft.label.remove();
         craft.line?.dispose();
         craft.rod.dispose();

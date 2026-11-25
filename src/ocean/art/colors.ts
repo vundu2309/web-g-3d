@@ -30,6 +30,8 @@ export const PAL = {
     white: 0xf6f8fa,
     // The blue of a patrol ship's light bar (patrol-routes.ts); never a boat's hull or trim role colour.
     beacon: 0x4aa3ff,
+    // The red lens beside it: a colour of its own, so the game finds the two lenses by colour and lights them one after the other.
+    beaconRed: 0xff4d4d,
   },
   /** Fittings on the boat: glass, frames, tyre fenders, rope, barrels, winch. */
   fit: {

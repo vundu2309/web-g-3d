@@ -8,7 +8,8 @@ same six exported parts, so the game loads it like a boat tier:
     hull, deck, canopy, engine, flag, lantern     under a root called `boat`
 
 It is 10.4 m long, a hair longer than the flagship, and low: a long white wheelhouse with a domed roof (the hull role: white
-at run time) that carries a light bar (a blue and a red lens, the palette's `paint.beacon` and `paint.red`), two
+at run time) that carries a light bar (a blue and a red lens, the palette's `paint.beacon` and `paint.beaconRed`: colours of their own, so the game
+finds the lenses by colour and lights them), two
 searchlights and a steel mast with a radar bar and the flag of Vietnam; a water cannon on the
 foredeck, rails all round, fenders, an orange rescue tender on the stern deck and a
 life ring on the back of the house. Axes as boat.py: metres, Z up, bow to +Y, origin at the
@@ -48,12 +49,12 @@ U.TIERS[SLOT] = PATROL
 
 STEEL = C["steel"]
 BEACON = PAL["paint"]["beacon"]
-RED = C["port"]
+RED = PAL["paint"]["beaconRed"]
 TENDER = U.X["float"]          # coral: the rescue tender
 
 
 def light_bar(m, c, width=1.0):
-    """A light bar on the roof: a steel base with a blue lens to starboard and a red one to port."""
+    """A light bar on the roof: a steel base with a blue lens to starboard and a red one to port (colours the game finds)."""
     c = Vector(c)
     box(m, c + Vector((0, 0, 0.05)), (width, 0.26, 0.10), STEEL)
     for s, col in ((1, BEACON), (-1, RED)):

@@ -29,8 +29,18 @@ islands, and for a new boat modelled in Blender for them (not a recoloured playe
   edge of the screen (parked boats lose their arrows too). It takes the hull numbers of tier 3 (10.8 m
   against its 10.4 m: waterline, foam collar, wake, shadow) through `PATROL_HULL_TIER`, and its model through
   the model key `PATROL_MODEL` (4), which no player's tier can be (`boatTierIndex` still refuses it).
-- **No collision**: like other players' boats, a patrol ship does not block anything (the user chose the
-  hard obstacle for parked boats only).
+- **Lights** (user's request, 2026-11-25): from dusk to dawn (`beaconLevel`, dimmer in rain), only for a ship within
+  380 m: the light bar's blue and red lenses flash one after the other, twice each per 0.9 s round (the loader finds the
+  lenses by their own colours, `paint.beacon` and `paint.beaconRed`), each with a halo; the mast lantern has a warm halo;
+  the searchlights lay a wedge of light on the sea 70 m ahead that swings slowly (`patrol-light-plan.ts`,
+  `patrol-lights.ts`). By day the lenses are a steady glass. With reduced motion they stay a steady glow and the
+  wedge stays ahead. A lens flashes at most 2.2 times a second (under the 3 a second of the photosensitivity guidance).
+  Additive and cheap: per ship two lens instances, three halos and one wedge, none drawn by day.
+- **Collision** (user's decision, 2026-11-25): a patrol ship is a moving hard obstacle. Each ship within 150 m of the player's
+  boat has a kinematic Havok box of its hull (3.6 x 10.4 m, `PATROL_BOX`) that is carried on at 6 m/s every PHYSICS STEP and
+  re-placed from the clock each frame (`BoatPhysics.setShips`): it pushes the boat and nothing pushes it back, so
+  the ship keeps its course on every client. (A kinematic body told only once a frame runs on at the speed of that one jump:
+  measured, 1 m per step.) The ship does not steer round the boat: it shoves it ahead, as a ram would.
 
 ## Consequences
 

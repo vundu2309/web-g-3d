@@ -406,8 +406,16 @@ of the server's clock, so nothing is sent or saved and every player sees the sam
   colour roles as the player boats; `tests/patrol-boat.test.mjs` pins the parts, the size, the exact roles and that the model is not a shop tier.
 - **Drawing.** The app adds `patrolBoats(clock)` to the boats it hands to the scene (`npc: true`, uid `npc:patrol-<n>`); the scene gives them no rod,
   no line, a navy name label (`.is-npc`) and no arrow at the screen's edge, uses `PATROL_MODEL` for the model and tier 3's hull numbers for the
-  water. No collision. Test: `tests/ocean-patrol-browser.mjs` (six ships, they move, no arrows; an online player gets one: the control).
-- **Not measured**: six more boats in view on a phone; night and rain.
+  water. Test: `tests/ocean-patrol-browser.mjs` (six ships, they move, no arrows; an online player gets one: the control).
+- **Lights.** `patrol-light-plan.ts` (pure: the lenses' flashes, the swing of the searchlight, the wedge, the places of the lights, pinned to the
+  model by `tests/patrol-lights.test.mjs`) and `patrol-lights.ts` (the lenses are glowing meshes of their own that the model loader
+  finds by colour; halos and the wedge in the beacon's additive shader). Dusk to dawn, ships within 380 m, steady glass by day, steady glow
+  with reduced motion.
+- **Collision.** A moving hard obstacle: each ship within 150 m of the player's boat has a kinematic Havok box (`BoatPhysics.setShips`, size
+  `PATROL_BOX`), carried on at the ship's speed each physics step and re-placed from the clock each frame, so the ship keeps its course and
+  shoves the boat (`tests/boat-physics.test.mjs`, real Havok; `tests/ocean-patrol-collision-browser.mjs`, a real browser: a boat lying on the
+  loop is shoved ahead of the ship and the ship never reaches its centre).
+- **Not measured**: six more boats and their lights in view on a phone; rain.
 
 ## Parked boats (players who are not online)
 
