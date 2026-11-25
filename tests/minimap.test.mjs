@@ -2,10 +2,17 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   MAP_RANGE,
+  PLACES,
   arrowPoints,
+  distanceText,
   islandsOnMap,
+  mapPlaces,
+  playersOnMap,
   toMap,
 } from "../src/ocean/minimap-math.ts";
+import { MARKETS } from "../src/ocean/market.ts";
+import { SHIPYARDS } from "../src/ocean/shipyard.ts";
+import { HARBOR } from "../src/ocean/model.ts";
 import { SEA_BOUND, islands } from "../src/ocean/model.ts";
 import { boatPalettes, hullCss, paletteIndex } from "../src/ocean/palette.ts";
 
@@ -98,5 +105,113 @@ test("an island's shore wobbles around a circle and stays a closed ring of its o
   assert.ok(
     Math.hypot(small[0].x - 50, small[0].y - 50) <
       Math.hypot(points[0].x - 50, points[0].y - 50),
+  );
+});
+
+test("the big map names the harbor, every market and every shipyard, numbered once and for good", () => {
+  assert.equal(PLACES.length, 1 + MARKETS.length + SHIPYARDS.length);
+  assert.deepEqual(
+    PLACES.map((p) => p.number),
+    PLACES.map((_, i) => i + 1),
+    "1 to N in a fixed order",
+  );
+  assert.deepEqual(
+    PLACES.map((p) => p.kind),
+    ["harbor", ...MARKETS.map(() => "market"), ...SHIPYARDS.map(() => "yard")],
+  );
+  assert.equal(PLACES[0].name, "Bến cảng");
+  assert.deepEqual(
+    PLACES.slice(1, 1 + MARKETS.length).map((p) => p.name),
+    MARKETS.map((m) => m.name),
+  );
+  assert.deepEqual(
+    PLACES.slice(1 + MARKETS.length).map((p) => p.name),
+    SHIPYARDS.map((y) => y.name),
+  );
+  assert.equal(
+    new Set(PLACES.map((p) => p.name)).size,
+    PLACES.length,
+    "no two share a name",
+  );
+  for (const p of PLACES) {
+    assert.ok(p.name.length > 0 && p.name.length <= 24, p.name);
+    assert.ok(
+      Math.abs(p.x) < MAP_RANGE && Math.abs(p.z) < MAP_RANGE,
+      `${p.name} is on the map`,
+    );
+  }
+});
+
+test("the places come nearest first with their distance in metres, and the numbers do not move with the boat", () => {
+  const at = { x: HARBOR.x, z: HARBOR.z };
+  const here = mapPlaces(at);
+  assert.equal(
+    here[0].name,
+    "Bến cảng",
+    "from the harbor the harbor is nearest",
+  );
+  assert.equal(here[0].meters, 0);
+  for (let i = 1; i < here.length; i++)
+    assert.ok(here[i].meters >= here[i - 1].meters, "sorted by distance");
+  // Far to the west the order changes but every place keeps its number.
+  const far = mapPlaces({ x: -1200, z: 0 });
+  assert.notDeepEqual(
+    far.map((p) => p.name),
+    here.map((p) => p.name),
+  );
+  for (const p of far)
+    assert.equal(p.number, PLACES.find((q) => q.name === p.name).number);
+  const market = MARKETS[0];
+  const from = { x: market.x + 300, z: market.z + 400 };
+  assert.equal(
+    mapPlaces(from).find((p) => p.name === market.name).meters,
+    500,
+    "3-4-5: 500 m",
+  );
+});
+
+test("a distance is metres up to 999 and kilometres with a decimal comma after", () => {
+  assert.equal(distanceText(0), "0 m");
+  assert.equal(distanceText(320), "320 m");
+  assert.equal(distanceText(999), "999 m");
+  assert.equal(distanceText(1000), "1,0 km");
+  assert.equal(distanceText(1234), "1,2 km");
+  assert.equal(distanceText(2950), "3,0 km");
+  assert.equal(distanceText(-4), "0 m");
+});
+
+test("the map shows players only: not the patrol ships (npc), not the player's own boat", () => {
+  const boats = [
+    { uid: "me", x: 0, z: 0 },
+    { uid: "lan", x: 1, z: 1 },
+    { uid: "dai", x: 2, z: 2, offline: true },
+    { uid: "npc:patrol-0", x: 3, z: 3, npc: true },
+    { uid: "npc:patrol-3", x: 4, z: 4, npc: true },
+  ];
+  assert.deepEqual(
+    playersOnMap(boats, "me").map((b) => b.uid),
+    ["lan", "dai"],
+    "the others, including a boat parked where its player left it",
+  );
+  assert.deepEqual(
+    playersOnMap(boats, undefined).map((b) => b.uid),
+    ["me", "lan", "dai"],
+  );
+  assert.deepEqual(playersOnMap([], "me"), []);
+});
+
+test("the sea screen feeds the maps with players only (the patrol ships and the cats are left out)", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const source = await readFile(
+    new URL("../src/app/ocean.ts", import.meta.url),
+    "utf8",
+  );
+  assert.ok(
+    source.includes("playersOnMap(shown, connection?.uid)"),
+    "the maps get the players",
+  );
+  assert.ok(
+    !source.includes("catBoats()"),
+    "the rowing cats are not drawn on the map",
   );
 });

@@ -41,6 +41,8 @@ import { mountHubArt } from "../ui/hub-canvas";
 import { createHubShell, type HubNav } from "./hub-shell";
 import { CHROME_COLORS, setChromeColor } from "./chrome-color";
 import { createMinimap } from "./minimap";
+import { createBigMap } from "./big-map";
+import { playersOnMap } from "../ocean/minimap-math";
 import { hullCss } from "../ocean/palette";
 import {
   connectWithRetry,
@@ -87,7 +89,7 @@ export function startOcean(
   root.classList.add("ocean-root");
   // The loading screen shares the harbor sky; the bar turns sea-sky once the sea is shown.
   const barBefore = setChromeColor(CHROME_COLORS.harbor);
-  root.innerHTML = `<main class="ocean-screen" aria-label="Map biển chung"><div class="ocean-stage"></div><div class="ocean-stick-zone" aria-hidden="true"></div><div class="ocean-loading" role="status" aria-live="polite"><div class="hub-art" aria-hidden="true"><canvas class="hub-canvas"></canvas></div><div class="ocean-loading-card"><svg class="ocean-loading-boat" viewBox="0 0 120 56" width="76" height="36" aria-hidden="true" focusable="false"><path d="M0 30h120l-18 22H20Z" fill="#e97760" stroke="#153b80" stroke-width="5" stroke-linejoin="round"/><rect x="48" y="4" width="38" height="26" rx="5" fill="#fff6e0" stroke="#153b80" stroke-width="5"/></svg><h2 data-loading-title>Đang ra khơi…</h2><ol class="ocean-loading-steps"><li data-step="graphics">Tải đồ họa biển</li><li data-step="connect">Kết nối map chung</li><li data-step="enter">Vào biển</li></ol><div class="ocean-loading-bar" aria-hidden="true"><i></i></div><p class="ocean-loading-note" data-loading-note></p><div class="ocean-loading-actions" hidden><button class="button primary" type="button" data-ocean="retry">Thử lại</button></div></div></div><div class="ocean-hud game-safe"><header class="ocean-top"><button class="ocean-chip ocean-glass ocean-round" data-ocean="settings" aria-label="Cài đặt"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.8 1.8M16.7 16.7l1.8 1.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8"/></svg><span class="sr-only" data-count role="status">Đang kết nối…</span></button></header><canvas class="ocean-minimap" role="img" aria-label="Bản đồ nhỏ: thuyền của bạn, các đảo và thuyền khác"></canvas><p class="ocean-status" role="status" aria-live="polite">Đang kết nối map chung…</p><section class="ocean-bottom" aria-label="Điều khiển thuyền"><div class="ocean-stick" role="group" aria-label="Cần lái: kéo lên để tiến, xuống để lùi, sang hai bên để rẽ"><span class="ocean-stick-mark" data-dir="up" aria-hidden="true">▲</span><span class="ocean-stick-mark" data-dir="down" aria-hidden="true">▼</span><span class="ocean-stick-mark" data-dir="left" aria-hidden="true">◀︎</span><span class="ocean-stick-mark" data-dir="right" aria-hidden="true">▶︎</span><span class="ocean-stick-knob" aria-hidden="true">⚓</span></div><div class="ocean-actions"><button class="ocean-chip ocean-glass ocean-market" data-ocean="market" aria-label="Bán cá" hidden><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9.5" fill="#ffd35a" stroke="currentColor" stroke-width="2.4"/><path d="M6.5 12c1.6-2.6 4.6-3 7-1.4l3-1.6v6l-3-1.6c-2.4 1.6-5.4 1.2-7-1.4Z" fill="currentColor"/></svg><strong>Bán</strong></button><button class="ocean-chip ocean-glass" data-ocean="catch" aria-label="Kho cá 0"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c3-5 9-6 13-3l5-3v12l-5-3c-4 3-10 2-13-3Z"/><circle cx="8" cy="11" r=".6" fill="currentColor"/></svg><strong data-catch>0</strong></button><button class="ocean-fish" data-ocean="fish" aria-label="Thả câu" disabled></button></div></section></div><div class="ocean-input" aria-hidden="true"></div></main>`;
+  root.innerHTML = `<main class="ocean-screen" aria-label="Map biển chung"><div class="ocean-stage"></div><div class="ocean-stick-zone" aria-hidden="true"></div><div class="ocean-loading" role="status" aria-live="polite"><div class="hub-art" aria-hidden="true"><canvas class="hub-canvas"></canvas></div><div class="ocean-loading-card"><svg class="ocean-loading-boat" viewBox="0 0 120 56" width="76" height="36" aria-hidden="true" focusable="false"><path d="M0 30h120l-18 22H20Z" fill="#e97760" stroke="#153b80" stroke-width="5" stroke-linejoin="round"/><rect x="48" y="4" width="38" height="26" rx="5" fill="#fff6e0" stroke="#153b80" stroke-width="5"/></svg><h2 data-loading-title>Đang ra khơi…</h2><ol class="ocean-loading-steps"><li data-step="graphics">Tải đồ họa biển</li><li data-step="connect">Kết nối map chung</li><li data-step="enter">Vào biển</li></ol><div class="ocean-loading-bar" aria-hidden="true"><i></i></div><p class="ocean-loading-note" data-loading-note></p><div class="ocean-loading-actions" hidden><button class="button primary" type="button" data-ocean="retry">Thử lại</button></div></div></div><div class="ocean-hud game-safe"><header class="ocean-top"><button class="ocean-chip ocean-glass ocean-round" data-ocean="settings" aria-label="Cài đặt"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.8 1.8M16.7 16.7l1.8 1.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8"/></svg><span class="sr-only" data-count role="status">Đang kết nối…</span></button></header><canvas class="ocean-minimap" data-ocean="map" role="button" tabindex="0" aria-label="Bản đồ nhỏ: thuyền của bạn, các đảo và thuyền khác. Bấm để mở bản đồ lớn"></canvas><p class="ocean-status" role="status" aria-live="polite">Đang kết nối map chung…</p><section class="ocean-bottom" aria-label="Điều khiển thuyền"><div class="ocean-stick" role="group" aria-label="Cần lái: kéo lên để tiến, xuống để lùi, sang hai bên để rẽ"><span class="ocean-stick-mark" data-dir="up" aria-hidden="true">▲</span><span class="ocean-stick-mark" data-dir="down" aria-hidden="true">▼</span><span class="ocean-stick-mark" data-dir="left" aria-hidden="true">◀︎</span><span class="ocean-stick-mark" data-dir="right" aria-hidden="true">▶︎</span><span class="ocean-stick-knob" aria-hidden="true">⚓</span></div><div class="ocean-actions"><button class="ocean-chip ocean-glass ocean-market" data-ocean="market" aria-label="Bán cá" hidden><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9.5" fill="#ffd35a" stroke="currentColor" stroke-width="2.4"/><path d="M6.5 12c1.6-2.6 4.6-3 7-1.4l3-1.6v6l-3-1.6c-2.4 1.6-5.4 1.2-7-1.4Z" fill="currentColor"/></svg><strong>Bán</strong></button><button class="ocean-chip ocean-glass" data-ocean="catch" aria-label="Kho cá 0"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c3-5 9-6 13-3l5-3v12l-5-3c-4 3-10 2-13-3Z"/><circle cx="8" cy="11" r=".6" fill="currentColor"/></svg><strong data-catch>0</strong></button><button class="ocean-fish" data-ocean="fish" aria-label="Thả câu" disabled></button></div></section></div><div class="ocean-input" aria-hidden="true"></div></main>`;
   const status = root.querySelector<HTMLElement>(".ocean-status")!;
   const loading = root.querySelector<HTMLElement>(".ocean-loading")!;
   const loadingTitle = loading.querySelector<HTMLElement>(
@@ -150,6 +152,8 @@ export function startOcean(
     root.querySelector<HTMLCanvasElement>(".ocean-minimap")!,
   );
   let lastMap = 0;
+  /** The full-screen map a tap on the minimap opens. */
+  const bigMap = createBigMap();
   const fishButton = root.querySelector<HTMLButtonElement>(
     '[data-ocean="fish"]',
   )!;
@@ -304,7 +308,7 @@ export function startOcean(
   const keys = new Set<string>();
   let stick: StickInput = { steer: 0, throttle: 0 };
   const stickController = createStick(stickElement, stickKnob, {
-    enabled: () => active && !dialog.open,
+    enabled: () => active && !dialog.open && !bigMap.isOpen,
     onChange: (input) => {
       stick = input;
     },
@@ -370,7 +374,7 @@ export function startOcean(
     fightSpeed: options.fightSpeed,
     scene: () => scene,
     boat: () => pose,
-    enabled: () => active && !dialog.open && !document.hidden,
+    enabled: () => active && !dialog.open && !bigMap.isOpen && !document.hidden,
     stock: () => fishStock,
     setStock: (next, caughtOne) => {
       fishStock = next;
@@ -699,7 +703,8 @@ export function startOcean(
     if (disposed) return;
     const frameStart = lastControl;
     lastControl = now;
-    const playable = active && !document.hidden && !dialog.open;
+    const playable =
+      active && !document.hidden && !dialog.open && !bigMap.isOpen;
     if (!playable) {
       boatControl.update(0, noKeys, noStick, false, false);
       scene?.setInput(0, 0);
@@ -776,18 +781,13 @@ export function startOcean(
       // The minimap is redrawn ten times a second, not every frame.
       if (now - lastMap >= 100) {
         lastMap = now;
-        minimap.update(
-          active && connection ? { ...pose, uid: connection.uid } : undefined,
-          [
-            ...shown.filter((boat) => boat.uid !== connection?.uid),
-            ...scene.catBoats().map((boat, index) => ({
-              ...boat,
-              uid: `cat-${index}`,
-              fishing: false,
-            })),
-          ],
-          now / 1000,
-        );
+        const mapSelf =
+          active && connection ? { ...pose, uid: connection.uid } : undefined;
+        // Only players are on the map: not the patrol ships, not the rowing cats.
+        const mapOthers = playersOnMap(shown, connection?.uid);
+        minimap.update(mapSelf, mapOthers, now / 1000);
+        // The big map follows the same boats while it is open (it does nothing otherwise).
+        bigMap.update(mapSelf, mapOthers, now / 1000, pose);
       }
       const own = scene.selfState();
       seaAudio.update({
@@ -838,6 +838,35 @@ export function startOcean(
   let fishTouchedAt = -1e9;
   const control = (name: string) =>
     root.querySelector<HTMLElement>(`[data-ocean="${name}"]`)!;
+  const mapButton = control("map");
+  const mapOpenable = () =>
+    active &&
+    !dialog.open &&
+    !bigMap.isOpen &&
+    !fishingUi.fishing &&
+    !root.querySelector(".ocean-screen")?.classList.contains("is-holding");
+  function openBigMap() {
+    keys.clear();
+    releaseStick();
+    bigMap.open();
+  }
+  // A canvas is not a button: the keyboard and assistive technology activate it here.
+  mapButton.addEventListener(
+    "keydown",
+    (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      if (mapOpenable()) openBigMap();
+    },
+    { signal: abort.signal },
+  );
+  mapButton.addEventListener(
+    "click",
+    () => {
+      if (mapOpenable()) openBigMap();
+    },
+    { signal: abort.signal },
+  );
   const inputTargets: InputTarget[] = [
     {
       element: fishButton,
@@ -866,6 +895,14 @@ export function startOcean(
       kind: "tap",
       tap: () => showDialog("catch"),
     },
+    {
+      // The minimap opens the big map. Not while a line is out or a fish hangs from the rod (the minimap
+      // is faded then): a stray touch must not take the player off the sea in the middle of a catch.
+      element: control("map"),
+      kind: "tap",
+      enabled: mapOpenable,
+      tap: () => openBigMap(),
+    },
   ];
   const releaseInput = bindInputLayer(
     root.querySelector<HTMLElement>(".ocean-input")!,
@@ -880,11 +917,11 @@ export function startOcean(
         controller: stickController,
         ring: stickElement,
         zone: root.querySelector<HTMLElement>(".ocean-stick-zone")!,
-        enabled: () => active && !dialog.open,
+        enabled: () => active && !dialog.open && !bigMap.isOpen,
       },
       // Dragging on open sea looks around the boat; the view eases back when it moves.
       look: {
-        enabled: () => active && !dialog.open,
+        enabled: () => active && !dialog.open && !bigMap.isOpen,
         hold: (on) => scene?.orbitHold(on),
         drag: (dx, dy) => scene?.orbitBy(dx, dy),
       },
@@ -932,7 +969,7 @@ export function startOcean(
   window.addEventListener(
     "keydown",
     (event) => {
-      if (dialog.open || !active) return;
+      if (dialog.open || bigMap.isOpen || !active) return;
       const direction = mapping[event.key] || mapping[event.key.toLowerCase()];
       if (direction) {
         event.preventDefault();
@@ -1153,6 +1190,7 @@ export function startOcean(
     connection?.dispose();
     scene?.dispose();
     perfPanel.dispose();
+    bigMap.dispose();
     dialog.remove();
     root.classList.remove("ocean-root");
     if (barBefore) setChromeColor(barBefore);

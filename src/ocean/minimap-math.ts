@@ -1,4 +1,6 @@
-import { SEA_BOUND, islands } from "./model.ts";
+import { HARBOR, SEA_BOUND, islands } from "./model.ts";
+import { MARKETS } from "./market.ts";
+import { SHIPYARDS } from "./shipyard.ts";
 import { coastAt, shoreTable } from "./shore.ts";
 
 /**
@@ -51,6 +53,63 @@ export function arrowPoints(
       y: center.y - dy * back - py * half,
     },
   ];
+}
+
+export type PlaceKind = "harbor" | "market" | "yard";
+
+export interface Place {
+  /** The number on the big map's badge and in its list: fixed (harbor, markets, yards), not by distance. */
+  number: number;
+  kind: PlaceKind;
+  name: string;
+  x: number;
+  z: number;
+}
+
+/** The places the big map names: the harbor, the five markets and the three shipyards, numbered in that order. */
+const NAMED: Omit<Place, "number">[] = [
+  { kind: "harbor", name: "Bến cảng", x: HARBOR.x, z: HARBOR.z },
+  ...MARKETS.map((m) => ({
+    kind: "market" as const,
+    name: m.name,
+    x: m.x,
+    z: m.z,
+  })),
+  ...SHIPYARDS.map((y) => ({
+    kind: "yard" as const,
+    name: y.name,
+    x: y.x,
+    z: y.z,
+  })),
+];
+export const PLACES: readonly Place[] = NAMED.map((place, index) => ({
+  ...place,
+  number: index + 1,
+}));
+
+/** The places with their distance (whole metres) from a boat at `from`, nearest first; the numbers stay put. */
+export function mapPlaces(from: { x: number; z: number }) {
+  return PLACES.map((place) => ({
+    ...place,
+    meters: Math.round(Math.hypot(place.x - from.x, place.z - from.z)),
+  })).sort((a, b) => a.meters - b.meters || a.number - b.number);
+}
+
+/** A distance for the list: "320 m" up to 999 m, then kilometres with a decimal comma ("1,2 km"). */
+export function distanceText(meters: number): string {
+  if (meters < 1000) return `${Math.max(0, Math.round(meters))} m`;
+  return `${(meters / 1000).toFixed(1).replace(".", ",")} km`;
+}
+
+/**
+ * The boats the map shows besides the player's own: other PLAYERS, online or parked where they were left.
+ * The boats nobody owns (the patrol ships, `npc: true`) are not on the map, and neither are the rowing cats.
+ */
+export function playersOnMap<T extends { uid: string; npc?: boolean }>(
+  boats: readonly T[],
+  selfUid: string | undefined,
+): T[] {
+  return boats.filter((boat) => boat.uid !== selfUid && boat.npc !== true);
 }
 
 /** Each island on the map: its centre and radius in pixels. */
