@@ -29,7 +29,13 @@ import {
   type BoatModels,
 } from "./boat-model.ts";
 import { boatLevelOf } from "./boat-lod.ts";
-import { boatTier, boatTierIndex, boxRatio, cameraScale } from "./boat-tier.ts";
+import {
+  PATROL_MODEL,
+  boatTier,
+  boatTierIndex,
+  boxRatio,
+  cameraScale,
+} from "./boat-tier.ts";
 import { createHavok } from "./havok.ts";
 import { createIsland, type IslandVisual } from "./island-visual.ts";
 import { createSeabed, type Seabed } from "./seabed-visual.ts";
@@ -319,9 +325,18 @@ export class OceanScene {
    * for every boat of that tier drawn so far (and those that follow). Resolves with the models, or
    * undefined when the load failed (a warning is logged and a later call tries again).
    */
+  /** Which model a craft is drawn with: its tier's, or the patrol ships' own. */
+  private modelKey(craft: Craft): number {
+    return craft.npc ? PATROL_MODEL : craft.tier;
+  }
+
   private ensureBoatModels(tier: number): Promise<BoatModels | undefined> {
     // With `?tiers=0` the bigger models are never loaded: every boat is drawn as the first.
-    const wanted = tiersOff() ? 0 : boatTierIndex(tier);
+    const wanted = tiersOff()
+      ? 0
+      : tier === PATROL_MODEL
+        ? PATROL_MODEL
+        : boatTierIndex(tier);
     const known = this.boatModels.get(wanted);
     if (known) return Promise.resolve(known);
     let load = this.boatLoads.get(wanted);
@@ -341,8 +356,8 @@ export class OceanScene {
             ...this.fleet.values(),
           ])
             if (
-              craft.tier === wanted ||
-              (wanted === 0 && !this.boatModels.has(craft.tier))
+              this.modelKey(craft) === wanted ||
+              (wanted === 0 && !this.boatModels.has(this.modelKey(craft)))
             )
               this.dress(craft);
           return models;
@@ -365,7 +380,8 @@ export class OceanScene {
   /** Gives a boat its hull: the model of its tier when it is loaded, else the first boat's, else the code-built one. */
   private dress(craft: Craft) {
     for (const mesh of craft.look) mesh.dispose();
-    const models = this.boatModels.get(craft.tier) ?? this.boatModels.get(0);
+    const models =
+      this.boatModels.get(this.modelKey(craft)) ?? this.boatModels.get(0);
     // The other players' boats also get coarser copies for when they are far (boat-lod.ts).
     const others = craft !== this.self?.craft;
     craft.look = models
@@ -518,6 +534,7 @@ export class OceanScene {
     isSelf: boolean,
     tier = 0,
     rodTier = 0,
+    npc = false,
   ): Craft {
     const mesh = new TransformNode(`boat-${uid}`, this.scene);
     const palette = paletteIndex(uid);
@@ -526,6 +543,7 @@ export class OceanScene {
     label.textContent = isSelf ? "Bạn" : name;
     label.dataset.uid = uid;
     if (isSelf) label.classList.add("is-self");
+    if (npc) label.classList.add("is-npc");
     this.host.append(label);
     const craft: Craft = {
       mesh,
@@ -543,11 +561,14 @@ export class OceanScene {
       ),
       rodTier,
       label,
+      ...(npc ? { npc: true } : {}),
       x: 0,
       z: 0,
       heading: 0,
       seen: true,
     };
+    // A patrol ship holds no rod.
+    if (npc) craft.rod.setVisible(false);
     this.dress(craft);
     return craft;
   }
@@ -827,9 +848,10 @@ export class OceanScene {
       // What the other player has bought (the server reads it from their account, never from them):
       // their boat's model and their rod. Asked once per change; a boat that is not here yet is
       // made that way below.
-      if (this.remoteTiers.get(boat.uid) !== boat.tier)
+      // A patrol ship owns nothing: it takes its hull numbers from `boat.tier` and its own model.
+      if (!boat.npc && this.remoteTiers.get(boat.uid) !== boat.tier)
         void this.setRemoteBoatTier(boat.uid, boat.tier);
-      if (this.remoteRodTiers.get(boat.uid) !== boat.rod)
+      if (!boat.npc && this.remoteRodTiers.get(boat.uid) !== boat.rod)
         this.setRemoteRodTier(boat.uid, boat.rod);
       let craft = this.fleet.get(boat.uid);
       if (!craft) {
@@ -837,11 +859,13 @@ export class OceanScene {
           boat.uid,
           boat.name,
           false,
-          this.remoteTiers.get(boat.uid) ?? 0,
-          this.remoteRodTiers.get(boat.uid) ?? 0,
+          boat.npc ? boat.tier : (this.remoteTiers.get(boat.uid) ?? 0),
+          boat.npc ? 0 : (this.remoteRodTiers.get(boat.uid) ?? 0),
+          boat.npc === true,
         );
         // A bigger boat shows the first boat's model until its own has loaded.
-        if (craft.tier > 0) void this.ensureBoatModels(craft.tier);
+        if (this.modelKey(craft) > 0)
+          void this.ensureBoatModels(this.modelKey(craft));
         craft.x = boat.x;
         craft.z = boat.z;
         craft.heading = boat.heading;

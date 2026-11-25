@@ -98,6 +98,21 @@
       ],
       "maxTriangles": 8160
     },
+    "boat-patrol.glb": {
+      "group": "patrol",
+      "source": "tools/blender/patrol_boat.py",
+      "how": "build_patrol_scene(); export_patrol(path)",
+      "nodes": [
+        "boat",
+        "canopy",
+        "deck",
+        "engine",
+        "flag",
+        "hull",
+        "lantern"
+      ],
+      "maxTriangles": 6030
+    },
     "boat.glb": {
       "group": "boat",
       "source": "tools/blender/upgrade_boats.py",

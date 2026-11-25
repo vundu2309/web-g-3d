@@ -4,7 +4,7 @@ The game serves 37 GLB files from `public/models/`. They are committed, so a nor
 
 ## The catalogue
 
-`tools/blender/assets.json` lists every GLB: its `group` (bait, boat, shipyard, island-prop, vendor, person, fish), the `source` script and `how` to run it, the `nodes` the game looks up by name, and a `maxTriangles` ceiling (the count measured when the entry was written, +2 %). `tests/assets-manifest.test.mjs` (in `npm run test:unit`) fails when:
+`tools/blender/assets.json` lists every GLB: its `group` (bait, boat, patrol, shipyard, island-prop, vendor, person, fish), the `source` script and `how` to run it, the `nodes` the game looks up by name, and a `maxTriangles` ceiling (the count measured when the entry was written, +2 %). `tests/assets-manifest.test.mjs` (in `npm run test:unit`) fails when:
 
 - a GLB in `public/models/` has no entry, or an entry has no file;
 - a source script does not exist;
@@ -27,7 +27,7 @@ Measured 2026-11-20 (Blender 5.x): the 27 built models (all but the 10 downloade
 
 ## Names and folders
 
-- File names are lower-case with hyphens and use the id the game looks the model up by: `bait-<id>`, `boat` and `boat-<tier 2-4>`, `shipyard`, `palm|rock|bush-<n>` and `hut`, `cat-<id>` (market vendors), `people-<n>`, `fish-<species id>`. `tests/assets-manifest.test.mjs` holds the pattern of each group; a new kind of model adds a group and a pattern there.
+- File names are lower-case with hyphens and use the id the game looks the model up by: `bait-<id>`, `boat` and `boat-<tier 2-4>`, `boat-patrol`, `shipyard`, `palm|rock|bush-<n>` and `hut`, `cat-<id>` (market vendors), `people-<n>`, `fish-<species id>`. `tests/assets-manifest.test.mjs` holds the pattern of each group; a new kind of model adds a group and a pattern there.
 - `public/models/` and `tools/blender/` stay flat. Every script in `tools/blender` must be the `source` of a model or be listed under `scripts` in `assets.json` with its role (helper, tool, pending); the test fails on an unexplained one. Split into sub-folders only when a group needs several scripts of its own, and move the scripts and the `source` paths in one commit.
 - Scratch output (renders, error logs, session notes) does not belong in the repository root: use the scratch folder of the session, or `test-results/` (ignored).
 

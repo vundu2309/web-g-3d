@@ -18,6 +18,15 @@ import { ROD_BASE, type V3 } from "./rod.ts";
 
 /** How many boats there are. */
 export const BOAT_TIER_COUNT = 4;
+/**
+ * The patrol ships' model (`boat-patrol.glb`, tools/blender/patrol_boat.py) is a MODEL key beyond the
+ * shop's tiers: nothing a player owns or the network sends can be it (`boatTierIndex` still refuses
+ * 4). A patrol ship (`npc: true`) takes the hull numbers of `PATROL_HULL_TIER` (its waterline, wake,
+ * foam collar and shadow: the flagship's 10.8 m is the nearest to its 10.4 m) and this model.
+ */
+export const PATROL_MODEL = 4;
+export const PATROL_HULL_TIER = 3;
+export const PATROL_FILE = "boat-patrol.glb";
 
 /** Hull mass (kg), the same for every tier: a better boat is not heavier to push. */
 export const HULL_MASS = 900;

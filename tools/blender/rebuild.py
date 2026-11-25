@@ -61,6 +61,11 @@ def steps(out):
         m.build_shipyard_scene()
         return m.export_all(out)
 
+    def patrol():
+        import patrol_boat as m
+        m.build_patrol_scene()
+        return m.export_patrol(os.path.join(out, "boat-patrol.glb"))
+
     def people():
         import build as m
         import people as looks
@@ -72,6 +77,7 @@ def steps(out):
         "tools/blender/props.py": props,
         "tools/blender/vendors.py": vendors,
         "tools/blender/upgrade_boats.py": boats,
+        "tools/blender/patrol_boat.py": patrol,
         "tools/blender/build.py": people,
     }
 

@@ -9,7 +9,7 @@ import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import { loadModel } from "./model-loader.ts";
 import { BOAT_YAW, paintBoat, rgb } from "./boat-paint.ts";
-import { boatTier } from "./boat-tier.ts";
+import { PATROL_FILE, PATROL_MODEL, boatTier } from "./boat-tier.ts";
 import { boatPalettes } from "./palette.ts";
 import { PAL } from "./art/colors.ts";
 import { glowMaterial, useSolid } from "./art/materials.ts";
@@ -119,8 +119,15 @@ export async function loadBoatModels(
   scene: Scene,
   tier = 0,
 ): Promise<BoatModels> {
-  const { file, tier: which } = boatTier(tier);
-  const prefix = which === 0 ? "boat-model" : `boat-model-t${which}`;
+  const patrol = tier === PATROL_MODEL;
+  const { file, tier: which } = patrol
+    ? { file: PATROL_FILE, tier: -1 }
+    : boatTier(tier);
+  const prefix = patrol
+    ? "boat-model-patrol"
+    : which === 0
+      ? "boat-model"
+      : `boat-model-t${which}`;
   const model = await loadModel(scene, file);
   try {
     if (scene.isDisposed) throw new Error("scene disposed while loading");

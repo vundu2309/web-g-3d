@@ -1,5 +1,6 @@
 import type { Boat } from "./model.ts";
 import { seaObstacles } from "./market.ts";
+import { PATROL_HULL_TIER } from "./boat-tier.ts";
 import { NPC_PREFIX } from "./palette.ts";
 import { SHIPYARDS } from "./shipyard.ts";
 
@@ -8,7 +9,7 @@ import { SHIPYARDS } from "./shipyard.ts";
  * the shared clock. Pure maths, no rendering and no network: a ship's place is a function of the
  * time (the server's clock, which every client already follows), so every player sees the same ship
  * in the same place with nothing sent. The scene draws them as other players' boats (`npc: true`,
- * a white hull with the navy trim of `PATROL_PALETTE`); the app adds them to the boats it hands to
+ * the model `boat-patrol.glb` (tools/blender/patrol_boat.py) painted white with the navy trim of `PATROL_PALETTE`); the app adds them to the boats it hands to
  * the scene. Ships do not collide with anything (like other players' boats).
  *
  * A loop keeps its distance from the island's collision ring, from the other islands and from the
@@ -20,8 +21,11 @@ import { SHIPYARDS } from "./shipyard.ts";
 
 /** Which islands (indices of `islands`) have a patrol ship: spread over the sea. */
 export const PATROL_ISLANDS: readonly number[] = [0, 2, 3, 4, 6, 7];
-/** The boat a patrol ship is (boat-tier.ts): the bigger boats are the ones that carry a lantern and a roof. */
-export const PATROL_TIER = 2;
+/**
+ * The tier whose hull numbers a patrol ship takes (boat-tier.ts `PATROL_HULL_TIER`: its waterline,
+ * wake, foam collar and shadow); its model is its own, `public/models/boat-patrol.glb`.
+ */
+export const PATROL_TIER = PATROL_HULL_TIER;
 /** Cruising speed (m/s): about a third of a player's top speed. */
 export const PATROL_SPEED = 6;
 /** The ship's name above the water (at most 24 characters, like a player's). */

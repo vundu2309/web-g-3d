@@ -391,6 +391,24 @@ Decided to postpone, in the order we would take them:
 
 Other known gaps: the upgrade shop (rod, line, bait, boat colour), shadows cast by islands and markets, and real-phone performance checks.
 
+## Patrol ships
+
+Decision [0019](decisions/0019-patrol-ships.md). Six NPC ships, each sailing a closed loop round one island
+(`src/ocean/patrol-routes.ts`, islands 0, 2, 3, 4, 6, 7; 6 m/s; a lap of 3 to 6 minutes). Their place is a function
+of the server's clock, so nothing is sent or saved and every player sees the same ships.
+
+- **Route.** For each direction round the island the nearest radius (70 to 220 m from its ring) that keeps 40 m from every other island,
+  pier and shipyard, then a maximum and an average over the same width (the loop can only widen). The heading follows the loop a few metres
+  either side. `tests/patrol-routes.test.mjs`: clearance of every route, closed loop, constant speed, heading along the motion,
+  the same time gives the same ships, no two ships within 30 m.
+- **Model.** `public/models/boat-patrol.glb`, built by `tools/blender/patrol_boat.py` (a new scene "Patrol" in the running Blender,
+  `build_patrol_scene()`, `render_views(dir)`, `export_patrol(path)`; rebuilt headless by `npm run assets:rebuild -- --out DIR patrol`): the same six parts and
+  colour roles as the player boats; `tests/patrol-boat.test.mjs` pins the parts, the size, the exact roles and that the model is not a shop tier.
+- **Drawing.** The app adds `patrolBoats(clock)` to the boats it hands to the scene (`npc: true`, uid `npc:patrol-<n>`); the scene gives them no rod,
+  no line, a navy name label (`.is-npc`) and no arrow at the screen's edge, uses `PATROL_MODEL` for the model and tier 3's hull numbers for the
+  water. No collision. Test: `tests/ocean-patrol-browser.mjs` (six ships, they move, no arrows; an online player gets one: the control).
+- **Not measured**: six more boats in view on a phone; night and rain.
+
 ## Parked boats (players who are not online)
 
 Decision [0018](decisions/0018-parked-boats.md). A boat whose player is not online stays where it
