@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { launchBrowser } from "./browser.mjs";
 import { tap } from "./support/tap.mjs";
+import { FAST_SEA } from "./support/fast-sea.mjs";
 
 // The minimap opens the big map, a full-screen page of its own: a tap (through the input layer, like every
 // control of the sea screen), or Enter on the focused minimap, opens it; it shows the whole sea as a square
@@ -24,7 +25,9 @@ try {
     });
     const page = await context.newPage();
     page.on("pageerror", (error) => problems.push(error.message));
-    await page.goto(`${process.env.TEST_BASE_URL}?daytime=12&weather=clear`);
+    await page.goto(
+      `${process.env.TEST_BASE_URL}?daytime=12&weather=clear${FAST_SEA}`,
+    );
     await page.getByRole("button", { name: "Ra khơi" }).waitFor();
     await page.evaluate(async () => {
       localStorage.clear();
