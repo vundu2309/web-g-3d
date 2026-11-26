@@ -207,8 +207,27 @@ try {
   const gear = await centre('[data-ocean="settings"]');
   await touch("touchStart", [{ x: gear.x, y: gear.y, id: 5 }]);
   await touch("touchEnd", [{ x: gear.x, y: gear.y, id: 5 }]);
-  await page.locator("dialog.ocean-dialog[open]").waitFor();
-  await page.getByRole("button", { name: "Đóng", exact: true }).click();
+  const dialog = page.locator("dialog.ocean-dialog[open]");
+  await dialog.waitFor();
+  // The hub opens under the finger: the browser's own click after the touch must not
+  // press what appeared there (it chose the "Kho cá" tab of the rail).
+  const hubAfter = async () => {
+    await page.waitForTimeout(500);
+    return dialog.getAttribute("data-hub");
+  };
+  assert.equal(await hubAfter(), "settings", "a touch on the gear: Settings");
+  // The hub forgets which page it showed on `close`, which comes after the click returns.
+  const closeHub = async () => {
+    await page.getByRole("button", { name: "Đóng", exact: true }).click();
+    await page
+      .locator("dialog.ocean-dialog:not([data-hub])")
+      .waitFor({ state: "attached" });
+  };
+  await closeHub();
+  await page.mouse.click(gear.x, gear.y);
+  await dialog.waitFor();
+  assert.equal(await hubAfter(), "settings", "a mouse click on the gear too");
+  await closeHub();
   // The way back is in Settings too.
   await touch("touchStart", [{ x: gear.x, y: gear.y, id: 6 }]);
   await touch("touchEnd", [{ x: gear.x, y: gear.y, id: 6 }]);

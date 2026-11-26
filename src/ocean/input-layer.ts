@@ -205,6 +205,10 @@ export function bindInputLayer(
     finish(event.pointerId, cancelled, event.clientX, event.clientY);
   };
   listen("pointerup", (event) => lift(event, false));
+  // A tap acts on `pointerup` and may open a hub under the finger. Without this the browser
+  // then sends its own click to that point, and it presses whatever has just appeared there
+  // (the gear opened Settings and the click chose the "Kho cá" tab).
+  listen("touchend", (event) => event.preventDefault());
   // A cancelled touch (the system took it) is a lift: nothing is left held down.
   listen("pointercancel", (event) => lift(event, true));
   listen("lostpointercapture", (event) => lift(event, true));
