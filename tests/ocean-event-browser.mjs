@@ -60,9 +60,10 @@ async function open(query = "") {
     window.stop = startOcean(document.querySelector("#app"), () => {}, {
       fightSpeed: 2,
       connect,
+      // The one clock of the sea, the bites and the pages, set by the test.
+      clock: () => window.clockMs,
       onScene: (s) => {
         window.oceanScene = s;
-        s.setSharedClock(() => window.clockMs / 1000);
       },
     });
   });

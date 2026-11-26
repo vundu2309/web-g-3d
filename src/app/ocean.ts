@@ -77,6 +77,8 @@ export interface OceanOptions {
   connect?: typeof connectOcean;
   /** Receives the scene once it exists; lets tests read its state and frame cost. */
   onScene?: (scene: OceanScene) => void;
+  /** Test only: the shared server clock in milliseconds, in place of the device clock plus the server offset. */
+  clock?: () => number;
   /** Runs the tug of war faster; tests on a software renderer would take minutes. */
   fightSpeed?: number;
   /** Hold the drawing rhythm ("eco" is about 30 fps) instead of following the display; for tests. */
@@ -227,22 +229,30 @@ export function startOcean(
   let lastPublish = 0;
   let lastPose = "";
   let clockOffset = 0;
-  /** A value kept on this device (the event's giant count); a blocked storage counts as nothing kept. */
+  /**
+   * What the hourly event keeps on this device, per ACCOUNT (two players on one phone have their own
+   * count): the giants landed in an hour and the best one. A blocked storage falls back to memory, so
+   * the limit still holds until the page reloads.
+   */
+  const eventMemory = new Map<string, string>();
+  const eventKey = (slot: number) =>
+    `${quotaKey(slot)}.${connection?.uid ?? "guest"}`;
   const readDevice = (key: string): string | null => {
     try {
-      return localStorage.getItem(key);
+      return localStorage.getItem(key) ?? eventMemory.get(key) ?? null;
     } catch {
-      return null;
+      return eventMemory.get(key) ?? null;
     }
   };
   const writeDevice = (key: string, value: string) => {
+    eventMemory.set(key, value);
     try {
       localStorage.setItem(key, value);
     } catch {
-      /* the count then lives only until the page reloads */
+      /* kept in memory only */
     }
   };
-  const bestKey = (slot: number) => `${quotaKey(slot)}.best`;
+  const bestKey = (slot: number) => `${eventKey(slot)}.best`;
   const readBest = (
     slot: number,
   ): { species: string; kg: number } | undefined => {
@@ -256,7 +266,7 @@ export function startOcean(
     }
   };
   /** The shared server clock in milliseconds: the same for every player (the sea's day and weather, the bites, the hot spots). */
-  const worldMs = () => Date.now() + clockOffset;
+  const worldMs = options.clock ?? (() => Date.now() + clockOffset);
   let caught = 0;
   // The server economy (none without VITE_ECONOMY: then no market, no upgrades, the default loadout, and the store stays on the device).
   const economy =
@@ -427,10 +437,10 @@ export function startOcean(
     dialog,
     fightSpeed: options.fightSpeed,
     worldMs,
-    giantsLeft: (slot) => giantsLeft(readDevice(quotaKey(slot))),
+    giantsLeft: (slot) => giantsLeft(readDevice(eventKey(slot))),
     onGiant: (fish, slot) => {
-      const used = GIANT_QUOTA - giantsLeft(readDevice(quotaKey(slot))) + 1;
-      writeDevice(quotaKey(slot), String(used));
+      const used = GIANT_QUOTA - giantsLeft(readDevice(eventKey(slot))) + 1;
+      writeDevice(eventKey(slot), String(used));
       // The best giant of this event (the Sự kiện page shows it).
       const best = readBest(slot);
       if (!best || fish.kg > best.kg)
@@ -528,7 +538,7 @@ export function startOcean(
     worldMs,
     from: () => pose,
     event: {
-      left: (slot) => giantsLeft(readDevice(quotaKey(slot))),
+      left: (slot) => giantsLeft(readDevice(eventKey(slot))),
       best: readBest,
     },
     beforeOpen: () => {
