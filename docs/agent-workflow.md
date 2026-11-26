@@ -2,6 +2,8 @@
 
 How a change is planned, built by agents, checked, approved by the user and published in this repository. It writes down what the sea overhaul of November 2026 did by hand ([decision 0011](decisions/0011-sea-visual-overhaul.md), [agent-briefs.md](agent-briefs.md)). It needs no tool beyond git and the agents in `.claude/agents/`; a change is tracked by a Markdown record in `docs/work/`.
 
+**This workflow is mandatory.** The rules, the threshold for an agent review and the one exception are under "Change contract" in [AGENTS.md](../AGENTS.md); this page says how the stages work. The work record is opened before the first edit; stage 8 below adds the commit SHAs after the push.
+
 ## Roles
 
 | Role                    | Who                                                 | May                                                                                                                                                         | May not                                                                            |
@@ -23,9 +25,9 @@ How a change is planned, built by agents, checked, approved by the user and publ
 3. **Build.** One agent per independent set of files. Agents that run at the same time get their own dev-server port and temporary page name, and never edit a file another agent owns. For a new Blender prop: structure, then refine, then builder.
 4. **Verify.** `npm run format:check`, `npx tsc --noEmit`, `npm run lint`, `npm run test:unit`; the browser tests that fit the change (`ocean-babylon`, `ocean-market`, `ocean-fishing`; `pwa` after `npm run build`); before/after images with `tools/render-harness`, plus a four-frame sequence for anything that moves. `qa-runner` can run this list and classify each failure (real, flaky, environment); the lead still reruns what the change depends on. _Gate: every check passes, or the failure is explained and a rerun result is reported._
 5. **Review.** The reviewer agent and the lead each rerun the checks and look at the images; builders' numbers are claims until the lead has seen them. _Gate: no open finding, or each is listed for the user._
-6. **Approval.** The images go to the user with what is unverified. _Gate: the user says "approved" for that change._ Silence is not approval.
+6. **Approval.** The images go to the user with what is unverified. For a change with no images (an API, a migration, tooling, docs) the user is shown a short summary of the diff, the evidence and what is unverified. _Gate: the user says "approved" for that change._ Silence is not approval.
 7. **Publish.** The lead commits (one coherent commit per change, with the project's trailers) and pushes to `main`, then checks the Vercel and Render builds and the GitHub Actions run. `release-manager` may do the commit and push for one approved change, from a brief that states the approval. A push goes live on production.
-8. **Record.** Open or update the work record in `docs/work/` for every change that goes through this workflow, including one the lead built alone (the record says which agents, if any, took part). Update its status, commits and images folder, the decision record for lasting decisions (`docs-keeper` can do the docs), the project memory, and, when source has changed enough, refresh OpenWiki through its lifecycle (never by hand).
+8. **Record.** The record was opened at stage 1; now add the commit SHAs and set `published` in a follow-up commit. Every change goes through this workflow, including one the lead built alone (the record says which agents, if any, took part). Update its status, commits and images folder, the decision record for lasting decisions (`docs-keeper` can do the docs), the project memory, and, when source has changed enough, refresh OpenWiki through its lifecycle (never by hand).
 
 ## States of a work record
 
