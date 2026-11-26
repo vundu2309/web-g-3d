@@ -86,6 +86,123 @@ the rest; the exception is listed and its exclusions named; "the lead" is define
 points to the user's say; stage 6 says what to show when there are no images; decision 0023 matches. The fixed
 text was **not** reviewed again by an agent.
 
+## Steps in detail (added 2026-11-26)
+
+Each step lists the tasks, what makes it done (something a person or a test can check) and what is not yet
+known. A step is not `done` until every "Done when" line is true and the record says how it was checked.
+Order: 1, 2, 3, 4, 5. Step 3 follows step 2 directly. Before a step starts, this record is updated; a step
+that changes more than one file outside `docs/` is reviewed by an agent (see "Change contract").
+
+### Step 1: a success signal that is true and fast
+
+Tasks (the first two are the open follow-ups of this record):
+
+1. Find out why `ocean-input` fails at "Về sảnh" (the second tap on the settings button opens "Kho cá"):
+   open the sea in a real browser at 844x390, tap the settings button twice and look at what is under the
+   tap. Decide: a stale test (fix the test) or a real fault (a defect for the user, with a screenshot).
+2. `scripts/qa.mjs` prints the whole failure of a test, not the last 1,500 characters of its log.
+3. A command that runs only the browser tests that fit the changed files: a small table from a source path
+   to test names, kept in `scripts/`, with a fallback to a named group when no row matches.
+4. `FAST_SEA` and the one-boot pattern for the tests that do not look at what the switches turn off, one
+   test at a time (each is checked against its own assertions first).
+
+Done when:
+
+- `node scripts/qa.mjs ocean` on a machine with a `.env.local` that points at a dead API ends with no failure
+  caused by the environment: every failure left is a defect, written in this record as a follow-up.
+- A failing test shows its assertion message and line in the qa output without a manual rerun.
+- The changed-files command, given a diff that touches only `src/app/big-map.ts`, names `ocean-map` and not
+  the whole group.
+- For every test given the fast switches: its time before and after is in this record, and a negative
+  control (a deliberate break of the feature it checks) still fails it.
+
+Not known yet: whether the browser tests can run in parallel (they share fake accounts and ports; not
+tried), and what CI would need to run them (it runs none today).
+
+### Step 2: a spec before the work
+
+Tasks:
+
+1. A short spec section in `docs/work/_template.md`, or a `_spec-template.md` next to it: goal in the user's
+   words, acceptance criteria written so that a named test can check each one, what must not be touched,
+   which agent or person owns which files, and how the user will judge it.
+2. Say in `docs/agent-briefs.md` that a brief for a builder is the spec's "Brief" section plus the paths.
+3. Try it on one real, small change chosen with the user.
+
+Done when:
+
+- The template is on `main` and `AGENTS.md` points to it.
+- One real change has a spec in its record in which every acceptance criterion names a test, and the record
+  shows that test failing before the build and passing after (the two outputs are quoted).
+- An agent review of that record (the `reviewer`) says each criterion is checkable, or lists those that are not.
+
+Not known yet: how long a spec may be before sessions stop writing it. The aim is a page, not more.
+
+### Step 3: enforcement by mechanism
+
+Tasks:
+
+1. A check script, for example `scripts/check-work-record.mjs`, that looks at the commits of a push range:
+   if a commit changes a file under `src/`, `server/`, `supabase/`, `tests/` or `scripts/`, the same range
+   must also change a file under `docs/work/` (not `_template.md` or `README.md`), or the commit message
+   must contain `No work record: <reason>`. Merge commits are skipped. It runs without network access.
+2. Run it in CI on every push to `main` and on pull requests, next to the existing lint, format, typecheck
+   and unit steps (today only `.github/workflows/pages.yml` runs them).
+3. A shared `.claude/settings.json` (committed) with hooks: format the changed file after an edit, and a
+   permission rule that refuses a force push. The exact event names and the format of the file are to be
+   read from the current Claude Code documentation before writing it; they are not taken from memory here.
+4. A test of the check script (`tests/`), with a deliberately violating range as the negative control.
+
+Done when:
+
+- On a throwaway branch, a commit that changes `src/` with no record makes the check fail, the same commit
+  with a record or with `No work record: <reason>` makes it pass (both outputs are quoted in this record).
+- The CI run of a pushed commit shows the check as a step, red for the violating branch and green for the
+  fixed one.
+- A new Claude Code session in a clean clone of `main` has the hooks loaded (checked by editing a
+  mis-formatted file and seeing it formatted), and the record says what that session saw.
+
+Not known yet, and to be checked rather than assumed: whether a session that is already running picks up a
+new `.claude/settings.json` (the documentation read on 2026-11-26 says settings are read when a session
+starts, so it probably does not); whether Claude Code asks the user to trust project hooks before running
+them; and whether editing the CI workflow needs anything from the user beyond the push gate (it does not
+touch Supabase, Render or Vercel). The user's say is needed for the push, as always.
+
+Risks: a check that fires on every small commit makes sessions write empty records. The exception message and
+the threshold keep that small; the first weeks of use will show if the threshold is wrong.
+
+### Step 4: the right agent and an independent check
+
+Tasks:
+
+1. Choose two real changes with the user: one that touches several files outside `docs/`, one in
+   `server/` or `supabase/`.
+2. For each: the lead writes the brief from the spec, `sea-visual-builder` (or another builder) makes the
+   change in its own worktree, then the reviewer and `qa-runner` check it. The lead reads each report and
+   reruns the key check.
+3. The record names every agent that took part, what each found, and what the lead changed after.
+
+Done when:
+
+- Two changes on `main` whose records name the builder, the reviewer and `qa-runner`, with their findings.
+- The record compares them with the changes the lead built alone (rounds of fixing, defects found before
+  and after the push), and says whether to keep the pattern. A sample of two is stated as small.
+
+Not known yet: whether the cost in time and tokens is worth it for changes this size. The record must give the
+time each took, from the board or from the agents' own reports.
+
+### Step 5: measure
+
+Tasks:
+
+1. A table in this record, or a file in `docs/work/`, with one row per change: date, record, agents, rounds
+   of fixing, which check or person found each defect, and whether a defect reached `main`.
+2. The agent board (`.claude/scratch-agent-board`, local, not committed) is a reading aid, not the source of
+   truth: the figures come from the work records and the git history.
+
+Done when: at least five changes are in the table, and a short note says what the numbers suggest and what
+they cannot show (a sample this size cannot show a trend).
+
 ## Follow-ups
 
 In the user's order:
