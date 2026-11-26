@@ -1,7 +1,9 @@
 import { createPerfPanel } from "./perf-panel.ts";
+import { shoreDistance } from "../ocean/audio-life";
 import {
   PRESENCE_MS,
   SEA_BOUND,
+  islands,
   spawn,
   type Boat,
   type Pose,
@@ -52,6 +54,7 @@ import {
 } from "../ocean/connect";
 import {
   decodeSave,
+  newerPose,
   encodeSave,
   safePose,
   saveKey,
@@ -169,6 +172,14 @@ export function startOcean(
   let boats: Boat[] = [];
   let disposed = false;
   const seaAudio = createSeaAudio();
+  // Every hub (settings, fish store, market, ranking) opens and closes this one dialog, so one
+  // place gives them a sound.
+  const showModal = dialog.showModal.bind(dialog);
+  dialog.showModal = () => {
+    showModal();
+    seaAudio.play("open");
+  };
+  dialog.addEventListener("close", () => seaAudio.play("close"));
   let active = false;
   let frame = 0;
   let lastDraw = 0;
@@ -217,6 +228,8 @@ export function startOcean(
    * (migration not applied, no network): then the store stays on the device as before.
    */
   let serverStore = false;
+  /** How often the boat's position goes to the server (the database refuses one inside 4 s). */
+  const POSE_SAVE_MS = 5000;
   let lastPoseSave = 0;
   let reconnecting = false;
   let connectFn: typeof connectOcean | undefined;
@@ -252,9 +265,9 @@ export function startOcean(
         fish: serverStore ? {} : fishStock,
       }),
     );
-    // The boat's position goes to the server too, at most every 30 s (it keeps one per 10 s).
+    // The boat's position goes to the server too, every 5 s (the server keeps one per 4 s).
     const now = performance.now();
-    if (serverStore && economy && now - lastPoseSave > 30_000) {
+    if (serverStore && economy && now - lastPoseSave > POSE_SAVE_MS) {
       lastPoseSave = now;
       void economy.savePose(pose).catch(() => {});
     }
@@ -298,6 +311,7 @@ export function startOcean(
         pose: profile.pose
           ? safePose(profile.pose.x, profile.pose.z, profile.pose.heading)
           : undefined,
+        poseAge: profile.pose?.age,
       };
     } catch {
       return undefined;
@@ -795,6 +809,9 @@ export function startOcean(
         rain: SEA.weather.z,
         gloom: SEA.weather.y,
         tension: fishingUi.lineTension(now),
+        daylight: SEA.grade.y,
+        shore: shoreDistance(pose.x, pose.z, islands),
+        plane: scene.skyPlanes()?.nearestDistance(pose.x, pose.z),
       });
       const began = performance.now();
       scene.update(
@@ -1126,7 +1143,12 @@ export function startOcean(
       const remote = await loadServerStore(restored);
       if (disposed) return;
       serverStore = remote !== undefined;
-      pose = remote?.pose ?? restored.pose ?? spawn(value.uid);
+      // The position saved last wins: the device's (saved on every reload) or the server's.
+      pose =
+        newerPose(
+          restored,
+          remote && { pose: remote.pose, age: remote.poseAge },
+        ) ?? spawn(value.uid);
       caught = remote ? remote.caught : restored.caught;
       fishStock = remote ? remote.fish : restored.fish;
       if (serverStore) persist();

@@ -121,12 +121,24 @@ const settle = (page) =>
         });
       }),
   );
+// Takes a screenshot of the scene. With software rendering a frame takes half a second and the
+// canvas is cleared when the render scale changes, so a screenshot can catch an empty canvas
+// (a flat page of about 25 KB, against 250 KB or more with the sea in it): try again until it has the sea.
+const shoot = async (page, path) => {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    await settle(page);
+    const png = await page.screenshot({ path });
+    if (png.length > 120_000) return png.length;
+    await page.waitForTimeout(500);
+  }
+  assert.fail(`${path}: the screenshot stayed empty`);
+};
 const poses = (page) =>
   page.evaluate(() => JSON.stringify(window.oceanScene.skyPlanes().all()));
 
 try {
   // 1. Every device sees the same planes: two separate browsers on one shared time agree on all
-  //    eight planes, and still agree after the shared clock moves on.
+  //    twelve planes, and still agree after the shared clock moves on.
   {
     const a = await open({ frozen: true });
     const b = await open({ frozen: true });
@@ -139,7 +151,7 @@ try {
       "same planes at the same shared time",
     );
     const list = JSON.parse(first);
-    assert.equal(list.length, 8);
+    assert.equal(list.length, 12);
     assert.ok(
       new Set(list.map((p) => Math.round(p.x))).size >= 6,
       "the planes are in different places",
@@ -167,7 +179,7 @@ try {
   // 2. Near the camera the planes are drawn, each with a banner, as a few hundred triangles.
   {
     const { page, context } = await open();
-    for (const index of [0, 1, 2])
+    for (const index of [0, 1, 2, 3])
       await frame(page, {
         index,
         ahead: 90 + index * 25,
@@ -191,11 +203,14 @@ try {
       };
     });
     console.log("planes:", JSON.stringify(facts));
-    assert.equal(facts.visible, 3, "the three nearest are drawn (the limit)");
+    assert.equal(facts.visible, 4, "the four nearest are drawn (the limit)");
     // (A plane that flew past the camera on its own earlier is built too, then switched off.)
-    assert.ok(facts.bodies >= 3 && facts.bodies <= 8, `${facts.bodies} bodies`);
     assert.ok(
-      facts.banners >= 3 && facts.banners <= 8,
+      facts.bodies >= 4 && facts.bodies <= 12,
+      `${facts.bodies} bodies`,
+    );
+    assert.ok(
+      facts.banners >= 4 && facts.banners <= 12,
       `${facts.banners} banners`,
     );
     assert.ok(
@@ -209,7 +224,7 @@ try {
     const before = JSON.parse(await poses(page));
     await page.waitForTimeout(3000);
     const after = JSON.parse(await poses(page));
-    for (const i of [0, 1, 2])
+    for (const i of [0, 1, 2, 3])
       assert.ok(
         Math.hypot(after[i].x - before[i].x, after[i].z - before[i].z) > 10,
         `plane ${i} did not move`,
@@ -225,11 +240,102 @@ try {
       await frame(page, { index: 0, ahead, high, rightward });
       await page.waitForTimeout(300);
       await settle(page);
-      await page.screenshot({ path: `${output}/${name}.png` });
+      await shoot(page, `${output}/${name}.png`);
     }
+    // 4b. At the edge of the range a plane dissolves, it does not vanish: flying away from the camera
+    //     its amount falls steadily to nothing, and it is switched off only when it is gone. (It thins
+    //     with distance, or fades out because nearer planes took its place among the four drawn: either
+    //     way never in one frame; the distance taper alone is pinned in tests/plane-fade.test.mjs.)
+    const fade = await page.evaluate(async () => {
+      const scene = window.oceanScene;
+      const fleet = scene.skyPlanes();
+      const camera = scene.scene.activeCamera;
+      const target = camera.getTarget();
+      let dx = target.x - camera.position.x;
+      let dz = target.z - camera.position.z;
+      const length = Math.hypot(dx, dz) || 1;
+      dx /= length;
+      dz /= length;
+      // 380 m ahead, flying straight away from the camera (the range is 600 m on this screen).
+      const heading = Math.atan2(dx, -dz);
+      fleet.place(
+        0,
+        camera.position.x + dx * 380,
+        60,
+        camera.position.z + dz * 380,
+        heading,
+      );
+      const series = [];
+      const started = performance.now();
+      while (performance.now() - started < 25000) {
+        await new Promise((r) => requestAnimationFrame(r));
+        const mesh = scene.scene.getMeshByName("plane-body-0");
+        series.push({
+          amount: fleet.amountOf(0),
+          enabled: mesh ? mesh.isEnabled() : false,
+          d: Math.hypot(
+            fleet.all()[0].x - camera.position.x,
+            fleet.all()[0].z - camera.position.z,
+          ),
+        });
+        if (fleet.amountOf(0) === 0) break;
+      }
+      return series;
+    });
+    const amounts = fade.map((f) => f.amount);
+    console.log(
+      `fade: ${fade.length} frames, from ${amounts[0].toFixed(2)} to ${amounts.at(-1)}, farthest ${Math.round(fade.at(-1).d)} m`,
+    );
+    assert.equal(amounts.at(-1), 0, "it ends gone");
+    assert.ok(
+      amounts.some((a) => a > 0.2 && a < 0.8),
+      "it passes through half-faded states",
+    );
+    for (let i = 1; i < amounts.length; i++)
+      assert.ok(
+        amounts[i] <= amounts[i - 1] + 1e-9,
+        "it only thins as it flies away",
+      );
+    // At most a third of the plane goes in one frame (a frame here is half a second of software rendering).
+    for (let i = 1; i < amounts.length; i++)
+      assert.ok(
+        amounts[i - 1] - amounts[i] < 0.34,
+        `a jump from ${amounts[i - 1]} to ${amounts[i]}`,
+      );
+    for (const f of fade)
+      if (f.amount > 0) assert.ok(f.enabled, "drawn while it has any amount");
+
+    // 5. Night: by day the lights are not drawn; at midnight they are, with the banner still readable.
+    const glowOn = () =>
+      page.evaluate(
+        () =>
+          window.oceanScene.scene
+            .getMeshByName("plane-lights-0")
+            ?.isEnabled() ?? null,
+      );
+    const pin = (hour) =>
+      page.evaluate(async (h) => {
+        const sea = await import("/src/ocean/sea-atmosphere.ts");
+        sea.pinAtmosphere({ hour: h, weather: "clear" });
+      }, hour);
+    await pin(12);
+    await frame(page, { index: 0, ahead: 70, high: 16, rightward: true });
+    await page.waitForTimeout(300);
+    await settle(page);
+    assert.equal(await glowOn(), false, "no lights by day");
+    await pin(0);
+    await frame(page, { index: 0, ahead: 70, high: 16, rightward: true });
+    await page.waitForTimeout(300);
+    await settle(page);
+    assert.equal(await glowOn(), true, "lights at night");
+    await shoot(page, `${output}/planes-night.png`);
+    await frame(page, { index: 0, ahead: 140, high: 22, rightward: false });
+    await page.waitForTimeout(300);
+    await settle(page);
+    await shoot(page, `${output}/planes-night-far.png`);
     await context.close();
   }
-  // 5. The switch: ?planes=0 has no planes and no banner meshes.
+  // 6. The switch: ?planes=0 has no planes and no banner meshes.
   {
     const { page, context } = await open({ query: "?planes=0" });
     const none = await page.evaluate(() => ({
@@ -243,7 +349,7 @@ try {
   }
   assert.deepEqual(problems, [], `no page errors: ${problems.join("; ")}`);
   console.log(
-    "Ocean planes: two browsers on one shared time show the same eight planes (and after a jump of the clock), the nearest three are drawn with banners, they fly, `?planes=0` removes them, no errors.",
+    "Ocean planes: two browsers on one shared time show the same twelve planes (and after a jump of the clock), the nearest four are drawn with banners, they fly, `?planes=0` removes them, no errors.",
   );
 } finally {
   await browser.close();

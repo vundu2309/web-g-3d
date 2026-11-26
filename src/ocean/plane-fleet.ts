@@ -1,6 +1,8 @@
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
+import { DitheredTileFadeMaterialPlugin } from "@babylonjs/core/Materials/ditheredTileFadeMaterialPlugin";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { Quaternion } from "@babylonjs/core/Maths/math.vector";
+import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
+import type { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
 import type { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import type { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
@@ -10,10 +12,12 @@ import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import { PAL } from "./art/colors.ts";
-import { glowMaterial, useSolid } from "./art/materials.ts";
+import { glowMaterial, solidMaterial, useSolid } from "./art/materials.ts";
 import { Parts, SIDES } from "./art/shapes.ts";
 import { beaconLevel } from "./atmosphere.ts";
 import { BANNER, bannerLayout, fillBanner } from "./banner.ts";
+import { FADE_IN, FADE_OUT, approach, fadeAmount } from "./plane-fade.ts";
+import { PlaneGlow, createGlowMaterial } from "./plane-glow.ts";
 import { PlaneSim, makePlans, type PlanePose } from "./plane-plan.ts";
 import { SEA } from "./sea-atmosphere.ts";
 
@@ -23,7 +27,9 @@ import { SEA } from "./sea-atmosphere.ts";
  * the SHARED clock (plane-plan.ts), so every player sees the same planes at the same places. All
  * of them are simulated (a few arithmetic steps each); only the nearest few within `range` are
  * drawn. Two shared models (the body and the propeller, both hidden templates) are drawn as
- * instances, so a drawn plane is two instance draws and one banner draw. Only a picture over the
+ * instances, so a drawn plane is two instance draws, one banner draw and, at night, one draw for
+ * the glow of its lights (plane-lights.ts). A plane comes into view and leaves it by dithered
+ * fade (plane-fade.ts), never in one frame. Only a picture over the
  * sea: no collision, no sound, and no part of play depends on them.
  */
 export interface PlaneFleetOptions {
@@ -169,6 +175,7 @@ interface Drawn {
   body: InstancedMesh;
   prop: InstancedMesh;
   banner: Mesh;
+  glow: PlaneGlow;
   positions: Float32Array;
   spin: number;
 }
@@ -189,9 +196,19 @@ export class PlaneFleet {
   }));
   private readonly texture: DynamicTexture;
   private readonly material: StandardMaterial;
+  private readonly glowMaterial: ShaderMaterial;
+  private readonly right = new Vector3();
+  private readonly up = new Vector3();
   private readonly layout = bannerLayout();
   private readonly quaternion = new Quaternion();
+  /** How whole each plane is drawn (1 whole, 0 not at all), by the time fade. */
+  private readonly amounts: number[] = this.sims.map(() => 0);
+  /** How whole each plane was drawn in the last frame (0: not drawn). */
+  private readonly drawnAmounts: number[] = this.sims.map(() => 0);
+  private readonly fade: DitheredTileFadeMaterialPlugin;
+  private readonly bannerFade: DitheredTileFadeMaterialPlugin;
   private last: number | undefined;
+  private primed = false;
   private shown = 0;
   private disposed = false;
 
@@ -214,11 +231,17 @@ export class PlaneFleet {
         if (!this.disposed) paintBanner(this.texture, text);
       })
       .catch(() => {});
+    this.glowMaterial = createGlowMaterial(scene);
     this.material = glowMaterial(scene, "plane-banner", {
       texture: this.texture,
       textureAlpha: false,
       doubleSided: false,
     });
+    // A plane (and its banner) comes into view and leaves it by dithered fade, as the animals do.
+    this.fade = DitheredTileFadeMaterialPlugin.GetOrCreate(
+      solidMaterial(scene, "satin"),
+    );
+    this.bannerFade = DitheredTileFadeMaterialPlugin.GetOrCreate(this.material);
   }
 
   private draw(index: number): Drawn {
@@ -246,7 +269,12 @@ export class PlaneFleet {
     // Its box moves every frame and the whole thing is small: always draw it rather than cull it by a stale box.
     banner.alwaysSelectAsActiveMesh = true;
     banner.isPickable = false;
-    const entry = { root, body, prop, banner, positions, spin: 0 };
+    const glow = new PlaneGlow(
+      scene,
+      `plane-lights-${index}`,
+      this.glowMaterial,
+    );
+    const entry = { root, body, prop, banner, glow, positions, spin: 0 };
     this.drawn.set(index, entry);
     return entry;
   }
@@ -254,11 +282,17 @@ export class PlaneFleet {
   private show(entry: Drawn, on: boolean) {
     entry.root.setEnabled(on);
     entry.banner.setEnabled(on);
+    if (!on) entry.glow.mesh.setEnabled(false);
   }
 
   /** Where every plane is now (all of them, drawn or not). */
   all(): readonly PlanePose[] {
     return this.poses;
+  }
+
+  /** How whole plane `index` was drawn in the last frame, 0 to 1 (0: not drawn). */
+  amountOf(index: number): number {
+    return this.drawnAmounts[index] ?? 0;
   }
 
   /** How many planes are drawn now. */
@@ -291,18 +325,36 @@ export class PlaneFleet {
       flight.leaving = false;
     }
     sim.trail.prime(x, altitude, z, heading);
+    // Put there by hand: whole at once, not fading in.
+    this.amounts[index] = 1;
   }
 
   /**
    * Each frame. `shared` is the shared clock in seconds (every player's planes are where it says),
    * `time` the sea's own clock (the flutter and the propeller), `camera` where the nearest are chosen.
    */
+  /** How far the nearest seaplane is from a point on the sea (m), for the engine's sound. */
+  nearestDistance(x: number, z: number): number {
+    let best = Number.POSITIVE_INFINITY;
+    for (const pose of this.poses)
+      best = Math.min(best, Math.hypot(pose.x - x, pose.z - z));
+    return best;
+  }
+
   update(shared: number, time: number, camera: { x: number; z: number }) {
     const dt = this.last === undefined ? 0 : Math.min(time - this.last, 0.25);
     this.last = time;
     const night = beaconLevel(SEA.grade.y, SEA.weather.y, SEA.weather.z);
-    // The banner is unlit so its letters stay readable; at night it dims with the sky.
-    this.material.emissiveColor = Color3.White().scale(1 - 0.6 * night);
+    // The banner is unlit so its letters stay readable: at night it only dims a little (it is lit
+    // from within, as a night banner is), and the plane's lights come on.
+    this.material.emissiveColor = Color3.White().scale(1 - 0.25 * night);
+    this.glowMaterial.setFloat("level", night);
+    const view = this.scene.activeCamera?.getViewMatrix().m;
+    if (view) {
+      this.right.set(view[0]!, view[4]!, view[8]!);
+      this.up.set(view[1]!, view[5]!, view[9]!);
+    }
+    const eye = this.scene.activeCamera?.globalPosition;
     this.sims.forEach((sim, index) => {
       sim.advance(shared);
       sim.pose(shared, this.poses[index]!);
@@ -318,13 +370,34 @@ export class PlaneFleet {
       .slice(0, limit);
     const show = new Set(nearest.map((item) => item.index));
     this.shown = show.size;
-    for (const [index, entry] of this.drawn)
-      if (!show.has(index)) this.show(entry, false);
-    for (const index of show) {
+    // Planes already in view when the sea opens start whole, not fading in.
+    const first = !this.primed;
+    this.primed = true;
+    this.poses.forEach((pose, index) => {
+      const wanted = show.has(index);
+      let fadeTime = this.amounts[index]!;
+      if (first && wanted) fadeTime = 1;
+      fadeTime = approach(
+        fadeTime,
+        wanted ? 1 : 0,
+        dt,
+        wanted ? FADE_IN : FADE_OUT,
+      );
+      this.amounts[index] = fadeTime;
+      const distance = Math.hypot(pose.x - camera.x, pose.z - camera.z);
+      const amount = fadeAmount(fadeTime, distance, range);
+      const made = this.drawn.get(index);
+      this.drawnAmounts[index] = amount;
+      if (amount <= 0) {
+        if (made) this.show(made, false);
+        return;
+      }
       const entry = this.draw(index);
-      const pose = this.poses[index]!;
       const sim = this.sims[index]!;
       this.show(entry, true);
+      this.fade.setFadeBounds(entry.body, 0, amount);
+      this.fade.setFadeBounds(entry.prop, 0, amount);
+      this.bannerFade.setFadeBounds(entry.banner, 0, amount);
       entry.root.position.set(pose.x, pose.altitude, pose.z);
       Quaternion.RotationYawPitchRollToRef(
         -pose.heading,
@@ -335,18 +408,29 @@ export class PlaneFleet {
       entry.root.rotationQuaternion!.copyFrom(this.quaternion);
       entry.spin += dt * 38;
       entry.prop.rotation.z = entry.spin;
+      if (eye)
+        entry.glow.update(
+          entry.root.computeWorldMatrix(true),
+          eye,
+          this.right,
+          this.up,
+          time,
+          night,
+          amount,
+        );
       sim.trail.follow(pose.x, pose.altitude, pose.z);
       fillBanner(this.layout, sim.trail, time, entry.positions);
       entry.banner.updateVerticesData(
         VertexBuffer.PositionKind,
         entry.positions,
       );
-    }
+    });
   }
 
   dispose() {
     this.disposed = true;
     for (const entry of this.drawn.values()) {
+      entry.glow.dispose();
       entry.banner.dispose();
       entry.prop.dispose();
       entry.body.dispose();
@@ -356,6 +440,7 @@ export class PlaneFleet {
     this.templates.body.dispose();
     this.templates.prop.dispose();
     this.material.dispose();
+    this.glowMaterial.dispose();
     this.texture.dispose();
   }
 }

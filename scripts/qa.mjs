@@ -21,9 +21,11 @@ const GROUPS = {
     "ocean-server-store",
     "ocean-rank",
     "ocean-planes",
+    "ocean-edge",
     "ocean-input",
     "ocean-steer",
     "ocean-stick",
+    "ocean-audio",
   ],
 };
 const args = process.argv.slice(2);

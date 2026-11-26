@@ -14,7 +14,7 @@ import { readLeaderboard, type Leaderboard } from "./leaderboard.ts";
 
 /** The most fish the one-time import moves (the server says the same), and the count it accepts. */
 export const IMPORT_MAX_FISH = 100;
-export const POSE_SAVE_SECONDS = 10;
+export const POSE_SAVE_SECONDS = 4;
 
 /**
  * The player's money, as the app sees it: a wallet and a ledger of caught fish kept on the
@@ -98,7 +98,7 @@ export interface EconomyApi {
   profile(): Promise<Profile>;
   /** Puts the lightest fish of a species back in the sea (it pays nothing). */
   release(species: string): Promise<void>;
-  /** Saves where the boat is; the server keeps at most one save every 10 seconds. */
+  /** Saves where the boat is; the server keeps at most one save every 4 seconds. */
   savePose(pose: { x: number; z: number; heading: number }): Promise<void>;
   /** Moves the fish store kept on the device to the server, once per account. */
   importLocal(fish: Inventory, caught: number): Promise<ImportResult>;

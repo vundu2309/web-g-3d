@@ -447,6 +447,7 @@ export function createMarketUi(options: MarketUiOptions) {
         });
         fresh = { kind, tier };
         flash = "Đã mua!";
+        options.sound?.("buy");
       }
     } catch (error) {
       problem = failureText(error);

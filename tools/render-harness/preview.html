@@ -474,7 +474,7 @@
         sim.pack(simPixels);
         water.setStirred(simPixels, sim.centreX, sim.centreZ);
         water.update(cam.position.x, cam.position.z, T, boatList);
-        sky.update(cam.position.x, cam.position.y, cam.position.z, T);
+        sky.update(T);
         props.update(T);
         schools?.update(T, cam.position, boatList);
         clear?.update(T, cam.position);

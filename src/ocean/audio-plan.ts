@@ -17,6 +17,12 @@ export interface SoundInput {
   /** Master volume 0..1 and the on/off switch from Settings. */
   volume: number;
   enabled: boolean;
+  /** How far the boat is from the nearest beach (m); left out when not known (far). */
+  shore?: number;
+  /** Distance to the nearest seaplane (m); left out when there are none. */
+  plane?: number;
+  /** 1 in full day, 0 at night (for the gulls and the music); left out means day. */
+  daylight?: number;
 }
 
 export interface SoundPlan {
@@ -29,6 +35,15 @@ export interface SoundPlan {
   enginePitch: number;
   line: number;
   linePitch: number;
+  /** The hull rushing through the water at speed (a bow of spray). */
+  hull: number;
+  hullCutoff: number;
+  /** Surf breaking on a beach, louder the closer the boat is. */
+  surf: number;
+  surfCutoff: number;
+  /** A seaplane's engine going by. */
+  plane: number;
+  planePitch: number;
 }
 
 /** Top speed the plan scales against (m/s); boat-physics TOP_SPEED is 18. */
@@ -43,7 +58,27 @@ export const SILENT: SoundPlan = Object.freeze({
   enginePitch: 38,
   line: 0,
   linePitch: 220,
+  hull: 0,
+  hullCutoff: 900,
+  surf: 0,
+  surfCutoff: 500,
+  plane: 0,
+  planePitch: 100,
 });
+
+const smooth = (a: number, b: number, x: number) => {
+  const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
+/** The surf is heard from this far off a beach (m), and is at full strength inside the near one. */
+export const SURF_RANGE = { near: 25, far: 170 } as const;
+/** A seaplane is heard from this far (m), and is at full strength inside the near one. */
+export const PLANE_RANGE = { near: 40, far: 300 } as const;
+/** How close to a beach (0 far .. 1 at the sand) the boat is, for the surf and the gulls. */
+export const nearShore = (shore: number | undefined) =>
+  shore === undefined || !Number.isFinite(shore)
+    ? 0
+    : 1 - smooth(SURF_RANGE.near, SURF_RANGE.far, Math.max(0, shore));
 
 const clamp01 = (v: number) =>
   Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 0;
@@ -69,6 +104,24 @@ export function soundPlan(input: SoundInput): SoundPlan {
     enginePitch: 38 + 52 * run,
     line: volume * 0.08 * pull * pull,
     linePitch: 220 + 520 * pull,
+    // Spray and rushing water start once the hull really moves and grow with speed.
+    hull: volume * 0.2 * smooth(0.12, 0.8, run) * (0.6 + 0.4 * run),
+    hullCutoff: 800 + 2600 * run,
+    // Breakers on a beach: a sea that is rough breaks louder.
+    surf: volume * 0.2 * nearShore(input.shore) * (0.8 + 0.4 * gloom),
+    surfCutoff: 450 + 1100 * nearShore(input.shore),
+    plane:
+      input.plane === undefined || !Number.isFinite(input.plane)
+        ? 0
+        : volume *
+          0.045 *
+          (1 -
+            smooth(
+              PLANE_RANGE.near,
+              PLANE_RANGE.far,
+              Math.max(0, input.plane),
+            )),
+    planePitch: 100,
   };
 }
 
@@ -76,8 +129,14 @@ export function soundPlan(input: SoundInput): SoundPlan {
 export interface AudioSettings {
   enabled: boolean;
   volume: number;
+  /** The background music, on top of the sea (it is quiet; the switch is in Settings). */
+  music: boolean;
 }
-export const DEFAULT_AUDIO: AudioSettings = { enabled: true, volume: 0.7 };
+export const DEFAULT_AUDIO: AudioSettings = {
+  enabled: true,
+  volume: 0.7,
+  music: true,
+};
 
 export function parseAudioSettings(raw: string | null): AudioSettings {
   if (!raw) return { ...DEFAULT_AUDIO };
@@ -92,6 +151,8 @@ export function parseAudioSettings(raw: string | null): AudioSettings {
         typeof value.volume === "number" && Number.isFinite(value.volume)
           ? clamp01(value.volume)
           : DEFAULT_AUDIO.volume,
+      music:
+        typeof value.music === "boolean" ? value.music : DEFAULT_AUDIO.music,
     };
   } catch {
     return { ...DEFAULT_AUDIO };

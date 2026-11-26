@@ -17,7 +17,12 @@ export type Cue =
   | "drop"
   | "blocked"
   | "coin"
-  | "error";
+  | "error"
+  | "tap"
+  | "open"
+  | "close"
+  | "buy"
+  | "gull";
 
 export interface Voice {
   kind: "tone" | "noise";
@@ -123,6 +128,24 @@ export const CUES: Record<Cue, readonly Voice[]> = {
   // A sale: two bright notes.
   coin: [tone(1568, 1568, 0, 0.08, 0.25), tone(2093, 2093, 0.07, 0.35, 0.25)],
   error: [tone(200, 140, 0, 0.2, 0.25, "triangle")],
+  // A soft tick for a button.
+  tap: [tone(520, 440, 0, 0.05, 0.14, "triangle")],
+  // A hub or a market opens, a little rise; it closes, a little fall.
+  open: [tone(392, 587, 0, 0.11, 0.16)],
+  close: [tone(587, 392, 0, 0.11, 0.14)],
+  // Something was bought: the coin, then four rising notes.
+  buy: [
+    tone(1568, 1568, 0, 0.08, 0.2),
+    tone(523, 523, 0.1, 0.12, 0.2, "triangle"),
+    tone(659, 659, 0.17, 0.12, 0.2, "triangle"),
+    tone(784, 784, 0.24, 0.12, 0.2, "triangle"),
+    tone(1047, 1047, 0.31, 0.28, 0.22, "triangle"),
+  ],
+  // A gull: two falling cries.
+  gull: [
+    tone(2100, 1350, 0, 0.2, 0.1, "triangle"),
+    tone(1900, 1150, 0.27, 0.26, 0.1, "triangle"),
+  ],
 };
 
 const finite = (v: number) => (Number.isFinite(v) ? v : 0);

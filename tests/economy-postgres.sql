@@ -189,7 +189,7 @@ do $$declare s jsonb; begin
   if (public.economy_profile()->'records'->>'ca-ngu')::numeric <> 12.34 then raise exception 'record lost'; end if;
 end$$;
 
--- The boat's position: validated, one write per 10 s (the next is ignored, not an error).
+-- The boat's position: validated, one write per 4 s (the next is ignored, not an error).
 do $$declare r jsonb; p jsonb; begin
   begin perform public.economy_save_pose(99999, 0, 0); raise exception 'far position accepted';
   exception when invalid_parameter_value then null; end;
@@ -200,9 +200,29 @@ do $$declare r jsonb; p jsonb; begin
   r := public.economy_save_pose(10.5, -20.25, 1.5);
   if not (r->>'saved')::boolean then raise exception 'first pose not saved'; end if;
   r := public.economy_save_pose(500, 500, 0);
-  if (r->>'saved')::boolean then raise exception 'second pose within 10 s was saved'; end if;
+  if (r->>'saved')::boolean then raise exception 'second pose within 4 s was saved'; end if;
   p := public.economy_profile()->'pose';
   if (p->>'x')::numeric <> 10.5 or (p->>'z')::numeric <> -20.25 or (p->>'heading')::numeric <> 1.5 then raise exception 'pose %', p; end if;
+end$$;
+
+-- The client saves every 5 s: a save 3 s after the last is refused, one 5 s after is kept.
+reset role;
+update economy_private.profiles set pose_at = clock_timestamp() - interval '3 seconds'
+  where user_id = '00000000-0000-0000-0000-0000000000a1';
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+do $$declare r jsonb; begin
+  r := public.economy_save_pose(1, 1, 0);
+  if (r->>'saved')::boolean then raise exception 'a pose 3 s after the last was saved'; end if;
+end$$;
+reset role;
+update economy_private.profiles set pose_at = clock_timestamp() - interval '5 seconds'
+  where user_id = '00000000-0000-0000-0000-0000000000a1';
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+do $$declare r jsonb; begin
+  r := public.economy_save_pose(2, 3, 0.5);
+  if not (r->>'saved')::boolean then raise exception 'a pose 5 s after the last was refused'; end if;
 end$$;
 
 -- Importing the device's old store: once, bounded, lightest weights, records from "best".

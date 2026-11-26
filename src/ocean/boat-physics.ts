@@ -31,6 +31,7 @@ import {
   boatTierIndex,
   bowAnchor,
   hullSamples,
+  rightingExtra,
 } from "./boat-tier.ts";
 
 /**
@@ -249,6 +250,9 @@ export function createBoatPhysics(
   let samples: Vector3[] = [];
   let bow = new Vector3();
   let handling = handlingFor({ mass: HULL_MASS, ...boatTier(0).hull });
+  // The extra righting stiffness of the tier (N m per radian about the keel and about the beam),
+  // as a share of what the buoyancy points give (boat-tier.ts RIGHTING_EXTRA); zero for tier 0.
+  const righting = { roll: 0, pitch: 0 };
   // A boat whose collision box is wider than its hull (the flagship, over its outrigger booms) is
   // given the inertia of its HULL, so the box that collides does not change how it turns or leans.
   // Havok keeps what is set here when the shape is swapped; a boat whose box is its hull is left
@@ -278,6 +282,11 @@ export function createBoatPhysics(
     samples = hullSamples(tier).map((p) => new Vector3(p.x, BOTTOM, p.z));
     bow = new Vector3(0, BOTTOM, -bowAnchor(tier));
     handling = handlingFor({ mass: HULL_MASS, ...hull });
+    const extra = rightingExtra(tier);
+    righting.roll =
+      extra * STIFFNESS * samples.reduce((n, p) => n + p.x * p.x, 0);
+    righting.pitch =
+      extra * STIFFNESS * samples.reduce((n, p) => n + p.z * p.z, 0);
     setInertia(tier);
   };
   useTier(tier);
@@ -387,6 +396,8 @@ export function createBoatPhysics(
   const forward = new Vector3();
   const side = new Vector3();
   const force = new Vector3();
+  const up = new Vector3();
+  const tilt = new Vector3();
   const clamp = (v: number, lo: number, hi: number) =>
     Math.min(hi, Math.max(lo, v));
 
@@ -533,6 +544,26 @@ export function createBoatPhysics(
       dt;
     spin.set(forward.x * lean, 0, forward.z * lean);
     body.applyAngularImpulse(spin);
+    // A bigger boat is steadier: an extra torque that rights the hull, about the keel (roll) and
+    // the beam (pitch) only, never the heading (boat-tier.ts RIGHTING_EXTRA). Zero for tier 0. Like the keel's grip it
+    // holds most of its strength when a crest lifts the hull, or a bigger boat would roll again each
+    // time one passed.
+    if (righting.roll > 0) {
+      Vector3.TransformNormalToRef(Axis.Y, mesh.getWorldMatrix(), up);
+      Vector3.CrossToRef(up, Axis.Y, tilt);
+      const roll = tilt.x * forward.x + tilt.z * forward.z;
+      const pitch = tilt.x * side.x + tilt.z * side.z;
+      spin.set(
+        (forward.x * righting.roll * roll + side.x * righting.pitch * pitch) *
+          keel *
+          dt,
+        0,
+        (forward.z * righting.roll * roll + side.z * righting.pitch * pitch) *
+          keel *
+          dt,
+      );
+      body.applyAngularImpulse(spin);
+    }
     // The edge of the sea: a damped zone that eases the boat to a stop without a rebound, then a
     // hard backstop at the limit the server validates (an undamped wall alone stopped a boat at
     // full speed in under a second and threw it back at 9 m/s).
