@@ -75,7 +75,11 @@ export function createBookUi(options: BookUiOptions): BookUi {
   /** The last answers of the server (drawn at once on the next visit, then refreshed). */
   let questsData: QuestsState | undefined;
   let boardData: EventBoard | undefined;
-  let problem: string | undefined;
+  /** Why a page could not load or a claim failed (one per page, so one does not show on the other). */
+  let questsProblem: string | undefined;
+  let boardProblem: string | undefined;
+  /** A claim is on its way: its button stays off, also when the page is drawn again. */
+  let claiming = false;
   let claimNote: string | undefined;
   /** Each opening of the hub draws its own page; a late answer for an older one is dropped. */
   let opening = 0;
@@ -159,8 +163,8 @@ export function createBookUi(options: BookUiOptions): BookUi {
         section.append(
           el(
             "p",
-            problem ? "fish-empty market-error" : "fish-empty",
-            problem ?? "Đang tải bảng xếp hạng…",
+            boardProblem ? "fish-empty market-error" : "fish-empty",
+            boardProblem ?? "Đang tải bảng xếp hạng…",
           ),
         );
         body.append(section);
@@ -225,8 +229,10 @@ export function createBookUi(options: BookUiOptions): BookUi {
     }
 
     async function claim(quest: Quest, button: HTMLButtonElement) {
-      if (!options.economy) return;
+      if (!options.economy || claiming) return;
+      claiming = true;
       button.disabled = true;
+      claimNote = undefined;
       try {
         const result = await options.economy.claimQuest(quest.slot);
         options.sound?.("coin");
@@ -234,12 +240,18 @@ export function createBookUi(options: BookUiOptions): BookUi {
           result.earned > 0
             ? `+${result.earned.toLocaleString("vi-VN")} xu`
             : `Hôm nay đã đủ ${DAILY_CAP} xu thưởng nhiệm vụ.`;
-        questsData = await options.economy.quests();
-        problem = undefined;
+        questsProblem = undefined;
       } catch (error) {
         options.sound?.("error");
-        problem = failureText(error);
+        questsProblem = failureText(error);
       }
+      // Whatever happened, ask again: the card must show what the server says now.
+      try {
+        questsData = await options.economy.quests();
+      } catch {
+        /* the next refresh will try again */
+      }
+      claiming = false;
       if (mine === opening && view === "quests") draw();
     }
 
@@ -248,8 +260,8 @@ export function createBookUi(options: BookUiOptions): BookUi {
         body.append(
           el(
             "p",
-            problem ? "fish-empty market-error" : "fish-empty",
-            problem ?? "Đang tải nhiệm vụ…",
+            questsProblem ? "fish-empty market-error" : "fish-empty",
+            questsProblem ?? "Đang tải nhiệm vụ…",
           ),
         );
         return;
@@ -298,6 +310,7 @@ export function createBookUi(options: BookUiOptions): BookUi {
         else if (questReady(quest)) {
           const take = el("button", "upgrade-buy quest-claim", "Nhận");
           take.type = "button";
+          take.disabled = claiming;
           take.addEventListener("click", () => void claim(quest, take));
           reward.append(take);
         }
@@ -310,6 +323,8 @@ export function createBookUi(options: BookUiOptions): BookUi {
       body.append(foot);
       if (claimNote)
         body.append(el("p", "market-flash quest-flash", claimNote));
+      else if (questsProblem)
+        body.append(el("p", "market-error quest-flash", questsProblem));
     }
 
     const failureText = (error: unknown) => {
@@ -328,13 +343,25 @@ export function createBookUi(options: BookUiOptions): BookUi {
       const economy = options.economy;
       if (!economy || view === "book") return;
       const wanted = view;
+      // A claim in flight refreshes the quests itself: an older answer must not overwrite it.
+      if (wanted === "quests" && claiming) return;
       const answer: Promise<void> =
         wanted === "quests"
-          ? economy.quests().then((data) => void (questsData = data))
-          : economy.eventBoard().then((data) => void (boardData = data));
+          ? economy.quests().then((data) => {
+              if (!claiming) {
+                questsData = data;
+                questsProblem = undefined;
+              }
+            })
+          : economy.eventBoard().then((data) => {
+              boardData = data;
+              boardProblem = undefined;
+            });
       void answer
-        .then(() => (problem = undefined))
-        .catch((error: unknown) => (problem = failureText(error)))
+        .catch((error: unknown) => {
+          if (wanted === "quests") questsProblem = failureText(error);
+          else boardProblem = failureText(error);
+        })
         .finally(() => {
           if (
             mine === opening &&

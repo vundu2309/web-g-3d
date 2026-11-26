@@ -181,11 +181,14 @@ export function createMarketUi(options: MarketUiOptions) {
     while (pending.length && economy) {
       try {
         const waiting = pending[0]!;
-        options.onCatch?.(
-          await economy.recordCatch(waiting.fish, waiting.event),
-          waiting.fish,
-        );
+        const result = await economy.recordCatch(waiting.fish, waiting.event);
+        // The server has the fish: never send it again, whatever the listener does.
         pending.shift();
+        try {
+          options.onCatch?.(result, waiting.fish);
+        } catch {
+          /* a toast failing must not matter */
+        }
       } catch (error) {
         // Too soon after another catch: stop here, the rest waits for the next time.
         if (error instanceof EconomyError && error.failure === "invalid")

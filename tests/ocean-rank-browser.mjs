@@ -153,7 +153,9 @@ try {
     await page.locator(".rank-row").first().waitFor();
     assert.equal(await page.locator(".rank-row").count(), 20, "20 rows");
     assert.equal(
-      await page.locator(".rank-tab[aria-selected=true]").innerText(),
+      await page
+        .locator(".rank-tab[data-kind][aria-selected=true]")
+        .innerText(),
       "Câu nhiều nhất",
     );
     // Names are text: a tag in a name never becomes an element.

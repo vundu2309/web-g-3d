@@ -20,6 +20,8 @@ Catches are client reports (`docs/work/2026-11-19-server-authoritative-catch.md`
 - the boards are for fun and pay nothing;
 - the event score is the fish's ordinary price (a giant of 399 kg at most), and the quota of three a player is counted by the server as well as the device.
 
+The event card is time-bound to the keep, not the landing: the server checks its own clock when the fish is kept, so a giant kept more than 20 s after the window closed (or flushed late from the offline queue) is recorded as a fish but gets no event card. Players keep fish at once in practice.
+
 Anything bigger tied to these numbers needs a server-authoritative catch first.
 
 ## Consequences

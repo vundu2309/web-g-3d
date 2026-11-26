@@ -516,7 +516,12 @@ export function startOcean(
       for (const quest of result?.quests ?? []) {
         const before = questSeen.get(quest.slot);
         questSeen.set(quest.slot, quest.progress);
-        if (before === undefined || quest.progress <= before) continue;
+        // Less than before: a new Vietnamese day began, so this catch is the first of the new quest.
+        const moved =
+          before !== undefined && quest.progress < before
+            ? quest.progress > 0
+            : before !== undefined && quest.progress > before;
+        if (!moved) continue;
         notify(
           quest.done
             ? `Nhiệm vụ ${quest.slot + 1} xong! Vào Sổ để nhận thưởng.`
