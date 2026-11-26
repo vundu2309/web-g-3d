@@ -8,6 +8,17 @@ import { seaAt } from "../ocean/fishing-conditions";
 import { SPECIES, type Inventory } from "../ocean/fishing";
 import { hotSpotsAt } from "../ocean/hot-spots";
 import { GIANT_QUOTA, eventAt, eventText } from "../ocean/world-event";
+import type { EventBoard } from "../ocean/event-board";
+import { timeLeftText } from "../ocean/game-clock";
+import {
+  DAILY_CAP,
+  questReady,
+  questText,
+  type Quest,
+  type QuestsState,
+} from "../ocean/quests";
+import type { Cue } from "../ocean/audio-cues";
+import { EconomyError, type EconomyApi } from "../platform/economy";
 import { showFishThumb } from "./fish-thumb";
 import { createHubShell, type HubNav } from "./hub-shell";
 
@@ -28,6 +39,10 @@ export interface BookUiOptions {
   worldMs: () => number;
   /** Where the player's boat is (the event page says how far and which way the ring is). */
   from: () => { x: number; z: number };
+  /** The server economy: without it the quests and the event board are not offered. */
+  economy?: EconomyApi;
+  /** A sound cue for claiming a quest. */
+  sound?: (cue: Cue) => void;
   /** The hourly event on this device: giants still allowed in a slot, and the best one landed. */
   event: {
     left: (slot: number) => number;
@@ -56,10 +71,19 @@ export function createBookUi(options: BookUiOptions): BookUi {
   const { dialog, hubs } = options;
   let timer: number | undefined;
   /** The page the player was on (kept while the hub is closed and opened again). */
-  let view: "book" | "event" = "book";
+  let view: "book" | "quests" | "event" = "book";
+  /** The last answers of the server (drawn at once on the next visit, then refreshed). */
+  let questsData: QuestsState | undefined;
+  let boardData: EventBoard | undefined;
+  let problem: string | undefined;
+  let claimNote: string | undefined;
+  /** Each opening of the hub draws its own page; a late answer for an older one is dropped. */
+  let opening = 0;
 
   function show() {
     options.beforeOpen();
+    const mine = ++opening;
+    claimNote = undefined;
     if (timer !== undefined) window.clearInterval(timer);
     const page = createHubShell(dialog, hubs, "book");
     dialog.setAttribute("aria-label", "Sổ");
@@ -67,17 +91,22 @@ export function createBookUi(options: BookUiOptions): BookUi {
     head.append(el("h2", undefined, "Sổ"));
     const tabs = el("div", "rank-tabs");
     tabs.setAttribute("role", "tablist");
-    for (const [id, label] of [
+    const pages = [
       ["book", "Sổ cá"],
+      ...(options.economy ? ([["quests", "Nhiệm vụ"]] as const) : []),
       ["event", "Sự kiện"],
-    ] as const) {
+    ] as const;
+    if (!pages.some(([id]) => id === view)) view = "book";
+    for (const [id, label] of pages) {
       const tab = el("button", "rank-tab", label);
       tab.type = "button";
       tab.setAttribute("role", "tab");
       tab.dataset.page = id;
       tab.addEventListener("click", () => {
         view = id;
+        claimNote = undefined;
         draw();
+        load();
       });
       tabs.append(tab);
     }
@@ -120,6 +149,200 @@ export function createBookUi(options: BookUiOptions): BookUi {
         );
       card.append(words);
       body.append(card);
+      if (options.economy) drawBoard(now);
+    }
+
+    function drawBoard(now: number) {
+      const section = el("section", "event-board");
+      section.append(el("h3", undefined, "Bảng xếp hạng sự kiện"));
+      if (!boardData) {
+        section.append(
+          el(
+            "p",
+            problem ? "fish-empty market-error" : "fish-empty",
+            problem ?? "Đang tải bảng xếp hạng…",
+          ),
+        );
+        body.append(section);
+        return;
+      }
+      const data = boardData;
+      section.append(
+        el(
+          "p",
+          "event-board-note",
+          data.active
+            ? `Đang diễn ra, ${timeLeftText(data.endsAt - now)}. Xếp theo giá trị con cá khổng lồ tốt nhất.`
+            : "Kết quả của sự kiện vừa rồi. Xếp theo giá trị con cá khổng lồ tốt nhất.",
+        ),
+      );
+      if (!data.top.length)
+        section.append(
+          el(
+            "p",
+            "fish-empty",
+            "Chưa ai có điểm. Vào vòng sáng và câu thử nhé!",
+          ),
+        );
+      else {
+        const list = el("ol", "rank-list");
+        for (const row of data.top) {
+          const li = el("li", `rank-row${row.you ? " is-you" : ""}`);
+          const badge = el(
+            "span",
+            `rank-badge${row.rank <= 3 ? " is-podium" : ""}`,
+            String(row.rank),
+          );
+          badge.setAttribute("aria-label", `Hạng ${row.rank}`);
+          const info = el("span", "rank-info");
+          info.append(el("strong", undefined, row.name));
+          const species = SPECIES.find((s) => s.id === row.species);
+          info.append(
+            el(
+              "small",
+              undefined,
+              `${species?.name ?? ""} ${row.kg.toLocaleString("vi-VN", { maximumFractionDigits: 1 })} kg`.trim(),
+            ),
+          );
+          li.append(badge, info);
+          if (row.you) li.append(el("span", "crew-you", "Bạn"));
+          li.append(
+            el("span", "rank-value", `${row.score.toLocaleString("vi-VN")} xu`),
+          );
+          list.append(li);
+        }
+        section.append(list);
+        if (data.me && !data.top.some((r) => r.you))
+          section.append(
+            el(
+              "p",
+              "event-board-note",
+              `Bạn đứng hạng ${data.me.rank} với ${data.me.score.toLocaleString("vi-VN")} xu.`,
+            ),
+          );
+      }
+      body.append(section);
+    }
+
+    async function claim(quest: Quest, button: HTMLButtonElement) {
+      if (!options.economy) return;
+      button.disabled = true;
+      try {
+        const result = await options.economy.claimQuest(quest.slot);
+        options.sound?.("coin");
+        claimNote =
+          result.earned > 0
+            ? `+${result.earned.toLocaleString("vi-VN")} xu`
+            : `Hôm nay đã đủ ${DAILY_CAP} xu thưởng nhiệm vụ.`;
+        questsData = await options.economy.quests();
+        problem = undefined;
+      } catch (error) {
+        options.sound?.("error");
+        problem = failureText(error);
+      }
+      if (mine === opening && view === "quests") draw();
+    }
+
+    function drawQuests(now: number) {
+      if (!questsData) {
+        body.append(
+          el(
+            "p",
+            problem ? "fish-empty market-error" : "fish-empty",
+            problem ?? "Đang tải nhiệm vụ…",
+          ),
+        );
+        return;
+      }
+      const data = questsData;
+      const list = el("div", "quest-list");
+      for (const quest of data.quests) {
+        const card = el(
+          "article",
+          `quest-card${quest.claimed ? " is-claimed" : questReady(quest) ? " is-ready" : ""}`,
+        );
+        const species = quest.species
+          ? SPECIES.find((s) => s.id === quest.species)
+          : undefined;
+        const art = el("div", "quest-art");
+        if (species) {
+          const picture = document.createElement("img");
+          picture.alt = "";
+          showFishThumb(picture, species, 56);
+          art.append(picture);
+        } else
+          art.append(
+            el(
+              "span",
+              undefined,
+              quest.minKg ? `${quest.minKg}+ kg` : "Mọi loài",
+            ),
+          );
+        const words = el("div", "quest-words");
+        words.append(el("strong", undefined, questText(quest)));
+        const bar = el("div", "quest-bar");
+        bar.setAttribute("role", "progressbar");
+        bar.setAttribute("aria-valuemin", "0");
+        bar.setAttribute("aria-valuemax", String(quest.goal));
+        bar.setAttribute("aria-valuenow", String(quest.progress));
+        const fill = el("i");
+        fill.style.width = `${Math.round((100 * quest.progress) / quest.goal)}%`;
+        bar.append(fill);
+        words.append(
+          bar,
+          el("small", undefined, `${quest.progress}/${quest.goal}`),
+        );
+        const reward = el("div", "quest-reward");
+        reward.append(el("span", undefined, `+${quest.reward} xu`));
+        if (quest.claimed) reward.append(el("em", undefined, "Đã nhận"));
+        else if (questReady(quest)) {
+          const take = el("button", "upgrade-buy quest-claim", "Nhận");
+          take.type = "button";
+          take.addEventListener("click", () => void claim(quest, take));
+          reward.append(take);
+        }
+        card.append(art, words, reward);
+        list.append(card);
+      }
+      body.append(list);
+      const foot = el("p", "quest-foot");
+      foot.textContent = `Nhiệm vụ mới ${timeLeftText(data.resetsAt - now).replace("còn", "sau")}. Hôm nay còn tối đa ${data.capLeft} xu thưởng.`;
+      body.append(foot);
+      if (claimNote)
+        body.append(el("p", "market-flash quest-flash", claimNote));
+    }
+
+    const failureText = (error: unknown) => {
+      const failure = error instanceof EconomyError ? error.failure : "network";
+      return failure === "closed"
+        ? "Mục này chưa mở. Hãy quay lại sau nhé!"
+        : failure === "signin"
+          ? "Hãy đăng nhập lại để xem mục này."
+          : failure === "quest"
+            ? "Nhiệm vụ chưa xong hoặc đã nhận rồi."
+            : "Chưa kết nối được. Kiểm tra mạng rồi thử lại.";
+    };
+
+    /** Asks the server for what the page in view needs, then draws it again. */
+    function load() {
+      const economy = options.economy;
+      if (!economy || view === "book") return;
+      const wanted = view;
+      const answer: Promise<void> =
+        wanted === "quests"
+          ? economy.quests().then((data) => void (questsData = data))
+          : economy.eventBoard().then((data) => void (boardData = data));
+      void answer
+        .then(() => (problem = undefined))
+        .catch((error: unknown) => (problem = failureText(error)))
+        .finally(() => {
+          if (
+            mine === opening &&
+            dialog.dataset.hub === "book" &&
+            view === wanted
+          )
+            draw();
+        });
     }
 
     function draw() {
@@ -137,6 +360,10 @@ export function createBookUi(options: BookUiOptions): BookUi {
       progress.hidden = view !== "book";
       if (view === "event") {
         drawEvent(now);
+        return;
+      }
+      if (view === "quests") {
+        drawQuests(now);
         return;
       }
 
@@ -192,6 +419,7 @@ export function createBookUi(options: BookUiOptions): BookUi {
     }
 
     draw();
+    load();
     timer = window.setInterval(() => {
       if (dialog.dataset.hub !== "book" || !dialog.open) {
         window.clearInterval(timer);
@@ -199,6 +427,7 @@ export function createBookUi(options: BookUiOptions): BookUi {
         return;
       }
       draw();
+      load();
     }, REFRESH_MS);
     if (!dialog.open) dialog.showModal();
   }

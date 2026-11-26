@@ -5,7 +5,9 @@ import {
   type Board,
   type BoardKind,
   type Leaderboard,
+  type WeeklyLeaderboard,
 } from "../ocean/leaderboard";
+import { timeLeftText } from "../ocean/game-clock";
 import { EconomyError, type EconomyApi } from "../platform/economy";
 import { createHubShell, type HubNav } from "./hub-shell";
 
@@ -22,6 +24,8 @@ export interface RankUiOptions {
   hubs: HubNav;
   /** Called before the hub opens: let go of the stick and the line. */
   beforeOpen: () => void;
+  /** The shared server clock (ms): the weekly board says how long it has left. */
+  worldMs?: () => number;
 }
 export interface RankUi {
   show(): void;
@@ -82,6 +86,8 @@ function rowOf(
 export function createRankUi(options: RankUiOptions): RankUi {
   const { dialog, economy, hubs } = options;
   let kind: BoardKind = "caught";
+  /** All time, or this Vietnamese week (decision 0021). */
+  let period: "all" | "week" = "all";
   /** Each opening draws its own page; a late answer for an older one is dropped. */
   let opening = 0;
 
@@ -94,9 +100,15 @@ export function createRankUi(options: RankUiOptions): RankUi {
     head.append(el("h2", undefined, "Xếp hạng"));
     const tabs = el("div", "rank-tabs");
     tabs.setAttribute("role", "tablist");
+    const periods = el("div", "rank-tabs rank-periods");
+    periods.setAttribute("role", "tablist");
+    periods.setAttribute("aria-label", "Khoảng thời gian");
     const body = el("div", "fish-store-body rank-body");
     const foot = el("footer", "rank-foot");
     let data: Leaderboard | undefined;
+    let week: WeeklyLeaderboard | undefined;
+    /** Why this week's board could not be shown (a server without it, or a failed call). */
+    let weekProblem: string | undefined;
 
     const stale = () => dialog.dataset.hub !== "rank" || mine !== opening;
 
@@ -106,14 +118,30 @@ export function createRankUi(options: RankUiOptions): RankUi {
           "aria-selected",
           String(button.dataset.kind === kind),
         );
+      for (const button of periods.querySelectorAll("button"))
+        button.setAttribute(
+          "aria-selected",
+          String(button.dataset.period === period),
+        );
       body.replaceChildren();
       foot.replaceChildren();
       foot.hidden = true;
-      if (!data) {
-        body.append(el("p", "fish-empty", "Đang tải bảng xếp hạng…"));
+      const source = period === "week" ? week : data;
+      if (!source) {
+        body.append(
+          el(
+            "p",
+            period === "week" && weekProblem
+              ? "fish-empty market-error"
+              : "fish-empty",
+            period === "week" && weekProblem
+              ? weekProblem
+              : "Đang tải bảng xếp hạng…",
+          ),
+        );
         return;
       }
-      const board = data[kind];
+      const board = source[kind];
       if (!board.top.length) {
         body.append(
           el("p", "fish-empty", BOARDS.find((b) => b.kind === kind)!.empty),
@@ -124,6 +152,14 @@ export function createRankUi(options: RankUiOptions): RankUi {
       board.top.forEach((row, index) =>
         list.append(rowOf(kind, row, index + 1)),
       );
+      if (period === "week" && week && options.worldMs)
+        body.append(
+          el(
+            "p",
+            "rank-week-note",
+            `Bảng tuần này, ${timeLeftText(week.endsAt - options.worldMs())}. Chỉ để vui, không có thưởng.`,
+          ),
+        );
       body.append(list);
       // The player below the top 20 still sees where they stand.
       if (ownPlace(board) === "below" && board.me) {
@@ -152,12 +188,44 @@ export function createRankUi(options: RankUiOptions): RankUi {
       });
       tabs.append(tab);
     }
-    head.append(tabs);
+    if (economy)
+      for (const [id, label] of [
+        ["all", "Mọi thời đại"],
+        ["week", "Tuần này"],
+      ] as const) {
+        const tab = el("button", "rank-tab", label);
+        tab.type = "button";
+        tab.dataset.period = id;
+        tab.setAttribute("role", "tab");
+        tab.addEventListener("click", () => {
+          period = id;
+          draw();
+        });
+        periods.append(tab);
+      }
+    head.append(periods, tabs);
     page.append(head, body, foot);
     draw();
     if (!dialog.open) dialog.showModal();
 
     if (!economy) return;
+    void economy
+      .weeklyBoard()
+      .then((board) => {
+        if (stale()) return;
+        week = board;
+        weekProblem = undefined;
+        draw();
+      })
+      .catch((error: unknown) => {
+        if (stale()) return;
+        const failure = error instanceof EconomyError ? error.failure : "";
+        weekProblem =
+          failure === "closed"
+            ? "Bảng tuần chưa mở. Hãy quay lại sau nhé!"
+            : "Chưa tải được bảng tuần.";
+        draw();
+      });
     void economy
       .leaderboard()
       .then((board) => {

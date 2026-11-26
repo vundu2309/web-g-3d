@@ -123,3 +123,19 @@ export function ownPlace(board: Board): "top" | "below" | "none" {
   if (!board.me) return "none";
   return board.top.some((row) => row.you) ? "top" : "below";
 }
+
+/** This Vietnamese week's two boards (decision 0021): the same shape, with the week and when it ends. */
+export interface WeeklyLeaderboard extends Leaderboard {
+  /** The Monday the week began, "YYYY-MM-DD". */
+  week: string;
+  /** When the week ends (ms, the shared clock's scale). */
+  endsAt: number;
+}
+export function readWeeklyBoard(raw: unknown): WeeklyLeaderboard {
+  const source = isRecord(raw) ? raw : {};
+  return {
+    ...readLeaderboard(raw),
+    week: typeof source.week === "string" ? source.week.slice(0, 10) : "",
+    endsAt: count(source.endsAt, 8.64e15) ?? 0,
+  };
+}

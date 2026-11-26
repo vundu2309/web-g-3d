@@ -431,6 +431,20 @@ export function startOcean(
       else showSettings();
     },
   };
+  /** The hour of the event a giant was landed in: the server is told with the catch (decision 0021). */
+  const eventSlots = new WeakMap<object, number>();
+  /** The progress of today's quests as last told, so a catch can say "2/5" only when it moved. */
+  const questSeen = new Map<number, number>();
+  const seedQuests = () =>
+    void economy
+      ?.quests()
+      .then((state) => {
+        questSeen.clear();
+        for (const quest of state.quests)
+          questSeen.set(quest.slot, quest.progress);
+      })
+      .catch(() => {});
+  seedQuests();
   const fishingUi = createFishingUi({
     root,
     button: fishButton,
@@ -439,6 +453,7 @@ export function startOcean(
     worldMs,
     giantsLeft: (slot) => giantsLeft(readDevice(eventKey(slot))),
     onGiant: (fish, slot) => {
+      eventSlots.set(fish, slot);
       const used = GIANT_QUOTA - giantsLeft(readDevice(eventKey(slot))) + 1;
       writeDevice(eventKey(slot), String(used));
       // The best giant of this event (the Sự kiện page shows it).
@@ -467,7 +482,7 @@ export function startOcean(
     },
     reduced,
     hubs: hubNav,
-    onKeep: (fish) => marketUi.recordCatch(fish),
+    onKeep: (fish) => marketUi.recordCatch(fish, eventSlots.get(fish)),
     onPutBack: (species) => {
       if (serverStore)
         void economy?.release(species).catch(() => void refreshStore());
@@ -496,6 +511,20 @@ export function startOcean(
       void refreshStore();
     },
     sound: (cue) => seaAudio.play(cue),
+    onCatch: (result) => {
+      // What the server counted: say when a quest moved, once when it is done.
+      for (const quest of result?.quests ?? []) {
+        const before = questSeen.get(quest.slot);
+        questSeen.set(quest.slot, quest.progress);
+        if (before === undefined || quest.progress <= before) continue;
+        notify(
+          quest.done
+            ? `Nhiệm vụ ${quest.slot + 1} xong! Vào Sổ để nhận thưởng.`
+            : `Nhiệm vụ ${quest.slot + 1}: ${quest.progress}/${quest.goal}`,
+          true,
+        );
+      }
+    },
     onLoadout: (next) => {
       loadout = next;
       loadoutKnown = true;
@@ -524,6 +553,7 @@ export function startOcean(
     dialog,
     economy,
     hubs: hubNav,
+    worldMs,
     beforeOpen: () => {
       keys.clear();
       releaseStick();
@@ -533,6 +563,8 @@ export function startOcean(
   // The book of species, the sea now and the hot spots (decision 0020).
   const bookUi = createBookUi({
     dialog,
+    economy,
+    sound: (cue) => seaAudio.play(cue),
     inventory: () => fishStock,
     hubs: hubNav,
     worldMs,

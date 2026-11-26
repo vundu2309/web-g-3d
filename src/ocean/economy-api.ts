@@ -10,8 +10,31 @@ import {
   type UpgradeKind,
 } from "./upgrades.ts";
 import { SEA_BOUND } from "./model.ts";
-import { readLeaderboard, type Leaderboard } from "./leaderboard.ts";
-import { vnDateString, vnDayKey } from "./game-clock.ts";
+import {
+  readLeaderboard,
+  readWeeklyBoard,
+  type Leaderboard,
+  type WeeklyLeaderboard,
+} from "./leaderboard.ts";
+import { readEventBoard, type EventBoard } from "./event-board.ts";
+import {
+  DAILY_CAP,
+  pickQuests,
+  questMatches,
+  questReady,
+  type CatchResult,
+  type Quest,
+  type QuestsState,
+} from "./quests.ts";
+import { giantFloor } from "./event-board.ts";
+import {
+  msToVnMidnight,
+  msToVnWeekEnd,
+  vnDateString,
+  vnDayKey,
+  vnWeekKey,
+  vnWeekStartDay,
+} from "./game-clock.ts";
 import { marketPct, marketPcts, priceAt } from "./market-prices.ts";
 
 /** The most fish the one-time import moves (the server says the same), and the count it accepts. */
@@ -89,6 +112,7 @@ export type EconomyFailure =
   | "invalid" // not a fish the ledger holds / out of range / not a kind or tier of the table
   | "poor" // not enough coins for the upgrade
   | "owned" // that tier is already owned (a double press charges once)
+  | "quest" // the quest is not finished or was already claimed
   | "order" // a tier before it is not owned yet (no skipping; a bait not owned cannot be used)
   | "network";
 
@@ -104,8 +128,12 @@ export class EconomyError extends Error {
 export interface EconomyApi {
   /** The wallet, the ledger (priced for `market` today when one is given) and the loadout. */
   state(market?: string): Promise<EconomyState>;
-  /** A fish the player landed and kept. */
-  recordCatch(fish: SoldFish): Promise<void>;
+  /**
+   * A fish the player landed and kept; `event` is the hour of the hourly event when it was a giant
+   * of the ring. Resolves with what the server counted (absent from a server without the
+   * progression migration).
+   */
+  recordCatch(fish: SoldFish, event?: number): Promise<CatchResult | undefined>;
   /** Sells the listed fish, or everything when `fish` is null. At the price of `market` on `day` (the day the page showed: today or yesterday); without them the ordinary price. */
   sell(
     fish: readonly SoldFish[] | null,
@@ -126,6 +154,14 @@ export interface EconomyApi {
   setBait(tier: number): Promise<Loadout>;
   /** The fishing leaderboard: fish caught and the heaviest fish (decision 0017). */
   leaderboard(): Promise<Leaderboard>;
+  /** Today's three quests and their progress (decision 0021). */
+  quests(): Promise<QuestsState>;
+  /** Pays a finished quest (the day's cap applies); EconomyError "quest" when it is not claimable. */
+  claimQuest(slot: number): Promise<{ earned: number; coins: number }>;
+  /** This Vietnamese week's boards. */
+  weeklyBoard(): Promise<WeeklyLeaderboard>;
+  /** The board of an hourly event (this hour's when no slot is given). */
+  eventBoard(slot?: number): Promise<EventBoard>;
 }
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
@@ -154,6 +190,35 @@ export function memoryEconomy(
   let imported = false;
   let pose: { x: number; z: number; heading: number; at: number } | undefined;
   let loadout: Loadout = loadoutOf(options.loadout);
+  // Progression (decision 0021): quests by day, weekly numbers, event results by hour.
+  const questRows = new Map<number, { quest: Quest; claimedPaid: number }[]>();
+  const weekly = new Map<
+    number,
+    { caught: number; kg: number; species?: string }
+  >();
+  const eventRows = new Map<
+    number,
+    { score: number; species: string; kg: number; catches: number }
+  >();
+  const questsOn = (dayKey: number) => {
+    let rows = questRows.get(dayKey);
+    if (!rows) {
+      rows = pickQuests("me", dayKey).map((d) => ({
+        quest: {
+          slot: d.slot,
+          ...(d.species ? { species: d.species } : {}),
+          ...(d.minKg ? { minKg: d.minKg } : {}),
+          goal: d.goal,
+          progress: 0,
+          reward: d.reward,
+          claimed: false,
+        },
+        claimedPaid: 0,
+      }));
+      questRows.set(dayKey, rows);
+    }
+    return rows;
+  };
   const priced = (
     row: {
       id: number;
@@ -188,7 +253,7 @@ export function memoryEconomy(
         },
       };
     },
-    async recordCatch(fish) {
+    async recordCatch(fish, event) {
       const species = speciesById(fish.species);
       const kg = round2(fish.kg);
       if (!species || kg < species.kg[0] || kg > species.kg[1])
@@ -202,10 +267,125 @@ export function memoryEconomy(
       ledger.push({ id: nextId++, species: fish.species, kg });
       lastCatch = now();
       caught = Math.min(1_000_000, caught + 1);
+      const discovered = records[fish.species] === undefined;
+      const record = kg > (records[fish.species] ?? 0);
       records = {
         ...records,
         [fish.species]: Math.max(records[fish.species] ?? 0, kg),
       };
+      // What the database counts for a kept fish (decision 0021).
+      const at = now();
+      const dayKey = vnDayKey(at);
+      for (const row of questsOn(dayKey))
+        if (!row.quest.claimed && questMatches(row.quest, fish.species, kg))
+          row.quest.progress = Math.min(row.quest.goal, row.quest.progress + 1);
+      const week = vnWeekKey(at);
+      const mine = weekly.get(week) ?? { caught: 0, kg: 0 };
+      weekly.set(week, {
+        caught: mine.caught + 1,
+        ...(kg > mine.kg
+          ? { kg, species: fish.species }
+          : { kg: mine.kg, species: mine.species }),
+      });
+      let card: CatchResult["event"];
+      const slot = Math.floor(at / 3_600_000);
+      if (
+        event === slot &&
+        (at % 3_600_000) / 1000 <= 1220 &&
+        kg >= giantFloor(fish.species)
+      ) {
+        const old = eventRows.get(slot);
+        if (!old || old.catches < 3) {
+          const score = priceOf(species, kg);
+          const better =
+            !old || score > old.score || (score === old.score && kg > old.kg);
+          const next = {
+            score: Math.max(score, old?.score ?? 0),
+            species: better ? fish.species : old!.species,
+            kg: better ? kg : old!.kg,
+            catches: (old?.catches ?? 0) + 1,
+          };
+          eventRows.set(slot, next);
+        }
+        const now1 = eventRows.get(slot)!;
+        card = { score: now1.score, catches: now1.catches };
+      }
+      return {
+        record,
+        discovered,
+        quests: questsOn(dayKey).map(({ quest }) => ({
+          slot: quest.slot,
+          progress: quest.progress,
+          goal: quest.goal,
+          done: quest.progress >= quest.goal,
+        })),
+        ...(card ? { event: card } : {}),
+      };
+    },
+    async quests() {
+      const at = now();
+      const dayKey = vnDayKey(at);
+      const rows = questsOn(dayKey);
+      const paid = rows.reduce((sum, row) => sum + row.claimedPaid, 0);
+      return {
+        day: vnDateString(dayKey),
+        resetsAt: at + msToVnMidnight(at),
+        capLeft: Math.max(0, DAILY_CAP - paid),
+        quests: rows.map(({ quest }) => ({ ...quest })),
+      };
+    },
+    async claimQuest(slot) {
+      const rows = questsOn(vnDayKey(now()));
+      const row = rows.find((r) => r.quest.slot === slot);
+      if (!row || !questReady(row.quest)) throw new EconomyError("quest");
+      const paid = rows.reduce((sum, r) => sum + r.claimedPaid, 0);
+      const earned = Math.max(0, Math.min(row.quest.reward, DAILY_CAP - paid));
+      row.quest.claimed = true;
+      row.claimedPaid = earned;
+      coins += earned;
+      return { earned, coins };
+    },
+    async weeklyBoard() {
+      const at = now();
+      const week = vnWeekKey(at);
+      const mine = weekly.get(week);
+      return readWeeklyBoard({
+        week: vnDateString(vnWeekStartDay(week)),
+        endsAt: at + msToVnWeekEnd(at),
+        caught: board(!!mine && mine.caught > 0 && { value: mine.caught }),
+        heaviest: board(
+          !!mine &&
+            mine.kg > 0 &&
+            mine.species !== undefined && {
+              value: mine.kg,
+              species: mine.species,
+            },
+        ),
+      });
+    },
+    async eventBoard(slot) {
+      const at = now();
+      const cur = Math.floor(at / 3_600_000);
+      const hour = slot ?? cur;
+      if (hour > cur || hour < cur - 72) throw new EconomyError("invalid");
+      const mine = eventRows.get(hour);
+      const row = mine && {
+        rank: 1,
+        name: "Bạn",
+        species: mine.species,
+        kg: mine.kg,
+        score: mine.score,
+        you: true,
+      };
+      return readEventBoard({
+        slot: hour,
+        active: hour === cur && (at % 3_600_000) / 1000 < 1200,
+        startsAt: hour * 3_600_000,
+        endsAt: hour * 3_600_000 + 1_200_000,
+        players: row ? 1 : 0,
+        top: row ? [row] : [],
+        ...(row ? { me: row } : {}),
+      });
     },
     async profile() {
       return {

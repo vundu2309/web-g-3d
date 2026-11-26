@@ -7,7 +7,9 @@ import {
   type Profile,
   type SellResult,
 } from "../ocean/economy-api";
-import { readLeaderboard } from "../ocean/leaderboard";
+import { readEventBoard } from "../ocean/event-board";
+import { readLeaderboard, readWeeklyBoard } from "../ocean/leaderboard";
+import { readCatchResult, readQuests } from "../ocean/quests";
 import { loadoutOf } from "../ocean/upgrades";
 
 export * from "../ocean/economy-api";
@@ -35,6 +37,8 @@ function failureOf(error: {
       return new EconomyError("poor");
     case "EC409":
       return new EconomyError("owned");
+    case "EC410":
+      return new EconomyError("quest");
     case "EC422":
       return new EconomyError("order");
     case "PGRST202": // the function is not in the schema cache: migration not applied
@@ -81,11 +85,26 @@ export function supabaseEconomy(): EconomyApi {
       }
       return { ...raw, loadout: loadoutOf(raw.loadout) };
     },
-    async recordCatch(fish) {
-      await call("economy_record_catch", {
-        p_species: fish.species,
-        p_kg: round2(fish.kg),
-      });
+    async recordCatch(fish, event) {
+      const plain = { p_species: fish.species, p_kg: round2(fish.kg) };
+      try {
+        return readCatchResult(
+          await call(
+            "economy_record_catch",
+            event === undefined ? plain : { ...plain, p_event: event },
+          ),
+        );
+      } catch (error) {
+        // A server without the progression migration has no `p_event`: the fish is still recorded, as before.
+        if (
+          event === undefined ||
+          !(error instanceof EconomyError) ||
+          error.failure !== "closed"
+        )
+          throw error;
+        await call("economy_record_catch", plain);
+        return undefined;
+      }
     },
     profile: () => call<Profile>("economy_profile"),
     async release(species) {
@@ -136,6 +155,27 @@ export function supabaseEconomy(): EconomyApi {
     },
     async leaderboard() {
       return readLeaderboard(await call("economy_leaderboard"));
+    },
+    async quests() {
+      return readQuests(await call("economy_quests"));
+    },
+    async claimQuest(slot) {
+      const raw = await call<{ earned?: number; coins?: number }>(
+        "economy_quest_claim",
+        { p_slot: slot },
+      );
+      return { earned: Number(raw.earned) || 0, coins: Number(raw.coins) || 0 };
+    },
+    async weeklyBoard() {
+      return readWeeklyBoard(await call("economy_weekly_board"));
+    },
+    async eventBoard(slot) {
+      return readEventBoard(
+        await call(
+          "economy_event_board",
+          slot === undefined ? undefined : { p_slot: slot },
+        ),
+      );
     },
   };
 }

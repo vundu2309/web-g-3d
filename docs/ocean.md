@@ -593,6 +593,10 @@ The user saw planes, then the patrol ships, vanish as they sailed away. Everythi
 - **A new species** shows "✦ Mới!" on the catch card and a toast "Loài mới: …" (`onDiscover`).
 - **Cost** (not measured on a phone): a hot-spot lookup per slot (about 3 microseconds, cached), the sea's numbers once per cast, three `arc` calls at 10 Hz on each map. The book is drawn only while open. No probe switch yet for the rings; a hub page costs nothing when closed.
 
+### Quests, the weekly board and the event board (decision 0021, phase P4)
+
+The Sổ hub has three pages: "Sổ cá", "Nhiệm vụ" (three quests a day, a bar each, "Nhận" when one is done; `quests.ts`, `book-ui.ts`) and "Sự kiện" (the ring's words and `economy_event_board`, `event-board.ts`). The Xếp hạng hub has "Mọi thời đại | Tuần này" (`economy_weekly_board`, `rank-ui.ts`). Quests and boards need the server economy; without it those pages are not offered. `record_catch` returns what it counted (`CatchResult`: `discovered`, the quests' progress, the event card), a toast says when a quest moves, and a giant landed in the ring is sent with its event hour (`ocean.ts`, `eventSlots`). A server without the migration answers the old way: no result, no quests page content ("chưa mở"). Rewards are small and capped; the boards pay nothing.
+
 ### Market prices by market and day (decision 0022, phase P3)
 
 A market pays 85 % to 125 % of the ordinary price, different for each of the five markets every Vietnamese day. `src/ocean/market-prices.ts` is the client's copy of `economy_private.market_pct` (`supabase/migrations/20261127120000_market_prices.sql`); both use one integer mix and are pinned by the same golden table. The market page asks `economy.state(marketId)`, shows "Giá hôm nay" with the other markets' percents, and sells with `sell(fish, marketId, day)` so the price shown is the price paid (yesterday's is honoured across midnight). A server without the migration answers the old way and the page shows no chip. The market id is a client claim (at most +25 %).

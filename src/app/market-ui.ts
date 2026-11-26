@@ -22,6 +22,7 @@ import {
   type ShopKind,
   type TierView,
 } from "../ocean/upgrade-view";
+import type { CatchResult } from "../ocean/quests";
 import type { Loadout } from "../ocean/upgrades";
 import type { Cue } from "../ocean/audio-cues";
 
@@ -52,6 +53,8 @@ export interface MarketUiOptions {
    * store must not show it. Not called for a network failure (retried) or "too fast" (retried).
    */
   onRejected?: (fish: SoldFish, failure: EconomyFailure) => void;
+  /** The server counted a kept fish: its quests, the event card, whether the species is new (absent from an older server). */
+  onCatch?: (result: CatchResult | undefined, fish: SoldFish) => void;
   /** Plays a short sound (a cue); absent in tests. */
   sound?: (cue: Cue) => void;
   /** What the player owns, as the server last said (on opening the market and after a purchase). */
@@ -72,6 +75,7 @@ const FAILURES: Record<string, string> = {
   poor: "Chưa đủ xu. Bán thêm cá rồi quay lại nhé!",
   owned: "Bạn đã có món này rồi.",
   order: "Hãy mua cấp thấp hơn trước nhé.",
+  quest: "Nhiệm vụ chưa xong hoặc đã nhận rồi.",
 };
 const failureText = (error: unknown) =>
   FAILURES[error instanceof EconomyError ? error.failure : "network"]!;
@@ -165,7 +169,7 @@ export function createMarketUi(options: MarketUiOptions) {
   let near: Spot | undefined;
   let open: Spot | undefined;
   /** Catches that could not be told to the server (no network): retried when the hub opens. */
-  const pending: SoldFish[] = [];
+  const pending: { fish: SoldFish; event?: number }[] = [];
   /** Timers of catches waiting out the six second rule. */
   const retries = new Set<number>();
   let busy = false;
@@ -176,7 +180,11 @@ export function createMarketUi(options: MarketUiOptions) {
   async function flushPending() {
     while (pending.length && economy) {
       try {
-        await economy.recordCatch(pending[0]!);
+        const waiting = pending[0]!;
+        options.onCatch?.(
+          await economy.recordCatch(waiting.fish, waiting.event),
+          waiting.fish,
+        );
         pending.shift();
       } catch (error) {
         // Too soon after another catch: stop here, the rest waits for the next time.
@@ -729,22 +737,25 @@ export function createMarketUi(options: MarketUiOptions) {
       await render();
     },
     /** A fish was landed and kept: tell the server (retried later if the network fails). */
-    recordCatch(fish: SoldFish, attempt = 0) {
+    recordCatch(fish: SoldFish, event?: number, attempt = 0) {
       if (!economy) return;
-      void economy.recordCatch(fish).catch((error) => {
-        if (!(error instanceof EconomyError)) return;
-        if (error.failure === "network") pending.push(fish);
-        // Two catches in under six seconds: the second is told again once the wait is over.
-        else if (error.failure === "fast" && attempt < 3)
-          retries.add(
-            window.setTimeout(
-              () => this.recordCatch(fish, attempt + 1),
-              (CATCH_COOLDOWN_SECONDS + 0.5) * 1000,
-            ),
-          );
-        else if (error.failure !== "closed" && error.failure !== "signin")
-          options.onRejected?.(fish, error.failure);
-      });
+      void economy
+        .recordCatch(fish, event)
+        .then((result) => options.onCatch?.(result, fish))
+        .catch((error) => {
+          if (!(error instanceof EconomyError)) return;
+          if (error.failure === "network") pending.push({ fish, event });
+          // Two catches in under six seconds: the second is told again once the wait is over.
+          else if (error.failure === "fast" && attempt < 3)
+            retries.add(
+              window.setTimeout(
+                () => this.recordCatch(fish, event, attempt + 1),
+                (CATCH_COOLDOWN_SECONDS + 0.5) * 1000,
+              ),
+            );
+          else if (error.failure !== "closed" && error.failure !== "signin")
+            options.onRejected?.(fish, error.failure);
+        });
     },
     dispose() {
       for (const id of retries) window.clearTimeout(id);

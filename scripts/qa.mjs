@@ -22,6 +22,7 @@ const GROUPS = {
     "ocean-rank",
     "ocean-book",
     "ocean-event",
+    "ocean-quests",
     "ocean-planes",
     "ocean-edge",
     "ocean-fade",
