@@ -5,6 +5,8 @@ openwiki_generated: true
 sources:
   - id: openwiki-source-69220ba068a830c8d6971aab
     resource: repo://src/ocean/babylon-scene.ts
+  - id: openwiki-source-fdbd6454cba6c85fc22ed2ff
+    resource: repo://src/ocean/boat-model.ts
   - id: openwiki-source-d9131d826739d3342a0d1da1
     resource: repo://src/ocean/boat-physics.ts
   - id: openwiki-source-8dcaa9ba2e896610a017d745
@@ -19,10 +21,10 @@ sources:
     resource: repo://src/ocean/shore.ts
   - id: openwiki-source-eb96b0ed9ab24df7884e4079
     resource: repo://src/ocean/waves.ts
-generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
+generated: { by: "claude-code", at: "2026-11-26T03:34:41.285Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-20T03:06:03.643Z
+    at: 2026-11-26T03:34:41.285Z
 ---
 
 
@@ -50,7 +52,7 @@ Trong constructor của `OceanScene`:
 4. Ánh sáng, nước (`water.ts`), trời (`sky.ts`), phản chiếu (`reflection.ts`, mặt phẳng gương, loại trừ vật liệu nước trong `reflection-model.ts`).
 5. Lớp nước trong (`clear-water.ts`, `clear-water-pass.ts`), nếu được phép.
 6. Mẫu thuyền từ `palette.ts`, đảo từ `island-visual.ts`, rồi cần câu (`fishing-gear.ts`).
-7. Model GLB cho thuyền (`boat-model.ts`) và đảo (`island-models.ts`, `island-layout.ts`) tải bất đồng bộ; nếu tải lỗi, hình dựng bằng code vẫn còn.
+7. Model GLB cho thuyền (`boat-model.ts`, mỗi hạng thuyền một file theo `boat-tier.ts`) và đảo (`island-models.ts`, `island-layout.ts`) tải bất đồng bộ; nếu tải lỗi, hình dựng bằng code vẫn còn. Đàn thuyền mèo chèo (`cat-fleet.ts`, `loadRowerAssets`), tàu tuần tra (`patrol-*.ts`) và thủy phi cơ (`plane-fleet.ts`) được dựng sau khi scene có sẵn; `?cats=0` và `?planes=0` bỏ qua từng nhóm.
 8. Chợ (`market.ts`, `market-visual.ts`), mèo người bán (`market-vendor.ts`), và `SeaProps` (`sea-props.ts`, `sea-layout.ts`) cho phao và chim mòng biển.
 
 ## Mặt nước và phản chiếu
@@ -71,7 +73,7 @@ Các đảo và bến được định nghĩa trong `src/ocean/model.ts` và `sr
 
 ## Thuyền
 
-Thuyền của người chơi là thân Havok, nhưng hình hiển thị được gộp: `boat-visual.ts` dựng thân bằng code thành **một** mesh đỉnh màu. `boat-model.ts` tạo instance cho thuyền người khác từ mẫu này, nên mỗi thuyền khác chỉ là một lời gọi vẽ rẻ. Khi `boat.glb` tải xong, thân GLB thay thế thân dựng bằng code cho mọi thuyền đang có. Cần câu gắn vào thuyền bằng `rod.ts` và mesh `rod-visual.ts`.
+Thuyền của người chơi là thân Havok, nhưng hình hiển thị được gộp: `boat-visual.ts` dựng thân hạng 0 bằng code thành **một** mesh đỉnh màu, làm hình tạm. Mỗi hạng thuyền (`boat-tier.ts`) có file GLB riêng (`boat.glb` và `boat-2`, `boat-3`, `boat-4` của cửa hàng nâng cấp), được tải **một lần cho mỗi scene** khi cần (`boat-model.ts`). Thuyền khác là instance của mô hình cùng hạng, nên mỗi thuyền chỉ tốn vài lời gọi vẽ (thân và cần); thuyền ở xa dùng bản thô hơn theo `boat-lod.ts`. Thuyền tuần tra dùng `boat-patrol.glb`. Cần câu gắn vào thuyền bằng `rod.ts` và mesh `rod-visual.ts`.
 
 ## Lớp nước trong
 

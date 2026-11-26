@@ -15,10 +15,10 @@ sources:
     resource: repo://src/platform/pwa.ts
   - id: openwiki-source-a875da0e301868b8784bbae3
     resource: repo://tests/pwa-browser.mjs
-generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
+generated: { by: "claude-code", at: "2026-11-26T03:34:41.285Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-20T03:06:03.643Z
+    at: 2026-11-26T03:34:41.285Z
 ---
 
 
@@ -61,7 +61,7 @@ Trang tự reload trong hai trường hợp, và cả hai đều bị chặn b�
 
 ## Ranh giới
 
-- Service worker không lưu auth, API, Socket.IO hay dữ liệu cá. Dữ liệu biển được giữ trên thiết bị bởi `localStorage` (xem [biển chung](../architecture/ocean.md)), không bởi cache của worker.
+- Service worker không lưu auth, API, Socket.IO hay dữ liệu cá. Dữ liệu biển không nằm trong cache của worker: vị trí và kho cá nằm trên server khi có hồ sơ, còn khi không có thì ở `localStorage` trên thiết bị (xem [biển chung](../architecture/ocean.md) và [câu cá](../architecture/ocean-fishing.md)).
 - Kết nối lại của biển là việc của `src/app/ocean.ts` và `src/ocean/connect.ts`, không phải của service worker (xem [realtime](../architecture/ocean-realtime.md)).
 - Chuyển origin làm mất trạng thái PWA cũ; xem [hạ tầng](../architecture/infrastructure-transition.md).
 

@@ -18,6 +18,10 @@ Branch `wt/seaplanes` (from `origin/main` at `b45a0e8`). Decision: [0019](../dec
 
 - `plane-fade.ts`: a distance taper and a time fade, applied as the dithered tile fade to the plane, propeller and banner; the glow shrinks. Test: `plane-fade.test.mjs` and a fly-away check in `ocean-planes`.
 
+## Also fixed on this branch: the sky near the edge of the sea
+
+- Reported by the user ("lỗi bầu trời khi tiến tới gần rìa map"). The sky dome's position was set to the camera's although `infiniteDistance` already adds the camera's, so the dome sat twice as far out as the camera and, past 1,200 m, the camera left the dome. Fixed in `sky.ts`; tests `sky-dome.test.mjs` and `ocean-edge`.
+
 ## Not done
 
 - Not pushed or deployed. No phone reading; no automatic give-up by a governor; only Chromium compared.

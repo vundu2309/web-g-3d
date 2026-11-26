@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:62a3ac3b96366c55cae5534f7acdcf8bf9ff9dcdaa158632b3bcc3be6c7f3c3c",
+  "pageVersion": "sha256:a0cf579eb45388ecdcf9f1c5402a06b23a12bb674aec9ddfb2736de77e683f9a",
   "claims": [
     {
       "id": "claim_34ac9d95929d4a7baae19ee7618a1efb",
@@ -27,11 +27,11 @@
       "statement": "Lớp nước trong có tầm 70 m trên màn cảm ứng (TOUCH_REACH); quyết định bật tắt dùng hai cửa sổ chậm liên tiếp để tắt, tám cửa sổ nhanh để bật lại, tối đa hai lần thử lại.",
       "evidence": [
         {
-          "resource": "repo://src/ocean/clear-water.ts#L161-L161",
+          "resource": "repo://src/ocean/clear-water.ts#L44-L44",
           "version": "repo-lines-v1:sha256:cdb3196dc034d317e9c3d1e930997c900bc5d1eec9d2d1c3bf01a14f3e8e9355:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2RiMzE5NmRjMDM0ZDMxN2U5YzNkMWU5MzA5OTdjOTAwYmM1ZDFlZWM5ZDJkMWMzYmYwMWExNGYzZThlOTM1NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2RiMzE5NmRjMDM0ZDMxN2U5YzNkMWU5MzA5OTdjOTAwYmM1ZDFlZWM5ZDJkMWMzYmYwMWExNGYzZThlOTM1NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGQxZDE5NjE3NTY0OWY4Y2M0MGZmMWY0MzJjOTU1ZGIzZmQzOWNkOTQyMzY0NjA4ZWQzYjNhYmRlYTdmNjUzNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWI2N2YyMGYzZGYxZTVhY2MzY2QwZWMyYzJmMTJlZThkMTdlYzk4NzdhOWQ1MjcwZDU2MTQ0YjZjMmJmNTRlNyJ9"
         },
         {
-          "resource": "repo://src/ocean/clear-water.ts#L199-L218",
+          "resource": "repo://src/ocean/clear-water.ts#L81-L100",
           "version": "repo-lines-v1:sha256:7a004739f1eb5dc6d8c962381a604ccd57a09fddaa52a18ec7cc41e27719bbf0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmYTgyMjJlNWUzYTgxOWU4NjE2YTY3OWVhZmM3ZDcyNDQzODExYzFjOGRjNDM3YmU3N2QwMWE0OTdlODE0MDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0MjgwYjBmZjVkODJhNjhmMzZjMjJhMThhMGQ1YWM4MjgwMzY2OGExOTRkYjM3NGVhZWExZjZjYTYyMmQ0OTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0OTMxNjQ1N2Y4ODRiMGJkZTU3MzNkYjMwZTJjOTExZjVmYmVjOTljOWNkMzZiN2FmMzhiZTg4Yzg0NWFlM2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2MGY4MWNjNDA1NzhiODQ4NWViY2I5YjY0NWQzMWNhMzZkMDg3MzBiZjljZjI4YWUwMzI2YjFkZmZmY2FhNWEifQ"
         }
       ]
@@ -48,17 +48,21 @@
     },
     {
       "id": "claim_c872e685d3284e43a62d9a86c31f2d28",
-      "statement": "Các công tắc địa chỉ trang gồm reflect, fish, props, scale, clearwater, seemode và waves, được đọc qua probe trong probe.ts.",
+      "statement": "Các công tắc địa chỉ trang hiện có là reflect, fish, props, tiers, cats, planes, yards và scale; chỉ waves được đọc từ dữ liệu đã lưu trên thiết bị, còn lại chỉ đọc từ địa chỉ trang.",
       "evidence": [
         {
-          "resource": "repo://src/ocean/probe.ts",
-          "version": "repo-file-v1:sha256:49a4c32e16e3daf3290ef85527bd09af149809af80bef9150be4aac500e42b9e"
+          "resource": "repo://src/ocean/probe.ts#L1-L40",
+          "version": "repo-lines-v1:sha256:daa76998911f8ef99f316371cc49eaec73e76e7c4e3f23fd2bd8f1ee12b2fbae:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2NTk1ZjRlZTVmZjYzZDUwOTUwNDE5ZGMzNDQxNDUxMzg1MWRjOTczNmZkMTdhNGY3YmZhOTMwYjI2MWI2ZjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiNzRkYTBjYzczYzE5NzhhNGQ4NDhkZTkyM2NlNzM3Mjg1MDJmYzFhMTUwMGYzMjhhMWY3ZTJlYzZiMTRlODcifQ"
+        },
+        {
+          "resource": "repo://src/ocean/probe.ts#L51-L60",
+          "version": "repo-lines-v1:sha256:72d101b696724d6fe4451236358fda0bf3538f72b450a75409c6cd2dfc116c66:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2YzQxOTc5ODIwODI4MTc0N2NkZjAzNjA0ZmI3M2RjMmRhZTAzMGVkMDExMDdjZGY1ZDhiZmIxMTUzY2YxZjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmODI5NThjNDFmYTVlYzZkNTk3NjVlNzI2ZDdhOWM1YzZhMWMxMTY2MTFiZjVkYTFkZTYwMWE4ZTc4OTAxMWYifQ"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-20T03:06:03.643Z"
+    "at": "2026-11-26T03:34:41.285Z"
   }
 }

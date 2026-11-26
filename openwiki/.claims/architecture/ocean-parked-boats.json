@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:d00d0fa05753f4a69f4fb86ecf548be6c7d8d1104812832bfdd1a8575607cf2c",
+  "claims": [
+    {
+      "id": "claim_42ecda7f66e64db990b793b54a23ed1f",
+      "statement": "API đọc thuyền đậu bằng token của người chơi vừa vào biển và bỏ qua lần đọc nếu lần trước còn trong 60 giây; không dùng khóa quản trị.",
+      "evidence": [
+        {
+          "resource": "repo://server/app.mjs#L37-L45",
+          "version": "repo-lines-v1:sha256:e9c2c7d3dffff9b0bf702e6d688005c72671f21d64f4ae22e841fe0316963cf6:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDM4ZDU3YTlkMTU3MDJiZWM5MGI5MDVkZDUxNDkzMWJiZmI0YTJmOWRjZGQ2OGFlMzEwMzgyNTA3OGVhNDVmYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmZiNmY5MmYyNjhmZjY5YzAyZDRlOGYzZjRhMGNkMjI1YmFjYjBkMzUzNWUxNGU4NmM0MjllY2NhODY3NWZiMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWE3MjVmZDU2NWU1NDdhMDhhOTQ0YjBiOGFlMmFkYzMyNWUzNmFkNDA0YzMwNDk4ZDJlZmM0YzQ4NDk1MDEwYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGZjYmFlNGY1OWE1Y2NkYTI2MDdiNDRhZjJmYzg4NTA1MGVhMmQyOTZmMWM2NmJkNDg2OWI3NWU1YTNmMTMwNiJ9"
+        },
+        {
+          "resource": "repo://server/ocean.mjs#L220-L238",
+          "version": "repo-lines-v1:sha256:345955ee6fde577f894b6b7bd97f20213f8d007f15ce541739db672c60380284:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4MzQzNDE1M2NmZjA2Y2RiNzVhMDhkY2JiMTJhNDU3Mjk5Y2YxMzc5MDMzODRmZjA5NjcyMWQyOTNlOWYwZDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjNmMyOGFhYTY0MzRlODc4MmY3NmRiYTgzNTgyZjIwZmZhOTQxZDE1ZDJiOGE4MDBkZmRhZmUxZDA5NzE1NzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNmOGYyNjk3OGZjMzMzMjZmODgzMWQ3ZTViYWM4Y2MyYzA2MjViMDgwOTJmMjU4MDQyZDFkZTA4ODU4NTQ1MzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQzZWQxNmU2NGVjNTkwY2U0ZGU3MDY1ZTM1MjBmZTcyMTUzNWFiZmZlNTYzODcwYzI0ZDkxMzQ2NzQ5MTU2ZDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7e118036d9224769824c00c2197ed9d2",
+      "statement": "economy_parked_boats trả tối đa 100 tài khoản khác có vị trí lưu trong 7 ngày gần nhất, loại chính người gọi, và chỉ cấp quyền thực thi cho người đã đăng nhập.",
+      "evidence": [
+        {
+          "resource": "repo://supabase/migrations/20261121130000_parked_boats.sql#L8-L26",
+          "version": "repo-lines-v1:sha256:4b05d520a3c9bbf4dcd4f8aac3d034a13bc8fedc0a2c73e14f214cebe7719dc7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5YjhlNmVlOWZmMmU0M2UzNzI3ODgwZmQ5NWMyMjQxOGU2ZTUwNjM4MTJiZjY0NzRiM2VjMTA2OTVlOTc3ZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2MjQ5M2QyZTVkNTk5MGNlOGZhMWI0MTAyY2IzMTA0YWQ1NDY3MzdkZWQ3MzIxOTUzNjg1ZTU5NGNjNWFkNWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5M2Q0N2Y0ZTY4MmNjYjMyMTU4OGQ2ODFiN2VmZTkzNzMzOGUxMDZiMDk1YmUxZmNmYzVmNjlmM2U3YzJmMjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZiNzNhYTcyOTczZTRmYTVkYTY4YzE0MjFmMGNjOWNhOTg5OGFjMTI4MGI1ZTM5MDE1NDRmYjc3NzBiYzAyZmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b96f3d3a00c648c7a0f6ddd2c4665c8d",
+      "statement": "Khi socket của người chơi ngắt, thuyền của họ chuyển thành thuyền đậu tại vị trí cuối; khi người đó quay lại thì thuyền không còn đậu nữa.",
+      "evidence": [
+        {
+          "resource": "repo://server/ocean.mjs#L296-L310",
+          "version": "repo-lines-v1:sha256:68bf3d231933b293a1e6020d3e0423a82a3886d8d67a27e18a48d0f7b15d54fd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmMzc3NmU5YTcwNmY3YjdmY2Q3YTFjYmVkMjA2N2U3ZmY0YTY3NTRkODNmZGY1ODE0YzlkNjI1ZGJiYzNhZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhYWNjZTFiZmUwYmRlOTQ2YmUwOGNlZDIxODQ5ZGU0YzYwM2EwYjVkOTgzNTJlZDY3YTJhYzE1Y2RiOTJlNjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2ZTNjNDlmN2Q2MTU0ZTJhNGY2N2IzZDZiNmVkYjMwMDM5NmM4NjYyODhjNGRkZjZlYTc2NzA2OWM4ZDE1MWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1NGU4ZTc4OTVkODc1YTZmNzU3MDY1OWI4ZDMzMmM4ZGE0NjUwZDUyMWVlZTRiNzIzZjE1YTM4ZGQ2NmU5NzMifQ"
+        },
+        {
+          "resource": "repo://server/ocean.mjs#L378-L386",
+          "version": "repo-lines-v1:sha256:0e195eddd2fc52ccd75b20cffe2f5312c23012f6d2c2e982d317728c02985e7b:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmEwNTk1MTQ1OWVkZGJiODA3NGUwNmVkMmNmNjRhMWY0YjljZTc0NWJlYTk0MDA3OWE1YzFkZmRhYTJkNWI1ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDM4NmIwOWFiZTc3NzQ3MDRkYjdhNWIxMGQzYTNhZTdhY2Q0OTUwZjA0MThkMDM0YTVmZmYyNmFkZDkxZTJlOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNkZTFhZGE4ZGQ0N2UxZjhmN2ZmZDk1M2FlMzVhYjJjNjE1NDM5YWM3NjcxOTM5YWM3MzA2MmE3ZjQ1NWY4NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTc0YzE1NWIyYWE5NTQ1ZjhiYjAxYmUyYTg0NGE5MzU1MzEwZTc0YTY3OWIxNmFlYzkwYmU2MWYyNWUyZTk1OSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_3ffc06a33fd24c0693884661cfaa6f9e",
+      "statement": "Thuyền đậu cách thuyền người chơi dưới 150 m là chướng ngại cứng với hộp Havok; thuyền đậu xa hơn không tạo hộp.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/babylon-scene.ts#L143-L144",
+          "version": "repo-lines-v1:sha256:9d0f62583c19349fffb9fab6cfc2d9b991bb60f781f3bbafc316f5350cba5beb:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmRiODQ1Y2NmZjViN2NkNWFiNWViNmIyZTIwYzhjMWEwODliMmJjOWM0NDc2ZWNmZjJkZjUzMWZjZTY0YWFiMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGVmNGQ0ZDM4ZDUxNDU5YzUyOWI1MGFmN2U4MmQ4NTk0ZmNiMmUzNDMzOTBlYzMyYzE0NTRmNTI0OTg5ZTZkNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODRjOGFiMGVhMjE5NzhkZWY1YTA5MzQ4ZmNhODg1ODYwNGRlNzU2MzYzY2I3OGY3ODg0ZWEzNjk5NzMyMGY4YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODk2Y2M1YWI0NWU5ODkxZTkyNjM3OWU0ZmZiZDY5OWQyMDQ5ZjJmMTgwYzI3ZTIwZTgwNzU4Y2Q4NmE1NzdlYiJ9"
+        },
+        {
+          "resource": "repo://src/ocean/babylon-scene.ts#L993-L999",
+          "version": "repo-lines-v1:sha256:8dcdf38a945948796b57f4df40d23b97d2b6c33bb59a6e5bd2ea155034dfb306:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTBkYTA5ZjM0NDRkM2ZkZDg4YjRkNGExZGMyNmQwMjE0NDhiYzc1OTVjYmZlYTlhOTIzNWM1YzFkYTc4ZTQyZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDU1MjY0ODcyNDkyNzlhNTI1OTdiYzEzNzkwNDgwMWM4NDI3NDRiOTgyNmMxMTUwNDkwNTRlZjc3MmViYTNiNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWMyYmUzNmU4YzE1N2QzNWQwYWE3YjU2YjRkZWZlMzdkODc0NTI0YWQ3Y2FkNjcxNDNmNmMzNjg5MjRhNDI1ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDQ5OThiYTU1YTZkMDRmMDljNmU2NmYzNWRhMGE0MDY0NWU5MzRhMmRmOWNkMzc1ZDM0ODAwYTgzNWIzYjg3NCJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-26T03:34:41.285Z"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:cd3b9b72a3bc9b103c93b330e069be247a512cd8147411608fb498ab80bb5bc6",
+  "claims": [
+    {
+      "id": "claim_4e32b0b7b62247a1ad283d84b8e49031",
+      "statement": "playersOnMap giữ mọi thuyền khác người chơi hiện tại và loại thuyền có npc: true, nên tàu tuần tra không hiện trên minimap hay bản đồ lớn.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/minimap-math.ts#L104-L113",
+          "version": "repo-lines-v1:sha256:87875dcbee2f7dbeadc00657427b4a3abf3c763352f92dcc7740572eb64ef0e9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5MzZlNDkzOWJmYjBjYjdiMjQwMGEwNDg4YzZiMDFlYTgyYjY2YTdhZTczMzIzYjE1YzExYzUyZDVjMTE2NTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5MGRhNTQ1ZTg3ZjUyZTMwZDUzMDJhOTljNmJlYzMzMjRlNjE2YzFjOWQ3M2I0OThkY2FmNzQ3YjU0YzcyZTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b9ce11bf0f2449a18b976ad9f16dcef5",
+      "statement": "Biển chung cập nhật minimap khoảng 10 lần mỗi giây và chỉ cập nhật bản đồ lớn qua cùng lần đó; khi bản đồ lớn đóng nó không vẽ lại.",
+      "evidence": [
+        {
+          "resource": "repo://src/app/big-map.ts#L131-L141",
+          "version": "repo-lines-v1:sha256:d98fe4055e3b74803d67ae9b699884d4d0c42e4ce01686db6f422e9c5d8d64a9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkMDBmN2E4ZGRiNGUzYTA0ZDY2OTVmNTllM2ViODkzODA4NmEzNGM0ZDQxNGFjMTdlMjgzZjM3YjRhZjg5NjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5NjA0MmI1NmY1ZjM1ODc2NTVjNWZiZDQyOGM4NTA2NTdkZWU5MTZlODYwMzVhZjMxOWRhYTU2OGZmZGE2ZDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE0MGYwYTAzNTlmNTAxOGQwNjNjOTg4YWZiMzUxOTgyM2I4N2UyMWM4MTM5OWE5OWI0ZGFhNWM0MGFmYWYxNTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyZjU5MWZhNDBkOTBjMGUwMjNkOTMwNzEyNTI2YjY3YTViYjQ5OTE5NGE1NjljMzMyMDU2MjMzZWVlMjcxNWMifQ"
+        },
+        {
+          "resource": "repo://src/app/ocean.ts#L795-L804",
+          "version": "repo-lines-v1:sha256:e5cb2f89c2e6df033829a69d12d01c488258b5d40d2dc8b46d895387973b54aa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwZmM5ZDlhODEwYWViZDA0ZDBkODZkOWIwNDYxNzQwYjFlMjdjNmMyZTg5ZGVhNjE5ZGQ0NzUzNjg2ZGJjZWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmNzNjYWZhYmY3YTU5NGJjNDQ0M2VmZTc5MThiNjZmZTY3YjBhMTFkOGY3NDk1YWMxMjBmOWYxOGU3MmM4N2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxYTUxNDNhOTU2YjQ4MzZjM2NlODc4MmY0NGFhNDJjMjUyNGQ0ODU3ZjY1YjNiY2FmNjczNjY3MTk5ZDAyMjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImExN2Q5N2ZiMTEwNTJhZDA2MmRiYWI2YzE2ZWVlZDkzNWY2ZjNiNmM5ODA1N2UyZTliMTU0YWVkNDRkMGFmY2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1b50c137f3a044649a876e37f74830e7",
+      "statement": "Số thứ tự địa điểm trên bản đồ là cố định theo danh sách gốc, còn danh sách bên cạnh sắp theo khoảng cách từ thuyền người chơi, gần nhất trước.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/minimap-math.ts#L85-L96",
+          "version": "repo-lines-v1:sha256:1a35a1018c3604f1da1b1276313e8d402c43458221e4788ebd64f2e9b8ea1ea8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlYTczOTk2ZjkxZjU3MDBmYTczNWVhYjI5Y2Y3ZWJhNTExMWQ0NDUwNTI3MWI4ZTgwMWYzNTFhODFmZTZjYzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhNjU0ZTYwMGNkMTU0Y2Q4YWM3YjBhYWY1MzYyMjI2MmQzZThmNDlhMTViYTczNGY2MGQzYTA5ZDNmMDQzM2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5YmJhMDBmZjg5NGYyYTdkYmEwNTMzNWFjNGQ2NTNmMjRiZDEyYzM4OTY3ZTA4OThiNjg0Yjk1MmFmNzI5NzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4cb4087051d84829908d6c5c87c54f92",
+      "statement": "Chạm minimap không mở bản đồ lớn khi đang thả câu hoặc đang có cá, để một chạm nhầm không đưa người chơi ra khỏi cuộc câu.",
+      "evidence": [
+        {
+          "resource": "repo://src/app/ocean.ts#L916-L925",
+          "version": "repo-lines-v1:sha256:c3d8d5145fe562da3033beb98b0253a8554f0aea356d6f566adeffeeddf83e41:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4OWRiMWM3ZGMzZmVkNGQxNDJkOTZjZDQ2MjkxZTY4MWEzNzc5NjMzYmIwNWMyYzYzNmVlMjQzMDI0MGQxYTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3ZjdjMGYwZTk4NDQ4YjkwM2U2NzY5YTNlNTM0MGEzYzQzNzY3ZjAzZjNmMjZiZWUyN2U0OWRkYTFjNzY5ZjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiNWEwM2EyYjZlYzlmNDYxMzhjNmE0MzA4ZGQ4M2VhOGUzMThiZjEwNGUxYTQwNWUyZjQ2ZWJhNTNmNmEwZmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhZThlYTczZmU3YzVkYWQ1NDhhMzM3ZTRmMzZhNDUzNDJlMDAzNWFjYjYzZTkwODA3NDJkNjRmODI1YTc3NTAifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-26T03:34:41.285Z"
+  }
+}

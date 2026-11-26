@@ -1,10 +1,11 @@
 ---
 type: "Tham khảo"
 title: "Hub, đăng nhập và vào biển"
-openwiki_generated: true
+description: "Hub (bến cảng) là màn hình đầu tiên: hiển thị thuyền trưởng, mở hộp thoại tài khoản Supabase và chỉ tải động cơ biển khi người chơi bấm Ra khơi và đã có phiên đăng nhập."
+tags: [hub, harbor, account, supabase, auth, password-recovery, app-shell]
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-20T03:06:03.643Z
+    at: 2026-11-26T03:34:41.285Z
 sources:
   - id: openwiki-source-5fac766e13b3ef2b068894f7
     resource: repo://docs/decisions/0012-remove-firebase-and-monopoly.md
@@ -28,9 +29,8 @@ sources:
     resource: repo://src/platform/wake.ts
   - id: openwiki-source-1f43633b4b89ad34853d5d5c
     resource: repo://tests/account-signup-browser.mjs
-generated: { by: "claude-code", at: "2026-11-17T08:18:15.877Z" }
+generated: { by: "claude-code", at: "2026-11-26T03:34:41.285Z" }
 ---
-
 
 # Hub, đăng nhập và vào biển
 
@@ -49,7 +49,7 @@ Các phòng, lobby, sẵn sàng và Firebase đã bị gỡ bỏ cùng với gam
 | Facade tài khoản | `src/platform/account.ts` | Gọi Supabase Auth, dịch lỗi, quan sát phiên (`observePlayer`). |
 | Client Supabase | `src/platform/supabase-client.ts` | Một client duy nhất; thiếu cấu hình thì báo lỗi, không có fallback. |
 | Lỗi hiển thị | `src/platform/errors.ts` | `HubError` (thông báo viết sẵn cho người chơi) và kiểm tra tên người chơi. |
-| Tranh nền | `src/ui/hub-canvas.ts` | Vẽ cảnh biển tĩnh phía sau hub và hộp thoại (`mountHubArt`, `hubArtUrl`). |
+| Tranh nền | `src/ui/hub-canvas.ts` | Vẽ cảnh biển tĩnh phía sau hub và hộp thoại (`mountHubArt`). |
 | Đánh thức API | `src/platform/wake.ts` | Gửi một yêu cầu `no-cors` tới `/health` khi người chơi bấm vào hub. |
 
 ## Luồng màn hình
@@ -57,7 +57,7 @@ Các phòng, lobby, sẵn sàng và Firebase đã bị gỡ bỏ cùng với gam
 1. `startHarbor` vẽ hub ngay: logo “Ra khơi”, nút cài đặt PWA, nút đăng nhập (chỉ khi chưa có tên) và nút **Ra khơi** lớn.
 2. Khi chưa đăng nhập, thẻ thuyền trưởng ghi “Mỗi người một thuyền, một biển chung” và nút chính ghi “Đăng nhập để vào biển chung”. Khi đã đăng nhập, thẻ hiện “Thuyền trưởng <tên>”, số cá trong kho trên thiết bị và nút **Đăng xuất**.
 3. `observePlayer` (qua `onAuthStateChange`) cập nhật tên và uid. Nếu đang ở biển mà phiên mất, biển bị dừng và URL về `./`.
-4. Bấm **Ra khơi** gọi `enter()`: `requirePlayer()` mở hộp thoại nếu chưa có phiên; khi có người chơi, `startOcean` được import, URL đổi thành `?view=ocean` và biển thay thế hub trong `#app`.
+4. Bấm **Ra khơi** gọi `enter()`: `requirePlayer()` mở hộp thoại nếu chưa có phiên; chỉ khi có người chơi, `startOcean` mới được import, URL đổi thành `?view=ocean` và biển thay thế hub trong `#app`.
 5. Khi biển kết thúc (người chơi quay lại, hoặc `onLeave`), URL về `./` và hub vẽ lại.
 6. Mở trực tiếp `?view=ocean` tự chạy `enter()`, nên tải lại trang vẫn vào thẳng biển khi còn phiên đăng nhập.
 
@@ -86,18 +86,18 @@ Lỗi Supabase được dịch bằng `accountError` sang thông điệp tiếng
 ## Thiếu cấu hình và đăng nhập không thành
 
 - `supabase()` ném `HubError` nếu thiếu `VITE_SUPABASE_URL` hoặc `VITE_SUPABASE_PUBLISHABLE_KEY`. Thông báo hiển thị nguyên văn cho người chơi; không có chế độ thử nghiệm hay tài khoản giả.
-- `observePlayer` lỗi khi tải client, `harbor.ts` hiện “Chưa kết nối được đăng nhập. Kiểm tra mạng rồi thử lại.”
+- Khi `observePlayer` lỗi lúc tải client, `harbor.ts` hiện “Chưa kết nối được đăng nhập. Kiểm tra mạng rồi thử lại.”
 - Biển cũng dùng `VITE_API_URL` và từ chối khởi động nếu thiếu (xem [biển chung](ocean.md)).
 
-Không có đường đăng nhập ẩn danh. `server/app.mjs` và `server/socket.mjs` xác thực mọi token qua `/auth/v1/user` của Supabase và từ chối người dùng `is_anonymous`; client không được tin danh tính tự khai.
+Không có đường đăng nhập ẩn danh. `server/app.mjs` xác thực mọi token qua `/auth/v1/user` của Supabase và từ chối người dùng `is_anonymous`; client không được tin danh tính tự khai. Socket biển (`server/socket.mjs`) dùng cùng quy tắc.
 
 ## Kiểm tra
 
-- `tests/account-signup-browser.mjs` chạy với Supabase giả (`tests/support/supabase-dev.mjs`, cổng 18999) và kiểm tra cả hai thiết lập: xác nhận email bật (bước “kiểm tra email”, đăng nhập sau khi xác nhận, gửi lại) và tắt (đăng nhập ngay). Nó cũng kiểm tra email được đặt như văn bản.
+- `tests/account-signup-browser.mjs` chạy với Supabase giả (`tests/support/supabase-dev.mjs`) và kiểm tra cả hai thiết lập: xác nhận email bật (bước “kiểm tra email”, đăng nhập sau khi xác nhận, gửi lại) và tắt (đăng nhập ngay). Nó cũng kiểm tra email được đặt như văn bản.
 - `scripts/test-browser.mjs` đặt sẵn `VITE_SUPABASE_URL` và khóa công khai giả để biển có thể khởi động trong kiểm tra.
 - Chưa có kiểm tra tự động cho đăng nhập với Supabase thật, cho email xác nhận thật, hay cho liên kết khôi phục thật. Các mục này cần xác minh trên dịch vụ thật và trên điện thoại.
 
 ## Giới hạn
 
-- Hub tối ưu cho điện thoại xoay ngang; các cỡ 844×390, 932×430 và 667×375 được kiểm tra trong trình duyệt mô phỏng, chưa phải trên thiết bị thật.
+- Hub tối ưu cho điện thoại xoay ngang; các cỡ 844×390, 932×430 và 667×375 cần được kiểm tra trên trình duyệt mô phỏng và trên thiết bị thật; phần thiết bị thật chưa được xác minh.
 - Cấu hình công khai (`VITE_*`) không phải quyền quản trị; không đặt khóa bí mật vào mã nguồn hay tài liệu.

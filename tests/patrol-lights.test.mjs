@@ -3,12 +3,18 @@ import assert from "node:assert/strict";
 import { readGlb } from "./support/glb.mjs";
 import { rgb } from "../src/ocean/boat-paint.ts";
 import { PAL } from "../src/ocean/art/colors.ts";
+import { distanceAmount } from "../src/ocean/distance-fade.ts";
 import {
   FLASH_PERIOD,
   LENS_DARK,
   LENS_DAY,
+  HALO_ANGLE,
+  HALO_BAND,
+  HALO_RANGE,
   LIGHT_RANGE,
   PATROL_LIGHTS,
+  WEDGE_BAND,
+  haloScale,
   SEARCH,
   flash,
   lensGlow,
@@ -189,4 +195,50 @@ test("the mast lantern and the searchlights are where their light is drawn", () 
     Math.abs(right.y - PATROL_LIGHTS.search.y) < 0.06 &&
       Math.abs(right.z - PATROL_LIGHTS.search.z) < 0.06,
   );
+});
+
+// ----- the lights thin out with the distance, they are never cut in one frame -----
+test("a ship's halos are seen from far, farther than its searchlight reaches, and thin out", () => {
+  assert.ok(
+    HALO_RANGE > LIGHT_RANGE * 2,
+    "the lights are what a ship is seen by at night",
+  );
+  assert.ok(HALO_BAND > 100 && WEDGE_BAND > 50);
+  // Whole well inside the range, nothing at it, and a smooth way between with no step to pop at.
+  assert.equal(distanceAmount(100, HALO_RANGE, HALO_BAND), 1);
+  assert.equal(distanceAmount(HALO_RANGE, HALO_RANGE, HALO_BAND), 0);
+  let before = 1;
+  for (let d = HALO_RANGE - HALO_BAND; d <= HALO_RANGE; d += 1) {
+    const a = distanceAmount(d, HALO_RANGE, HALO_BAND);
+    assert.ok(a <= before + 1e-12);
+    assert.ok(before - a < 0.02, `a step of ${before - a} at ${d} m`);
+    before = a;
+  }
+  // The wedge keeps its old reach: whole until the band, gone at LIGHT_RANGE.
+  assert.equal(
+    distanceAmount(LIGHT_RANGE - WEDGE_BAND, LIGHT_RANGE, WEDGE_BAND),
+    1,
+  );
+  assert.equal(distanceAmount(LIGHT_RANGE, LIGHT_RANGE, WEDGE_BAND), 0);
+});
+
+test("a far halo is made larger so it stays a few pixels: never under its own size, growing with the distance", () => {
+  // Near: its own size (a scale of 1). Far: the scale that keeps its radius at HALO_ANGLE radians.
+  assert.equal(haloScale(2.4, 50, 1), 1);
+  assert.ok(haloScale(2.4, 900, 1) > 5);
+  for (const d of [500, 800, 1100]) {
+    const size = 2.4 * haloScale(2.4, d, 1);
+    assert.ok(
+      Math.abs(size / 2 / d - HALO_ANGLE) < 1e-9 || size / 2 / d >= HALO_ANGLE,
+    );
+    assert.ok(
+      size / 2 / d >= HALO_ANGLE - 1e-12,
+      `at ${d} m the radius is ${size / 2 / d} rad`,
+    );
+  }
+  assert.ok(haloScale(2.4, 1000, 1) > haloScale(2.4, 600, 1));
+  // On a parent that is scaled up it never goes below that scale.
+  assert.equal(haloScale(2.4, 10, 1.6), 1.6);
+  // At 490 pixels to the radian a far halo is several pixels across.
+  assert.ok(HALO_ANGLE * 490 * 2 >= 8);
 });

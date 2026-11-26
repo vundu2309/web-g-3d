@@ -21,10 +21,10 @@ sources:
     resource: repo://src/platform/ocean-socket.ts
   - id: openwiki-source-739950034b62004a0096c757
     resource: repo://tests/ocean-socket.test.mjs
-generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
+generated: { by: "claude-code", at: "2026-11-26T03:34:41.285Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-20T03:06:03.643Z
+    at: 2026-11-26T03:34:41.285Z
 ---
 
 
@@ -65,6 +65,13 @@ Platform không import app; `src/app/ocean.ts` là nơi duy nhất nối kết n
 5. Khi rớt kết nối giữa chừng, `reconnect()` tự thử lại trong tối đa 90 giây; các lỗi không sửa được được hiện ngay.
 6. `dispose()` dọn dẹp: hủy listener, ngắt kết nối, giải phóng cảnh, gọi `fishingUi.dispose()`, và lưu lần cuối.
 
+## Các phần khác của biển
+
+- **Bản đồ**: minimap góc trên bên phải và bản đồ toàn màn hình mở khi chạm vào nó; chỉ vẽ người chơi, không vẽ thuyền NPC (xem [bản đồ](ocean-map.md)).
+- **Thuyền NPC**: tàu tuần tra, thủy phi cơ và thuyền mèo, đều theo đồng hồ chung và không do ai điều khiển qua mạng (xem [thuyền NPC](ocean-traffic.md)).
+- **Thuyền đậu**: người chơi đã rời đi vẫn để lại thuyền ở vị trí cuối cùng, đọc từ hồ sơ bằng token của chính người chơi (xem [thuyền đậu](ocean-parked-boats.md)).
+- **Âm thanh**: kế hoạch âm thanh thuần và lớp Web Audio, cùng cài đặt trên thiết bị (xem [âm thanh biển](ocean-sound.md)).
+
 ## Điều khiển
 
 - **Cần ảo** (`stick.ts`): kéo lên để tiến, xuống để lùi, sang trái hoặc phải để lái. Hướng chéo chạy và rẽ cùng lúc. Vùng chết nhỏ bỏ qua ngón tay đặt yên.
@@ -76,7 +83,7 @@ Khi trang không thể chơi (tab ẩn, hộp thoại đang mở, đang câu), �
 
 ## Lưu trên thiết bị
 
-`src/ocean/save.ts` lưu vị trí, hướng, kho cá và số cá theo khóa `photyphu:sea:v1:<uid>` trong localStorage. Dữ liệu đọc lại được kiểm tra: lưu cũ hơn 7 ngày, ngoài biển, nằm trong đảo, hoặc hỏng thì vị trí rơi về bến; kho cá được giữ. Đây là trạng thái của thiết bị, không phải tài sản của tài khoản, không phải phần thưởng, và không có kiểm tra chống gian lận.
+Khi hồ sơ trên server sẵn sàng, vị trí thuyền, kho cá, kỷ lục và số cá được lưu trên server (xem [câu cá](ocean-fishing.md) và [decision 0016](../../docs/decisions/0016-server-profile.md)). Khi không có hồ sơ, hoặc server không trả lời, `src/ocean/save.ts` lưu vị trí, hướng, kho cá và số cá theo khóa `photyphu:sea:v1:<uid>` trong localStorage. Dữ liệu đọc lại được kiểm tra: lưu cũ hơn 7 ngày, ngoài biển, nằm trong đảo, hoặc hỏng thì vị trí rơi về bến; kho cá được giữ. Phần này là trạng thái của thiết bị, không phải tài sản của tài khoản, và không có kiểm tra chống gian lận.
 
 Xu và kinh tế nằm trên server (xem [kinh tế biển](ocean-economy.md)), không nằm trong `save.ts`.
 

@@ -1,5 +1,7 @@
 import { Axis } from "@babylonjs/core/Maths/math.axis";
 import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { DitheredTileFadeMaterialPlugin } from "@babylonjs/core/Materials/ditheredTileFadeMaterialPlugin";
+import { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
@@ -181,6 +183,10 @@ export class CatBoat {
   readonly root: TransformNode;
   private readonly rowers: Rower[] = [];
   private readonly lantern: Lantern;
+  /** Every instance of the boat with the fade plugin of its material (see `setFade`). */
+  private faders:
+    | { mesh: InstancedMesh; plugin: DitheredTileFadeMaterialPlugin }[]
+    | undefined;
 
   constructor(scene: Scene, kit: RowerKit, name: string) {
     const { assets } = kit;
@@ -269,6 +275,35 @@ export class CatBoat {
     make("grey", assets.cats.grey, RIG.seats.grey, -1, assets.oars.port);
   }
 
+  /**
+   * How whole the boat is drawn, 0 to 1: the dithered tile fade on each instance (the pixels of the
+   * boat and its cats switch on or off in a fixed screen pattern). A material the plugin cannot take
+   * (the lantern's halo is a shader of its own) is left out: the lantern thins its own glow.
+   */
+  setFade(amount: number) {
+    this.faders ??= this.root.getChildMeshes(false).flatMap((mesh) => {
+      if (!(mesh instanceof InstancedMesh)) return [];
+      const material = mesh.sourceMesh.material;
+      if (!material) return [];
+      try {
+        return [
+          {
+            mesh,
+            plugin: DitheredTileFadeMaterialPlugin.GetOrCreate(
+              material as Parameters<
+                typeof DitheredTileFadeMaterialPlugin.GetOrCreate
+              >[0],
+            ),
+          },
+        ];
+      } catch {
+        return [];
+      }
+    });
+    for (const { mesh, plugin } of this.faders)
+      plugin.setFadeBounds(mesh, 0, amount);
+  }
+
   setEnabled(on: boolean) {
     this.root.setEnabled(on);
     if (!on) this.lantern.hide();
@@ -291,6 +326,7 @@ export class CatBoat {
     state: CatBoatState,
     time: number,
     height: (x: number, z: number) => number,
+    amount = 1,
   ) {
     const { x, z, heading, effort } = state;
     const fx = Math.sin(heading);
@@ -302,7 +338,7 @@ export class CatBoat {
     this.root.rotation.y = -heading;
     this.root.rotation.x = Math.atan2(fore - aft, 2 * reach);
     this.root.rotation.z = 0.03 * Math.sin(time * 0.8);
-    this.lantern.update(time);
+    this.lantern.update(time, amount);
     const pose = stroke(time / STROKE);
     const sweep = pose.sweep * effort;
     const lift = pose.lift * effort;

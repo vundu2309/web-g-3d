@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:e8ea42fee73a708abd12764d9e805cf5ddb1189f7b7b078fedf909bf11135c11",
+  "pageVersion": "sha256:0a118291372ca2984a76b4d6da08c6198559732a35307731ca2dc2d07a39d059",
   "claims": [
     {
       "id": "claim_82600e8b7a3841069eec60b3a6516608",
@@ -57,14 +57,46 @@
           "version": "repo-lines-v1:sha256:ef65df73d0dcd4120a4b0b53ced9861208e33d2ea76638bb377cfeed3db4efa4:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWY2NWRmNzNkMGRjZDQxMjBhNGIwYjUzY2VkOTg2MTIwOGUzM2QyZWE3NjYzOGJiMzc3Y2ZlZWQzZGI0ZWZhNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWY2NWRmNzNkMGRjZDQxMjBhNGIwYjUzY2VkOTg2MTIwOGUzM2QyZWE3NjYzOGJiMzc3Y2ZlZWQzZGI0ZWZhNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzM4Y2NhYjg0NzY4MGU4ZGVkZTBlOTE5MmJmMzc1ODZkZjkwMzNjZTRhMGJmZDVkYjFjNmExZmIxZDZhMmE1MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzE0OTFlZTJiOTYyNTNmMTZkY2FmZWZlMDNmZmE4MmM3NmY4Y2MwODQ2OGQxOGZjZTA0OGEzODU4OTQ1NDIwZCJ9"
         },
         {
-          "resource": "repo://src/ocean/model-loader.ts#L71-L89",
+          "resource": "repo://src/ocean/model-loader.ts#L75-L93",
           "version": "repo-lines-v1:sha256:a408e7798555e12d3fd7003790d0812e667a3c68afb17912e987234af47da906:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4Y2Q1ODg3YWQxMTIwNGQ5YmE3OGRlNDFlZGZkNTMxMjlhMmJmNmIxZDA2OGQwMjJiOGNjMWM5Y2NjNWU4OTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2ZjE0MGMwMTc3ZWNkYTgyNjA5NmEzMTE4YjM3OTE5YWNjOGMxMDFjN2QxNjk0MDdhYzQ4Mzg1YzVlY2MxMjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA2YzI5ODliNTI5MTVkNTljOWFmNmU0OWYzNTRhNTk2NDc0ZGRhM2QyNjcwOGFiMWEwNGU3MzcwYWNkZDQ3ZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyZTRlMDgyN2YxMTZlNzJmMTJmMjJkNjg2OWY3Zjg5MGEyODQxN2EyYmEzMmJjNDQ4ZmJiNDQ5Y2Y2ODMzYjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2edb066b065a4a84b88a36920704d1b2",
+      "statement": "Danh mục tools/blender/assets.json là nguồn kiểm tra tài sản: tests/assets-manifest.test.mjs báo lỗi khi một GLB thiếu mục, một mục thiếu tệp, script nguồn thiếu, node cần tra cứu thiếu, mesh thiếu COLOR_0 hoặc vượt trần tam giác.",
+      "evidence": [
+        {
+          "resource": "repo://tests/assets-manifest.test.mjs",
+          "version": "repo-file-v1:sha256:9bf7e22be3f9ff6742d99a6e982ff98db6a7511627e3e1132e0c0d1946917939"
+        },
+        {
+          "resource": "repo://tools/blender/assets.json#L1-L4",
+          "version": "repo-lines-v1:sha256:d66c0c4bc41441963af1c9eef3349edeca79df769067a4f73a1a0f0e3ab2446c:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTZmYjA4ZmRhMWFjYjk1N2I2MTE2YmQzNzgxMWExZmU0MWEwMTYxMWMwNjMxZWRiZjc4NmQ2ODg5YTI3YTU1YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDdlYjA3MjdjMWZkODQzODVjZjBlOWNjZjQ2OWQ1OTMyZWZjYmIwMDdiMDgyNTQ1YjMxODRiMDRiNWVmZDIzYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmEwN2Q0YzFiZGFiNjBlZGU1ODBlZmU4NjhlMjA2NDc4ZDA4MTUyNTU5MGRjYTI0MTJlZDkzN2ExMWM4MWM5YiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_204ab65f782e45809038f4563be81744",
+      "statement": "tools/blender/rebuild.py dựng lại tài sản trong một Blender riêng với cài đặt gốc và không ghi vào public/models; scripts/check-asset-rebuild.mjs so GLB dựng lại với GLB đã commit theo tam giác, node và màu đỉnh.",
+      "evidence": [
+        {
+          "resource": "repo://package.json#L19-L19",
+          "version": "repo-lines-v1:sha256:ba5d970358fb50ae37a72fa73d80b5f3d77ee665f475ef6e4fe26c9e91952d5a:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmE1ZDk3MDM1OGZiNTBhZTM3YTcyZmE3M2Q4MGI1ZjNkNzdlZTY2NWY0NzVlZjZlNGZlMjZjOWU5MTk1MmQ1YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmE1ZDk3MDM1OGZiNTBhZTM3YTcyZmE3M2Q4MGI1ZjNkNzdlZTY2NWY0NzVlZjZlNGZlMjZjOWU5MTk1MmQ1YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2FkNjI2Yjg2ODI4ZWM1YWI3MTIxOGE0YzkzYjQyY2MwOTk2MjczZTU1MTFhMDNkOWVmYzhlMGJkMjMzYWEzNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWUxZGRhNmViZjliNGZmNzVlODhkYTExYmFhNmZkMzBhODQzMjkyODFiYmNjZTBmNmZiZWJmNmZiM2IzNGY3ZiJ9"
+        },
+        {
+          "resource": "repo://scripts/check-asset-rebuild.mjs#L1-L10",
+          "version": "repo-lines-v1:sha256:8dbd98cf60e17524842a2be78cc64038cd5a362e64b263ef6eb3dec8eccf972f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlYTMzZTliNjRlMjBkM2ZhOTg2YzlkZThlYzU1Mjc3NDcxOTk2ZGEzNjBkM2I5NmZjZDI3OTYxNDA3Y2ZlMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0OGZlMTUzNzgyOWUyNjMzZDViZjU3MWU4ZDcxYTZiN2NlY2NhZGNlMGI2MmNjNGQyYjgxNDA1MGEwNjZhNzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxY2U2ODBkZTFiYWI5ZjZhZjMzOTVhYTY0NTExMzdiOWI0MThmYWE5ZTkxM2Q1NzczMzQzZjVmYTk1ZmM2ZGYifQ"
+        },
+        {
+          "resource": "repo://tools/blender/rebuild.py",
+          "version": "repo-file-v1:sha256:6c577e790033ba61bbdd0009fb79741e9351bc3af86aff3f5779b4d08bf9db0c"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-20T03:06:03.643Z"
+    "at": "2026-11-26T03:34:41.285Z"
   }
 }

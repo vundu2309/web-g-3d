@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:4cc41610f82fd675147d1b93f329f81d48bb93b9ddc0b28de2426380b0b02b33",
+  "claims": [
+    {
+      "id": "claim_ab442314a55c4a839995967b0d0d7dc5",
+      "statement": "soundPlan trả về kế hoạch im lặng khi âm thanh tắt hoặc âm lượng bằng 0; các lớp sóng, gió, mưa, động cơ, dây, thân tàu, sóng vỗ bờ và máy bay được tính từ tốc độ, thời tiết, độ căng dây, khoảng cách bờ và khoảng cách máy bay.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/audio-plan.ts#L86-L92",
+          "version": "repo-lines-v1:sha256:ce0d099ebfbf119e52c5ef76f28c1fa4d74b4a3b7db30be99f78fcbf82bbf059:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjBjYmYyY2M1OGI5MzlmODY3OTlhMGY4ZWJhODliYzVkNzRiNWI4NTA3ZDBiZmNkZjZhN2FkNjI2MmE4YmQ2MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmQ1ZGVlZDU2ZDY0MTdiM2ExYWYyMGUwYjc5NTdlNTg4MjAwZDJhNmJhMWY5MTM1MmE0NWEyNWE4MmFhN2I3OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDg3YTg5ZjI3MGQwYmUzM2ZiMzJmMzE4MjljNjhhZDk0YjgzNTBiMmViZDAyN2QyYTRmNTdjYTRmYjNkMzQwYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmQ2MWE5MDljMGRhZDZhYjJhZTQ4ODA3MTQ3ZGZjMGU2ZDE2ZmIxNzk1ZmIwZjlkNzRlNWZhMTJlZTc1OWUyZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a7fb5fd779654d538a863218af9770b9",
+      "statement": "Sóng vỗ bờ nghe được từ 170 m và đầy đủ trong 25 m; tiếng thủy phi cơ nghe được từ 300 m và đầy đủ trong 40 m.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/audio-plan.ts#L74-L76",
+          "version": "repo-lines-v1:sha256:64302cdb2a86e01834fa232e18124db44d9c6a58557e84e2446a3386e843c864:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjNkYzRhZjkwYzQ1ZTNkNDBiYzg3NTFhYjYzYTJlMzhiNzFiYjM4NjY3ZGE2N2Y2OGVmYmFkYjI5NWY4MTI3OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2NiYzM3YzNjN2M4NDI4MmY1ZjFmYjNkNmZmMzQxOTUwYzVjNzkwNjgyYjg0YzUwYTVmNTVjMmFkNDg1OWMxOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmZiYzJkY2YyZWEzZTg1OWU5N2ViOTg2ZWNlYzkxOWVlNTMzMGU1YjA2YjYxODgxZmY2ODkyMzMyNTU3MjUxNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWUwYWFlNjdkNjFiMzBjMWQxZjc1ODBiYjI2MDhjNjcyMTBiNjNmMDlkZDgyYjM0YjVjYzZjNjE2YmQ1NjQ1YiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_39329e53672e404d8db214f7bcd088be",
+      "statement": "Lớp Web Audio chỉ tạo AudioContext sau cử chỉ chạm hoặc phím đầu tiên, giới hạn 24 tiếng cùng lúc và tạm dừng khi tab bị ẩn.",
+      "evidence": [
+        {
+          "resource": "repo://src/app/audio.ts#L173-L193",
+          "version": "repo-lines-v1:sha256:ad4afb5355c82300e55a7f34be8cff4c81af05ad3769f65522e1ac56492cef88:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjM2RhZmQ1NGFiY2QzMTNmNGQxYTgxNzYxYTAxMzFhNjZlYzMyOTRhYTlmNmJiZjQxZTdiNzc2ZTYyYjI5YjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlYzk5ZDJhOTMxMmFlNGI5NzUwNGM4NzE1YmE1MDRjZTMwMmVjYjhjMTcwMWQ3Y2JhZDkxODM0ZDBjYjgwNjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJlZWVmZGQ1MTEzZDk5MDU2ZjFlMTlkZTFiN2Q1YmVkZTZlMGEzMDFmOWU4ZjdiZTRlYWQzZjhmOGRhODY2YzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxMjgzZGZkMTk5YzA2NGZkMWU1ZWE1NDc5YTQ5MjQ0ZDgyMmQwMWQ0NDA1ZGZjOWVlMjkwOGUyNWI2MjY3ZGMifQ"
+        },
+        {
+          "resource": "repo://src/app/audio.ts#L83-L83",
+          "version": "repo-lines-v1:sha256:da499e232a22a9583b343e40cd5423565d889dadffc79390700347a0782214ae:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGE0OTllMjMyYTIyYTk1ODNiMzQzZTQwY2Q1NDIzNTY1ZDg4OWRhZGZmYzc5MzkwNzAwMzQ3YTA3ODIyMTRhZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGE0OTllMjMyYTIyYTk1ODNiMzQzZTQwY2Q1NDIzNTY1ZDg4OWRhZGZmYzc5MzkwNzAwMzQ3YTA3ODIyMTRhZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWQ2MjhiNTJiMTdlMThkODI1YzE4MzRiMDU2M2ZhMGJiMDJlNjMxZmI3MGZiZjMxNGQ1NmM3NjRhY2M3OTMxMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGUyNWYzZTljODQ4ZmVmMTE1N2FkOGIyZjlhM2NkMjE4YWM5NDFjNzhmMjQ5NTI2YTExM2NkNDgxMjE4OGZjNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_495f0eb7b53943cc8697547c7afebd24",
+      "statement": "Cài đặt âm thanh lưu trên thiết bị với khóa photyphu:audio:v1, mặc định bật, âm lượng 0,7 và nhạc nền bật.",
+      "evidence": [
+        {
+          "resource": "repo://src/app/audio.ts#L11-L11",
+          "version": "repo-lines-v1:sha256:712d4eebc74e83af0dbad3500596c164cd7f840769a2b4ee31ef6f283cc57ece:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEyZDRlZWJjNzRlODNhZjBkYmFkMzUwMDU5NmMxNjRjZDdmODQwNzY5YTJiNGVlMzFlZjZmMjgzY2M1N2VjZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzEyZDRlZWJjNzRlODNhZjBkYmFkMzUwMDU5NmMxNjRjZDdmODQwNzY5YTJiNGVlMzFlZjZmMjgzY2M1N2VjZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWRkZWE2NDFkYjM0ZmZkNmNiODE5MTY4NmZkNWY4ZDUxNjMzZWJkODc2NmJhZGMxYmI5NGM0ZDJlYzAwNjUxZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTk4NDk3Yzg4MGVhMWZhODE1OTMyNDc1YzQyYjg0YTFkNzBlNzI4MGIyZjZiNDRjOTYzYjJiYTNhZDVkYzg2MSJ9"
+        },
+        {
+          "resource": "repo://src/ocean/audio-plan.ts#L135-L139",
+          "version": "repo-lines-v1:sha256:498ccfaefc484fe8e02b41560f79793d03d884541aa508bc619694e6f63f3709:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDg3NzQ5YzQ1MDFlYmYxMjc2NGZjM2UxMjQzY2ZmMzFkMWYyNGU4YjBiMDZjOWMwOWNkMGZhODYzMmZiNjdmZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWExZDFhNjMzOTAyMjljNzk4MzQ3ZTgzYTA0MDU0NDFjOTQwMDAzNTI4NGFkMTY4YzFiZjZjZGYxZDcwYTM3MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDc0MjNhYzJhNzg0Y2U5MGE2YTVjZjJiZjgxNzVkZTA1YTAzZTdkMGNmMTI4ZmY4MGU3Mjk3ZTg1N2NhZjYyMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmJhZWIzNTIzYzQwMjI0NDMzZjQ3NjU2NDZiOWQ1OGQyMzJjZWMxY2MzNWU3NjQ4NjlhMDhkOWQxZTU2ZGZjYSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-26T03:34:41.285Z"
+  }
+}

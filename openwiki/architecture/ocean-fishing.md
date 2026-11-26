@@ -1,12 +1,15 @@
 ---
 type: architecture
 title: Câu cá, cuộc giằng co và vật lý thuyền
-description: Luật câu cá thuần (vùng biển, lượt ném, nibble và cắn câu, 10 loài, kho cá), máy trạng thái cuộc giằng co, cần câu và dây, vật lý thuyền Havok, lưu cá trên thiết bị và ranh giới client báo cáo cá.
+description: Luật câu cá thuần (vùng biển, lượt ném, nibble và cắn câu, 10 loài câu được, mồi ảnh hưởng xác suất), máy trạng thái cuộc giằng co, cần câu và dây, vật lý thuyền Havok, kho cá trên server khi có hồ sơ hoặc trên thiết bị, và ranh giới client báo cáo cá.
 tags:
   - fishing
   - ocean
   - havok
   - architecture
+verified:
+  - by: openwiki/0.7.3
+    at: 2026-11-26T03:34:41.285Z
 sources:
   - id: openwiki-source-d21d117910c861b03d3f6aa2
     resource: repo://src/app/market-ui.ts
@@ -20,15 +23,12 @@ sources:
     resource: repo://src/ocean/fishing.ts
   - id: openwiki-source-b30da6bbf3782f1926011771
     resource: repo://src/ocean/save.ts
-generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
-verified:
-  - by: openwiki/0.7.3
-    at: 2026-11-20T03:06:03.643Z
+generated: { by: "claude-code", at: "2026-11-26T03:34:41.285Z" }
 ---
 
 # Câu cá, cuộc giằng co và vật lý thuyền
 
-Câu cá là một trò chơi phía client. Luật nằm trong các module thuần, không có DOM hay render, nên kiểm thử được bằng bộ sinh số ngẫu nhiên có hạt giống và bot. Màn hình chỉ vẽ trạng thái này. Không có authority phía server đối với cá đã bắt; phần thưởng xu đi qua RPC kinh tế và bị giới hạn bởi database (xem [kinh tế biển](ocean-economy.md)).
+Câu cá là một trò chơi phía client. Luật nằm trong các module thuần, không có DOM hay render, nên kiểm thử được bằng bộ sinh số ngẫu nhiên có hạt giống và bot. Màn hình chỉ vẽ trạng thái này. Không có authority phía server đối với việc cá nào đã bắt; phần thưởng xu đi qua RPC kinh tế và bị giới hạn bởi database (xem [kinh tế biển](ocean-economy.md)).
 
 ## Ranh giới file
 
@@ -42,7 +42,8 @@ Câu cá là một trò chơi phía client. Luật nằm trong các module thu�
 | Cá dưới nước | `src/ocean/underwater.ts`, `underwater-material.ts` | Toán và GLSL để cá trong cuộc giằng co hiện dưới mặt nước. |
 | Rung | `src/app/haptics.ts` | Mẫu rung của thiết bị theo trạng thái cá. |
 | Vật lý thuyền | `src/ocean/boat-physics.ts`, `hull-handling.ts`, `hull-water.ts` | Thuyền Havok của người chơi. |
-| Lưu trên thiết bị | `src/ocean/save.ts` | Vị trí và kho cá theo tài khoản, trong localStorage. |
+| Kho cá và vị trí | `src/ocean/save.ts`, `src/ocean/server-store.ts` | Lưu trên thiết bị (localStorage) và bản trên server khi có hồ sơ. |
+| Mồi và cần (mua bằng xu) | `src/ocean/upgrades.ts`, `src/ocean/bait-view.ts`, `src/ocean/rod-colours.ts` | Tầng mồi đổi xác suất; tầng cần đổi sức dây (xem [kinh tế biển](ocean-economy.md)). |
 
 ## Vùng biển và loài
 
@@ -52,7 +53,9 @@ Câu cá là một trò chơi phía client. Luật nằm trong các module thu�
 - trên `DEEP_RANGE` = 128 m và cũng xa bến cảng hơn 128 m: vùng **deep**;
 - còn lại: **open**.
 
-Mỗi loài có `zones` (trọng số `shore`, `open`, `deep`) và `rarity` (1, 2 hoặc 3). `rollFish` nhân trọng số vùng với trọng số hiếm (100, 40, 10); với điểm câu ngọt (xem dưới), loài hiếm 2 và 3 được nhân thêm 1,8. Cân nặng rút theo đường cong lũy thừa 2,4 trong khoảng của loài, nên cá nhỏ phổ biến hơn. Bảng `SPECIES` có 10 loài, từ mô hình cộng đồng ([decision 0013](../../docs/decisions/0013-community-sea-models.md)). Mỗi loài có dòng giá trong các migration kinh tế (`20261113032223_economy.sql` và `20261118120000_sea_species.sql`), và `tests/economy.test.mjs` kiểm tra điều này.
+Mỗi loài trong `SPECIES` có `zones` (trọng số `shore`, `open`, `deep`), `rarity` (1, 2 hoặc 3) và khoảng cân nặng `kg`. Hiện có 10 loài câu được trong `src/ocean/fishing.ts`. Bảng giá trên database có 24 dòng từ `20261113032223_economy.sql` và `20261118120000_sea_species.sql`; `tests/economy.test.mjs` kiểm tra mọi loài client câu được đều có giá.
+
+`rollFish` nhân trọng số vùng với trọng số hiếm (100, 40, 10). Với điểm câu ngọt (xem dưới), loài hiếm 2 và 3 được nhân thêm 1,8. Mồi tầng đang dùng (hàng của `UPGRADES.bait`) nhân thêm trọng số loài hiếm 2 (`rare2`) và hiếm 3 (`rare3`); không có mồi thì mọi hệ số là 1, nên cùng hạt giống cho cùng cá như trước khi có mồi. Cân nặng rút theo `low + (high - low) × u^2,4` (u ngẫu nhiên), nên cá nhỏ phổ biến hơn.
 
 ## Ném, nibble và cắn câu
 
@@ -80,26 +83,38 @@ Các hằng số trong `fight.ts` là **ước lượng chưa được tinh ch�
 
 ## Cần, dây và cá dưới nước
 
-- Cần (`rod.ts`) là lò xo tắt dần, dài 4 m, cong theo lực kéo của dây và rung khi cá giật. Đầu cần là nơi dây bắt đầu, nên dây và cần luôn khớp nhau.
+- Cần (`rod.ts`) là lò xo tắt dần, cong theo lực kéo của dây và rung khi cá giật. Đầu cần là nơi dây bắt đầu, nên dây và cần luôn khớp nhau.
 - Dây (`rope.ts`) là Verlet giữa đầu cần và lưỡi hoặc miệng cá; khi chờ thì chùng và nằm trên mặt nước, khi cá kéo thì thẳng.
-- Dải dây (`ribbon.ts`) luôn quay mặt về camera, dày khoảng 2 đến 3 px.
+- Dải dây (`ribbon.ts`) luôn quay mặt về camera.
 - Cá trong cuộc giằng co bơi dưới mặt nước. `underwater.ts` tính độ sâu theo tâm trạng và dùng cùng hàm sóng như mặt biển, cắt mọi phần trên mặt nước và làm mờ theo độ sâu. Không có pass render riêng.
 
-Các hình ảnh này được kiểm tra bằng ảnh chụp phần mềm và kiểm thử trong `tests/underwater.test.mjs`; chưa được kiểm tra trên điện thoại thật.
+Các hình ảnh này được kiểm tra bằng kiểm thử (`tests/underwater.test.mjs`, `tests/rod-rope.test.mjs`) và ảnh chụp phần mềm; chưa được kiểm tra trên điện thoại thật.
 
 ## Vật lý thuyền
 
-`createBoatPhysics` (`src/ocean/boat-physics.ts`) là thân Havok cho thuyền của người chơi. Hàm này cộng thêm những gì Havok không biết: phao nổi theo hàm sóng dùng chung (`waveHeight`), lực cản nước, lực đẩy và lái. Mọi lực được áp dưới dạng xung lực (lực × dt) trước mỗi bước Havok, nên không phụ thuộc tốc độ khung hình. Mũi thuyền hướng về -Z, khớp mô hình di chuyển của `model.ts`. Các thuyền người khác không chạy Havok; chúng được vẽ từ trạng thái server.
+`createBoatPhysics` (`src/ocean/boat-physics.ts`) là thân Havok cho thuyền của người chơi. Hàm này cộng thêm những gì Havok không biết: phao nổi theo hàm sóng dùng chung (`waveHeight`), lực cản nước, lực đẩy và lái. Mọi lực được áp dưới dạng xung lực (lực × dt) trước mỗi bước Havok, nên không phụ thuộc tốc độ khung hình. Mũi thuyền hướng về -Z, khớp mô hình di chuyển của `model.ts`. Thuyền người khác không chạy Havok; chúng được vẽ từ trạng thái server hoặc từ hàm thời gian (xem [thuyền NPC](ocean-traffic.md)).
 
 Vật lý thuyền được kiểm tra bằng `tests/boat-physics.test.mjs` và `tests/hull-handling.test.mjs`.
 
-## Lưu trên thiết bị
+## Kho cá, vị trí và nơi lưu
 
-`save.ts` lưu vị trí thuyền, kho cá và số cá đã bắt (`caught`) trong localStorage, theo tài khoản (khóa `photyphu:sea:v1:<uid>` như ghi trong [biển chung](ocean.md)). Dữ liệu đọc lại được kiểm tra: vị trí không hợp lệ, quá cũ hoặc nằm trong đảo thì rơi về bến, nhưng kho cá được giữ. Đây là trạng thái của thiết bị, không phải tài sản của tài khoản.
+Có hai nơi lưu, và chọn theo việc hồ sơ trên server có sẵn hay không (decision [0016](../../docs/decisions/0016-server-profile.md)):
+
+- **Trên server** (khi hồ sơ đã áp dụng và đọc được): kho cá chưa bán (sổ), kỷ lục theo loài, số cá đã bắt và vị trí thuyền nằm trong hồ sơ Supabase. `src/app/ocean.ts` không giữ bản sao kho trên thiết bị nữa (`fish: serverStore ? {} : fishStock`) và ghi vị trí lên server mỗi 5 giây; server chỉ nhận một lần lưu mỗi 4 giây. Lần đầu vào biển khi hồ sơ sẵn sàng, kho cũ trên thiết bị được chuyển lên server một lần (`economy_import_local`).
+- **Trên thiết bị** (khi chưa có hồ sơ, server không trả lời được, hoặc không có kinh tế): `save.ts` lưu vị trí, kho cá và số cá đã bắt (`caught`) trong localStorage theo khóa `photyphu:sea:v1:<uid>`. Dữ liệu đọc lại được kiểm tra: vị trí không hợp lệ, quá cũ (quá 7 ngày) hoặc nằm trong đảo thì rơi về bến, nhưng kho cá được giữ.
+
+Phần lưu trên thiết bị là trạng thái của máy đó, không phải tài sản của tài khoản.
 
 ## Ranh giới tin cậy
 
-Việc bắt cá là báo cáo của client. Khi người chơi giữ cá, `src/app/ocean.ts` truyền sự kiện vào `marketUi.recordCatch` (`src/app/market-ui.ts`). Chỉ lỗi `network` mới đưa cá vào hàng đợi thử lại; các lỗi khác bỏ cá đó. Server chỉ giới hạn tốc độ, khoảng cân nặng và sức chứa sổ; nó không chứng minh cá là thật.
+Việc bắt cá là báo cáo của client. Khi người chơi giữ cá, `src/app/ocean.ts` truyền sự kiện vào `marketUi.recordCatch` (`src/app/market-ui.ts`) gọi `economy.recordCatch`. Hàng đợi xử lý lỗi như sau:
+
+- lỗi `network`: cá được đưa vào hàng đợi `pending` và gửi lại sau;
+- lỗi `fast` (hai lần bắt trong dưới 6 giây): thử lại tối đa 3 lần, mỗi lần sau 6,5 giây;
+- lỗi `closed` và `signin`: bỏ qua, không báo;
+- các lỗi khác (ví dụ `full`, `invalid`): gọi `onRejected` để giao diện báo người chơi.
+
+Server chỉ giới hạn tốc độ, khoảng cân nặng và sức chứa sổ; nó không chứng minh cá là thật.
 
 ## Kiểm thử
 
@@ -107,6 +122,7 @@ Việc bắt cá là báo cáo của client. Khi người chơi giữ cá, `src/
 - `tests/cast-rules.test.mjs`: nhấn nút, khoảng ném, trạng thái ném bị chặn.
 - `tests/fight.test.mjs` và `tests/fight-look.test.mjs`: máy trạng thái và số đo hình ảnh.
 - `tests/rod-rope.test.mjs`, `tests/rod-plan.test.mjs`, `tests/underwater.test.mjs`: cần, dây và cá dưới nước.
+- `tests/server-store.test.mjs`: kho cá trên server và chuyển từ thiết bị.
 - `tests/ocean-fishing-browser.mjs` và `tests/ocean-cast-browser.mjs`: luồng câu trong trình duyệt.
 
 Chưa có bằng chứng từ điện thoại thật cho độ dễ chạm, rung, hay hiệu năng của cuộc giằng co.

@@ -16,7 +16,7 @@ import { glowMaterial, solidMaterial, useSolid } from "./art/materials.ts";
 import { Parts, SIDES } from "./art/shapes.ts";
 import { beaconLevel } from "./atmosphere.ts";
 import { BANNER, bannerLayout, fillBanner } from "./banner.ts";
-import { FADE_IN, FADE_OUT, approach, fadeAmount } from "./plane-fade.ts";
+import { FADE_IN, FADE_OUT, approach, fadeAmount } from "./distance-fade.ts";
 import { PlaneGlow, createGlowMaterial } from "./plane-glow.ts";
 import { PlaneSim, makePlans, type PlanePose } from "./plane-plan.ts";
 import { SEA } from "./sea-atmosphere.ts";
@@ -29,7 +29,7 @@ import { SEA } from "./sea-atmosphere.ts";
  * drawn. Two shared models (the body and the propeller, both hidden templates) are drawn as
  * instances, so a drawn plane is two instance draws, one banner draw and, at night, one draw for
  * the glow of its lights (plane-lights.ts). A plane comes into view and leaves it by dithered
- * fade (plane-fade.ts), never in one frame. Only a picture over the
+ * fade (distance-fade.ts), never in one frame. Only a picture over the
  * sea: no collision, no sound, and no part of play depends on them.
  */
 export interface PlaneFleetOptions {

@@ -33,6 +33,15 @@ Vercel (frontend/PWA), Render (API) and Supabase (Auth/PostgreSQL), see [infrast
 8. Update authored docs when contracts change, then refresh affected OpenWiki pages via its lifecycle after source edits stop. Never hand-edit its metadata, Claims, indexes or managed block below. Use Node 24 and the lockfile. OpenWiki/QA tools remain development-only; no autonomous paid model calls or AI schedules by default.
 9. Report evidence and limitations accurately, including unverified live services, real phone behavior or deployment. Never put admin secrets, login tokens or private credentials in source, docs or output.
 
+## Using sub-agents
+
+The user has set up agents for this project (`.claude/agents/`, the table in [agent briefs](docs/agent-briefs.md)) and wants them used. The default rule "spawn an agent only when asked" does **not** apply here: choose by the task, without waiting to be asked.
+
+- **Use an agent when it fits:** `reviewer` (or `sea-visual-reviewer` for sea visuals) on a finished diff before it is committed; `qa-runner` for the browser test groups and for telling a real failure from a flake or the environment; `builder` for a well-briefed implementation slice and `tester` for tests (an independent slice, or several in parallel in their own worktrees); `sea-visual-builder` and the `blender-*` agents for sea visuals and models; `docs-keeper` for keeping `docs/` in step with a finished change; `committer` and `release-manager` for commits and pushes (a push still needs the user's say, and every migration is applied to production by the push); `researcher` for library or API questions; `Explore` for broad read-only searches and `Plan` for designing a large change.
+- **Do it yourself when it is small:** a one-line edit, a command, reading a file or two, an answer you already have. An agent starts cold and costs time and tokens, so the brief must carry the context (files, decisions, constraints, what "done" means) and the work must be worth it.
+- **Run independent agents in parallel**, each in its own worktree if it edits files. The lead (the main session) reads every report, reruns the key check and decides; an agent's "passed" is not evidence until the lead has seen the output.
+- **The rules above still bind agents:** no secrets, no live Supabase, Render or Vercel changes and no push without the user's say.
+
 ## Publication contract for this project
 
 Publish tested UI/UX updates on Vercel (a push to `main` deploys production). Do not add `Pages-Deploy` trailers unless the user asks for a GitHub Pages publication; the Pages workflow and manual dispatch remain available, and a commit with the exact trailer `Pages-Deploy: true` publishes to Pages. Documentation, plans, tests, tooling and internal changes are committed and pushed with their checks.

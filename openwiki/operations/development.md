@@ -20,10 +20,10 @@ sources:
     resource: repo://scripts/wt.mjs
   - id: openwiki-source-a875da0e301868b8784bbae3
     resource: repo://tests/pwa-browser.mjs
-generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
+generated: { by: "claude-code", at: "2026-11-26T03:34:41.285Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-20T03:06:03.643Z
+    at: 2026-11-26T03:34:41.285Z
 ---
 
 # Phát triển, kiểm tra và phát hành
@@ -37,14 +37,14 @@ Repository là một trò chơi thuyền câu cá trên trình duyệt. Dùng No
 | `npm run typecheck` | `tsc --noEmit`. |
 | `npm run lint` | ESLint trên `src`. |
 | `npm run format:check` | Prettier trên `src`, `tests`, `scripts`, `server`, cấu hình. |
-| `npm run test:unit` | Danh sách cố định các file `tests/*.test.mjs` của biển, thuyền, câu cá, kinh tế, render và cấu hình. |
+| `npm run test:unit` | Danh sách cố định (khoảng 76 file `tests/*.test.mjs`) của biển, thuyền, câu cá, kinh tế, bản đồ, NPC (tàu tuần tra, thủy phi cơ, thuyền mèo), âm thanh, tài sản và cấu hình. Mỗi file mới phải được thêm vào danh sách này để chạy. |
 | `npm run build` | `typecheck` rồi `vite build`. |
 | `npm run test:browser` | `scripts/test-browser.mjs` (dev và preview), rồi `tests/pwa-browser.mjs`. |
 | `npm run test:api` | `tests/api.test.mjs`, `tests/socket.test.mjs`, `tests/ocean-socket.test.mjs`. |
 | `npm test` | `test:unit`, `build`, `test:browser`. |
 | `npm run check` | `lint`, `format:check`, `npm test`, `test:api`. |
 
-Yêu cầu của dự án là kiểm tra gọn: format, typecheck, lint, unit, và các browser test của phần đã thay đổi. `npm run check` là bộ đầy đủ.
+Yêu cầu của dự án là kiểm tra gọn: format, typecheck, lint, unit, và các browser test của phần đã thay đổi. `npm run check` là bộ đầy đủ. Lệnh `npm run wiki` gọi `openwiki`; wiki chỉ được cập nhật theo vòng đời của OpenWiki sau khi sửa source xong, không chạy tự động.
 
 ## Browser test
 
