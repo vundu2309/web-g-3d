@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:ae22f48e59a7cda49e6fdf5a18f94cbb415d727509a73f672aacf8c2e51bcf49",
+  "claims": [
+    {
+      "id": "claim_a5139eb9d6de4bc5a4b1c762dc18beba",
+      "statement": "Tàu tuần tra là sáu thuyền npc (uid npc:patrol-n) đi vòng kín quanh sáu đảo đã chọn, với tốc độ 6 m/s, và vị trí là hàm thuần của thời gian chung nên không cần gửi qua mạng.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/patrol-routes.ts#L156-L181",
+          "version": "repo-lines-v1:sha256:e2e72ddc94d955add07410722bcd03acf28537de584ce87c2bffd36709d1f77d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiODAwODhiOTllNjI4YWJkYzlmN2E0MTA3OTRhYzFiMGE3ODgwODE5YTU1YjYyY2Y5ZTNlMzBlYTNlZWVhOTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyOGQ5MWNiYTFjN2JmN2JiZjE5NGJkNzQ5OTA3ODA0M2UyMDBiNGNlZGVhOWI2NmMyM2IwNzI4MjhjOWZkNDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFlNDdmZWQ0N2M1N2Y0YmIyMjRjNjc0ODYwOTk5ZTI5YTAxNjQxMTBjOTVmMDljNTk2OWFhN2EyMDQ5YjY5NzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjYTIyNTFhMjJhMmY5MGEzNTZmMTI1YjhkZDk1NTRhNjIyZmYxZWY4NzRkYWEwYmQyM2M2NmU1NGI0NTUzNTAifQ"
+        },
+        {
+          "resource": "repo://src/ocean/patrol-routes.ts#L23-L30",
+          "version": "repo-lines-v1:sha256:029b4c6974597afe95d1a9798c0b5b46fea0a6c1108fe1387ecf4bcdae920e83:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTFiYmI0OGQzNzQ0N2FiMDI4MzAxMjhiNjliMGQ4OTFkN2ZmYWQ0MzA5OTNkYTE1MjZiMDQ2NGNkMmJiZGIyOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDc3N2JjODdjNTFmZTBjYTlhODk0ZGRiMTI1NzczZGE2ZWJiYjhiMWZmYjc3NDQyZmVkMzJmMjczZDY4YTUxNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTk5OTllNDI3MDgzZDIwODc4OGRlZjJhYzQyNmZkMmEwZWYyMzg1ODViNTNlYTI1YjViNGEwYWY1NTZkOThhZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmNhNmZmZThmYjczMzY3OGFjY2NkMmZjNjA5ODc0YmE1MmRhMjdlMjA2Y2JkNWFlYzVlMWU5MTUzMmYxYjkxNyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_8021ee04b87348f29c15e1c0d0a922ae",
+      "statement": "Mỗi vòng tàu tuần tra giữ cách mọi vật cản ít nhất 40 m; nếu không hướng nào có bán kính thỏa mãn, việc dựng vòng ném lỗi.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/patrol-routes.ts#L34-L36",
+          "version": "repo-lines-v1:sha256:8b59c8c1c150ad296cf24fb982ae125c8e1967006277d802510f538b0ae93424:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDQ0NjU4M2VmMjVkZTUwNGM2ZjY3YmE1OTFjYWJmMmM1YzZmODZiMWJiNjcyNmQxMDZmYWM2MzkzMDljMGEyYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGRmMDhmMTZlODRlZWZhMjRjMGIyNjBmMjg0YzQ3MzIyNzIxOWY2MTYyODk1ZjIzMzk2MTJiM2QxMWVjMWI2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmNhNmZmZThmYjczMzY3OGFjY2NkMmZjNjA5ODc0YmE1MmRhMjdlMjA2Y2JkNWFlYzVlMWU5MTUzMmYxYjkxNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmNhOWYwYzMzNWQ2YTFlYzQ2MmQwNGUxMWIyODM1M2IwZjU1MGNlY2YyYTk4MTAyZDMxYTc5ZWFiMTAwMWE2OCJ9"
+        },
+        {
+          "resource": "repo://src/ocean/patrol-routes.ts#L61-L80",
+          "version": "repo-lines-v1:sha256:33a6848144b874688856223b695fc0bc152aade24df3da85b61008f6d768cd07:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyNjgwMTg0MzY0MzYzNTNlZTFmMmY1NDdiYWY1N2JiMTg5ZGYwYTA2Yjk1MzAzYWUyYjY0Y2NiMzFiMGU3ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0ZTQyMDhjZDZmZmI4YzRhMzU0N2IyZjU0YWRhMTk5NzhjM2YzNjVlNzhmOTUwMmVmNTE0NWNkZDJhYTg1NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4Mzk3ZDViZWE5ZDI4M2I5MDczYWRlNzY3MDBkODcwMTY5YTc3ZjliZjQ5ZDlkYjAwMDQ3MTdlZWY1ZDI1NmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImExZmI5N2RhYWYzZTgxODk1ZTYxN2FhZjk1ZWRiYmYzY2MyMTA2MTQwMTk3MjdhZjcwZDgzNmI0YjM2MTQ1NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8da60674616f4e3cbd906462bae2a02a",
+      "statement": "Biển có 12 thủy phi cơ theo kế hoạch cố định trên đồng hồ chung, bước mô phỏng 0,25 giây; mỗi máy bay chỉ được vẽ tối đa limit chiếc gần nhất trong phạm vi range.",
+      "evidence": [
+        {
+          "resource": "repo://src/app/ocean.ts#L345-L348",
+          "version": "repo-lines-v1:sha256:55ee2372c4ea7b8f3b97ea3307795ebbadf8faf0c3638074e0e91250ae2fe0bb:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWRmNGJmMmM3MmI2ZmQ2NzU2MTUzZWE1ZTMxN2ZkMmY2NjgzYjA5NWZmYmJhY2VmYjAwNWYyZDNiYWY0NWE4ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTY5ZDE3ZmVmMmVjOWUyYzliZGNiZTQzM2MzMDdlNTUwMGJjNGQ2MWIxODEwYjRmZmE3MjBkYjNlZGYwNmJhZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmZkMzAxNzJkNWFhOGExYWVkYjcwMzE4ZWViNGQxOGU1MGE4ODUzNzdhNmU0MzdlNzAyNjdiMjI3YWQyYWZmYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzRhZTAwNDQ4YTQ5NWMwNWMxM2VhNmI1M2Y0ZjJjMjMxZmE4YjFiZTdkZGNmMWQxMTlkYzdjYTQ2Y2Y3YTcxNCJ9"
+        },
+        {
+          "resource": "repo://src/ocean/plane-fleet.ts#L36-L44",
+          "version": "repo-lines-v1:sha256:ef01115da3fbf645ad64a0d211e1663c49480cda05f1b2006b0f0f697726b764:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjQxOTBhZjFkYWMyZjcyZmFhOWU3ZmZmOWFkNTg3OTBlN2ViY2M3MTRlNDRkN2JjNmM2NzM1YThiYmYyZmM3ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjRiNzQ4ODNjMzkwNDE2NzZmMzhkZGZlYmRmOTAzNTFkOWZiMGQyNjNhY2ZkMmE0NjIzNWNhZWQ3MTQ0MDA5MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzQ2ZjZjM2YxZTY4YzQ0ZTEwNTA4OTBlNTM1ZmM1N2UwMjZiZTU2NDZiN2RlMTM5ZmIzYzM4Mzk3Y2NhYTVkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTk5YWE1MjU1OWJiODFiMGFmYzJmMjdlODk2OTRlMTE0OGI0MzljZDVlNzA2MTM0NTQ0OWRhMDkwYmQxZTljMSJ9"
+        },
+        {
+          "resource": "repo://src/ocean/plane-plan.ts#L32-L34",
+          "version": "repo-lines-v1:sha256:d3ec92ad4dafa6688e480690d24a4c7a144372af2be2bd72c557c01899a310fb:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWEwM2E3NGJjNzYzNTA0MDY5ZGMwZmEyYzkzN2M1ZTJlYzEyM2IwZjEzMTZjN2U5Zjk0ZDc4MThjNzQ2NWRmOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTAzNWU0MjQ5MTU1ZjkzMWFlYTVlMzhiMWQ1YzVjNmI3MWM1YTlmZjkyZTdmZTVkOTYxYjIxNDcxZjU0N2FmOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjU5NDFkNTI5ZDM3YzdkZTNiNTM3NWMwNjEzNDU1NjczMDZlNTZiMWFkNDUyZWQ3ZWI0ZmRjYjIzYmMxYmY4YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNThmNTMzMjZlNzAzYTdhZTkwNzQ1YTU2NTNiZDIzZmQzNjdiOTBjMTljMTgyZTg5M2NhZDkzODhiZWNmMjUxOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e7f66c76cdac4cca900e7c55e88edcf7",
+      "statement": "Thuyền mèo chèo được dựng sau khi tài sản tải xong, với phạm vi và số lượng hiển thị khác nhau giữa điện thoại cảm ứng và máy tính.",
+      "evidence": [
+        {
+          "resource": "repo://src/ocean/babylon-scene.ts#L336-L340",
+          "version": "repo-lines-v1:sha256:67eaa055cf56a44af566d9ca4444ac21788fa828bba61b6c1c1e1c785b5fc3ed:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmM1YjE5ZTI0ZjFmNDAyY2JkMmQ4MWQ4ODUzOTYxOTc1YzM5NzNmNjE2NTU5NmZmZmI2ZjQwNGFhZTViZjdkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjliMTk4MmU4ZGQ3NDgxMTgxNDZiMzlhMmQwMDYyZjQwODFlMzQ3NzliODY3NWMyMzRjNGZiMTI0ZGMzOTM5MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzU3MDY5ODI3MDljZWI2YWE0ZDg0N2M1MDIwYTRkODlmMmJmZjdkYmU3MWY5MWM4ZDY5NzlkZGI1NTA4YTlmZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWUxNDYzODM5MWFjYjI3NWNjNWUwNDg2ZmZlN2Q1ZjQ2NTFhZTI4OWE5MDNmYTI2MjcwZGQ3MDI0ZWEzNTQyMCJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.3",
+    "at": "2026-11-26T03:34:41.285Z"
+  }
+}

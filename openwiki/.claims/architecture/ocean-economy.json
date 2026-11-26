@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:16e3edfb09707bdc6c6bc4f2e32d239952623895c574ab4cb2e96eb6c97e8341",
+  "pageVersion": "sha256:c9430bf1aa16e7a9783d0c94a65b3120a9ba0551ff8275f6369f6fe689ac9237",
   "claims": [
     {
       "id": "claim_dca7b3e7d3d246959f29439befc8c150",
@@ -43,12 +43,12 @@
       "statement": "record_catch từ chối loài không có trong bảng giá, cân nặng ngoài khoảng của loài, lần bắt cách dưới 6 giây và sổ có từ 200 con trở lên; client ánh xạ các lỗi tương ứng thành fast, full, invalid và closed.",
       "evidence": [
         {
-          "resource": "repo://src/ocean/economy.ts#L49-L61",
-          "version": "repo-lines-v1:sha256:b14231015c8f04fd8e92276d19130df3e851c062647dbe32d396b714c252e1ce:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5MDExYWYyZmM1ZjBiNWRhY2FmNjY3NmEyNDA0Nzg2YTZhYWFjMzc4YTkzMDExYmZhZDM1ZDc2Njc3NTJjY2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY1MGM3NzljYTkxMmY2Zjc3ZjBmMTY5NGY5OTgyZjYwNGQyYTM3YjZmODIyZTE0ZGViZGFkZWMzOWRlODlhNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://src/ocean/economy.ts#L42-L44",
+          "version": "repo-lines-v1:sha256:abe4064dbdbe5b4d7cfa35a7d9d7cf74ead32626b52d021a024f6f701c8bcc66:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI3OGVlNDU2ZTIxNjYyZWM2ODRjZDNkNDc0MTE2ZTMzYjU3NzRjMmFiNzljMDY1M2M0OGNiYmUzM2YyNDhhNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjIyZmUyYmE2ZmYzNTcwNjRhYzRhNjIzMDg0MzgyMTE1YWFkMGI3MWM2ZDVhZmNjNjY0MWU0Y2ZmN2M1NWYwNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2UzOGM5OGI1YjViMDQwYmRjMjZkNWU3OTRkOWI5OTFlNWRkNWZmMmI4ZDFmNjhkNTYwYjM1NmY1NjgwYjdiZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmNlMzEyYWVmODhiNGFmOWUwYmQ0Y2UyYTg2MGMyMjdkN2Y0NDgxMTg3YzFjYzhkNzRiZDQwOGIwM2FjZDkxOCJ9"
         },
         {
-          "resource": "repo://src/platform/economy.ts#L15-L37",
-          "version": "repo-lines-v1:sha256:d625eb3662622f1f63a73634bb106c0a3154a609d7ec2731c39a5f6d73a9a701:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1MjcxZmNhZWU4MDRlMjhmYjg2MGQ4ZGYwNTlhNTNhNTA3OTFkMmRlYzU3NDQ1YmU3ZDM3YmI0OTk0OWYxMTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1YjQzODZkOWE1OGM0Njk5M2ZkYzQwYzZjNGYwN2RjZGI1MjE5NjRhNWQ5YzVlMTgwMTk2NGQ2ZGE2YWU1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1OGIzY2YzZTEwZDllYmMxYTlmMDlmZTk3NTNiMzY0MmQ2ZWVmMTQ5MjdjNmRmN2U0YTdkNzczNmVjMzc4ZjcifQ"
+          "resource": "repo://src/platform/economy.ts#L20-L48",
+          "version": "repo-lines-v1:sha256:c8894bacab754c1a1a6373f848325cf96e6de891f5c024512b73200551b74f9a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1MjcxZmNhZWU4MDRlMjhmYjg2MGQ4ZGYwNTlhNTNhNTA3OTFkMmRlYzU3NDQ1YmU3ZDM3YmI0OTk0OWYxMTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1YjQzODZkOWE1OGM0Njk5M2ZkYzQwYzZjNGYwN2RjZGI1MjE5NjRhNWQ5YzVlMTgwMTk2NGQ2ZGE2YWU1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1OGIzY2YzZTEwZDllYmMxYTlmMDlmZTk3NTNiMzY0MmQ2ZWVmMTQ5MjdjNmRmN2U0YTdkNzczNmVjMzc4ZjcifQ"
         },
         {
           "resource": "repo://supabase/migrations/20261113032223_economy.sql#L90-L115",
@@ -61,11 +61,11 @@
       "statement": "Kinh tế chỉ bật khi VITE_ECONOMY=on; app/ocean.ts chỉ nối supabaseEconomy vào chợ khi điều kiện này đúng, còn nếu không chợ không có economy.",
       "evidence": [
         {
-          "resource": "repo://src/app/ocean.ts#L284-L290",
-          "version": "repo-lines-v1:sha256:53ff1ce487991b266701d52ae766c3964b6ca1a6606529e7ec02c6e77e21bedc:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjE1MDAwZjY3NWUyMjVkZTA3NjlmYWJkZDRhNGE5MTJmZDE5M2ExZjY4MWIzMzIwM2I2N2Y1YzVhNjVjYmM4YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDRkMTEwYWE2MDQ3YjU2YmFmNjhlZmZhZThlM2UwNWIxYzU4NDE4NGZiODRlYWU2ZjQ0MDY2Mzk0ODdhMDYzMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzRkNzUyNDI1N2I3NjAzMmZmYzhkYzI4YWJmMzhjZDZlNjMyMTUwNmVjYjc4MDFlNzljMjAyMGIwOTdjNWVkNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzU1NDQzODJjYjNiODM3ODAwZmRlMTc0MjYxZmQ5ODY2MzgyNjExYTcxMWJiYWM0MzA3M2Y0NTNmODhkMGJkOSJ9"
+          "resource": "repo://src/app/ocean.ts#L222-L224",
+          "version": "repo-lines-v1:sha256:26b80af4ce04723b35ea80fe0b584572740c40a9e8db0eb8b07528633b136d7c:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWIzMzM0MzJlMTUzYjkwYWVlZjk0MWVjNDY3MDIwZjYxOGRlYzQwNDRjZmYyNDVlN2Q1NDUxNGFiM2YyNmJiNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmExOTllMDc2MmFiOGEzNWJhZWYwMDk0YjlmMjMxNGIyZDJiYjg3ZDFhMDFhOGVhZDBiYzJhZjc5ZTQ5MDlmYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWJkM2E1ODQyMzBkMjQ5ZjRjZThmNmMwMzY4MzlmNDU1YmMzZjdmNjI2NjZiM2ZhNGQxMGIwN2M3MGVhYmFiYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGE3ZDc5NDg3Y2EyZTg2ZTQyZGMwZDE4ZDAxNDEyOWRjZjQ0ZDQ1MjYzMTlmOGY4ZWU0MjA1NjI4OThhMWQ0OSJ9"
         },
         {
-          "resource": "repo://src/platform/economy.ts#L13-L13",
+          "resource": "repo://src/platform/economy.ts#L18-L18",
           "version": "repo-lines-v1:sha256:91f4f9a192b933afa59b7c38ad83abcd7fdc0ef4d37e85f5b9fc8bf34a92aadb:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTFmNGY5YTE5MmI5MzNhZmE1OWI3YzM4YWQ4M2FiY2Q3ZmRjMGVmNGQzN2U4NWY1YjlmYzhiZjM0YTkyYWFkYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTFmNGY5YTE5MmI5MzNhZmE1OWI3YzM4YWQ4M2FiY2Q3ZmRjMGVmNGQzN2U4NWY1YjlmYzhiZjM0YTkyYWFkYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGVlMDg2YzUwMDkyZWVmYmMyMmUyOWZiNTEyYzE2NTk0NjVhNjlkNWMxYTk4NjExZmVmZjI0ZDUwYzFkMTU4ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDRkNmM3YzQzYzA3YzYxOWJhYzQ1MjZlMjU4NjZjNDYzN2IxYjQzMDY0ZDM5MTJjNTVhZTVkMThhNTFmOWM2OCJ9"
         }
       ]
@@ -87,6 +87,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-20T03:06:03.643Z"
+    "at": "2026-11-26T03:34:41.285Z"
   }
 }

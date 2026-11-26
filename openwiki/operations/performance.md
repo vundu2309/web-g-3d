@@ -18,10 +18,10 @@ sources:
     resource: repo://src/ocean/probe.ts
   - id: openwiki-source-bb95ce7cbb173b2e53b25ce5
     resource: repo://src/ocean/wildlife.ts
-generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
+generated: { by: "claude-code", at: "2026-11-26T03:34:41.285Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-20T03:06:03.643Z
+    at: 2026-11-26T03:34:41.285Z
 ---
 
 # Hiệu năng: ngân sách, mẫu và cách báo cáo chi phí
@@ -73,7 +73,8 @@ Dùng một mẫu có sẵn trước khi tự nghĩ ra mẫu mới:
 4. **Một mesh, nhiều instance** (thin instance), kèm kiểm tra frustum riêng cho prop (`prop-batches.ts`).
 5. **Đặt chi phí sau một điều kiện**: shader rẽ nhánh theo uniform, CPU thoát sớm.
 6. **Bộ điều tiết** là số thuần trong file riêng có test: khởi động trước, hai cửa sổ chậm liên tiếp mới hạ, quay lại chậm hơn, không phản ứng với giới hạn 30 fps.
-7. **Công tắc trên địa chỉ trang** cho mọi chi phí lớn: `?reflect=0`, `?fish=0`, `?props=0`, `?scale=1`, `?clearwater=0`, `?waves=N` (`src/ocean/probe.ts`), và phần “Thử tắt từng phần” trong thẻ Cài đặt.
+<!-- openwiki: broken internal link [ocean-rendering.md] file "ocean-rendering.md" does not exist. Fix the href or restore the target, then delete this comment. -->
+7. **Công tắc trên địa chỉ trang** cho mọi chi phí lớn: `?reflect=0`, `?fish=0`, `?props=0`, `?tiers=0`, `?yards=0`, `?cats=0` (mèo chèo), `?planes=0` (thủy phi cơ), `?scale=1` (`src/ocean/probe.ts`); Theo `probe.ts`, chỉ `waves` được đọc từ dữ liệu đã lưu trên thiết bị; các công tắc khác chỉ đến từ địa chỉ trang. Xem [biển, bầu trời và nước](ocean-rendering.md).
 8. **Toán thuần trước**: phần không cần Babylon hay GPU nằm trong file không import engine và có test thuần.
 9. **Một nguồn cho CPU và shader**: `waves.ts` dùng chung cho thuyền và shader nước.
 

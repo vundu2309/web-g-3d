@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:5d3e17de0ab462a48c2a198da93c163b6bd3b136087d52f956f59ca6a8422051",
+  "pageVersion": "sha256:6f3061592321321bb6638b85e4efef6b819855ad1fc63f324962805a82e24122",
   "claims": [
     {
       "id": "claim_ec80d024d30e4143911af5b54cb41bf0",
       "statement": "Vercel chạy build Vite và giữ Cache-Control no-cache cho /sw.js, /index.html và /, còn Render chạy API Socket.IO qua npm run start:api.",
       "evidence": [
         {
-          "resource": "repo://package.json#L18-L24",
-          "version": "repo-lines-v1:sha256:630f1ce84b0e7f313b589caea697771dd8ee93a2a51183e53df6003391d26484:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTIyMjE0MzU5ZmNlZWY3NWMzZjM4YzdhYWMxZTVlNGE3MGZhMTMxOGYzZmExNzhmNWRlOWMzZTU3OGVmMDM3MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTU4NTc2OThhOTFlNTNhYjU5MjFkODg4MmUwZjM1MjY5NDdjZjI1MzYxNjY5ZmU0YmM1OTAwODA5YjI2MDEzMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmQ4ZTZhNGIzM2Y1ZDhiMDQ0NDRjYzg1OTZlMDdiZDU4ZmU5M2QwZGY2MjAxNDRjODE4ZDMyMDdkMmRmNzI0ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODk1MmNkY2QxOTQ3MzUxMmM0YmVlNzYzZmVjYmQ4Y2UyOTA2MGU4NmZhMGIwNjczMTM0MWYwNmRkODkzZWU5MiJ9"
+          "resource": "repo://package.json#L18-L25",
+          "version": "repo-lines-v1:sha256:3b6dd35d78cfa414391d0c4fabcb23ea2dc6fdd4c7566a94ce45798af631c785:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTIyMjE0MzU5ZmNlZWY3NWMzZjM4YzdhYWMxZTVlNGE3MGZhMTMxOGYzZmExNzhmNWRlOWMzZTU3OGVmMDM3MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTU4NTc2OThhOTFlNTNhYjU5MjFkODg4MmUwZjM1MjY5NDdjZjI1MzYxNjY5ZmU0YmM1OTAwODA5YjI2MDEzMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmQ4ZTZhNGIzM2Y1ZDhiMDQ0NDRjYzg1OTZlMDdiZDU4ZmU5M2QwZGY2MjAxNDRjODE4ZDMyMDdkMmRmNzI0ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODk1MmNkY2QxOTQ3MzUxMmM0YmVlNzYzZmVjYmQ4Y2UyOTA2MGU4NmZhMGIwNjczMTM0MWYwNmRkODkzZWU5MiJ9"
         },
         {
           "resource": "repo://vercel.json",
@@ -35,8 +35,8 @@
       "statement": "Server API từ chối mọi request có Origin không nằm trong ALLOWED_ORIGINS bằng 403, và trả /health 200 khi sẵn sàng, 503 khi chưa sẵn sàng.",
       "evidence": [
         {
-          "resource": "repo://server/app.mjs#L37-L58",
-          "version": "repo-lines-v1:sha256:5bff1efd8a96d3bc1bbcbf4398d3d8a2c588b5eec0f7d7b85af4bb4fac631d23:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3MTczNjIzNGRkNjcwYjEwMWY1MTM3NzdhNTZlODI2OGJlZDdhODVmNTIzMjQ4ZGZjNWM3YWRiZmNmZWUzMWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0MjUyOWNiNTQwYmY3ODY2N2U3OTMwNTUzZTUxNDEzMWI2NTRhOWI0MGE2OTcxMDE4MzZhOWM4NGQ3YzQ0MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhNzI1ZmQ1NjVlNTQ3YTA4YTk0NGIwYjhhZTJhZGMzMjVlMzZhZDQwNGMzMDQ5OGQyZWZjNGM0ODQ5NTAxMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3NmQ4ZjhlOWJkMTY0OWUxMWUyOTY2ZjkzM2M1Yzc1YzU0MTdiZjI4YTliMWVlYTJjZDQ5MjZhZDkxYjgyZjcifQ"
+          "resource": "repo://server/app.mjs#L37-L74",
+          "version": "repo-lines-v1:sha256:3fb71944a98e872d946bdad616b5f110c382f256ae81a5cb2dcc5b11d17b3d42:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzOGQ1N2E5ZDE1NzAyYmVjOTBiOTA1ZGQ1MTQ5MzFiYmZiNGEyZjlkY2RkNjhhZTMxMDM4MjUwNzhlYTQ1ZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzMDVjMzgzZDFlYzMxNTBkNGUyYjc5NzgyNTAzMTRhMzMwODI4MGI0MmU2N2E4MzMwNjllMjVjMmM1MzExZmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhNzI1ZmQ1NjVlNTQ3YTA4YTk0NGIwYjhhZTJhZGMzMjVlMzZhZDQwNGMzMDQ5OGQyZWZjNGM0ODQ5NTAxMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3NmQ4ZjhlOWJkMTY0OWUxMWUyOTY2ZjkzM2M1Yzc1YzU0MTdiZjI4YTliMWVlYTJjZDQ5MjZhZDkxYjgyZjcifQ"
         }
       ]
     },
@@ -55,7 +55,7 @@
       "statement": "Trạng thái biển chung là bộ nhớ của một instance API và không được ghi xuống cơ sở dữ liệu; khởi động lại sẽ xóa trạng thái.",
       "evidence": [
         {
-          "resource": "repo://server/ocean.mjs#L3-L5",
+          "resource": "repo://server/ocean.mjs#L4-L6",
           "version": "repo-lines-v1:sha256:393fcad20ac78fc44f0fc012f950b2e918f91a2eb51accb6bb071818f696bd70:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWFmMjJjZjA3MzI1OTJjMjQ3MTQxY2JlNjFlZmExMTAxMjYxMmY1YTMxMjJiOWFmOWJiYWY1MmY1NzI0ZDE5NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjIzY2I0YzEzZDY3NzU5ZDU0Zjc2NzFkNDQwMzQ5NzJkMDkwM2EzOWQwOGFmYWU3M2JiOTgxZWI5YWIwZGNmMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGM3Mjk4MWEyOTc2Y2VhNDgxZTdmYmYxZDdjM2I2ZjJiZTAzZTgxNWVkYmI5YzlhYmE2NmRiMzAzYjA1MzYyYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmNiOGFmMzBlNjZlNjcyODY4NTY1YjEyYTcwMmFlNTBiYmNjNjYwNDEzZmMxZmI5ODAxMmNkMGFlM2QxMzBjYSJ9"
         }
       ]
@@ -95,7 +95,7 @@
       "statement": "Kinh tế chỉ bật khi VITE_ECONOMY có giá trị on.",
       "evidence": [
         {
-          "resource": "repo://src/platform/economy.ts#L12-L13",
+          "resource": "repo://src/platform/economy.ts#L17-L18",
           "version": "repo-lines-v1:sha256:f9f2f293fcde72a621007e3d226b07b6d935404aa743f0176481ffb681d9503a:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDkyZGI3NGY2YjMwNDAxOGM4ODEyYzM3MGQ3NWMzOGZkMDhiN2VhM2YxYTc0ZDI0Yzc0NWVkOGRmNDQxMjBiYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTFmNGY5YTE5MmI5MzNhZmE1OWI3YzM4YWQ4M2FiY2Q3ZmRjMGVmNGQzN2U4NWY1YjlmYzhiZjM0YTkyYWFkYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDExNjk3NThhODU2MGJiMWRkZGE4N2Y0ZjE3ZTU1NmM2ZmUxZDc3OTgzYWZkNjdkNDdlOTNjYjhjM2MyN2E5OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDRkNmM3YzQzYzA3YzYxOWJhYzQ1MjZlMjU4NjZjNDYzN2IxYjQzMDY0ZDM5MTJjNTVhZTVkMThhNTFmOWM2OCJ9"
         }
       ]
@@ -105,7 +105,7 @@
       "statement": "Lệnh npm run test:api chạy kiểm tra API, Socket.IO và giao thức biển, còn việc đã triển khai API trên Render và xác thực Auth thật chưa được kiểm chứng từ repository.",
       "evidence": [
         {
-          "resource": "repo://package.json#L23-L23",
+          "resource": "repo://package.json#L24-L24",
           "version": "repo-lines-v1:sha256:74cc8fee97712d3698e8158a87b2a4ad50293e4e2558209f63d1fd19dacb4fa3:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzRjYzhmZWU5NzcxMmQzNjk4ZTgxNThhODdiMmE0YWQ1MDI5M2U0ZTI1NTgyMDlmNjNkMWZkMTlkYWNiNGZhMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzRjYzhmZWU5NzcxMmQzNjk4ZTgxNThhODdiMmE0YWQ1MDI5M2U0ZTI1NTgyMDlmNjNkMWZkMTlkYWNiNGZhMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmYxYjNmYThkYTc3ZmEyNTIwMzY4ZDM0YWE1Mjg0MDc4MzViY2YyMmIwM2U0NjJiOTlhNjZiZWZlOWRlNzA0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTMzN2QxYzkyZjU0NDliY2U5MDM2ZDAwZGRmM2NkMzBiMjZlNjgyYTQ5N2EwOTgxZTcyNjEzOWU2ZGFiMzQwMyJ9"
         }
       ]
@@ -123,6 +123,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-20T03:06:03.643Z"
+    "at": "2026-11-26T03:34:41.285Z"
   }
 }

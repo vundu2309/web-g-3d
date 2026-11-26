@@ -15,10 +15,10 @@ sources:
     resource: repo://src/app/harbor.ts
   - id: openwiki-source-d4189bbeecb62806cb297b5a
     resource: repo://src/main.ts
-generated: { by: "claude-code", at: "2026-11-20T02:01:25.414Z" }
+generated: { by: "claude-code", at: "2026-11-26T03:34:41.285Z" }
 verified:
   - by: openwiki/0.7.3
-    at: 2026-11-20T03:06:03.643Z
+    at: 2026-11-26T03:34:41.285Z
 ---
 
 
@@ -36,6 +36,10 @@ Quyết định nền: [biển chung](../docs/decisions/0007-shared-fishing-sea.
 | Biển, thuyền, điều khiển | [biển chung](architecture/ocean.md) | `src/app/ocean.ts`, `src/ocean/babylon-scene.ts`, `src/ocean/model.ts` |
 | Hình ảnh biển, đảo, nước | [render biển](architecture/ocean-rendering.md) | Ranh giới CPU và GPU, bộ điều tiết tốc độ vẽ |
 | Câu cá, cuộc giằng co, cần và dây | [câu cá](architecture/ocean-fishing.md) | `src/ocean/fishing.ts`, `src/ocean/fight.ts` |
+| Minimap, bản đồ toàn màn hình, danh sách địa điểm | [bản đồ](architecture/ocean-map.md) | `src/app/minimap.ts`, `src/app/big-map.ts`, `src/ocean/minimap-math.ts` |
+| Tàu tuần tra, thủy phi cơ, thuyền mèo | [thuyền NPC](architecture/ocean-traffic.md) | `src/ocean/patrol-routes.ts`, `src/ocean/plane-plan.ts` |
+| Thuyền người chơi đã rời biển (đậu) | [thuyền đậu](architecture/ocean-parked-boats.md) | `server/ocean.mjs`, `economy_parked_boats` |
+| Âm thanh, nhạc nền, cài đặt âm thanh | [âm thanh biển](architecture/ocean-sound.md) | `src/ocean/audio-plan.ts`, `src/app/audio.ts` |
 | Socket.IO, server, kết nối lại | [realtime](architecture/ocean-realtime.md) | `server/ocean.mjs`, `src/platform/ocean-socket.ts` |
 | Xu, chợ cá, RPC | [kinh tế biển](architecture/ocean-economy.md) | Migration đã áp dụng là lịch sử |
 | Vercel, Render, Supabase, biến môi trường | [hạ tầng](architecture/infrastructure-transition.md) | Chỉ biến `VITE_*` công khai ở frontend |
@@ -54,7 +58,8 @@ Quyết định nền: [biển chung](../docs/decisions/0007-shared-fishing-sea.
 
 - Biển, thuyền và cá là phía client; cá bắt được là báo cáo của client, không phải phần thưởng có thẩm quyền. Xu và chợ đi qua RPC của Supabase với giới hạn trong database.
 - Trạng thái biển chỉ tồn tại trên một instance API; không scale khi chưa có trạng thái dùng chung.
-- Vị trí, kho cá và số cá lưu trên thiết bị (localStorage), không phải trên tài khoản.
+- Vị trí, kho cá và số cá nằm trên server khi hồ sơ đã sẵn sàng; khi không có, chúng lưu trên thiết bị (localStorage, theo tài khoản trên máy đó và không phải tài sản của tài khoản) (xem [câu cá](architecture/ocean-fishing.md)).
+- Thuyền NPC và thuyền đậu chỉ là hình ảnh và chướng ngại; không có ai điều khiển chúng qua mạng.
 - Mọi kiểm tra trong repository là test đơn vị, Socket.IO thật, và trình duyệt với Supabase và API giả. Chưa có kiểm chứng trên điện thoại thật, trên Supabase hay Render đã triển khai, hay cài đặt PWA thật.
 
 ## Phát hành

@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:5e5bf7ade7d54b06cc352a545841e7d4bd89042d1ca861501102717cb7764baa",
+  "pageVersion": "sha256:85b775ddd76f2e65b23cecb5219254c0685b795194abb825dd24cd7f830d849d",
   "claims": [
     {
       "id": "claim_ec30a91cf1004a989cedfde496347504",
       "statement": "Hub mở biển bằng startOcean sau khi requirePlayer trả về người chơi; ?view=ocean vào thẳng biển, mỗi tài khoản một thuyền, không có phòng hay trạng thái sẵn sàng; không còn route Monopoly.",
       "evidence": [
         {
-          "resource": "repo://src/app/harbor.ts#L161-L162",
+          "resource": "repo://src/app/harbor.ts#L165-L166",
           "version": "repo-lines-v1:sha256:5b8dcf4f5d4cfe1a1608024617eee0007ca1ad66d679b5386a941df200e4d3ae:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2IyZmU0NDc5NzI5Y2FjZGM1OTI4NGViYjI1NjEwOTg5NjcwZWVjNWRkYWFmNWE0N2YwZTVkZGI1N2JkMzkwMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWNiNDk0NzkwODQ3YzY0OTQ0NmQ0MTFjZWVjZWQ1MjYxODE4ODU0OTQ5OWI0NjMyMmU5MGU2OTk0YjAwYmRjZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTk5ZWUyZDVkZjY3ZDBkNzIxOTk4MWY1ZmI2YzRjZDBmYTRmYmMzMjYyNzNkYWI0MzFmOWU3ODYzYTg4Zjc2MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjNkMGY0MDI2NzNkNTA1MzY5MzI5YzQ1MWZjODcyMWQ3ODExMTk1NjMyNmViYmI2Yjg1NzkyYmVlOThjOGE0MyJ9"
         },
         {
-          "resource": "repo://src/app/harbor.ts#L71-L90",
-          "version": "repo-lines-v1:sha256:07268dc51402271d28909eeb45d402eaf651d366b7d9e03c136e482f494b01eb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3YjFkMDYxMWM2MGI5YmEyMGI3MGQyY2UyYThjM2EwYmUxNjZjZjhiNzRjMWRmYmU4MTQzN2E3ZDU5MzA2MjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExY2JhNGRiNDkwNzE3MTczOWVhMTZlMGEzMTU2ZDEyYWRiZWNkNWExNjIzMjdlNzVlODFmMzNmYzZhNTQ3YTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyNWFlMWQ4NzZmYWEyZDdiYjZlNjRhZGYwMjJiZDYwMDlkNTUwZjUzODMyZDM0YTRiMjFlMTM0MjJjOGFkMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwNGQ5NTUzNWUzNzdjNmRlYjQ1MDhlNWNmZDUxNDMwZWQwMWVlYzk2OTNkZWZjZDAwODVkNWVmYjBhMTc4ZmEifQ"
+          "resource": "repo://src/app/harbor.ts#L71-L94",
+          "version": "repo-lines-v1:sha256:1b4dce439e387f4a2ade2f665229702c858864a6f695ab0bf775aa203eb47204:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3YjFkMDYxMWM2MGI5YmEyMGI3MGQyY2UyYThjM2EwYmUxNjZjZjhiNzRjMWRmYmU4MTQzN2E3ZDU5MzA2MjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExY2JhNGRiNDkwNzE3MTczOWVhMTZlMGEzMTU2ZDEyYWRiZWNkNWExNjIzMjdlNzVlODFmMzNmYzZhNTQ3YTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyNWFlMWQ4NzZmYWEyZDdiYjZlNjRhZGYwMjJiZDYwMDlkNTUwZjUzODMyZDM0YTRiMjFlMTM0MjJjOGFkMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwNGQ5NTUzNWUzNzdjNmRlYjQ1MDhlNWNmZDUxNDMwZWQwMWVlYzk2OTNkZWZjZDAwODVkNWVmYjBhMTc4ZmEifQ"
         },
         {
           "resource": "repo://src/main.ts#L1-L21",
@@ -25,11 +25,11 @@
       "statement": "Di chuyển, spawn và payload thuần nằm trong src/ocean/model.ts; scene là Babylon.js trong babylon-scene.ts, có thuyền Havok và thuyền khác dưới dạng instance; app/ocean.ts sở hữu input, HUD, dialog và cleanup.",
       "evidence": [
         {
-          "resource": "repo://src/app/ocean.ts#L57-L70",
+          "resource": "repo://src/app/ocean.ts#L74-L87",
           "version": "repo-lines-v1:sha256:b52e45f06124275b4d743eda0007159c2eb33aaae0373033e8796cb842f33a2f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhODdlODViOGIxMWNkODJkN2NjODA0OWJlMTE2ODFkZjljNjdjMDc0NGYzYTJiN2RiYjNkMTNkZmRlNGY2NGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyMmM1ZjIxMmY1NTRkMzBkZmI2OTVhMzczNWUyMWI3YmY3NDJjNDZmMDNlZTQ2OGJiNTI1NmEyNGFmZmQwOWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY1MzMxMjQ0OWZlMDA1ZjMzMmMxMWJhYjc3Y2JiNWFlOGQyYmNhYzZlOGRlZDgyMDI3MThlY2FmMDZmYzRjYWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlNDU2Yzc0ZTc2OGZhZWNjNzQxNDRiOWQ2M2RkYjdkYzIzMzExZWIwM2E2NTM5ZTczOGE4YjViMDc1N2ViMTMifQ"
         },
         {
-          "resource": "repo://src/ocean/babylon-scene.ts#L96-L100",
+          "resource": "repo://src/ocean/babylon-scene.ts#L148-L152",
           "version": "repo-lines-v1:sha256:740f3f9a9efb9dfa1123098ca40b95855cabb95e2815348d04d3f87c8faf4934:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWFmMjJjZjA3MzI1OTJjMjQ3MTQxY2JlNjFlZmExMTAxMjYxMmY1YTMxMjJiOWFmOWJiYWY1MmY1NzI0ZDE5NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTcyYTQyOTM4MmIyZTE0NzE4ZTBlMzdiMDU3MGE4YTE3MDI5OTFmY2Q4NDk4Y2Q4NDA2MGE4YmY0ZjA1MDE3YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzc1MjA1NTA3MDFiZTI5NmUxZDNlNjU0NTI2ZjBhZTAzZTE5MzVlNTkyYWQzODQwODc3MjdjN2Q3ZGNjM2YxMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmU3NTVmYzc0ZGJhM2IzNDk0NmFlZTNiOTBlZDAxNDUxMWU5MmViM2QwODRiMTE4ZTIxNTAzM2RlYmFhYmI1OSJ9"
         },
         {
@@ -37,30 +37,26 @@
           "version": "repo-lines-v1:sha256:45ab4401268fabc6db8067cadc7c98b84ca93b2e4a343d7cc5adf701349f7d50:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzlmZjUzYjM3OWY5MTQ4NzQ3NTkzOWVjYmE2MWIwY2UxYmNiYTc0ZDRlM2Q0YWI2MThkNzBjNmY0N2Y2YzNiZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTBjMTY1YWYzNGJjZWVhNzY0NDMzMjBmNGJkN2RjYTBhZWI2NzAyMjZiZDlhOGMyZDRkYzAyNGJkNjc0NjQ3NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTlkMGYxZDI2MGUwZjY1NGI1NTk0MzAwNzA3YWU2ODlkZGQ5ZDAxYTdiNDk4MmRkNTgxZGUxNGQ5ODdiNmExYyJ9"
         },
         {
-          "resource": "repo://src/ocean/model.ts#L42-L55",
+          "resource": "repo://src/ocean/model.ts#L58-L71",
           "version": "repo-lines-v1:sha256:6b7a8f9a6566b882d7d037835c9ab7f684ade744aba1c04316ddeef13d363b48:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmZTdkYWMxM2NiMzIyNzk3YjJlMmQ2Yjc3ODFhYzYyZDM2OGE5MWI3NDYxYzRiODY4MjU1ZDlmNzFkNDNkZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyM2NkYTJlMjU2MzYwOWM5NDQxYjVkYzMxM2EwOGNhNDhjZWE3ZTI2NjcyNjc2NDUwY2ZlYzJiMDMzY2ZjZWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2MGY2MjE0NjMxNjMyMTEzYTQyM2ExZWZlZGFlOTMyMjY0ZDZjYTBkNzNmOWVhNWMyNmM2ZGE5NmIwMDA3YjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5NGNhMjg4ZThlZDI3NmFiOWM2YjE3YTgzNjFlYjUyMGQyYjk4NmQ0ZjU2ZWNiMjI2YTAyZjNlNTUyYmYxZDgifQ"
         },
         {
-          "resource": "repo://src/ocean/model.ts#L84-L84",
+          "resource": "repo://src/ocean/model.ts#L100-L100",
           "version": "repo-lines-v1:sha256:83b5b3c6b35b873dcfd05daba0cfb889d43e60d6745f60b7427d944a70e9386e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODNiNWIzYzZiMzViODczZGNmZDA1ZGFiYTBjZmI4ODlkNDNlNjBkNjc0NWY2MGI3NDI3ZDk0NGE3MGU5Mzg2ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODNiNWIzYzZiMzViODczZGNmZDA1ZGFiYTBjZmI4ODlkNDNlNjBkNjc0NWY2MGI3NDI3ZDk0NGE3MGU5Mzg2ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODQyZDFmMjc3ZTYyZjc1OGFiYjc3NzZmZDRiZTg0NjI5Y2Q5YzFiY2Q0YzU2MWYwOGZiYmMwMWZhYzZkZjQ2ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjY5ZDk2MzNiMWJlMTY1MDg4Y2IxMzdkNmE3NjZlOTNlN2EwZjU5MjNmMGVlNzcyZTg4NDAxODY2NDkwMTI3YiJ9"
         }
       ]
     },
     {
       "id": "claim_a8e8348ba41440829898526eeed6950f",
-      "statement": "Client Socket.IO trong src/platform/ocean-socket.ts gửi token phiên Supabase khi kết nối; server xác thực token, mỗi tài khoản chỉ có một phiên (phiên mới thay phiên cũ), chỉ push tới socket đã vào biển, giữ thế giới trong RAM của một instance và không polling.",
+      "statement": "Client Socket.IO trong src/platform/ocean-socket.ts gửi token phiên Supabase khi kết nối; server xác thực token, mỗi tài khoản chỉ có một thuyền (thuyền mới thay thuyền cũ ở cửa sổ khác), chỉ push tới socket đã vào biển, giữ thế giới trong RAM của một instance và không polling.",
       "evidence": [
         {
-          "resource": "repo://server/ocean.mjs#L177-L183",
-          "version": "repo-lines-v1:sha256:39de8503d7d17e3a0b66a88e0ed107ecbe4e3a73c994f28536662e4c072a23a5:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDk1YjY3YzUwNWVlYzBmNzAyNDU3NzE3MDAzZDUzYjc0MjVlN2ZmMGUyZjQ0M2E1NzA5NGM3N2UwNjc4ZDQwYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODM2MTI2MWM2MzFjYWRlZWJhOTJlOGQyNzJlNTNmZDM3ODVkYmU2ZjEwNWM4ZjczMDVjOTc4ZTYxNzM1ZDhjZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGM0MzhjYWUwYjljMzljYTUzMzhiNzIwYzQwZmIzMjQ4NTYxNDNmODkyNWE0MjgwOGYyOTcxYmQyMjFjM2IzMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTMyNDQ2MDdmYjAzZjZjM2Y1MzA4NjY0YzdiNjY3YmE4Nzc3MDljY2ZjYzg0OTZjNWJlZTc1YmVkZTcxNDRlYyJ9"
+          "resource": "repo://server/ocean.mjs#L340-L365",
+          "version": "repo-lines-v1:sha256:d03544cb05f54a43afc8f43f596f72a3635cebdd4494ca75bd70b745f97b8bc5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwOGY5YWIwZGViZDhmYjNiNGQwMmE3MGNkZDg5MjU4NGQ4N2M3MDg2YjQ1NjlkNGU0MzYwYmVmNGExMzZjMzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxNzM1YjQxZjk1ZjJiNTQyNmFkZjQxZWZkNzQxYTc1YmI5NzEwYWYyYjJiYzBiOTU1YjFjZDgxY2JiZWIxMTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ1MWIxMmQ3NmIzNzRlMThmNDJjMTkyZjdhODg3YjRhMzc5ZDYxZTk1MjUyNzI5MjRhMDRjZjQ4ZDZiZDA0ZjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk5YjQzYWUyMjA4MWY5ZDkxNWMzM2JmZjM4MzhhYjE0YmQ3ZWQ1YmIxZjk3ZjljYjdhODQyZjNhZDA0N2JlYjgifQ"
         },
         {
-          "resource": "repo://server/ocean.mjs#L56-L90",
-          "version": "repo-lines-v1:sha256:2b431adc89698ddc34fa93a4b67fc8a243012292e45707ddf6800a49215ba17f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjZmU4OGMzNDlmZTNjMGZlYzAxMDBmZTY4YjdlOTM0MzAwMmNmMGUxYjM5ZTYxMGFiN2UzNWYyYzc3ZTIzYjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzNGYyN2JiNjlkZjJkMzcxZWJlOTUyOTczYzE4OWMxOWYwM2IwNGQxMjNkNGEwZThmNjAyODRkNWUwZjRhY2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkMjA5OTcwNWVkODUwOTUwOTQ1NTYyMmZjOWVjMWQ0MzNiOGZkNjBkMzJkM2NlOTY2NDJiNjU3MWJhYzY2Y2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzNTgyZjYxNDIwZGFjY2Q4YmExOTlkNDM1Y2VjNzZlZjczOGYxNDM4ZWJhNjk4ODUzMzM3Mjc3MjdhNTdlMTYifQ"
-        },
-        {
-          "resource": "repo://src/platform/ocean-socket.ts#L14-L30",
-          "version": "repo-lines-v1:sha256:2651210280f5c82f4bd6927ca023361cfe8b00ebc0792ce9c524a91cf8b8af0d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwMTVhMGViMjE2YTI1Mjk2OWE0M2FmYzY4YjE3MmEzZDIwYTY5YmJiZDQ0ODE2OWY4N2YxMTI3OTMzMTMyNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0YjMyMzQ4NjNlYzc1MWIwMDQxYzM0ODhlMTU1ZmQ1MTE1MzVkYjBiMzI4ZTYxZGI4ZDZjYTAwMzRmMzVkYzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwNWYzZGY1NTQ0MjRhMzFkNjgyNjk1NzhkMTNkMWI2NTg0ZDI3OTAxZWQ0YTMxMzJhMmVhMzliZmE2NmYwMjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkMWYxODA5MTNjZDk4ZDdlYTZkY2M4ZWE5NmIyOGFhZDZjNjhiNDI3NzZlYzMyZWQyNDBiOWJmYmM0YjE1ODgifQ"
+          "resource": "repo://src/platform/ocean-socket.ts#L14-L32",
+          "version": "repo-lines-v1:sha256:a7a8aab07228255e37bcfd9fd104825b5fdd82e38d941baa3e7aa50b32252212:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwMTVhMGViMjE2YTI1Mjk2OWE0M2FmYzY4YjE3MmEzZDIwYTY5YmJiZDQ0ODE2OWY4N2YxMTI3OTMzMTMyNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3NTUzOGE4ZDJhMmYxN2Y4NTk2MTNlYWE5OGU3ZTcwZjUyYjZiMTgzZGVhODg4ZTkyMTJiYzhhNDFjODhjYjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwNWYzZGY1NTQ0MjRhMzFkNjgyNjk1NzhkMTNkMWI2NTg0ZDI3OTAxZWQ0YTMxMzJhMmVhMzliZmE2NmYwMjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyN2U4OGVlZWM1MjU3N2I5OTViN2MxNDBkMDVjZTNlMjg4MjYzYmI0YWM4YWE0YThjYjEzOTk4YjgyOTA0M2MifQ"
         }
       ]
     },
@@ -69,12 +65,12 @@
       "statement": "startOcean giữ một AbortController cho giao diện và một cho kết nối; dispose hủy listener, ngắt kết nối, giải phóng cảnh và gọi fishingUi.dispose().",
       "evidence": [
         {
-          "resource": "repo://src/app/ocean.ts#L73-L74",
-          "version": "repo-lines-v1:sha256:0210d74f1c3d453af44b907e52b2dc4008a2bc4badffa25c00000e8df1fe03db:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGFiZGY4NzNlNmE0NDE0YWQxZjBmNjJhMmIyY2M1NjZjNTExOTAzOWY2Y2U5MDM5ZDgxMTQzM2NmN2ZlNzY3NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTE5YjNlMTM4MTUzMzVlMDMzMjZlZTdlOTllOWExYjlhZGE5YWFkYjQzNDA5ZGY0NGU4MzRjMTVkMTVmOTZjOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWQyMzYwZTI5NmZhMTQzNGFkMzBhMTUwNTgwNjgwMmFlNjExYjJhZGI1YWZhYzZjN2Q5OWJhZDA4YzhjNjc2ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzNiY2VjMWNiYjIyMTI0YjQ2NTMxNDZiMDY5YjM0Y2MzZjhjNWFkYmJmYWI5ZTYyZTUwMzQzNzY1OWI2MDI3NSJ9"
+          "resource": "repo://src/app/ocean.ts#L1200-L1210",
+          "version": "repo-lines-v1:sha256:3fcb98d46d5b5a17a56e3beda013e6a2a3cb1cbead66513b2b7a09249261f769:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZTczNjFhYTYzZDA0ZjZhYTNmNWIxYWM2ODI4YzBkNWE3MTJkYjQ3YThiMzlmMzg4YWY2MzdkMGYzYzA5MWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmZGYzMDY4MjBhMmE4ZjU3ZTAyODE4ZWY3MDg4Mjc0MTI3ZTlkNzI5M2ZmODhmOGQzMjdiNzRlOTk2ZDdmN2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhkZGE5ZTUwZmMwY2JiYzA1MGIwMDdhMmE2YjVhMjVlMWMwZGIwNzhlMjQxZjEwNGEzYTNiMWEyOTc0NjYxMjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3MDcxNGY5NWJiMzEyMzFiNjdmMzVkOWI2NzRmYTdiNTM4MmFlMGEzMTgwMWNkYzU5NTI3N2I4ZDE5OTE0ZDIifQ"
         },
         {
-          "resource": "repo://src/app/ocean.ts#L928-L947",
-          "version": "repo-lines-v1:sha256:8be10570e1a3f38b67326aa866f8bfd491f31dff8ef922d0c40d657ef44215fa:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkNjFlM2I0OTkwZGFhZmI0YzFlYWVjODMyZDA1ZDI3ZjdiMjI3ZjY3YjA2ZTE5YTJmZDA3MzFiYWMxMjY1ZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3NzY3MzNiYjlmYzQ5NDFkOGUwM2M4ZDM3MzhlYTVmMGZkOTdjNTdiZTJlNjI3NjNlNzk4ZjZhNWYzMjM2YTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE3YzMwYzcyZWJhNWQyOTMyZjYxMGEwYjM5ZjY5MWM0MWVhNGZjNTI3M2ExMjM3MDEyNjBjZTY0MTM5ZjdiYmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+          "resource": "repo://src/app/ocean.ts#L90-L91",
+          "version": "repo-lines-v1:sha256:0210d74f1c3d453af44b907e52b2dc4008a2bc4badffa25c00000e8df1fe03db:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGFiZGY4NzNlNmE0NDE0YWQxZjBmNjJhMmIyY2M1NjZjNTExOTAzOWY2Y2U5MDM5ZDgxMTQzM2NmN2ZlNzY3NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTE5YjNlMTM4MTUzMzVlMDMzMjZlZTdlOTllOWExYjlhZGE5YWFkYjQzNDA5ZGY0NGU4MzRjMTVkMTVmOTZjOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWQyMzYwZTI5NmZhMTQzNGFkMzBhMTUwNTgwNjgwMmFlNjExYjJhZGI1YWZhYzZjN2Q5OWJhZDA4YzhjNjc2ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzNiY2VjMWNiYjIyMTI0YjQ2NTMxNDZiMDY5YjM0Y2MzZjhjNWFkYmJmYWI5ZTYyZTUwMzQzNzY1OWI2MDI3NSJ9"
         }
       ]
     },
@@ -83,11 +79,11 @@
       "statement": "Trên mỗi khung, tiến trình được lưu trên thiết bị mỗi 5 giây và ngay khi tab ẩn; khi tab ẩn cũng nhả phím và thu cá đang câu.",
       "evidence": [
         {
-          "resource": "repo://src/app/ocean.ts#L576-L579",
+          "resource": "repo://src/app/ocean.ts#L752-L755",
           "version": "repo-lines-v1:sha256:935d3aa8a243aa08eb4cdd05d7064e4d6fa31acc038b02ce3f3b9f79ffdfddc5:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmFkNzNkOTlmMDZkNTE2YzVmZmRkODIzYzViOWRkM2EyY2I0MzgxZmRmYWJhYmYxYzgwNmIxMmNjZWE2NzU2ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWI2MmY2MGQ4NTkwYTU3OWNmNDZmOGQ2NzM3OGM0YzU3MmI5NjJjZWNjZGI5MGM3YTVmN2I0MmI5NjA3ODJhNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjQ4Y2NlNmQ4ZTQ3YjVlYWM0ODk4MzVjOWZhZTZmNzYzOWYxNGViY2QzMTMyNDFjZjBhYTgxYTdlOTUwMmE5NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTU3ZjBjNTk5NjQ0OTFkNGFiZWE5MzY2N2MzODUzYjU0Yzk0OGZlODcxNjJmYmY3MjllZTJlYTVmNDMzMmQ0ZiJ9"
         },
         {
-          "resource": "repo://src/app/ocean.ts#L799-L808",
+          "resource": "repo://src/app/ocean.ts#L1036-L1045",
           "version": "repo-lines-v1:sha256:f43136d079fff2de15b4208c95faf5c637f28e4bfcdbd2d90db3f9e82dd0f8fc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwNjI5ZTY2ZGIxMDc3NDEyZTEzZDYxMDRjNGJhYTExZTQ1NWQ5NTBlNWMzZDQ5MzkwMGQ4NjQzYjI2MjNiYTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliNjJmNjBkODU5MGE1NzljZjQ2ZjhkNjczNzhjNGM1NzJiOTYyY2VjY2RiOTBjN2E1ZjdiNDJiOTYwNzgyYTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiOGE2MGQ4ZjhmZGVhNDNlNzk3ZmM5OWMzYzAxZDUwYTI3NDJiODg4OWY2MWZmODk5N2Q5ODA5YmI4YTVmYTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY5ZWI0ZTM1ODkxZmJmMjk5MmU0MGE2MmMwMGFlNjU1MjUxNDQ0MmYzNGI4Y2QwYWQwNjdiODFlZTEzZTM0NmEifQ"
         }
       ]
@@ -97,18 +93,18 @@
       "statement": "Biển có bộ test trình duyệt với Supabase giả và Socket.IO thật; các kiểm tra này chứng minh mã và mô phỏng trình duyệt, không thay thế triển khai API, Supabase thật hoặc thiết bị thật.",
       "evidence": [
         {
-          "resource": "repo://scripts/test-browser.mjs#L18-L22",
-          "version": "repo-lines-v1:sha256:338f18dadb7822200b17bbe65923688096eb3e91a3c440a0e67e140f6d91db38:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjViM2ZiYmFlZDZmOGZmM2ExOTMyNzI5ZTIwMTk4NWVjMDllNDA2YjM2MGQxYjZjOTkwZmJjOGQwMzhhYTliNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjZmNWI0MGIxNTg0NTdkMTc4NjRmMjE3OTA3ODZkZDVhMmVjZGI2NGI2NmE2NTFmNzg4ZDRlMjVjZDMzMDNkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmQwZjJkM2EzYWFkYTI3NTg2NDU3OGQwYTQzOTE1NjM4ZDU0M2ZlY2EyYzk0ODU4ZGI5NDEyMTFlODZjZWYyYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmI0OGJlNWQwMjk1ZjY3YmJkZDVhMDk2YzVkNGI3MzE3NzBlYjk1Y2I0YWUzYmYwZjNmN2VmN2M2MmEwMGRkNCJ9"
+          "resource": "repo://scripts/test-browser.mjs",
+          "version": "repo-file-v1:sha256:101998b5a3b9eb492bd9c89687af19826e69179bc8ea57e85e1833e1a77e2cae"
         },
         {
           "resource": "repo://tests/ocean-socket.test.mjs",
-          "version": "repo-file-v1:sha256:c1546f2a6f6c2afe05de52c02e8076bad4653756d67184c3bd2ac3ce93861bc6"
+          "version": "repo-file-v1:sha256:5dad51e4e469b90f6f45c37fd6d9ef0e8d76c9a6e15fcedebe4afc65afe1a180"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-20T03:06:03.643Z"
+    "at": "2026-11-26T03:34:41.285Z"
   }
 }

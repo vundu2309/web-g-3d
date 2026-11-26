@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:bc1d56255aac2c2eda6aac6fe999cb2cfdbd2bd1fc25aa10a2c064423aff1f75",
+  "pageVersion": "sha256:47c5054b464bbd2fd7dc9aaae0bf4eb5b9356b32de1a088c456a4173428d9277",
   "claims": [
     {
       "id": "claim_b319dc8a808242728325f65d6db631d6",
       "statement": "Mặt nước là hàm chiều cao giải tích dùng chung cho CPU và GPU: thuyền Havok tính phao nổi từ waveHeight, còn shader nước dời đỉnh bằng glslWaveHeight cùng công thức.",
       "evidence": [
         {
-          "resource": "repo://src/ocean/boat-physics.ts#L240-L246",
+          "resource": "repo://src/ocean/boat-physics.ts#L401-L407",
           "version": "repo-lines-v1:sha256:2cde0638e85e0df9bc12bacae99ba988c5072fc11ea80b378aba4d10a2bb5644:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmM1NDA5NzFjOWRlZWI3YmM2M2U3MTU4NWZjNjlkZTU1MmNkYTNiY2M4OTM0OGVmN2MxMzU4MGJkYjE3NWI3ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzM5OGE4OTVjZTJiODg5N2M4MDM4ZTFlODQyZjkwNDI1NDZhM2ZjN2UyOGYxNTdkZGQ0ZDFhNTc1NjE3YTcwNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDEyMmQ0MjFiMzY3NjkxNjM0ODJlODRmMDI5ZjhkYTY1ZWY0YmQ0ZmY4ZGFlMDIzZGIwZjZhOTAzNjg5ODMzZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDk0Mzg0MDZkYTdiYTcxZmI1YTM5YjU2NGQ5MmU4MzBlNGZkOTA0Y2FjNzc4ZmY4MzY4MTNmMDc3YTc0NjExMiJ9"
         },
         {
@@ -35,7 +35,7 @@
       "statement": "OceanScene tạo một Engine và một Scene; độ sắc ban đầu là 1 chia theo devicePixelRatio, tối đa 2 trên chuột và 1 trên màn cảm ứng (pointer: coarse); ScaleGovernor có thể làm thô hơn khi khung chậm.",
       "evidence": [
         {
-          "resource": "repo://src/ocean/babylon-scene.ts#L176-L196",
+          "resource": "repo://src/ocean/babylon-scene.ts#L252-L272",
           "version": "repo-lines-v1:sha256:0d47ee4053caa6e298dd18e69c6c28043b4e5c33db60d91235eaefed681c30d6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0ZTQyMDhjZDZmZmI4YzRhMzU0N2IyZjU0YWRhMTk5NzhjM2YzNjVlNzhmOTUwMmVmNTE0NWNkZDJhYTg1NDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNTA5M2U2ODgzNWZjNDQzMTMzNTU5NmU5NmU3YjFjNzA2ODdmNTRmZWI2Mzc0ODRlOWFmZDBlOGRjZWJhYmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwNzk4ZTllNzlmNmU0YzE1YmMzYzQ5OWMxYmQ5YmM3ZTkyNDJhZWMzOTdiNTczYjk5MmVmYzFkZTA1N2E0MmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUxM2JlYjQwODFmODdkYzcyYzBlNDA1NDczNjVmYzliMDVjNzUzOTA0ZGUzYzZkZWMzOTUwZDBjODM1NDgwMWMifQ"
         }
       ]
@@ -45,7 +45,7 @@
       "statement": "Lớp nước trong được lấy mẫu trước ScaleGovernor: khi khung chậm, ClearWaterGovernor tắt lớp này trước, và ScaleGovernor không hạ độ phân giải trong lúc lớp nước trong còn bật (tham số hold).",
       "evidence": [
         {
-          "resource": "repo://src/ocean/babylon-scene.ts#L899-L906",
+          "resource": "repo://src/ocean/babylon-scene.ts#L1338-L1345",
           "version": "repo-lines-v1:sha256:7ee8b9b4a5bcb6b4658bc665cc450a5753fb42afb8e493976d0b6af1e9008e49:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODYyNzQ3OGMyMDhiODAzNzlhMWQyMGQxZjkzM2E2ZDQyMzM2NWU1NTkzOGFlMDFlODk4YjY4NTllMzllOTNhYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjdlNTc4OGQ1ZDlkNzNkMjRhODFkYmMwYTVhNzRiZmE4MmM5YzNiM2FmOTllNTJhZjc5NmU5MGI0NjhhOGEzZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTAyMTlhNjY4NmZkNzdlOGUwYTk3MmNjMjU0NmExMzY3OTQ1ZmMzMWUwMWEzNTRmYmJiZDI4ZGE0NjJjMGFiZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmVkMjAxYjk0NmQwNGJlZGE1MmUwMjdhOWNkYTlkZTMxZGY5YzYxMDEzOTJmMmQyNGJkOTM3NGVhMjkyY2MzMSJ9"
         },
         {
@@ -76,15 +76,15 @@
     },
     {
       "id": "claim_8402dcd6d83947bbb7fff64ae48eac02",
-      "statement": "Thuyền hiển thị được dựng bằng code thành một mesh đỉnh màu, mỗi thuyền khác là một instance rẻ; GLB boat.glb thay thế khi tải xong.",
+      "statement": "Thân thuyền hạng 0 được dựng bằng code thành một mesh đỉnh màu làm hình tạm; mỗi hạng thuyền có file GLB riêng được tải một lần cho mỗi scene, và thuyền khác là instance của mô hình cùng hạng.",
       "evidence": [
         {
-          "resource": "repo://src/ocean/babylon-scene.ts#L323-L335",
-          "version": "repo-lines-v1:sha256:ed3b76779c055452a3005d3e73495f808192292f4e46cbab313ef919dc6bf6ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMDdmMDAxZmM1YjhkODIxZDk5YTdiZjRiNjM4NGQ2YzcyNzE2ZDk2ZjhhMzIwYmUwZDNlMjMxNGRiZDcxZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlZDQ5NjcxNDBhYzhlYzkyZjU3NjhjNjI0YTMyN2NhY2Y1MTA1YWY3NDQ3MmFlMGEyNjFmYjk2M2QyNDYyYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAyNDE1ZWFiNWEwNWRiMjY5NWMwOTEwNDZiMTNkNzYwMWE0YzdiZWNlYTNlZjdlNDQ0M2ZiNWEzMDQ5OTUyMmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiZWI2ZmMwM2Y1OTdkOTRlYzI1M2JmMjc0ZmNiMjUwMDI5YTYxY2ZhZTg1NWMzNWUyZjNlZTZjMDdjNzdjNWMifQ"
+          "resource": "repo://src/ocean/boat-model.ts#L22-L27",
+          "version": "repo-lines-v1:sha256:25e3ede14603af374a7452909f7f780f0b1690405c24790c79f238ca7cd939ae:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmVmOWRiM2U5ZDI3ZmRmOWFhYzRjMWE0NmEyMDc0YzM3NTU1OTRkODBmYjkxOWZmNjJjZmZlN2JiMjdhMDA3ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjc0OGIzOTFkZTIyOTU1ZTUyZDdjZmI3YjMxZGQ5N2ZmNjRhNzg3OTE5MDY4NmUxNGFkYmYzMTU3NmVkMjFjMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGE2NWJkMzFiOTgyOTdhNDJjYWI0YTFkMDA0MzQ4YjEyOTVkNmZiMzFiNWQ2Yzg0NzA5ZThjOWNhZjZjMGFlYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2E3MTllN2M2NGFlN2UzMzk1NzMyNGMyZDk0M2RmMTM0MjYxY2I2YzU3OTI5ZGJkNWZjY2ZjOWI5MDhjMDY5MyJ9"
         },
         {
           "resource": "repo://src/ocean/boat-visual.ts#L1-L12",
-          "version": "repo-lines-v1:sha256:b50be3ebd211fd6ff368ff6fed9dbb45d25c8b89aeea29b4ddd30de1371d6a49:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzMjlkN2M0ZGY0MzNlZGFkMDVkNDc3MmYxYmEwNzMwYzVjMjI4NDQxODg5MDEzYmQ4YmQzMDZiZWM2N2E2OWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5YTQ0YmM3MTQ1ODVlZTE0YzhlMDA1MmUzY2Q0NTM3YzFlZTMyNWY3MjFkZDUwZTMwY2E4YzkzNWY1OGRkYjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFiOTc0M2E1ZWVhMTQzNzg5MDFhNTAwMTVkM2JhZTg0Zjg4YWNkNmZjMmI2OTg0ODhhOGViNDUwMjgxMTk3ZGUifQ"
+          "version": "repo-lines-v1:sha256:0bdb353c38b6a91d528b1cf116c5f01333c5b01cd3d5d3f73d611128819addea:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzMjlkN2M0ZGY0MzNlZGFkMDVkNDc3MmYxYmEwNzMwYzVjMjI4NDQxODg5MDEzYmQ4YmQzMDZiZWM2N2E2OWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5YTQ0YmM3MTQ1ODVlZTE0YzhlMDA1MmUzY2Q0NTM3YzFlZTMyNWY3MjFkZDUwZTMwY2E4YzkzNWY1OGRkYjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI2ZmFjNTA4YjhmMDdhMDc4YWQwMjU0NmIwN2U2YmUzZGE0NmI4OGQyNGZkYjk2NmUxMTU5MjRkMWU1ZGI2NGIifQ"
         }
       ]
     },
@@ -93,7 +93,7 @@
       "statement": "Đảo được đặt tại vị trí cố định rồi đóng băng ma trận thế giới, vì không di chuyển.",
       "evidence": [
         {
-          "resource": "repo://src/ocean/babylon-scene.ts#L238-L246",
+          "resource": "repo://src/ocean/babylon-scene.ts#L308-L316",
           "version": "repo-lines-v1:sha256:f6aca97b40b44b70335aa784b127e1ccbbfb532fe7385e2915020f8ace8ebb12:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDY3MTg2NTdmNzI0ODg0YjVkZjEyNTMxNWI2NGQwNjQ5MWFlZjFjMzVlMWFhZjU1OGUzMTRhZWMxMDg5NjJiZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGE3NGI0N2E3M2MzMzUxZDJiM2FhNmIwZjZkODhiY2FkNjM3MTM1NzgwYzRmNTQwMDFjMDY1ZmQ4ZTJmYmQyMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWViOGU1MTA0YjlmNWU3MTkxZDc5NGI3YmVmZTY3ZjY5ZGM2MWEwOTVkYjZhZjdkYTY4NmMwYmNiMmEzNTFjYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTBlNThkYzliZjNiNTMwYmMzZDk4NjIwYjYzMGJjMzVjMGIwZDEwZTIxMjY3MjQ1ODEyYjZhYjcwNTNmNDc0ZSJ9"
         }
       ]
@@ -101,6 +101,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-20T03:06:03.643Z"
+    "at": "2026-11-26T03:34:41.285Z"
   }
 }

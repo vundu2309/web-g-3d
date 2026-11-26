@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:f40af3240e39009f92c0c457a448e9cbec27f65e10d9b62652b12248ab5840fd",
+  "pageVersion": "sha256:23f641e22aec8b9cbb9ea1b22918a83f0f62df143ff694fc40dae6c037fc5d91",
   "claims": [
     {
       "id": "claim_09fab5020e6f4e5eb1dfe101cbfffdf0",
@@ -27,7 +27,7 @@
       "statement": "npm run check chạy lint, format:check, npm test (test:unit, build, test:browser) rồi test:api.",
       "evidence": [
         {
-          "resource": "repo://package.json#L21-L24",
+          "resource": "repo://package.json#L22-L25",
           "version": "repo-lines-v1:sha256:739ee3ec1d4c945bbe962946234df6dda1c0ea866d5369f57a2aa7cb1c14058a:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzVkOTU4ZDE3MWNkM2YwYWYzMzc5OTBhYjM0NDJmMGY2NjcwMjJkM2VhMTc1YzAxZGNjOGI2NGVjOTYzOTFjOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTU4NTc2OThhOTFlNTNhYjU5MjFkODg4MmUwZjM1MjY5NDdjZjI1MzYxNjY5ZmU0YmM1OTAwODA5YjI2MDEzMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTE4ZTRmZDdjOGIwNDAyZmI1M2Y0YTMyMjE5MmY0MTdlMWNhYzhjMWRjNjJhNDNiYTRlMmEwZTI5NjRjMzk3OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODk1MmNkY2QxOTQ3MzUxMmM0YmVlNzYzZmVjYmQ4Y2UyOTA2MGU4NmZhMGIwNjczMTM0MWYwNmRkODkzZWU5MiJ9"
         }
       ]
@@ -37,7 +37,7 @@
       "statement": "tests/pwa-browser.mjs chạy sau test:browser, kiểm tra bản build production và PWA; cài đặt trên Android/iOS thật vẫn cần kiểm tra trên thiết bị.",
       "evidence": [
         {
-          "resource": "repo://package.json#L20-L20",
+          "resource": "repo://package.json#L21-L21",
           "version": "repo-lines-v1:sha256:8b5d70163733fdbd658dbbada5d36a34bbf93e8071ec8e0990de7d51e83f9c95:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI1ZDcwMTYzNzMzZmRiZDY1OGRiYmFkYTVkMzZhMzRiYmY5M2U4MDcxZWM4ZTA5OTBkZTdkNTFlODNmOWM5NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI1ZDcwMTYzNzMzZmRiZDY1OGRiYmFkYTVkMzZhMzRiYmY5M2U4MDcxZWM4ZTA5OTBkZTdkNTFlODNmOWM5NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODQ0NjJhODFlYmJhZDk4ZTdhZDc1NmMxZTVkY2YwMDdiOTAwZmZjYzI1YzFhMTZmZWVkMTZhZjYwODA0Njk0MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTMyZWZiOGY0MmYwOGYxNDhmMGE4MTZhNmQyMzg0N2VlM2ZiMDYxODI2NDRiYzNiMjRiNTQ0NTMwNjNjOTEyMiJ9"
         },
         {
@@ -55,7 +55,7 @@
           "version": "repo-lines-v1:sha256:f9bb5a081fe2e0a0543d0b54dbf329a06f7e8caa7f6ffd9efff67cf5cc0361f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxMjBmZmM3YmUyZjliMDUxYzFiMzI0MjkyNTg5OWM2NjgxMDQ2MWU3ZmM5ODZlYTUyNWY5YTFlNTBlMGI4NzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwY2JiMzU4Mzk2MWRjMWRhZDc0YWMwNjZhOWQ1MDE5YWUxMTJiMDMwN2U4ODFkYTAxY2ZmYjZkYmUzYzNlMjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIwY2RhODZjOThlMDJiZmU1MzBmN2ZhYzM0OWQ0OTE2NzUyYWEyZjBjM2M1ZjFiODFkMDJjYzUyZjE5ZmM3MjMifQ"
         },
         {
-          "resource": "repo://scripts/qa.mjs#L86-L89",
+          "resource": "repo://scripts/qa.mjs#L91-L94",
           "version": "repo-lines-v1:sha256:a0a6c32fe82f489f73f418ebdfd6c4e3142981f879cffadb875eebf927ed08e2:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzQ4YWU1YWMxNDllYmY5MWNjNjg1YTYxNzZlYmZhNDRhYTMyYjY5OTg3MDViMjExNDRlY2Y0M2RiYmFiMmI5OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDZmY2EwMjJkNmVhZmYxMzAwMTM3MmIyN2NjNTcwOTI5ZjBkZmY4YjU4Y2UxMDk0ZTI1NWU3MjA1N2FmMWZmYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzJiMmRjNzZkYjc3YTgzZDI5YTgzZmY4YTFkY2NkYzY0MGJmM2YwNzFkZTRjMjY0ODU4N2YzYjFiZDVjYzQyYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjc3MDZlMDljODE4N2Y2OGZlMjAyMzU2NTMxNWEwMTRlYTBiMDc3NzYyOGY3NmFhYmI4MmI0MzcxNDg2YmVmNiJ9"
         }
       ]
@@ -79,10 +79,30 @@
           "version": "repo-lines-v1:sha256:d68ac015d3f9d3be272ed32be74e7542c66a58ed6a37ec810e438709bfd97b61:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjNzVlNDA5MGI3MzkzMDM4OTk2ZTJjODdiMzBmZTk5NzRjZmUxNTVmMDZhYjJhNmE0MzRmNWYxZDVhYzU5OWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxZmRhMTQ5NDVjYjM0ZTI5ZDFmMDY4MGU5MDA0NGZmZWMzM2Q2MGExMDIxNTBlMDdkNTYxNzc1MzY4YTEwZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFjNzRjZjE2Yjg5NjNiN2ZkMTVhNGM0NDg1YzNiZTUwMGNiMDE2NmE0NGYyZmEzOWViODBlOWQyN2Q2NjUzNzEifQ"
         }
       ]
+    },
+    {
+      "id": "claim_b4257bc03251468bbd4d8c952a7b2632",
+      "statement": "npm run test:unit chạy một danh sách cố định các file tests/*.test.mjs; file test mới không được chạy cho đến khi được thêm vào danh sách trong package.json.",
+      "evidence": [
+        {
+          "resource": "repo://package.json#L20-L20",
+          "version": "repo-lines-v1:sha256:c3f36411c895f91967c95fd5df9f51f19d98d357f518a7365132fca15a4425d4:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzNmMzY0MTFjODk1ZjkxOTY3Yzk1ZmQ1ZGY5ZjUxZjE5ZDk4ZDM1N2Y1MThhNzM2NTEzMmZjYTE1YTQ0MjVkNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzNmMzY0MTFjODk1ZjkxOTY3Yzk1ZmQ1ZGY5ZjUxZjE5ZDk4ZDM1N2Y1MThhNzM2NTEzMmZjYTE1YTQ0MjVkNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTcwNTY1ZGVkZmMyYmEzYTY3ZWI2OTdlMzdkYTUxNWU4NWFjMjQyODc0MDc2OTJjZDkzMTJkNTc5ZWRiMmRkYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmYxYjNmYThkYTc3ZmEyNTIwMzY4ZDM0YWE1Mjg0MDc4MzViY2YyMmIwM2U0NjJiOTlhNjZiZWZlOWRlNzA0YyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_4c555344a64f44cc840e20963676089d",
+      "statement": "npm run build chạy tsc --noEmit trước khi vite build, nên lỗi kiểu làm build thất bại.",
+      "evidence": [
+        {
+          "resource": "repo://package.json#L8-L9",
+          "version": "repo-lines-v1:sha256:7c3669aae093147d23bb2571c6a56b886ff089314981f017d0c6b6f17550e1d1:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTViOWFiMDFhYTNkZmIzYWI1ZTkzYWNlMjNhODQ0NmExMjE2MmVjZDAwOGY1MmEzZWNiOWFhZTNiZDY4NmE3YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjA4MGVmMjc2Nzk2NGVlZTI0ZjRmYjJkY2RjMGVlMWZiZGQwM2I0MDlmNThkOTUyZDMwNGM1NzcwYzJlMjU0NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjkzMTA0MzdkNDYyOTQzNmIxYWU1OTgxOGFhNzU5M2I4M2NlZjc2NDAyNDQzNzU3MzczZjNhYjdmMTAzZWRhOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjk2MzkzN2E1YmU3ZTI2MGIxNDA2YmY5YjRhNzg5YTJhMjlkNDJhMTBlZmQxZmVhMmI3MDU0N2EzMGVkMDJjMSJ9"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.3",
-    "at": "2026-11-20T03:06:03.643Z"
+    "at": "2026-11-26T03:34:41.285Z"
   }
 }
