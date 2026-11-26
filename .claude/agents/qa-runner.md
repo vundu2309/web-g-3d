@@ -19,7 +19,7 @@ The directory to test (the main checkout or a worktree `../web-g-3d-wt/<name>`),
    - `npx tsc --noEmit`
    - `npm run lint`
    - `npm run test:unit` (report the numbers: tests, pass, fail; for a failure, the test name and message)
-3. Browser tests: `node scripts/qa.mjs --cwd <dir> <names>`. It starts its own Vite server on a free port, uses system Chrome, kills a test after a limit (`--timeout`) and reruns a failing test once alone. Run it in the background and wait without sleeping in the foreground (there is no `timeout` command on this Mac). Do not run two qa runs against the same directory at once, and do not run tests while another agent is editing the same files.
+3. Browser tests: `node scripts/qa.mjs --cwd <dir> <names>`. It starts its own Vite server on a free port, uses system Chrome, kills a test after a limit (`--timeout`) and reruns a failing test once alone. With `--changed` it picks the tests from the files changed since `origin/main`; the output of a failing run is printed whole. Run it in the background and wait without sleeping in the foreground (there is no `timeout` command on this Mac). Do not run two qa runs against the same directory at once, and do not run tests while another agent is editing the same files.
 4. Classify every failure:
    - **real**: it fails again on the rerun, or the message names behaviour the change touches;
    - **flaky**: it failed and then passed alone; the known timing checks are `ocean-fishing` ("the power bar fills while held") and `ocean-babylon` ("frames with the line out were seen"), which depend on software-WebGL frame rate. Report BOTH outcomes, never only the pass;

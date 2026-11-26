@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { launchBrowser } from "./browser.mjs";
 import { tap } from "./support/tap.mjs";
+import { FAST_SEA } from "./support/fast-sea.mjs";
 
 // The others hide a boat that has been silent for 30 s (PRESENCE_MS), so a player who has a hub
 // open (the market, the store, Settings) must keep announcing the boat: it is still in the sea.
@@ -14,7 +15,9 @@ const page = await context.newPage();
 const problems = [];
 page.on("pageerror", (error) => problems.push(error.message));
 try {
-  await page.goto(`${process.env.TEST_BASE_URL}?daytime=12&weather=clear`);
+  await page.goto(
+    `${process.env.TEST_BASE_URL}?daytime=12&weather=clear${FAST_SEA}`,
+  );
   await page.getByRole("button", { name: "Ra khơi" }).waitFor();
   await page.evaluate(async () => {
     window.published = [];

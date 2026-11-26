@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { launchBrowser } from "./browser.mjs";
 import { tap } from "./support/tap.mjs";
+import { FAST_SEA } from "./support/fast-sea.mjs";
 
 // The Xếp hạng hub on the real scene with a fake connection: it is a tab of the hub rail (reached
 // from the fish store), shows the server's two boards as numbered rows with the player's own row
@@ -25,7 +26,7 @@ async function open({
     if (m.type() === "error" && !m.text().includes("GL Driver"))
       problems.push(m.text());
   });
-  await page.goto(process.env.TEST_BASE_URL);
+  await page.goto(`${process.env.TEST_BASE_URL}?fast=1${FAST_SEA}`);
   await page.getByRole("button", { name: "Ra khơi" }).waitFor();
   await page.evaluate(() => localStorage.clear());
   await page.evaluate(

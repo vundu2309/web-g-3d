@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { launchBrowser } from "./browser.mjs";
 import { tap } from "./support/tap.mjs";
+import { FAST_SEA } from "./support/fast-sea.mjs";
 
 // The fish store kept on the server (decision 0016), on the real scene with a fake connection
 // and an in-memory economy that follows the server's rules: entering shows the server's fish
@@ -23,7 +24,7 @@ async function open({ profileFails = false } = {}) {
     if (m.type() === "error" && !m.text().includes("GL Driver"))
       problems.push(m.text());
   });
-  await page.goto(process.env.TEST_BASE_URL);
+  await page.goto(`${process.env.TEST_BASE_URL}?fast=1${FAST_SEA}`);
   await page.getByRole("button", { name: "Ra khơi" }).waitFor();
   await page.evaluate(() => localStorage.clear());
   await page.evaluate(
@@ -132,11 +133,12 @@ try {
     await page.locator(".fish-cell").first().waitFor();
     const before = await page.locator(".fish-cell").count();
     await page.locator(".fish-release").first().click();
-    await page.waitForFunction(
-      async () => (await window.money.state()).ledger.length === 5,
-      null,
-      { timeout: 10000 },
-    );
+    // Not waitForFunction: it takes an async predicate's promise as true at once.
+    const ledger = () =>
+      page.evaluate(async () => (await window.money.state()).ledger.length);
+    for (let tries = 0; tries < 100 && (await ledger()) !== 5; tries++)
+      await page.waitForTimeout(100);
+    assert.equal(await ledger(), 5, "the fish put back left the server ledger");
     assert.ok(before >= 1);
     await page.screenshot({ path: `${output}/server-store.png` });
     await context.close();

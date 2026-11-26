@@ -57,8 +57,13 @@ Step 0 and 1, measured on 2026-11-26 with the machine busy (load about 15 on 10 
 
 ## Review
 
-The `sea-visual-reviewer` and `qa-runner` trial on the minimap change is the only independent check so far.
-Nothing in steps 1 to 5 has been reviewed by an agent yet.
+Second session: the `reviewer` agent reviewed the selector twice and the `FAST_SEA` change once
+(2026-11-26), "changes needed" both times, on missing table rows, a cut-off piped output, argument handling
+and stale lines here; fixed, the last fixes not reviewed again. Left as is: the runner takes a test's output
+at `exit`, not `close`, so the end of a failing run could in theory be missing (not observed).
+
+The first session's only independent check was the `sea-visual-reviewer` and `qa-runner` trial on the minimap
+change.
 
 ## Approval and publication
 
@@ -85,6 +90,42 @@ when browser tests apply; `sea-visual-reviewer` for sea visuals and `reviewer` (
 the rest; the exception is listed and its exclusions named; "the lead" is defined; the Publication contract
 points to the user's say; stage 6 says what to show when there are no images; decision 0023 matches. The fixed
 text was **not** reviewed again by an agent.
+
+## Step 1 continued (2026-11-26, a second session)
+
+A second session took up the remaining tasks of step 1 (tasks 1 to 4 below) on the local branch
+`chore/agentic-workflow-step1`, from `494eeb0`. This entry was written before the first edit of that
+branch. Steps 2 to 5 stay unapproved and are not part of it.
+
+Results so far (nothing committed; the branch was moved to `f66e9b3`, which holds the P4 gameplay work, and
+rows for `ocean-quests` were added to the table):
+
+- Task 1: a real fault, not a stale test. A touch on the gear opened Settings and the browser's own click then
+  chose the "Kho cá" tab. Fixed at the user's request and published as `f66e9b3`, record
+  `2026-11-26-gear-ghost-tap.md`.
+- Task 2: `scripts/qa.mjs` prints a failing run whole; seen with the assertion and line on real failures.
+- Task 3: `node scripts/qa.mjs --changed [--base ref] [--list]`, table in `scripts/lib/qa-select.mjs`;
+  `src/app/big-map.ts` alone picks `ocean-map`. Unit tests in `tests/qa-select.test.mjs` (9 pass). The
+  `reviewer` agent said changes needed (table rows missing tests, output cut at 64 KB through a pipe, running
+  from a subfolder, argument errors); fixed (later reviews: see "Review").
+- Task 4, `FAST_SEA` on four tests (the one-boot pattern not applied to them). One run each, machine load
+  about 5 to 9:
+
+  | Test                 | Before | After | Negative control (feature broken in `src/`, then restored)         |
+  | -------------------- | ------ | ----- | ------------------------------------------------------------------ |
+  | `ocean-presence`     | 28 s   | 24 s  | no announce while a hub is open: failed, "announced 0 times"       |
+  | `ocean-book`         | 69 s   | 59 s  | progress chip not added: failed (timeout at the chip's check)      |
+  | `ocean-rank`         | 71 s   | 46 s  | own-row mark removed: failed (timeout waiting for the own row)     |
+  | `ocean-server-store` | 28 s   | 20 s  | release not sent to the server: **passed**, so the check was fixed |
+
+  The wait in `ocean-server-store` used an `async` predicate in `waitForFunction`, which resolves at once
+  (confirmed with a predicate that returns `false`). It now polls and asserts; with the release broken it
+  fails (6, expected 5) and it passes restored (21 s). `tests/pwa-browser.mjs` has three waits of the same
+  shape (lines 219, 237, 244): not changed, see follow-ups.
+
+- Done-when 1 not checked: the `ocean` group run was stopped at the user's question about its length, after
+  `ocean-babylon` fail, `ocean-fishing` fail, `ocean-cast` flaky (killed at 600 s, then passed),
+  `ocean-market` pass; machine load about 6 to 11. The two failures are not classified.
 
 ## Steps in detail (added 2026-11-26)
 
@@ -204,6 +245,12 @@ Done when: at least five changes are in the table, and a short note says what th
 they cannot show (a sample this size cannot show a trend).
 
 ## Follow-ups
+
+State on 2026-11-26 after the second session: items 1 to 4 below are done on
+`chore/agentic-workflow-step1` (item 1 published), not yet committed; done-when 1 is still unchecked.
+
+Added 2026-11-26: `tests/pwa-browser.mjs` has three `waitForFunction` calls with `async` predicates that
+check nothing; fix them and run a negative control (needs a build).
 
 In the user's order:
 

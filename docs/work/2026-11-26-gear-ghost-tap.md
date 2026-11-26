@@ -1,6 +1,6 @@
 ---
 title: A tap on the gear opens Settings, not the fish store
-state: user-approved
+state: published
 opened: 2026-11-26
 owner: session "Kéo main mới và làm tiếp task cải thiện workflow"
 agents: reviewer
@@ -43,5 +43,9 @@ click; mouse and keyboard unchanged. One low, unverified point: sound unlock by 
 ## Approval and publication
 
 - User approval: to fix (quoted above). Then, after the review result, "Deploy đi" (deploy it), 2026-11-26.
+- Commit: `f66e9b3` fix(ocean): a touch on the gear opens Settings, not the fish store. Before the push, on the
+  rebased commit: format, `tsc`, lint, build, 693 unit tests and `ocean-input` pass.
+- Deploys checked: Vercel `READY` for `f66e9b3`; the public `ocean` bundle of https://web-g-3d.vercel.app holds
+  the `touchend` cancel. The public screen was not operated (it needs an account).
 
 ## Follow-ups

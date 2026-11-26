@@ -24,7 +24,7 @@ Paste this (or point to it) so a brief only has to say what is different. It is 
 
 - **Environment.** Node 24. `timeout` does not exist on this Mac: run long commands in the background and wait on them without sleeping in the foreground. System Chrome: `CHROMIUM_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"`. Bind servers to `127.0.0.1` (`npx vite --host 127.0.0.1 --port <yours> --strictPort`), each agent on its own port (the one-command scripts pick a free one).
 - **One command instead of by hand** (`scripts/`):
-  - `node scripts/qa.mjs ocean-fishing ocean-cast` (or `ocean` for the group) runs browser tests with the right environment, a time limit, and reruns a failing test once alone; report BOTH outcomes (the timing checks of `ocean-fishing` and `ocean-babylon` are flaky under software WebGL).
+  - `node scripts/qa.mjs ocean-fishing ocean-cast` (or `ocean` for the group) runs browser tests with the right environment, a time limit, and reruns a failing test once alone; report BOTH outcomes (the timing checks of `ocean-fishing` and `ocean-babylon` are flaky under software WebGL). `node scripts/qa.mjs --changed` picks the tests from the changed files (see [workflow](workflow.md)).
   - `node scripts/shots.mjs before` and `node scripts/shots.mjs after` take the standard images (chase, fishing camera, beach, horizon; add specs `mode,island,angle,seconds`) into the temp folder, or `--out dir`.
   - Both take `--cwd <worktree>` to work in a worktree.
 - **Running the real game locally** (signed in, in the shared sea, from a worktree): follow [local setup](local-setup.md): copy `.env.local`, serve with `VITE_FS_ALLOW`, run a local API (Render refuses local origins), never touch Render.
