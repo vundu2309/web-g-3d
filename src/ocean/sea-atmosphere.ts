@@ -23,8 +23,8 @@ import {
 /**
  * The one shared, mutable look of the sea right now: the sky, the water, the swash, the lights,
  * the fog and the sea's mirror all read this object (the constants of sea-style.ts are only its
- * midday-clear starting values). `stepAtmosphere` rewrites it once per frame from the pinned
- * time (a clear noon by default) or the shared UTC clock (atmosphere.ts) without allocating; the shaders hold these very Color3 / Vector3
+ * midday-clear starting values). `stepAtmosphere` rewrites it once per frame from the shared
+ * server clock, or a pinned time (atmosphere.ts), without allocating; the shaders hold these very Color3 / Vector3
  * objects as uniforms (`bindAtmosphere`), so they follow without being set again.
  */
 export const SEA = {
@@ -119,23 +119,38 @@ export function setAtmosphere(a: Atmosphere) {
 }
 
 // ---------------------------------------------------------------------------------------
-// The clock: a clear noon by default, a pin from the page address, or the shared UTC time
+// The clock: the shared time by default, or a pin from the page address, the Settings card or a tool
 
 type PinState = { hour?: number; weather?: WeatherKind } | undefined;
 
-let pin: PinState = (() => {
+/**
+ * Browser tests start at a clear noon (`VITE_TEST_NOON=on`, set by scripts/lib/dev.mjs and
+ * scripts/test-browser.mjs): the sea follows the real clock, and what a test sees (the light, the
+ * rain mesh, the triangle count) must not depend on the hour it is run at. A real visit never sets it.
+ */
+const testNoon = (): boolean => {
   try {
-    return parsePin(globalThis.location?.search ?? "") ?? { ...DEFAULT_PIN };
+    return import.meta.env?.VITE_TEST_NOON === "on";
   } catch {
-    return { ...DEFAULT_PIN };
+    return false;
   }
+};
+
+let pin: PinState = (() => {
+  let fromAddress: PinState;
+  try {
+    fromAddress = parsePin(globalThis.location?.search ?? "");
+  } catch {
+    fromAddress = undefined;
+  }
+  return fromAddress ?? (testNoon() ? { ...DEFAULT_PIN } : undefined);
 })();
 
 /**
  * Pins the hour of the game day (0..24) and/or the weather, or `undefined` to follow the shared
- * UTC clock (every player sees the same day and weather). The sea starts pinned to a clear noon
- * (`DEFAULT_PIN`); the Settings card, development tools, tests and the page address
- * (`?daytime=21.5&weather=rain`) change it.
+ * clock (every player sees the same day and weather, and the same one that sets the bites,
+ * decision 0020). Nothing is pinned by default; the Settings card, development tools, tests and
+ * the page address (`?daytime=21.5&weather=rain`) pin.
  */
 export function pinAtmosphere(next: PinState) {
   pin = next;
@@ -144,7 +159,7 @@ export function pinAtmosphere(next: PinState) {
 /** The pin in force (undefined when following the shared clock). */
 export const currentPin = () => pin;
 
-/** Advances the shared look to this UTC time (milliseconds); call once per frame. */
+/** Advances the shared look to this time (milliseconds of the shared server clock); call once per frame. */
 export function stepAtmosphere(utcMs: number = Date.now()): Atmosphere {
   const a = atmosphereWithPin(utcMs, pin);
   setAtmosphere(a);

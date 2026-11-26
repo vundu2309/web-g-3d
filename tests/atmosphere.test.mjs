@@ -402,7 +402,8 @@ test("rain is one mesh with the same streaks on every client, and the sea's mirr
   assert.equal(reflectsInWater("island", "matte"), true);
 });
 
-test("the default sea is a clear noon at every real time, the shared clock is opt-in", () => {
+test("the sea follows the shared clock; the clear noon is only a pin (the Settings card's start, and browser tests)", () => {
+  // The noon pin is still the sea's original look at every real time.
   assert.deepEqual(DEFAULT_PIN, { hour: 12, weather: "clear" });
   const midnight = DAY_MS * 40; // the shared clock is at midnight here
   assert.ok(atmosphereAt(midnight).daylight < 0.1, "the clock itself is dark");
@@ -414,16 +415,29 @@ test("the default sea is a clear noon at every real time, the shared clock is op
     Math.abs(noon.sunHeight - NOON_HEIGHT) < 1e-6,
     "the sun is at its noon height",
   );
-  // The same look whatever the real time or weather slot is.
   for (const t of [0, DAY_MS * 0.25, DAY_MS * 3.7, 123_456_789])
     assert.deepEqual(atmosphereWithPin(t, DEFAULT_PIN), noon);
-  // Wired in: the sea starts on the default pin, "Theo giờ thật" turns the clock on.
+  // Without a pin the look is the shared clock's, whatever the hour (decision 0020: the same
+  // clock sets the bites, so what the player sees is what they fish in).
+  assert.deepEqual(
+    atmosphereWithPin(midnight, undefined),
+    atmosphereAt(midnight),
+  );
+  assert.ok(atmosphereWithPin(midnight, undefined).daylight < 0.1);
+  // Wired in: no initial pin, but a test flag; the scene steps with the shared server clock.
   const dir = new URL("../src/", import.meta.url);
   const sea = readFileSync(new URL("ocean/sea-atmosphere.ts", dir), "utf8");
-  assert.match(
+  assert.doesNotMatch(
     sea,
-    /\?\? \{ \.\.\.DEFAULT_PIN \}/,
-    "the initial pin is the default",
+    /\?\? \{ \.\.\.DEFAULT_PIN \}\s*;?\s*\}\)\(\)/,
+    "nothing is pinned by default",
+  );
+  assert.match(sea, /VITE_TEST_NOON/, "browser tests start at a clear noon");
+  const scene = readFileSync(new URL("ocean/babylon-scene.ts", dir), "utf8");
+  assert.match(
+    scene,
+    /stepAtmosphere\(this\.sharedClock\(\) \* 1000\)/,
+    "the look follows the shared server clock",
   );
   const card = readFileSync(new URL("app/settings-weather.ts", dir), "utf8");
   assert.match(
@@ -431,6 +445,18 @@ test("the default sea is a clear noon at every real time, the shared clock is op
     /pinAtmosphere\(undefined\)/,
     "the reset follows the shared clock",
   );
+  assert.match(card, /"Giờ thật"/);
+  for (const file of ["lib/dev.mjs", "test-browser.mjs"]) {
+    const runner = readFileSync(
+      new URL(`../scripts/${file}`, import.meta.url),
+      "utf8",
+    );
+    assert.match(
+      runner,
+      /VITE_TEST_NOON: "on"/,
+      `${file} pins the tests to noon`,
+    );
+  }
 });
 
 test("the atmosphere is one shared object that every look reads", () => {
@@ -467,8 +493,8 @@ test("the atmosphere is one shared object that every look reads", () => {
   const scene = readFileSync(new URL("babylon-scene.ts", dir), "utf8");
   assert.match(
     scene,
-    /stepAtmosphere\(\)/,
-    "the scene advances the clock once per frame",
+    /stepAtmosphere\(this\.sharedClock\(\) \* 1000\)/,
+    "the scene advances the clock once per frame, with the shared server clock",
   );
 });
 

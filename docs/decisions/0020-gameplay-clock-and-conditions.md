@@ -1,0 +1,17 @@
+# 0020. The shared clock sets the sea and the bites; hot spots and an hourly event
+
+Date: 2026-11-26. Status: **in progress** (the clock and the calendar are built; conditions, hot spots and the event follow). The user asked for gameplay features (collection book, daily quests, time- and weather-driven fishing with hot spots, an hourly event, market prices, boat paint, a weekly board) and decided, among other things: the sea **follows the real shared clock again** (no pinned noon), reset times are **Vietnam time**, rewards are **small and capped**.
+
+## Decisions
+
+- **The sea follows the shared clock.** This reverses commit `42d02cd` ("the sea starts at a clear noon"). Nothing is pinned by default: the day and the weather every player sees are the shared ones, and `stepAtmosphere` now takes the **shared server clock** (`this.sharedClock() * 1000`), not the device's `Date.now()`, so two devices with skewed clocks agree. The Settings card still pins a part on one device ("Giờ thật" puts the device back on the shared clock); the page address (`?daytime`, `?weather`) still pins. `DEFAULT_PIN` stays as the noon the card's first pin starts from.
+- **Browser tests start at a clear noon** (`VITE_TEST_NOON=on`, set by `scripts/lib/dev.mjs` and `scripts/test-browser.mjs`; read by `sea-atmosphere.ts`). Without it a test would see night, rain or fog depending on the hour it runs at (rain adds a mesh, so even the triangle counts would move). A real visit never sets it.
+- **Weather and time of day now change what bites** (amends [0014](0014-day-night-and-weather.md), which said the weather was only a look). The change is small and bounded (species weights between 0.5 and 2.5, the bite chance at most 0.95, the wait between 0.8 and 1.2 times) and is computed from the **shared server clock** by a pure module (`fishing-conditions.ts`), never from the visual state (`SEA.*`): the visual state can be pinned on a device. `fishing.ts` itself stays unaware of the sky: it takes an optional `Conditions` value, and without it nothing changes (pinned by `tests/fishing.test.mjs`).
+- **The game's calendar is Vietnamese** (`game-clock.ts`): the day and the week turn at midnight in Vietnam (UTC+7, no summer time), the week on Monday; the database keeps the same calendar (`economy_private.game_day()` and `game_week()`, at `time zone 'Asia/Ho_Chi_Minh'`). Slots (hot spots every 15 minutes, the event every hour) count from the epoch on the shared server clock.
+- **Rewards are small and capped, and nothing large hangs on a rank.** The number of fish caught is a client report (decisions [0010](0010-server-economy.md) and [0017](0017-fishing-leaderboard.md)); the server checks the species, the weight range, six seconds between catches and 200 unsold fish, so one account can report at most 14,400 catches a day. See decision 0021 (progression) when it is written.
+
+## Consequences and limits
+
+- Many players will now open the game at night, in rain or in fog. Rain adds one mesh. Not measured on a phone.
+- The sea is shared but each device still reads its own clock plus the server offset (`clockOffset`, a raw offset that snaps to the fastest packet): a skew of a few tens of milliseconds is invisible next to 4-minute weather slots and 24-minute days.
+- The hour and the weather a player fishes in are the shared ones even when they have pinned the look to something else on their device. The book page says so ("Biển bây giờ").

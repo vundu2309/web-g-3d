@@ -899,7 +899,9 @@ export class OceanScene {
     if (this.lost) return;
     this.clock = reduced ? 0 : time;
     // The day and the weather: the shared UTC clock (atmosphere.ts), once per frame, before anything reads it.
-    stepAtmosphere();
+    // The shared server clock (seconds), the same one that sets the bites (game-clock.ts): every
+    // player sees, and fishes in, the same day and weather.
+    stepAtmosphere(this.sharedClock() * 1000);
     const step = Math.min(dt, 0.1);
     const lenses = this.boatModels.get(PATROL_MODEL)?.lenses;
     if (lenses) updateLensGlow(lenses, time, reduced);

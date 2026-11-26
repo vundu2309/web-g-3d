@@ -466,9 +466,9 @@ export interface Pin {
 }
 
 /**
- * What the sea shows by default: a clear noon, the sea's original look, the same for every
- * player at every real time. The shared UTC day and weather (`atmosphereAt`) is still there and
- * is one tap away ("Theo giờ thật" in Settings); the page address can pin something else.
+ * A clear noon, the sea's original look. The sea no longer starts on it (it follows the shared
+ * clock, decision 0020); the Settings card starts its first pin from it, so a button pressed after
+ * "Giờ thật" does what it says, and browser tests start on it (`VITE_TEST_NOON`).
  */
 export const DEFAULT_PIN: Pin = { hour: 12, weather: "clear" };
 
@@ -476,7 +476,7 @@ export const DEFAULT_PIN: Pin = { hour: 12, weather: "clear" };
  * Reads `?daytime=<hour 0..24>` and `?weather=clear|overcast|rain|fog` from a query string. Either
  * one alone pins that part and leaves the other on the shared clock (`pin.hour` / `pin.weather`
  * undefined means "follow the clock"). Returns undefined when neither is there, which is every
- * normal visit: the sea then shows the default (`DEFAULT_PIN`, a clear noon).
+ * normal visit: the sea then follows the shared clock.
  */
 export function parsePin(
   search: string,

@@ -19,8 +19,8 @@ export const TEST_WEATHER: readonly { label: string; kind: WeatherKind }[] = [
 /**
  * The "Thử ngày đêm" card of the Settings screen: pins the time of day and the weather on this
  * device only, so they can be looked at on production without waiting for the shared clock.
- * Nothing is saved or sent: the sea starts at a clear noon, "Theo giờ thật" follows the shared UTC
- * day and weather on this device, and a reload goes back to the clear noon.
+ * Nothing is saved or sent: the sea follows the real shared day and weather, a button here pins
+ * one part on this device, "Giờ thật" follows the shared clock again, and a reload does too.
  */
 export function createWeatherTestSection(): HTMLElement {
   const section = document.createElement("section");
@@ -34,7 +34,7 @@ export function createWeatherTestSection(): HTMLElement {
   const note = document.createElement("p");
   note.className = "update-note";
   note.textContent =
-    "Mặc định là trưa quang đãng. Chỉ đổi trên máy này; bấm “Theo giờ thật” để xem ngày đêm và thời tiết chung, tải lại trang sẽ về trưa.";
+    "Biển theo giờ thật và thời tiết chung cho mọi người (cũng là giờ quyết định cá nào dễ cắn). Chỉ đổi trên máy này; bấm “Giờ thật” hoặc tải lại trang để quay về.";
 
   const buttons: { el: HTMLButtonElement; test: () => boolean }[] = [];
   const chip = (label: string, test: () => boolean, apply: () => void) => {
@@ -57,7 +57,7 @@ export function createWeatherTestSection(): HTMLElement {
     hour?: number | undefined;
     weather?: WeatherKind;
   }) => {
-    // The first press after "Theo giờ thật" pins both parts, from a sunny noon: a weather picked
+    // The first press after "Giờ thật" pins both parts, from a sunny noon: a weather picked
     // while the shared clock is at night would otherwise be drawn in the dark, and an hour picked
     // while the clock weather is rain would be drawn in the rain, so no button seemed to do what
     // it says.
@@ -90,7 +90,7 @@ export function createWeatherTestSection(): HTMLElement {
       ),
     );
   const reset = chip(
-    "Theo giờ thật",
+    "Giờ thật",
     () => currentPin() === undefined,
     () => pinAtmosphere(undefined),
   );

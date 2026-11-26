@@ -19,6 +19,8 @@ async function run(file, port) {
 Object.assign(process.env, {
   VITE_SUPABASE_URL: "http://127.0.0.1:18999",
   VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
+  // The sea follows the real clock; a test must not depend on the hour it is run at.
+  VITE_TEST_NOON: "on",
 });
 let dev;
 let production;
