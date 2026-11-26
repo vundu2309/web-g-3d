@@ -2443,6 +2443,35 @@ dialog.ocean-map::backdrop {
   color: #153b80 !important;
 }
 
+/* The market page's "Giá hôm nay" line: what this market pays today, and the others (decision 0022). */
+.market-today {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  margin: 0 2px 8px;
+  padding: 6px 10px;
+  border: 2px solid #153b8030;
+  border-radius: 12px;
+  background: #fff;
+  color: #385b8d;
+  font:
+    700 12px/1.25 "Be Vietnam Pro",
+    sans-serif;
+}
+.market-today strong {
+  color: #153b80;
+  font:
+    800 14px/1.2 "Baloo 2",
+    sans-serif;
+}
+.market-today strong.is-up {
+  color: #b3541e;
+}
+.market-today strong.is-down {
+  color: #385b8d;
+}
+
 /* Settings: two panels side by side (day and weather test, version) and the way back at the foot. */
 .crew-head h3 {
   flex: 1;

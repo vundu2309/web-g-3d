@@ -62,8 +62,23 @@ export function supabaseEconomy(): EconomyApi {
   return {
     // A server that has not got the upgrades migration yet answers without a loadout: the
     // defaults then.
-    async state() {
-      const raw = await call<EconomyState>("economy_state");
+    async state(market) {
+      let raw: EconomyState;
+      try {
+        raw = await call<EconomyState>(
+          "economy_state",
+          market === undefined ? undefined : { p_market: market },
+        );
+      } catch (error) {
+        // A server that has not got the market-prices migration yet has no `p_market`: ask the old way.
+        if (
+          market === undefined ||
+          !(error instanceof EconomyError) ||
+          error.failure !== "closed"
+        )
+          throw error;
+        raw = await call<EconomyState>("economy_state");
+      }
       return { ...raw, loadout: loadoutOf(raw.loadout) };
     },
     async recordCatch(fish) {
@@ -88,12 +103,27 @@ export function supabaseEconomy(): EconomyApi {
         p_fish: fish,
         p_caught: Math.max(0, Math.floor(caught)),
       }),
-    sell: (fish) =>
-      call<SellResult>("economy_sell", {
-        p_fish: fish
-          ? fish.map((f) => ({ species: f.species, kg: round2(f.kg) }))
-          : null,
-      }),
+    async sell(fish, market, day) {
+      const list = fish
+        ? fish.map((f) => ({ species: f.species, kg: round2(f.kg) }))
+        : null;
+      try {
+        return await call<SellResult>("economy_sell", {
+          p_fish: list,
+          ...(market === undefined ? {} : { p_market: market }),
+          ...(day === undefined ? {} : { p_day: day }),
+        });
+      } catch (error) {
+        // A server without the market-prices migration: sell at the ordinary price, as before.
+        if (
+          market === undefined ||
+          !(error instanceof EconomyError) ||
+          error.failure !== "closed"
+        )
+          throw error;
+        return call<SellResult>("economy_sell", { p_fish: list });
+      }
+    },
     async buy(kind, tier) {
       const raw = await call<BuyResult>("economy_buy", {
         p_kind: kind,

@@ -593,6 +593,10 @@ The user saw planes, then the patrol ships, vanish as they sailed away. Everythi
 - **A new species** shows "✦ Mới!" on the catch card and a toast "Loài mới: …" (`onDiscover`).
 - **Cost** (not measured on a phone): a hot-spot lookup per slot (about 3 microseconds, cached), the sea's numbers once per cast, three `arc` calls at 10 Hz on each map. The book is drawn only while open. No probe switch yet for the rings; a hub page costs nothing when closed.
 
+### Market prices by market and day (decision 0022, phase P3)
+
+A market pays 85 % to 125 % of the ordinary price, different for each of the five markets every Vietnamese day. `src/ocean/market-prices.ts` is the client's copy of `economy_private.market_pct` (`supabase/migrations/20261127120000_market_prices.sql`); both use one integer mix and are pinned by the same golden table. The market page asks `economy.state(marketId)`, shows "Giá hôm nay" with the other markets' percents, and sells with `sell(fish, marketId, day)` so the price shown is the price paid (yesterday's is honoured across midnight). A server without the migration answers the old way and the page shows no chip. The market id is a client claim (at most +25 %).
+
 ### The hourly event, client side (decision 0020, phase P2)
 
 - **When and where** (`src/ocean/world-event.ts`, pure): every hour of the shared server clock a ring of 45 m radius is on for the first 20 minutes, 250 to 900 m from the harbour, in open or deep water at least 60 m off every coast (hashed from the hour; eight fixed vetted places when no hashed one passes, so there is always a ring). The same for every player.

@@ -1,6 +1,8 @@
 import { CATCH_COOLDOWN_SECONDS } from "../ocean/economy";
 import { heldSpecies, releaseOne, type Inventory } from "../ocean/fishing";
-import { marketAt } from "../ocean/market";
+import { MARKETS, marketAt } from "../ocean/market";
+import { vnDayKey } from "../ocean/game-clock";
+import { pctText } from "../ocean/market-prices";
 import { shipyardAt } from "../ocean/shipyard";
 import {
   EconomyError,
@@ -256,8 +258,11 @@ export function createMarketUi(options: MarketUiOptions) {
     if (busy || !economy) return;
     busy = true;
     try {
+      // At the price the page shows: this market, the day the server said.
       const result = await economy.sell(
         rows ? rows.map(({ species, kg }) => ({ species, kg })) : null,
+        open && !open.yard ? open.id : undefined,
+        current?.market?.day,
       );
       // The fish that were sold leave the store on this device too.
       let stock = options.stock();
@@ -269,7 +274,14 @@ export function createMarketUi(options: MarketUiOptions) {
       await render(`+${coins(result.earned)} xu`);
     } catch (error) {
       options.sound?.("error");
-      await render(undefined, failureText(error));
+      // A page left open for days sells at prices the server no longer honours: say so.
+      const stale =
+        current?.market &&
+        Date.parse(current.market.day) / 86_400_000 < vnDayKey(Date.now()) - 1;
+      await render(
+        undefined,
+        stale ? "Giá chợ đã đổi, xem lại giá mới nhé." : failureText(error),
+      );
     } finally {
       busy = false;
     }
@@ -289,7 +301,7 @@ export function createMarketUi(options: MarketUiOptions) {
     );
     let state: EconomyState;
     try {
-      state = await economy.state();
+      state = await economy.state(open.yard ? undefined : open.id);
     } catch (error) {
       if (dialog.dataset.hub !== hub || view !== mine) return;
       mine.body.replaceChildren();
@@ -342,7 +354,31 @@ export function createMarketUi(options: MarketUiOptions) {
     else drawSell(body, foot, current);
   }
 
+  /** "Giá hôm nay": what this market pays today against the ordinary price, and the other markets. */
+  function priceChip(state: EconomyState): HTMLElement | undefined {
+    const market = state.market;
+    if (!market || !open || open.yard) return undefined;
+    const chip = el("div", "market-today");
+    chip.append(
+      el(
+        "strong",
+        market.pct > 100 ? "is-up" : market.pct < 100 ? "is-down" : undefined,
+        `Giá hôm nay: ${pctText(market.pct)}`,
+      ),
+    );
+    const others = Object.entries(market.all)
+      .filter(([id]) => id !== open!.id)
+      .map(
+        ([id, pct]) =>
+          `${MARKETS.find((m) => m.id === id)?.name.replace(/^Chợ /, "") ?? id} ${pctText(pct)}`,
+      );
+    if (others.length) chip.append(el("span", undefined, others.join(" · ")));
+    return chip;
+  }
+
   function drawSell(body: HTMLElement, foot: HTMLElement, state: EconomyState) {
+    const chip = priceChip(state);
+    if (chip) body.append(chip);
     if (!state.ledger.length) {
       body.append(
         el(

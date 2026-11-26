@@ -437,7 +437,7 @@ do $$declare fn text; begin
     if has_function_privilege('anon', fn, 'execute') then raise exception '% executable by anon', fn; end if;
   end loop;
   foreach fn in array array['economy_private.buy(text,integer)', 'economy_private.set_bait(integer)', 'economy_private.loadout()',
-      'economy_private.loadout_of(uuid)', 'economy_private.state()'] loop
+      'economy_private.loadout_of(uuid)', 'economy_private.state(text)'] loop
     if has_function_privilege('authenticated', fn, 'execute') or has_function_privilege('anon', fn, 'execute') then
       raise exception '% is executable by a client role', fn;
     end if;
@@ -591,6 +591,162 @@ do $$declare r jsonb; begin
   if jsonb_array_length(r) <> 1 or r->0->>'uid' <> '00000000-0000-0000-0000-0000000000c4' then
     raise exception 'b1 sees %', r; end if;
   if r->0->>'name' <> 'Người đi biển' then raise exception 'default name: %', r->0->>'name'; end if;
+end$$;
+-- ---------------------------------------------------------------------------------------------
+-- Market prices and the calendar (supabase/migrations/20261127120000_market_prices.sql).
+reset role;
+
+-- The Vietnamese calendar: the day turns at 17:00 UTC and the week on Monday 00:00 in Vietnam.
+do $$begin
+  if economy_private.game_day('2026-11-25 16:59:59+00') <> date '2026-11-25'
+     or economy_private.game_day('2026-11-25 17:00:00+00') <> date '2026-11-26' then raise exception 'game_day edge'; end if;
+  if economy_private.game_week('2026-11-29 16:59:59+00') <> date '2026-11-23'
+     or economy_private.game_week('2026-11-29 17:00:00+00') <> date '2026-11-30' then raise exception 'game_week edge'; end if;
+  if extract(dow from economy_private.game_week('2026-11-26 05:00:00+00')) <> 1 then raise exception 'a week does not start on Monday'; end if;
+end$$;
+
+-- The percent is the same as src/ocean/market-prices.ts (a table of golden values worked out in
+-- JavaScript), stays inside 85..125, and a missing market is 100 and an unknown one is refused.
+do $$declare r record; bad integer := 0; pct integer; begin
+  for r in select * from (values
+    ('hai-dang', 18262, 85),
+    ('doi-xanh', 18262, 103),
+    ('bai-co', 18262, 121),
+    ('giua-khoi', 18262, 98),
+    ('cuoi-troi', 18262, 119),
+    ('hai-dang', 18263, 101),
+    ('doi-xanh', 18263, 122),
+    ('bai-co', 18263, 99),
+    ('giua-khoi', 18263, 117),
+    ('cuoi-troi', 18263, 94),
+    ('hai-dang', 20599, 102),
+    ('doi-xanh', 20599, 120),
+    ('bai-co', 20599, 97),
+    ('giua-khoi', 20599, 118),
+    ('cuoi-troi', 20599, 95),
+    ('hai-dang', 20600, 121),
+    ('doi-xanh', 20600, 98),
+    ('bai-co', 20600, 116),
+    ('giua-khoi', 20600, 96),
+    ('cuoi-troi', 20600, 114),
+    ('hai-dang', 20999, 92),
+    ('doi-xanh', 20999, 110),
+    ('bai-co', 20999, 87),
+    ('giua-khoi', 20999, 105),
+    ('cuoi-troi', 20999, 85),
+    ('hai-dang', 21500, 97),
+    ('doi-xanh', 21500, 115),
+    ('bai-co', 21500, 92),
+    ('giua-khoi', 21500, 110),
+    ('cuoi-troi', 21500, 90),
+    ('hai-dang', 25000, 122),
+    ('doi-xanh', 25000, 99),
+    ('bai-co', 25000, 117),
+    ('giua-khoi', 25000, 97),
+    ('cuoi-troi', 25000, 115)
+  ) as g(market, day_key, expected) loop
+    pct := economy_private.market_pct(r.market, date '2020-01-01' + (r.day_key - 18262));
+    if pct <> r.expected then raise exception 'market_pct % on day % is % (JS says %)', r.market, r.day_key, pct, r.expected; end if;
+  end loop;
+  select count(*) into bad from economy_private.market_ids m, generate_series(0, 399) d
+    where economy_private.market_pct(m.id, date '2026-01-01' + d) not between 85 and 125;
+  if bad <> 0 then raise exception '% percents outside 85..125', bad; end if;
+  -- Over a year every market has cheap and dear days.
+  if (select min(economy_private.market_pct('hai-dang', date '2026-01-01' + d)) from generate_series(0, 364) d) > 92
+     or (select max(economy_private.market_pct('hai-dang', date '2026-01-01' + d)) from generate_series(0, 364) d) < 118 then
+    raise exception 'a market hardly moves over a year';
+  end if;
+  if economy_private.market_pct(null, date '2026-11-26') <> 100 then raise exception 'no market is not 100'; end if;
+  begin perform economy_private.market_pct('nowhere', date '2026-11-26'); raise exception 'unknown market accepted';
+  exception when sqlstate '22023' then null; end;
+  if economy_private.price_at('ca-ngu', 12.34, 100) <> economy_private.price('ca-ngu', 12.34) then raise exception 'price_at 100 is not price'; end if;
+  -- Rounded half up in whole coins: base 128 at 85 % is 108.8 (109), at 125 % is 160.
+  if economy_private.price_at('ca-ngu', 5, 85) <> 109 or economy_private.price_at('ca-ngu', 5, 125) <> 160 then
+    raise exception 'price_at rounding: % %', economy_private.price_at('ca-ngu', 5, 85), economy_private.price_at('ca-ngu', 5, 125);
+  end if;
+end$$;
+
+-- A player with three fish: the price shown for a market is the price paid there.
+insert into auth.users(id) values ('00000000-0000-0000-0000-0000000000d1');
+insert into economy_private.ledger(user_id, species, kg) values
+  ('00000000-0000-0000-0000-0000000000d1', 'ca-ngu', 12.34),
+  ('00000000-0000-0000-0000-0000000000d1', 'ca-thu', 3.5),
+  ('00000000-0000-0000-0000-0000000000d1', 'ca-com', 0.1);
+-- (Superuser) The expected numbers, read from the database's own private functions.
+select set_config('t.today', economy_private.game_day()::text, false);
+select set_config('t.pct_ct', economy_private.market_pct('cuoi-troi', economy_private.game_day())::text, false);
+select set_config('t.pct_hd_y', economy_private.market_pct('hai-dang', economy_private.game_day() - 1)::text, false);
+select set_config('t.ngu100', economy_private.price('ca-ngu', 12.34)::text, false);
+select set_config('t.thu100', economy_private.price('ca-thu', 3.5)::text, false);
+select set_config('t.com100', economy_private.price('ca-com', 0.1)::text, false);
+select set_config('t.ngu_ct', economy_private.price_at('ca-ngu', 12.34, economy_private.market_pct('cuoi-troi', economy_private.game_day()))::text, false);
+select set_config('t.thu_ct', economy_private.price_at('ca-thu', 3.5, economy_private.market_pct('cuoi-troi', economy_private.game_day()))::text, false);
+select set_config('t.com_ct', economy_private.price_at('ca-com', 0.1, economy_private.market_pct('cuoi-troi', economy_private.game_day()))::text, false);
+select set_config('t.thu_hd_y', economy_private.price_at('ca-thu', 3.5, economy_private.market_pct('hai-dang', economy_private.game_day() - 1))::text, false);
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000d1', true);
+do $$declare s jsonb; shown bigint; r jsonb; today date := current_setting('t.today')::date; begin
+  -- No market: the old prices exactly, and the report of every market's percent.
+  s := public.economy_state();
+  if (s->'market'->>'pct')::int <> 100 then raise exception 'state without a market is not 100: %', s->'market'; end if;
+  if (select count(*) from jsonb_object_keys(s->'market'->'all')) <> 5 then raise exception 'market.all %', s->'market'->'all'; end if;
+  if (s->'market'->>'day')::date <> today then raise exception 'market.day'; end if;
+  if (select sum((e->>'price')::int) from jsonb_array_elements(s->'ledger') e)
+     <> current_setting('t.ngu100')::int + current_setting('t.thu100')::int + current_setting('t.com100')::int then
+    raise exception 'prices with no market changed';
+  end if;
+  -- In a market: every row at that market's percent, and market.all agrees.
+  s := public.economy_state('cuoi-troi');
+  if (s->'market'->>'pct')::int <> current_setting('t.pct_ct')::int
+     or (s->'market'->'all'->>'cuoi-troi')::int <> current_setting('t.pct_ct')::int then raise exception 'state market pct'; end if;
+  select sum((e->>'price')::int) into shown from jsonb_array_elements(s->'ledger') e;
+  if shown <> current_setting('t.ngu_ct')::int + current_setting('t.thu_ct')::int + current_setting('t.com_ct')::int then
+    raise exception 'state prices in a market: %', shown;
+  end if;
+  begin perform public.economy_state('nowhere'); raise exception 'unknown market accepted by state';
+  exception when sqlstate '22023' then null; end;
+  begin perform public.economy_sell(null, 'nowhere'); raise exception 'unknown market accepted by sell';
+  exception when sqlstate '22023' then null; end;
+  -- A sale in that market pays what the page showed.
+  r := public.economy_sell('[{"species":"ca-ngu","kg":12.34}]'::jsonb, 'cuoi-troi', today);
+  if (r->>'earned')::int <> current_setting('t.ngu_ct')::int then raise exception 'sold one fish: %', r; end if;
+  -- The price of yesterday is honoured (a player who looked just before midnight); older and future days are not.
+  r := public.economy_sell('[{"species":"ca-thu","kg":3.5}]'::jsonb, 'hai-dang', today - 1);
+  if (r->>'earned')::int <> current_setting('t.thu_hd_y')::int then raise exception 'yesterday price: %', r; end if;
+  begin perform public.economy_sell(null, 'hai-dang', today - 2); raise exception 'stale prices accepted';
+  exception when sqlstate '22023' then null; end;
+  begin perform public.economy_sell(null, 'hai-dang', today + 1); raise exception 'future prices accepted';
+  exception when sqlstate '22023' then null; end;
+  if jsonb_array_length(public.economy_state()->'ledger') <> 1 then raise exception 'a refused sale changed the ledger'; end if;
+  -- An old client that sends only the fish list: the ordinary price (percent 100).
+  r := public.economy_sell(p_fish := null);
+  if (r->>'earned')::int <> current_setting('t.com100')::int then raise exception 'old-style sale: %', r; end if;
+end$$;
+
+-- One function of each name (two would make a call ambiguous for PostgREST), and who may call what.
+reset role;
+do $$declare fn text; begin
+  if (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and p.proname = 'economy_state') <> 1
+     or (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and p.proname = 'economy_sell') <> 1
+     or (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and p.proname = 'economy_record_catch') <> 1 then
+    raise exception 'an economy function has two versions';
+  end if;
+  if has_function_privilege('anon', 'public.economy_state(text)', 'execute')
+     or has_function_privilege('anon', 'public.economy_sell(jsonb,text,date)', 'execute')
+     or not has_function_privilege('authenticated', 'public.economy_state(text)', 'execute')
+     or not has_function_privilege('authenticated', 'public.economy_sell(jsonb,text,date)', 'execute') then
+    raise exception 'the new public functions have the wrong privileges';
+  end if;
+  foreach fn in array array['economy_private.state(text)', 'economy_private.sell(jsonb,text,date)', 'economy_private.market_pct(text,date)',
+      'economy_private.price_at(text,numeric,integer)', 'economy_private.game_day(timestamptz)', 'economy_private.game_week(timestamptz)'] loop
+    if has_function_privilege('authenticated', fn, 'execute') or has_function_privilege('anon', fn, 'execute') then
+      raise exception '% is executable by a client role', fn;
+    end if;
+  end loop;
+  if has_table_privilege('authenticated', 'economy_private.market_ids', 'select') then raise exception 'market_ids readable'; end if;
 end$$;
 rollback;
 select 'economy ok' as result;

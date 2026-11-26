@@ -11,6 +11,8 @@ import {
 } from "./upgrades.ts";
 import { SEA_BOUND } from "./model.ts";
 import { readLeaderboard, type Leaderboard } from "./leaderboard.ts";
+import { vnDateString, vnDayKey } from "./game-clock.ts";
+import { marketPct, marketPcts, priceAt } from "./market-prices.ts";
 
 /** The most fish the one-time import moves (the server says the same), and the count it accepts. */
 export const IMPORT_MAX_FISH = 100;
@@ -29,9 +31,20 @@ export interface LedgerFish {
   /** Coins this fish sells for, priced by the database. */
   price: number;
 }
+/** What the markets pay today (decision 0022): the percent of the ordinary price, and the day it is for. */
+export interface MarketPrices {
+  /** The Vietnamese day, "YYYY-MM-DD". */
+  day: string;
+  /** The percent of the market asked about (100 when none was). */
+  pct: number;
+  /** The percent of every market, by id. */
+  all: Record<string, number>;
+}
 export interface EconomyState {
   coins: number;
   ledger: LedgerFish[];
+  /** Absent from a server that has not got the market-prices migration. */
+  market?: MarketPrices;
   /** The upgrades owned (rod, bait, boat) and the bait in use. */
   loadout: Loadout;
 }
@@ -89,11 +102,16 @@ export class EconomyError extends Error {
 }
 
 export interface EconomyApi {
-  state(): Promise<EconomyState>;
+  /** The wallet, the ledger (priced for `market` today when one is given) and the loadout. */
+  state(market?: string): Promise<EconomyState>;
   /** A fish the player landed and kept. */
   recordCatch(fish: SoldFish): Promise<void>;
-  /** Sells the listed fish, or everything when `fish` is null. */
-  sell(fish: readonly SoldFish[] | null): Promise<SellResult>;
+  /** Sells the listed fish, or everything when `fish` is null. At the price of `market` on `day` (the day the page showed: today or yesterday); without them the ordinary price. */
+  sell(
+    fish: readonly SoldFish[] | null,
+    market?: string,
+    day?: string,
+  ): Promise<SellResult>;
   /** The profile (counts, records, boat position). */
   profile(): Promise<Profile>;
   /** Puts the lightest fish of a species back in the sea (it pays nothing). */
@@ -136,17 +154,39 @@ export function memoryEconomy(
   let imported = false;
   let pose: { x: number; z: number; heading: number; at: number } | undefined;
   let loadout: Loadout = loadoutOf(options.loadout);
-  const priced = (row: {
-    id: number;
-    species: string;
-    kg: number;
-  }): LedgerFish => ({
+  const priced = (
+    row: {
+      id: number;
+      species: string;
+      kg: number;
+    },
+    pct = 100,
+  ): LedgerFish => ({
     ...row,
-    price: priceOf(speciesById(row.species)!, row.kg),
+    price: priceAt(priceOf(speciesById(row.species)!, row.kg), pct),
   });
+  /** The percent of a market on a day (an unknown market is refused, as the database does). */
+  const pctOf = (market: string | undefined, dayKey: number) => {
+    try {
+      return marketPct(market, dayKey);
+    } catch {
+      throw new EconomyError("invalid");
+    }
+  };
   return {
-    async state() {
-      return { coins, ledger: ledger.map(priced), loadout: { ...loadout } };
+    async state(market) {
+      const dayKey = vnDayKey(now());
+      const pct = pctOf(market, dayKey);
+      return {
+        coins,
+        ledger: ledger.map((row) => priced(row, pct)),
+        loadout: { ...loadout },
+        market: {
+          day: vnDateString(dayKey),
+          pct,
+          all: marketPcts(dayKey),
+        },
+      };
     },
     async recordCatch(fish) {
       const species = speciesById(fish.species);
@@ -234,7 +274,13 @@ export function memoryEconomy(
       imported = true;
       return { imported: moved, already: false };
     },
-    async sell(fish) {
+    async sell(fish, market, day) {
+      const today = vnDayKey(now());
+      const dayKey = day === undefined ? today : Date.parse(day) / 86_400_000;
+      // Today's prices, or yesterday's (a player who looked just before midnight).
+      if (dayKey !== today && dayKey !== today - 1)
+        throw new EconomyError("invalid");
+      const pct = pctOf(market, dayKey);
       const picked: number[] = [];
       if (fish === null) picked.push(...ledger.map((row) => row.id));
       else {
@@ -251,7 +297,7 @@ export function memoryEconomy(
         }
       }
       const rows = ledger.filter((row) => picked.includes(row.id));
-      const earned = rows.reduce((sum, row) => sum + priced(row).price, 0);
+      const earned = rows.reduce((sum, row) => sum + priced(row, pct).price, 0);
       ledger = ledger.filter((row) => !picked.includes(row.id));
       coins += earned;
       return { sold: rows.length, earned, coins };

@@ -161,9 +161,14 @@ try {
     "the X is on screen",
   );
   await page.screenshot({ path: `${output}/market-hub.png` });
-  // Sell the lobsters: the database prices them; the wallet shows exactly that.
+  // The page says what the market pays today, and selling pays that price: the database prices
+  // the fish for the market (Hải Đăng), and the wallet shows exactly that.
+  assert.match(
+    await page.locator(".market-today").innerText(),
+    /Giá hôm nay: (\+|−|như)/,
+  );
   const lobsterPrice = await page.evaluate(async () => {
-    const state = await window.money.state();
+    const state = await window.money.state("hai-dang");
     return state.ledger
       .filter((r) => r.species === "tom-hum")
       .reduce((s, r) => s + r.price, 0);
@@ -183,7 +188,7 @@ try {
   );
   // Sell everything that is left.
   const rest = await page.evaluate(async () => {
-    const state = await window.money.state();
+    const state = await window.money.state("hai-dang");
     return state.ledger.reduce((s, r) => s + r.price, 0) + state.coins;
   });
   await page.locator(".market-sell-all").click();
