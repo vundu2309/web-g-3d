@@ -18,66 +18,80 @@ const SIZES = [
 ];
 const summary = [];
 try {
-  for (const [width, height] of SIZES) {
-    const context = await browser.newContext({
-      viewport: { width, height },
-      hasTouch: false,
-    });
-    const page = await context.newPage();
-    page.on("pageerror", (error) => problems.push(error.message));
-    await page.goto(
-      `${process.env.TEST_BASE_URL}?daytime=12&weather=clear${FAST_SEA}`,
-    );
-    await page.getByRole("button", { name: "Ra khơi" }).waitFor();
-    await page.evaluate(async () => {
-      localStorage.clear();
-      const { startOcean } = await import("/src/app/ocean.ts");
-      const connect = async (onBoats) => {
-        onBoats(
-          [
-            {
-              uid: "me",
-              name: "Bạn",
-              session: "s",
-              x: 0,
-              z: 0,
-              heading: 0,
-              fishing: false,
-              updatedAt: Date.now(),
-              tier: 0,
-              rod: 0,
-            },
-            {
-              uid: "lan",
-              name: "Lan",
-              session: "s",
-              x: 120,
-              z: -60,
-              heading: 1,
-              fishing: false,
-              updatedAt: Date.now(),
-              tier: 0,
-              rod: 0,
-            },
-          ],
-          Date.now(),
-        );
-        return {
-          uid: "me",
-          pose: { x: 0, z: 0, heading: 0, fishing: false },
-          dispose() {},
-          publish: async () => {},
-        };
+  const context = await browser.newContext({
+    viewport: { width: SIZES[0][0], height: SIZES[0][1] },
+    hasTouch: false,
+  });
+  const page = await context.newPage();
+  page.on("pageerror", (error) => problems.push(error.message));
+  await page.goto(
+    `${process.env.TEST_BASE_URL}?daytime=12&weather=clear${FAST_SEA}`,
+  );
+  await page.getByRole("button", { name: "Ra khơi" }).waitFor();
+  await page.evaluate(async () => {
+    localStorage.clear();
+    const { startOcean } = await import("/src/app/ocean.ts");
+    const connect = async (onBoats) => {
+      onBoats(
+        [
+          {
+            uid: "me",
+            name: "Bạn",
+            session: "s",
+            x: 0,
+            z: 0,
+            heading: 0,
+            fishing: false,
+            updatedAt: Date.now(),
+            tier: 0,
+            rod: 0,
+          },
+          {
+            uid: "lan",
+            name: "Lan",
+            session: "s",
+            x: 120,
+            z: -60,
+            heading: 1,
+            fishing: false,
+            updatedAt: Date.now(),
+            tier: 0,
+            rod: 0,
+          },
+        ],
+        Date.now(),
+      );
+      return {
+        uid: "me",
+        pose: { x: 0, z: 0, heading: 0, fishing: false },
+        dispose() {},
+        publish: async () => {},
       };
-      window.stop = startOcean(document.querySelector("#app"), () => {}, {
-        connect,
-        onScene: (s) => (window.oceanScene = s),
-      });
+    };
+    window.stop = startOcean(document.querySelector("#app"), () => {}, {
+      connect,
+      onScene: (s) => (window.oceanScene = s),
     });
-    await page
-      .getByText("Đã vào biển chung", { exact: false })
-      .waitFor({ timeout: 90000 });
-    await page.waitForTimeout(1200);
+  });
+  await page
+    .getByText("Đã vào biển chung", { exact: false })
+    .waitFor({ timeout: 90000 });
+  await page.waitForTimeout(1200);
+
+  for (const [width, height] of SIZES) {
+    // The sea is booted once (10 to 15 s under software WebGL); each size is a resize of the same page.
+    await page.setViewportSize({ width, height });
+    if (
+      await page.evaluate(
+        () => document.querySelector("dialog.ocean-map")?.open,
+      )
+    ) {
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(
+        () => document.querySelector("dialog.ocean-map")?.open === false,
+      );
+    }
+    await page.waitForTimeout(300);
 
     const mini = page.locator(".ocean-minimap");
     const gear = page.locator('[data-ocean="settings"]');
@@ -224,8 +238,8 @@ try {
     summary.push(
       `${tag}: map ${box.width.toFixed(0)} px, ${rows.length} places`,
     );
-    await context.close();
   }
+  await context.close();
   assert.deepEqual(problems, []);
   console.log(`map: ${summary.join("; ")}`);
 } finally {
