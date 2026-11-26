@@ -42,7 +42,7 @@ Vercel need the user's say. An agent's report is not approval.
   scripts when they merge `main`. A running session or an old worktree does not get them. Only steps that are
   enforced by a mechanism (step 3) hold for every session.
 - More agents cost more and add moving parts; they are used for parallel work, a clean context or an
-  independent check, not by default.
+  independent check, not by default, except where the Change contract in `AGENTS.md` requires a review (two or more files outside `docs/`, `server/`, `supabase/`, `src/platform`, or money, accounts and security).
 - Nothing here has been measured on a real phone; the game's phone behaviour is still checked by the user.
 
 ## Known open items at the time of writing

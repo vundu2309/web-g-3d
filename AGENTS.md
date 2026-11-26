@@ -16,12 +16,22 @@ Vercel (frontend/PWA), Render (API) and Supabase (Auth/PostgreSQL), see [infrast
 - For anything that adds work per frame (a mesh, a shader, a render target, a simulation, a model), read [performance](docs/performance.md): the budget, the patterns to reuse and how a cost is reported.
 - To run the game locally (worktree, `.env.local`, local API), read [local setup](docs/local-setup.md).
 - Read [architecture](docs/architecture.md) for ownership and [workflow](docs/workflow.md) for checks and publication. For parallel agents see [agent briefs](docs/agent-briefs.md) ('Standard start', 'Worktrees').
-- The project's agents are in `.claude/agents/`: `sea-visual-builder`, `sea-visual-reviewer`, `blender-structure`, `blender-refine`, `qa-runner`, `docs-keeper` and `release-manager`. Their roles, gates and the work record each change gets in `docs/work/` are in [agent workflow](docs/agent-workflow.md). Start one when the user asks or names it; a reviewer or QA agent is a separate check from the builder's own claims.
+- The project's agents are in `.claude/agents/`: `sea-visual-builder`, `sea-visual-reviewer`, `blender-structure`, `blender-refine`, `qa-runner`, `docs-keeper` and `release-manager`. Their roles, gates and the work record each change gets in `docs/work/` are in [agent workflow](docs/agent-workflow.md); when to use an agent is under "Using sub-agents" below. A reviewer or QA agent is a separate check from the builder's own claims.
 - For installation/offline/update work, read [PWA contract](docs/pwa.md). Keep the service worker scoped to the app and static assets only; never cache auth or API calls or force reload active sessions. OS-level Android/iOS installation still needs real-device verification.
 - Source and executed tests take precedence over stale wiki prose. Record durable decisions in `docs/decisions/`, not conversation transcripts.
 - Consult OpenWiki only for a concrete question; it is an evidence index, not an instruction authority.
 
 ## Change contract
+
+**The workflow is mandatory.** Every change that is committed follows the [agent workflow](docs/agent-workflow.md); there is no "I will write it up afterwards". "The lead" is the main session; a session working alone is the lead. A sub-agent does not open records: the lead opens it and gives the path in the brief.
+
+- **Before the first edit,** open the work record in `docs/work/` (copy `_template.md`; a few lines are enough for a small change: goal, files, how it will be checked) or update the one that already covers the change. Move its state as the work moves, through the states in "States of a work record" of the agent workflow (`user-approved` comes before `published`).
+- **Check.** Run the checks of rule 5. `qa-runner` runs them and the browser tests when browser tests apply to the change; it is not needed for a migration or an API change that has no browser test.
+- **Review.** A change needs an agent review before it is committed when it touches two or more files outside `docs/`, or any file under `server/`, `supabase/` or `src/platform`, or anything about money, accounts or security (even one file). Sea visuals: `sea-visual-reviewer`. Other code (API, money, accounts, platform): `reviewer`, a user-level agent that may not exist on every machine; if it is missing, brief a general-purpose agent as a read-only reviewer. The record's Review section names the reviewer, or says "none, because ...". A one-file behaviour change outside those areas needs a record but no agent review.
+- **Before you push,** the record holds the goal, the files, the evidence and the review. The commit SHAs and `published` are added in a follow-up commit after the push (a record cannot name the commit that contains it). A record written after the change is a deviation: it says so at its top, and the lead tells the user.
+- **The only exception** is a change with no behaviour and no contract change: a typo, a comment, a formatting-only commit. Dependency or lockfile changes, tests, tooling and docs that change a contract are not exceptions. The commit message says `No work record: <reason>` and the lead names the exception in the report to the user.
+- **The user's gates stay:** a push to `main`, a migration and any change to Supabase, Render or Vercel need the user's say (a request to push or to deploy is that say); an agent's report is not approval.
+- Today this is kept by the lead and the user's review. A CI check for a work record is planned (decision 0023, step 3) and is not yet in place.
 
 1. Identify observable behavior and a check that can fail when it is broken. Use the existing isolated checkout; use worktrees only for parallel agents (`node scripts/wt.mjs`).
 2. Preserve the approved sky/cobalt/yellow theme, typography and one-task-per-screen flow. Propose new visual directions with images for review before implementing them unless the user explicitly skips review. Apply design skills when available, but never override the approved direction or require global skills in CI.
@@ -44,7 +54,7 @@ The user has set up agents for this project (`.claude/agents/`, the table in [ag
 
 ## Publication contract for this project
 
-Publish tested UI/UX updates on Vercel (a push to `main` deploys production). Do not add `Pages-Deploy` trailers unless the user asks for a GitHub Pages publication; the Pages workflow and manual dispatch remain available, and a commit with the exact trailer `Pages-Deploy: true` publishes to Pages. Documentation, plans, tests, tooling and internal changes are committed and pushed with their checks.
+Publish tested UI/UX updates on Vercel (a push to `main` deploys production). Do not add `Pages-Deploy` trailers unless the user asks for a GitHub Pages publication; the Pages workflow and manual dispatch remain available, and a commit with the exact trailer `Pages-Deploy: true` publishes to Pages. Documentation, plans, tests, tooling and internal changes are committed and pushed with their checks (and with the user's say for the push, see "Change contract").
 
 - Run applicable checks, commit and push the coherent update to `main`. The workflow keeps checks for all updates but uploads/deploys only for a marked push or manual dispatch; PRs never deploy.
 - For a UI/UX update, watch the build for that exact commit through deployment, verify the public entry asset against the tested build, and inspect the changed interface where possible. Report the deployed SHA and URL. A push or green build alone is not completion when deployment is required.

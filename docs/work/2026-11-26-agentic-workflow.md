@@ -27,14 +27,15 @@ the player.
 
 ## Plan and owners
 
-| Step | Agent                              | Files owned                                                                                              | State                                                            |
-| ---- | ---------------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| 0    | lead                               | `docs/agent-workflow.md`, `AGENTS.md`, `docs/work/` (3 records), the Performance note in `docs/ocean.md` | done, pushed (`09807dc`)                                         |
-| 1    | lead (trial: `qa-runner`)          | `tests/support/fast-sea.mjs`, `tests/ocean-map-browser.mjs`, `scripts/lib/dev.mjs`, `docs/workflow.md`   | in progress: `ocean-map` and `ocean-market` done; the rest below |
-| 2    | lead                               | a spec template next to `docs/work/_template.md`                                                         | not started                                                      |
-| 3    | lead                               | `.claude/settings.json` (hooks, permissions), a CI check for a work record                               | not started; to follow step 2                                    |
-| 4    | `sea-visual-builder`, reviewer, QA | the work records of the changes that use them                                                            | not started (one trial of reviewer and QA only)                  |
-| 5    | lead                               | a table in this record                                                                                   | not started                                                      |
+| Step | Agent                              | Files owned                                                                                                | State                                                               |
+| ---- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| 0    | lead                               | `docs/agent-workflow.md`, `AGENTS.md`, `docs/work/` (3 records), the Performance note in `docs/ocean.md`   | done, pushed (`09807dc`)                                            |
+| 0b   | lead                               | `AGENTS.md` (the workflow is mandatory), `docs/agent-workflow.md`, `docs/decisions/0023-*.md`, this record | in progress (this record was updated before `AGENTS.md` was edited) |
+| 1    | lead (trial: `qa-runner`)          | `tests/support/fast-sea.mjs`, `tests/ocean-map-browser.mjs`, `scripts/lib/dev.mjs`, `docs/workflow.md`     | in progress: `ocean-map` and `ocean-market` done; the rest below    |
+| 2    | lead                               | a spec template next to `docs/work/_template.md`                                                           | not started                                                         |
+| 3    | lead                               | `.claude/settings.json` (hooks, permissions), a CI check for a work record                                 | not started; to follow step 2                                       |
+| 4    | `sea-visual-builder`, reviewer, QA | the work records of the changes that use them                                                              | not started (one trial of reviewer and QA only)                     |
+| 5    | lead                               | a table in this record                                                                                     | not started                                                         |
 
 ## Evidence
 
@@ -67,6 +68,23 @@ Nothing in steps 1 to 5 has been reviewed by an agent yet.
   faster; `578ecaf` the QA environment sets no API address.
 - Deploys checked: Vercel reported success for `09807dc`, `e498144` and `004a752`. Nothing here is visible
   to a player.
+
+## Second correction (2026-11-26, after the user's questions)
+
+The user pointed out that the lead had gone against the project's own rule: records were opened after the
+work and after the pushes. The user asked for the convention to say that following the workflow is
+**mandatory**. This record was updated before `AGENTS.md` was edited. Another session had added a
+"Using sub-agents" section to `AGENTS.md` (the default "spawn an agent only when asked" does not apply here);
+an earlier line of this work ("start one when the user asks or names it") contradicted it and is replaced.
+Prose alone is not enforcement: the CI check for a work record is still step 3 of the decision, not done.
+
+The `reviewer` agent reviewed the wording and said **changes needed** (nine findings). The fixes: the SHAs are
+added after the push; the full state list is referenced; the review threshold is stated (two or more files
+outside `docs/`, or `server/`, `supabase/`, `src/platform`, or money, accounts and security); `qa-runner` only
+when browser tests apply; `sea-visual-reviewer` for sea visuals and `reviewer` (user-level, may be missing) for
+the rest; the exception is listed and its exclusions named; "the lead" is defined; the Publication contract
+points to the user's say; stage 6 says what to show when there are no images; decision 0023 matches. The fixed
+text was **not** reviewed again by an agent.
 
 ## Follow-ups
 
