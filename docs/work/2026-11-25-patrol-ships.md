@@ -24,11 +24,11 @@ decision: docs/decisions/0019-patrol-ships.md
 
 ## Plan and owners
 
-| Step | Agent | Files owned | State |
-| ---- | ----- | ----------- | ----- |
-| Routes by the shared clock | lead | `src/ocean/patrol-routes.ts` | published |
-| Model | lead (Blender MCP) | `tools/blender/patrol_boat.py`, `public/models/boat-patrol.glb`, `src/ocean/boat-tier.ts` (`PATROL_MODEL`) | published |
-| Lights and collision | lead | `src/ocean/patrol-lights.ts`, `patrol-light-plan.ts`, `boat-physics.ts` (`setShips`) | published |
+| Step                       | Agent              | Files owned                                                                                                | State     |
+| -------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------- | --------- |
+| Routes by the shared clock | lead               | `src/ocean/patrol-routes.ts`                                                                               | published |
+| Model                      | lead (Blender MCP) | `tools/blender/patrol_boat.py`, `public/models/boat-patrol.glb`, `src/ocean/boat-tier.ts` (`PATROL_MODEL`) | published |
+| Lights and collision       | lead               | `src/ocean/patrol-lights.ts`, `patrol-light-plan.ts`, `boat-physics.ts` (`setShips`)                       | published |
 
 ## Evidence
 

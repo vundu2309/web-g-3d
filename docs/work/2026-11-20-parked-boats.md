@@ -25,10 +25,10 @@ Answers to the design questions: the position comes from Supabase, it is kept fo
 
 ## Plan and owners
 
-| Step | Agent | Files owned | State |
-| ---- | ----- | ----------- | ----- |
-| Parked-boats read | lead | `supabase/migrations/20261121130000_parked_boats.sql`, `server/ocean.mjs`, `server/app.mjs` | published |
-| Client: draw and collide | lead | `src/ocean/boat-physics.ts` (`setParked`), the boat drawing in `src/ocean/` | published |
+| Step                     | Agent | Files owned                                                                                 | State     |
+| ------------------------ | ----- | ------------------------------------------------------------------------------------------- | --------- |
+| Parked-boats read        | lead  | `supabase/migrations/20261121130000_parked_boats.sql`, `server/ocean.mjs`, `server/app.mjs` | published |
+| Client: draw and collide | lead  | `src/ocean/boat-physics.ts` (`setParked`), the boat drawing in `src/ocean/`                 | published |
 
 ## Evidence
 
