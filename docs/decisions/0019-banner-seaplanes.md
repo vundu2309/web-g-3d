@@ -18,7 +18,7 @@ The user played it and rarely saw a plane, and asked about night. Measured: plan
 
 ## Fade at the edge of the range (2026-11-25)
 
-The user noticed planes vanishing suddenly when they sailed away: a plane was switched off at the draw range. Now it dissolves by dithered fade, as the animals do: a distance taper over the last 160 m of the range and a time fade (1.5 s in, 1 s out) when the set of drawn planes changes (`plane-fade.ts`). The plane, propeller and banner use the dithered tile fade; the glow of the lights shrinks.
+The user noticed planes vanishing suddenly when they sailed away: a plane was switched off at the draw range. Now it dissolves by dithered fade, as the animals do: a distance taper over the last 160 m of the range and a time fade (1.5 s in, 1 s out) when the set of drawn planes changes (`distance-fade.ts`). The plane, propeller and banner use the dithered tile fade; the glow of the lights shrinks.
 
 ## Limits
 

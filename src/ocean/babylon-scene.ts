@@ -334,8 +334,9 @@ export class OceanScene {
         .then((assets) => {
           if (this.scene.isDisposed) return;
           this.cats = new CatFleet(this.scene, assets, {
-            range: touch ? 130 : 220,
+            range: touch ? 180 : 300,
             limit: touch ? 3 : 5,
+            band: 70,
           });
         })
         .catch((error) => console.warn("No rowing cats.", error));

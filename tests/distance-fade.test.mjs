@@ -7,7 +7,7 @@ import {
   approach,
   distanceAmount,
   fadeAmount,
-} from "../src/ocean/plane-fade.ts";
+} from "../src/ocean/distance-fade.ts";
 
 const RANGE = 600;
 

@@ -154,8 +154,9 @@ export function createBeacon(
     mesh.isVisible = false;
   }
   return {
-    update(time) {
-      const level = beaconLevel(SEA.grade.y, SEA.weather.y, SEA.weather.z);
+    update(time, amount = 1) {
+      const level =
+        beaconLevel(SEA.grade.y, SEA.weather.y, SEA.weather.z) * amount;
       const on = level > 0.01;
       halo.isVisible = on;
       beam.isVisible = on;
@@ -175,7 +176,8 @@ export function createBeacon(
  * like a flame. `update(time)` once a frame returns the level (0..1) for the lamp's glass.
  */
 export interface LampLight {
-  update(time: number): number;
+  /** `amount` (0..1) thins the glow out (a boat that is fading away). */
+  update(time: number, amount?: number): number;
   /** Hides the halo and the pool (the boat is switched off and no longer updates them). */
   hide(): void;
   dispose(): void;

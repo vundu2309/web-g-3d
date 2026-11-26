@@ -97,5 +97,22 @@ export function searchWedge() {
   return { positions, uvs, indices: [0, 2, 1, 1, 2, 3] };
 }
 
-/** A ship farther than this from the camera (m) draws none of its lights. */
+/**
+ * How far a ship's lights reach (m) and how they thin out, never cut in one frame: the searchlight's
+ * wedge lies on the sea and is drawn within `LIGHT_RANGE`, thinning over the last `WEDGE_BAND`; the
+ * halos of the light bar and the mast lantern, the lights a ship at night is seen by from far, are
+ * drawn within `HALO_RANGE`, thinning over the last `HALO_BAND` (the taper is
+ * `distanceAmount` in distance-fade.ts).
+ */
 export const LIGHT_RANGE = 380;
+export const WEDGE_BAND = 120;
+export const HALO_RANGE = 1100;
+export const HALO_BAND = 300;
+/**
+ * A halo is never smaller on the screen than this (radians of its radius): a 2.4 m halo is under a
+ * pixel from 400 m, so past that it is made larger with the distance, as a distant light is.
+ */
+export const HALO_ANGLE = 0.011;
+/** The scale to give a halo whose own size is `size` m, at `distance` m, on a parent scaled `base` (never below `base`). */
+export const haloScale = (size: number, distance: number, base: number) =>
+  Math.max(base, (2 * HALO_ANGLE * distance) / size);

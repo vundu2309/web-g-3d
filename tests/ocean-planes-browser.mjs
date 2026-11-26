@@ -245,7 +245,7 @@ try {
     // 4b. At the edge of the range a plane dissolves, it does not vanish: flying away from the camera
     //     its amount falls steadily to nothing, and it is switched off only when it is gone. (It thins
     //     with distance, or fades out because nearer planes took its place among the four drawn: either
-    //     way never in one frame; the distance taper alone is pinned in tests/plane-fade.test.mjs.)
+    //     way never in one frame; the distance taper alone is pinned in tests/distance-fade.test.mjs.)
     const fade = await page.evaluate(async () => {
       const scene = window.oceanScene;
       const fleet = scene.skyPlanes();

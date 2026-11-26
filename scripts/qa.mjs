@@ -22,6 +22,7 @@ const GROUPS = {
     "ocean-rank",
     "ocean-planes",
     "ocean-edge",
+    "ocean-fade",
     "ocean-input",
     "ocean-steer",
     "ocean-stick",
