@@ -4,7 +4,14 @@
  * draw their own page into it, so changing hub is one tap on the rail, not close and open again.
  * It owns the dialog's hub classes: a hub only fills the page it is given.
  */
-export type HubId = "stock" | "market" | "yard" | "rank" | "crew" | "settings";
+export type HubId =
+  | "stock"
+  | "market"
+  | "yard"
+  | "rank"
+  | "book"
+  | "crew"
+  | "settings";
 
 export interface HubNav {
   /** Whether the tab shows: the market only near a pier, the shipyard only near a yard, the ranking anywhere (all with a server economy). */
@@ -19,6 +26,7 @@ const ICONS: Record<HubId | "close", string> = {
   market:
     '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5h4.5a1.8 1.8 0 0 1 0 3.5H9.5"/>',
   yard: '<path d="M3 15h18l-3 5H6Z"/><path d="M12 15V4l5 5.5H12"/><path d="M12 4v-1"/>',
+  book: '<path d="M4 5.5C6.6 4.4 9.4 4.6 12 6.5c2.6-1.9 5.4-2.1 8-1v13c-2.6-1.1-5.4-.9-8 1-2.6-1.9-5.4-2.1-8-1Z"/><path d="M12 6.5v13"/><path d="M7 9.2c1.2-.2 2.4 0 3.2.6M7 12.4c1.2-.2 2.4 0 3.2.6"/>',
   rank: '<path d="M8 4h8v5a4 4 0 0 1-8 0Z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4"/>',
   crew: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 0 1 0 5.6M18 14.5c2 .8 3.4 2.6 3.4 5.5"/>',
   settings:
@@ -31,6 +39,7 @@ const TABS: readonly { id: HubId; label: string }[] = [
   { id: "market", label: "Chợ" },
   { id: "yard", label: "Xưởng" },
   { id: "rank", label: "Xếp hạng" },
+  { id: "book", label: "Sổ" },
   { id: "crew", label: "Thủy thủ" },
   { id: "settings", label: "Cài đặt" },
 ];
@@ -40,6 +49,7 @@ const HUB_CLASSES = [
   "is-market",
   "is-yard",
   "is-rank",
+  "is-book",
   "is-crew-hub",
   "is-settings",
 ];

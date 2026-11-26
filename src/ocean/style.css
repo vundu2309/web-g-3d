@@ -2313,6 +2313,91 @@ dialog.ocean-map::backdrop {
   margin-top: 6px;
 }
 
+/* The Sổ page (src/app/book-ui.ts): the sea now and the hot spots above a grid of the ten species. */
+.book-progress {
+  margin-left: auto;
+  padding: 2px 9px;
+  border: 2.5px solid #153b80;
+  border-radius: 13px;
+  background: #ffd35a;
+  font:
+    700 13px/1.5 "Be Vietnam Pro",
+    sans-serif;
+}
+.book-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 8px;
+  margin: 2px 2px 8px;
+}
+@media (max-aspect-ratio: 1/1) {
+  .book-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.book-sea {
+  display: grid;
+  gap: 3px;
+  align-content: start;
+  padding: 7px 10px;
+  border: 2px solid #153b8030;
+  border-radius: 14px;
+  background: #fff;
+}
+.book-sea strong {
+  color: #153b80;
+  font:
+    800 15px/1.2 "Baloo 2",
+    sans-serif;
+}
+.book-sea span {
+  color: #385b8d;
+  font:
+    700 12px/1.25 "Be Vietnam Pro",
+    sans-serif;
+}
+.book-spots {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+.book-spot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 1px 8px;
+  border: 2px dashed #e9a52f;
+  border-radius: 12px;
+  background: #fff6d6;
+  color: #153b80;
+  font:
+    800 12px/1.15 "Be Vietnam Pro",
+    sans-serif;
+}
+.book-spot img {
+  flex: none;
+  width: 34px;
+  height: auto;
+}
+.book-grid {
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+}
+.book-cell.is-unknown {
+  border-style: dashed;
+  background: #eef5ff;
+}
+.book-cell.is-unknown img {
+  filter: brightness(0) opacity(0.78);
+}
+.book-where {
+  color: #385b8d;
+  font:
+    700 10px/1.15 "Be Vietnam Pro",
+    sans-serif;
+  text-align: center;
+}
+
 /* Settings: two panels side by side (day and weather test, version) and the way back at the foot. */
 .crew-head h3 {
   flex: 1;

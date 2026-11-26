@@ -22,6 +22,8 @@ import { inventoryFrom } from "../ocean/server-store";
 import { createFishingUi } from "./fishing-ui";
 import { createMarketUi } from "./market-ui";
 import { createRankUi } from "./rank-ui";
+import { createBookUi } from "./book-ui";
+import { hotSpotsAt } from "../ocean/hot-spots";
 import { createWeatherTestSection } from "./settings-weather";
 import { createSeaAudio } from "./audio";
 import { createAudioSection } from "./settings-audio";
@@ -42,7 +44,7 @@ import {
 import { mountHubArt } from "../ui/hub-canvas";
 import { createHubShell, type HubNav } from "./hub-shell";
 import { CHROME_COLORS, setChromeColor } from "./chrome-color";
-import { createMinimap } from "./minimap";
+import { createMinimap, setMapMarks } from "./minimap";
 import { createBigMap } from "./big-map";
 import { playersOnMap } from "../ocean/minimap-math";
 import { hullCss } from "../ocean/palette";
@@ -379,6 +381,7 @@ export function startOcean(
       if (id === "stock") fishingUi.showStock();
       else if (id === "market" || id === "yard") void marketUi.openNearest();
       else if (id === "rank") rankUi.show();
+      else if (id === "book") bookUi.show();
       else if (id === "crew") showCrew();
       else showSettings();
     },
@@ -389,6 +392,7 @@ export function startOcean(
     dialog,
     fightSpeed: options.fightSpeed,
     worldMs,
+    onDiscover: (name) => notify(`Loài mới: ${name}!`, true),
     scene: () => scene,
     boat: () => pose,
     enabled: () => active && !dialog.open && !bigMap.isOpen && !document.hidden,
@@ -458,6 +462,18 @@ export function startOcean(
     dialog,
     economy,
     hubs: hubNav,
+    beforeOpen: () => {
+      keys.clear();
+      releaseStick();
+      fishingUi.cancel();
+    },
+  });
+  // The book of species, the sea now and the hot spots (decision 0020).
+  const bookUi = createBookUi({
+    dialog,
+    inventory: () => fishStock,
+    hubs: hubNav,
+    worldMs,
     beforeOpen: () => {
       keys.clear();
       releaseStick();
@@ -802,6 +818,8 @@ export function startOcean(
           active && connection ? { ...pose, uid: connection.uid } : undefined;
         // Only players are on the map: not the patrol ships, not the rowing cats.
         const mapOthers = playersOnMap(shown, connection?.uid);
+        // The hot spots (decision 0020) ring the places where one kind of fish bites more.
+        setMapMarks(hotSpotsAt(worldMs()));
         minimap.update(mapSelf, mapOthers, now / 1000);
         // The big map follows the same boats while it is open (it does nothing otherwise).
         bigMap.update(mapSelf, mapOthers, now / 1000, pose);

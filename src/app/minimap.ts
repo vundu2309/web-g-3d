@@ -27,6 +27,22 @@ export interface MapBoat {
   fishing: boolean;
 }
 
+/**
+ * A ring on the map for something that comes and goes (a hot spot, the event ring): drawn at 10 Hz
+ * on top of the still layer, so it costs one `arc` each. The marks are shared by the corner map
+ * and the big map (`setMapMarks`).
+ */
+export interface MapMark {
+  x: number;
+  z: number;
+  /** The real radius (m); the ring is never drawn smaller than a few pixels. */
+  radius: number;
+}
+let marks: readonly MapMark[] = [];
+export const setMapMarks = (next: readonly MapMark[]) => {
+  marks = next;
+};
+
 const INK = "#153b80";
 /** The gold of the game's coins, buttons and the player's arrow. */
 const GOLD = "#ffd35a";
@@ -284,6 +300,23 @@ export function createMinimap(
       context.drawImage(layer, 0, 0);
       const unit = size / 100;
       const outline = Math.max(1, unit * 0.7);
+      if (marks.length) {
+        const pulse = 0.5 + 0.5 * Math.sin(seconds * 2.2);
+        context.save();
+        context.setLineDash([unit * 1.4, unit * 1.1]);
+        context.lineWidth = Math.max(1.2, unit * 0.6);
+        context.strokeStyle = `rgba(233,165,47,${0.75 + 0.25 * pulse})`;
+        context.fillStyle = `rgba(255,211,90,${0.16 + 0.1 * pulse})`;
+        for (const mark of marks) {
+          const at = toMap(mark.x, mark.z, size);
+          const r = Math.max(unit * 2.6, mark.radius * mapScale(size));
+          context.beginPath();
+          context.arc(at.x, at.y, r, 0, Math.PI * 2);
+          context.fill();
+          context.stroke();
+        }
+        context.restore();
+      }
       for (const boat of others) {
         const at = toMap(boat.x, boat.z, size);
         if (boat.fishing) {

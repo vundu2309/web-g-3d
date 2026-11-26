@@ -70,6 +70,8 @@ export interface FishingUiOptions {
    * it nothing is added.
    */
   worldMs?: () => number;
+  /** A fish of a species the player has never kept is landed (the book gains it). */
+  onDiscover?: (speciesName: string) => void;
   /** Test only: runs the tug of war faster (1 is real time). */
   fightSpeed?: number;
 }
@@ -516,7 +518,11 @@ export function createFishingUi(options: FishingUiOptions) {
     hangStars.textContent = "★".repeat(species.rarity);
     hangStars.className = `fish-hang-stars rarity-${species.rarity}`;
     hangKg.textContent = kg(fish.kg);
-    hangRecord.hidden = !addCatch(options.stock(), fish).record;
+    // "Mới!" is for a species never kept before (not the record flag, which the first fish of every species also has).
+    const isNew = !((options.stock()[fish.species]?.best ?? 0) > 0);
+    hangRecord.textContent = isNew ? "✦ Mới!" : "✦";
+    hangRecord.hidden = !(isNew || addCatch(options.stock(), fish).record);
+    if (isNew) options.onDiscover?.(species.name);
     hang.hidden = false;
     syncKeep();
     // The catch card needs the right-hand column: the minimap steps aside while it shows.
