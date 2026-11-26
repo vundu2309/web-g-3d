@@ -55,6 +55,9 @@ export const cacheDirFor = (cwd) =>
 export const TEST_ENV = {
   VITE_SUPABASE_URL: "http://127.0.0.1:18999",
   VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
+  // Not the developer's own .env.local (it may point at a local API that is not running, and a refused
+  // connection is a console error the tests count): no API address, so the page never calls one.
+  VITE_API_URL: "",
   // The sea follows the real clock; a test must not depend on the hour it is run at.
   VITE_TEST_NOON: "on",
 };
