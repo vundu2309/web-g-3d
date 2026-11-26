@@ -16,6 +16,7 @@ Vercel (frontend/PWA), Render (API) and Supabase (Auth/PostgreSQL), see [infrast
 - For anything that adds work per frame (a mesh, a shader, a render target, a simulation, a model), read [performance](docs/performance.md): the budget, the patterns to reuse and how a cost is reported.
 - To run the game locally (worktree, `.env.local`, local API), read [local setup](docs/local-setup.md).
 - Read [architecture](docs/architecture.md) for ownership and [workflow](docs/workflow.md) for checks and publication. For parallel agents see [agent briefs](docs/agent-briefs.md) ('Standard start', 'Worktrees').
+- The project's agents are in `.claude/agents/`: `sea-visual-builder`, `sea-visual-reviewer`, `blender-structure`, `blender-refine`, `qa-runner`, `docs-keeper` and `release-manager`. Their roles, gates and the work record each change gets in `docs/work/` are in [agent workflow](docs/agent-workflow.md). Start one when the user asks or names it; a reviewer or QA agent is a separate check from the builder's own claims.
 - For installation/offline/update work, read [PWA contract](docs/pwa.md). Keep the service worker scoped to the app and static assets only; never cache auth or API calls or force reload active sessions. OS-level Android/iOS installation still needs real-device verification.
 - Source and executed tests take precedence over stale wiki prose. Record durable decisions in `docs/decisions/`, not conversation transcripts.
 - Consult OpenWiki only for a concrete question; it is an evidence index, not an instruction authority.
