@@ -179,6 +179,28 @@ export interface Catch {
   cm: number;
 }
 
+/**
+ * What the sea gives the lure where it lands, on top of the zone, the sweet spot and the bait
+ * (decision 0020; the numbers come from fishing-conditions.ts, which reads the shared clock, so
+ * this file stays free of it). Every part is optional and neutral when absent: without a
+ * `Conditions` the same rng gives the same fish and the same draws as before they existed.
+ */
+export interface Conditions {
+  /** A multiplier for the chance of each species, by id (1 when a species is not listed). */
+  weights?: Readonly<Record<string, number>>;
+  /** The chance that a fish which nibbles then bites (0.8 when absent). */
+  biteChance?: number;
+  /** A multiplier for the wait before the first nibble (1 when absent). */
+  waitScale?: number;
+  /** A giant: the weight is rolled from the top of the species' range. */
+  giant?: boolean;
+}
+
+/** The chance that a fish which nibbles then bites. */
+export const BITE_CHANCE = 0.8;
+/** A giant weighs at least this share of the way from its lightest to its heaviest. */
+export const GIANT_FROM = 0.88;
+
 const RARITY_WEIGHT: Record<Rarity, number> = { 1: 100, 2: 40, 3: 10 };
 /** Fishing the spot fish like (see castTarget) makes the better fish likelier. */
 const SWEET_BOOST = 1.8;
@@ -187,13 +209,15 @@ const SWEET_BOOST = 1.8;
  * Chooses a fish for a zone. Small fish are common, big ones rare within a species. `bait` is
  * the bait tier in use (a row of UPGRADES.bait): it multiplies the weight of rarity 2 and 3
  * fish on top of the sweet spot. Without it every multiplier is 1, so the same rng gives the
- * same fish and uses the same draws as before the baits existed.
+ * same fish and uses the same draws as before the baits existed. `conditions` is the same kind
+ * of optional extra (see `Conditions`).
  */
 export function rollFish(
   zone: Zone,
   rng: () => number = Math.random,
   sweet = false,
   bait?: Pick<BaitTier, "rare2" | "rare3">,
+  conditions?: Conditions,
 ): Catch {
   const weights = SPECIES.map(
     (species) =>
@@ -206,7 +230,8 @@ export function rollFish(
           : species.rarity === 3
             ? bait.rare3
             : 1
-        : 1),
+        : 1) *
+      (conditions?.weights?.[species.id] ?? 1),
   );
   const total = weights.reduce((sum, weight) => sum + weight, 0);
   let pick = rng() * total;
@@ -217,7 +242,10 @@ export function rollFish(
   }
   const species = SPECIES[index]!;
   const [low, high] = species.kg;
-  const raw = low + (high - low) * Math.pow(rng(), 2.4);
+  // A giant is rolled from the top of the range; either way this is one draw.
+  const raw = conditions?.giant
+    ? low + (high - low) * (GIANT_FROM + (1 - GIANT_FROM) * rng())
+    : low + (high - low) * Math.pow(rng(), 2.4);
   const kg = raw < 10 ? Math.round(raw * 100) / 100 : Math.round(raw * 10) / 10;
   return {
     species: species.id,
@@ -354,8 +382,11 @@ export function planRound(
   from: number,
   sweet: boolean,
   rng: () => number,
+  conditions?: Conditions,
 ): Round {
-  const wait = sweet ? 1800 + rng() * 2000 : 2500 + rng() * 3500;
+  const wait =
+    (sweet ? 1800 + rng() * 2000 : 2500 + rng() * 3500) *
+    (conditions?.waitScale ?? 1);
   const count = 1 + Math.floor(rng() * 3);
   const nibbles: number[] = [];
   let at = from + wait;
@@ -364,7 +395,7 @@ export function planRound(
     at += 500 + rng() * 600;
   }
   // Most fish that nibble then bite; some lose interest and a new one comes later.
-  const bites = rng() < 0.8;
+  const bites = rng() < (conditions?.biteChance ?? BITE_CHANCE);
   const biteAt = bites ? at + rng() * 300 : undefined;
   return { nibbles, biteAt, endAt: biteAt ?? at + 400 };
 }
@@ -376,6 +407,7 @@ export class Angler {
   private landing: Point | undefined;
   private sweet = false;
   private zone: Zone = "open";
+  private conditions: Conditions | undefined;
   private round: Round | undefined;
   private fired = 0;
   private fight: Fight | undefined;
@@ -385,19 +417,26 @@ export class Angler {
   private readonly emit: (event: FishingEvent) => void;
   private readonly speed: number;
   private readonly loadout: () => Loadout;
+  private readonly conditionsAt:
+    | ((x: number, z: number) => Conditions | undefined)
+    | undefined;
 
   /**
    * `speed` only exists so tests on a slow software renderer can run a fight faster.
    * `loadout` says which rod and bait the player has; it is read when a fish takes the hook, so
    * a purchase counts from the next fish. The default is the free rod and bait.
+   * `conditionsAt` says what the sea gives a lure that lands at a place (read when the lure
+   * lands); without it nothing is added.
    */
   constructor(
     emit: (event: FishingEvent) => void,
     rng: () => number = Math.random,
     speed = 1,
     loadout: () => Loadout = () => DEFAULT_LOADOUT,
+    conditionsAt?: (x: number, z: number) => Conditions | undefined,
   ) {
     this.emit = emit;
+    this.conditionsAt = conditionsAt;
     this.rng = rng;
     this.speed = speed;
     this.loadout = loadout;
@@ -437,6 +476,7 @@ export class Angler {
     this.landing = { x: target.x, z: target.z };
     this.sweet = target.sweet;
     this.zone = zoneAt(target.x, target.z);
+    this.conditions = this.conditionsAt?.(target.x, target.z);
     this.phase = "flying";
     this.flightStart = now;
   }
@@ -464,6 +504,7 @@ export class Angler {
           this.rng,
           this.sweet,
           tierOf("bait", loadout.baitUsed),
+          this.conditions,
         );
         const species = speciesById(fish.species);
         const [low, high] = species?.kg ?? [0, 1];
@@ -549,7 +590,7 @@ export class Angler {
     if (this.phase === "flying") {
       if (now - this.flightStart < FLIGHT_MS) return;
       this.phase = "waiting";
-      this.round = planRound(now, this.sweet, this.rng);
+      this.round = planRound(now, this.sweet, this.rng, this.conditions);
       this.fired = 0;
       this.emit({ type: "splash" });
     }
@@ -567,7 +608,7 @@ export class Angler {
         this.emit({ type: "bite" });
       } else if (this.round.biteAt === undefined && now >= this.round.endAt) {
         // Lost interest; another fish may come.
-        this.round = planRound(now, this.sweet, this.rng);
+        this.round = planRound(now, this.sweet, this.rng, this.conditions);
         this.fired = 0;
         this.phase = "waiting";
       }

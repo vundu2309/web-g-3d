@@ -498,7 +498,19 @@ test("the atmosphere is one shared object that every look reads", () => {
   );
 });
 
-test("weather and time are only a look: physics, fishing, economy and the server never read them", () => {
+test("weather and time are only a look for physics, the fight, the economy and the server; the bites read them only through fishing-conditions.ts, from the shared clock and never from the look", () => {
+  // Decision 0020: the bites follow the shared clock. The one module that reads it takes the
+  // clock as an argument; the look (SEA, pinned per device) is never an input.
+  const reader = readFileSync(
+    new URL("../src/ocean/fishing-conditions.ts", import.meta.url),
+    "utf8",
+  );
+  assert.doesNotMatch(
+    reader,
+    /sea-atmosphere|\bSEA\.(grade|weather|kind)|currentPin/,
+    "not the look",
+  );
+  assert.match(reader, /atmosphereAt\(worldMs\)/, "the clock it is given");
   const dir = new URL("../src/ocean/", import.meta.url);
   const visual = /atmosphere|sea-atmosphere|weather|daytime/i;
   for (const file of [

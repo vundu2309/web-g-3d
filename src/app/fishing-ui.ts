@@ -21,6 +21,7 @@ import {
   type Inventory,
 } from "../ocean/fishing";
 import { FIZZLE_MS, castLook, pressAction } from "../ocean/cast-rules";
+import { conditionsAt } from "../ocean/fishing-conditions";
 import { DEFAULT_LOADOUT, slotsOf, type Loadout } from "../ocean/upgrades";
 import type { Pose } from "../ocean/model";
 import type { OceanScene } from "../ocean/babylon-scene";
@@ -63,6 +64,12 @@ export interface FishingUiOptions {
    * Default: the free boat's.
    */
   slots?: () => number;
+  /**
+   * The shared server clock, in milliseconds (the sea's `worldMs`): with it the time of day, the
+   * weather and the hot spots set what bites where the lure lands (fishing-conditions.ts). Without
+   * it nothing is added.
+   */
+  worldMs?: () => number;
   /** Test only: runs the tug of war faster (1 is real time). */
   fightSpeed?: number;
 }
@@ -200,6 +207,9 @@ export function createFishingUi(options: FishingUiOptions) {
     Math.random,
     options.fightSpeed ?? 1,
     options.loadout ?? (() => DEFAULT_LOADOUT),
+    options.worldMs
+      ? (x, z) => conditionsAt(options.worldMs!(), x, z)
+      : undefined,
   );
 
   const sound = (cue: Cue) => options.sound?.(cue);

@@ -218,6 +218,8 @@ export function startOcean(
   let lastPublish = 0;
   let lastPose = "";
   let clockOffset = 0;
+  /** The shared server clock in milliseconds: the same for every player (the sea's day and weather, the bites, the hot spots). */
+  const worldMs = () => Date.now() + clockOffset;
   let caught = 0;
   // The server economy (none without VITE_ECONOMY: then no market, no upgrades, the default loadout, and the store stays on the device).
   const economy =
@@ -386,6 +388,7 @@ export function startOcean(
     button: fishButton,
     dialog,
     fightSpeed: options.fightSpeed,
+    worldMs,
     scene: () => scene,
     boat: () => pose,
     enabled: () => active && !dialog.open && !bigMap.isOpen && !document.hidden,
@@ -1080,7 +1083,7 @@ export function startOcean(
       }
       scene = created;
       // The NPC rowing cats follow the server's clock, so every player sees them at the same places.
-      created.setSharedClock(() => (Date.now() + clockOffset) / 1000);
+      created.setSharedClock(() => worldMs() / 1000);
       options.onScene?.(created);
       // The loading screen stays until the sea, the boats and their shaders are really
       // ready, so the map never pops in half built (bounded: a stuck shader must not
