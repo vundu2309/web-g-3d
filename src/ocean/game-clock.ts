@@ -6,9 +6,10 @@
  * Every function takes the time in milliseconds of the shared server clock (`worldMs()` in
  * app/ocean.ts), never `Date.now()` of a device, so every player is in the same slot, the same day
  * and the same week. The day and the week turn at midnight in Vietnam (UTC+7, no summer time), the
- * week on Monday. The database keeps the same calendar in `economy_private.game_day()` and
+ * week on Monday. The database will keep the same calendar in `economy_private.game_day()` and
  * `game_week()` (`at time zone 'Asia/Ho_Chi_Minh'`); the key a client works out here and the key the
- * server works out are the same date, which tests/game-clock.test.mjs and the SQL harness pin.
+ * server works out are meant to be the same date: tests/game-clock.test.mjs pins this side now, and
+ * the SQL harness will pin the other when the migration lands (phase P3).
  */
 export const HOUR_MS = 3_600_000;
 export const DAY_MS_REAL = 86_400_000;

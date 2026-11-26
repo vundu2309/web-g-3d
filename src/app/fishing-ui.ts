@@ -511,6 +511,9 @@ export function createFishingUi(options: FishingUiOptions) {
   // ----- Dialogs -----
 
   /** The fish hangs from the rod until the player keeps it or lets it go. */
+  /** The fish on the rod is of a species the player has never kept. */
+  let heldIsNew = false;
+
   function holdFish(fish: Catch) {
     const species = speciesById(fish.species);
     if (!species) return;
@@ -522,7 +525,7 @@ export function createFishingUi(options: FishingUiOptions) {
     const isNew = !((options.stock()[fish.species]?.best ?? 0) > 0);
     hangRecord.textContent = isNew ? "✦ Mới!" : "✦";
     hangRecord.hidden = !(isNew || addCatch(options.stock(), fish).record);
-    if (isNew) options.onDiscover?.(species.name);
+    heldIsNew = isNew;
     hang.hidden = false;
     syncKeep();
     // The catch card needs the right-hand column: the minimap steps aside while it shows.
@@ -549,6 +552,9 @@ export function createFishingUi(options: FishingUiOptions) {
     screen.classList.remove("is-holding");
     const scene = options.scene();
     if (keep) {
+      // The book gains the species when the fish is kept, so the toast comes now (not when a fish is only landed).
+      const species = speciesById(fish.species);
+      if (heldIsNew && species) options.onDiscover?.(species.name);
       options.setStock(addCatch(options.stock(), fish).inventory, true);
       options.onKeep?.(fish);
       vibrate(20);
