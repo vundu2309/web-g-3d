@@ -748,5 +748,264 @@ do $$declare fn text; begin
   end loop;
   if has_table_privilege('authenticated', 'economy_private.market_ids', 'select') then raise exception 'market_ids readable'; end if;
 end$$;
+-- ---------------------------------------------------------------------------------------------
+-- Progression (supabase/migrations/20261128120000_progression.sql): quests, weekly board, event board.
+reset role;
+insert into auth.users(id, raw_user_meta_data) values
+  ('00000000-0000-0000-0000-0000000000e1', '{"display_name":"Alice"}'),
+  ('00000000-0000-0000-0000-0000000000e2', '{"display_name":"Bob"}'),
+  ('00000000-0000-0000-0000-0000000000e3', '{"display_name":"Cam"}'),
+  ('00000000-0000-0000-0000-0000000000e4', null);
+
+-- The catalogue: three slots, rewards inside the day's cap, every species real.
+do $$begin
+  if (select count(distinct slot) from economy_private.quest_defs) <> 3 then raise exception 'quest slots'; end if;
+  if (select sum(m) from (select max(reward) m from economy_private.quest_defs group by slot) x) > 120 then raise exception 'the dearest three exceed the cap'; end if;
+  if exists (select 1 from economy_private.quest_defs where species is not null and species not in (select species from economy_private.fish_prices)) then raise exception 'quest species'; end if;
+end$$;
+
+-- Quest choice: the same for an account all day, different over days and between accounts.
+do $$declare d date := date '2026-12-01'; n integer; begin
+  perform economy_private.ensure_quests('00000000-0000-0000-0000-0000000000e1', d);
+  perform economy_private.ensure_quests('00000000-0000-0000-0000-0000000000e1', d);
+  if (select count(*) from economy_private.daily_quests where user_id = '00000000-0000-0000-0000-0000000000e1' and day = d) <> 3 then
+    raise exception 'three quests a day';
+  end if;
+  for i in 1..40 loop
+    perform economy_private.ensure_quests('00000000-0000-0000-0000-0000000000e1', d + i);
+    perform economy_private.ensure_quests('00000000-0000-0000-0000-0000000000e2', d + i);
+  end loop;
+  select count(distinct quest_id) into n from economy_private.daily_quests where user_id = '00000000-0000-0000-0000-0000000000e1' and slot = 1;
+  if n < 3 then raise exception 'slot 1 hardly varies over 40 days: %', n; end if;
+  if (select count(*) from economy_private.daily_quests a join economy_private.daily_quests b
+        on a.day = b.day and a.slot = b.slot and a.quest_id <> b.quest_id
+       where a.user_id = '00000000-0000-0000-0000-0000000000e1' and b.user_id = '00000000-0000-0000-0000-0000000000e2') < 10 then
+    raise exception 'two accounts get the same quests';
+  end if;
+  delete from economy_private.daily_quests where user_id in ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000e2');
+end$$;
+
+-- Progress: the filters (species, minimum weight), and a quest stops at its goal.
+do $$declare u uuid := '00000000-0000-0000-0000-0000000000e1'; at timestamptz := '2026-12-02 03:00:00+00'; d date; r jsonb; begin
+  d := economy_private.game_day(at);
+  insert into economy_private.daily_quests (user_id, day, slot, quest_id, species, min_kg, goal, reward) values
+    (u, d, 0, 'any-5', null, null, 5, 15), (u, d, 1, 'cua-2', 'cua-bien', null, 2, 25), (u, d, 2, 'big-20', null, 20, 1, 40);
+  perform economy_private.on_catch(u, 'cua-bien', 1, null, at);
+  r := economy_private.on_catch(u, 'sao-bien', 0.1, null, at);
+  if (select array_agg(progress order by slot) from economy_private.daily_quests where user_id = u and day = d) <> array[2, 1, 0] then
+    raise exception 'progress after a crab and a starfish: %', r;
+  end if;
+  perform economy_private.on_catch(u, 'ca-heo', 19.99 + 80, null, at);   -- 99.99 kg: counts for the big one
+  perform economy_private.on_catch(u, 'cua-bien', 1.5, null, at);
+  r := economy_private.on_catch(u, 'cua-bien', 1.5, null, at);
+  if (select array_agg(progress order by slot) from economy_private.daily_quests where user_id = u and day = d) <> array[5, 2, 1] then
+    raise exception 'progress stops at the goal: %', (select array_agg(progress order by slot) from economy_private.daily_quests where user_id = u and day = d);
+  end if;
+  if jsonb_array_length(r->'quests') <> 3 or not (r->'quests'->0->>'done')::boolean then raise exception 'on_catch report %', r; end if;
+  -- A claimed quest no longer counts.
+  update economy_private.daily_quests set claimed_at = now() where user_id = u and day = d and slot = 0;
+  update economy_private.daily_quests set progress = 4 where user_id = u and day = d and slot = 0;
+  perform economy_private.on_catch(u, 'cua-bien', 1, null, at);
+  if (select progress from economy_private.daily_quests where user_id = u and day = d and slot = 0) <> 4 then raise exception 'a claimed quest counted'; end if;
+  -- Yesterday's quests do not count today.
+  perform economy_private.on_catch(u, 'cua-bien', 1, null, at + interval '1 day');
+  if (select progress from economy_private.daily_quests where user_id = u and day = d and slot = 1) <> 2 then raise exception 'a new day touched an old row'; end if;
+  if (select count(*) from economy_private.daily_quests where user_id = u and day = d + 1) <> 3 then raise exception 'the next day got no quests'; end if;
+end$$;
+
+-- A failure in the counting never loses the catch: it returns {} and leaves nothing half done.
+do $$declare r jsonb; begin
+  r := economy_private.on_catch('00000000-0000-0000-0000-0000000000ff', 'cua-bien', 1, null, now());
+  if r <> '{}'::jsonb then raise exception 'a failing on_catch did not return {}: %', r; end if;
+  if exists (select 1 from economy_private.weekly_stats where user_id = '00000000-0000-0000-0000-0000000000ff') then raise exception 'half-done rows left'; end if;
+end$$;
+
+-- The week: Sunday 23:59:59 and Monday 00:00 in Vietnam are two weeks; heaviest keeps the best.
+do $$declare u uuid := '00000000-0000-0000-0000-0000000000e2'; begin
+  perform economy_private.on_catch(u, 'cua-bien', 1.0, null, '2026-11-29 16:59:59+00');
+  perform economy_private.on_catch(u, 'ca-map', 80, null, '2026-11-29 17:00:00+00');
+  perform economy_private.on_catch(u, 'sua', 3, null, '2026-11-29 17:00:01+00');
+  if (select caught from economy_private.weekly_stats where user_id = u and week = date '2026-11-23') <> 1
+     or (select caught from economy_private.weekly_stats where user_id = u and week = date '2026-11-30') <> 2 then
+    raise exception 'week edge: %', (select jsonb_agg(w) from economy_private.weekly_stats w where user_id = u);
+  end if;
+  if (select heaviest_species from economy_private.weekly_stats where user_id = u and week = date '2026-11-30') <> 'ca-map'
+     or (select heaviest from economy_private.weekly_stats where user_id = u and week = date '2026-11-30') <> 80 then
+    raise exception 'the heaviest of the week';
+  end if;
+end$$;
+
+-- The event: giants of the right species and weight, inside the window, in this hour, three at most.
+do $$declare
+  u uuid := '00000000-0000-0000-0000-0000000000e3';
+  at timestamptz := '2026-11-26 10:05:00+00';
+  hr bigint := economy_private.event_slot('2026-11-26 10:05:00+00');
+  r jsonb;
+begin
+  if hr <> floor(extract(epoch from timestamptz '2026-11-26 10:05:00+00') / 3600) then raise exception 'event_slot'; end if;
+  perform economy_private.on_catch(u, 'tom-hum', 1, hr, at);                       -- too light
+  perform economy_private.on_catch(u, 'ca-he', 0.25, hr, at);                      -- not a giant species
+  perform economy_private.on_catch(u, 'tom-hum', 5, hr + 1, at);                   -- another hour
+  perform economy_private.on_catch(u, 'tom-hum', 5, hr, '2026-11-26 10:21:00+00'); -- after the window and its grace
+  perform economy_private.on_catch(u, 'tom-hum', 5, null, at);                     -- not tagged
+  if exists (select 1 from economy_private.event_results where user_id = u) then raise exception 'a bad event catch was taken'; end if;
+  r := economy_private.on_catch(u, 'tom-hum', 4.5, hr, at);
+  if (r->'event'->>'catches')::int <> 1 or (r->'event'->>'score')::int <> economy_private.price('tom-hum', 4.5) then raise exception 'first giant %', r; end if;
+  r := economy_private.on_catch(u, 'ca-map', 399, hr, '2026-11-26 10:20:19+00');   -- inside the 20 s grace
+  if (r->'event'->>'catches')::int <> 2 or (r->'event'->>'score')::int <> economy_private.price('ca-map', 399) then raise exception 'second giant %', r; end if;
+  perform economy_private.on_catch(u, 'tom-hum', 5, hr, at);
+  perform economy_private.on_catch(u, 'ca-heo', 200, hr, at);                      -- a fourth: ignored
+  if (select catches from economy_private.event_results e where e.user_id = u and e.slot = hr) <> 3
+     or (select species from economy_private.event_results e where e.user_id = u and e.slot = hr) <> 'ca-map'
+     or (select kg from economy_private.event_results e where e.user_id = u and e.slot = hr) <> 399 then
+    raise exception 'the quota or the best catch: %', (select to_jsonb(e) from economy_private.event_results e where e.user_id = u and e.slot = hr);
+  end if;
+  -- Every catch counts for the week, the five that missed the event too (5 plain + 4 giants).
+  if (select caught from economy_private.weekly_stats where user_id = u and week = economy_private.game_week(at)) <> 9 then
+    raise exception 'weekly count of the event catches: %', (select caught from economy_private.weekly_stats where user_id = u and week = economy_private.game_week(at));
+  end if;
+  -- Old hours are pruned when a new event result is taken.
+  insert into economy_private.event_results (slot, user_id, score, species, kg) values (hr - 100, u, 1, 'tom-hum', 5);
+  perform economy_private.on_catch('00000000-0000-0000-0000-0000000000e2', 'tom-hum', 5, hr, at);
+  if exists (select 1 from economy_private.event_results where slot = hr - 100) then raise exception 'old hours not pruned'; end if;
+end$$;
+
+-- Through the real door: record_catch reports a discovery, the quests and the event; the old
+-- two-argument call still works.
+update economy_private.wallets set last_catch_at = null;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e4', true);
+do $$declare r jsonb; begin
+  r := public.economy_record_catch('cua-bien', 1.2);
+  if not (r->>'discovered')::boolean or (r->>'record')::boolean is not true then raise exception 'first catch: %', r; end if;
+  if jsonb_array_length(r->'quests') <> 3 or r->'event' is distinct from 'null'::jsonb then raise exception 'catch report: %', r; end if;
+end$$;
+reset role;
+update economy_private.wallets set last_catch_at = clock_timestamp() - interval '7 seconds';
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e4', true);
+do $$declare r jsonb; begin
+  r := public.economy_record_catch('cua-bien', 1.0, null);
+  if (r->>'discovered')::boolean or (r->>'record')::boolean then raise exception 'second catch: %', r; end if;
+  -- Too fast stays an error.
+  begin perform public.economy_record_catch('cua-bien', 1.0); raise exception 'fast catch accepted';
+  exception when sqlstate '55000' then null; end;
+end$$;
+reset role;
+update economy_private.wallets set last_catch_at = clock_timestamp() - interval '7 seconds';
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e4', true);
+do $$declare r jsonb; begin
+  r := public.economy_record_catch('ca-map', 399, floor(extract(epoch from clock_timestamp()) / 3600)::bigint);
+  -- Inside the hour's window this is an event catch; outside it is not (either way the fish is kept).
+  if (r->>'id') is null then raise exception 'giant catch %', r; end if;
+  if floor(extract(epoch from clock_timestamp()))::bigint % 3600 < 1200 and (r->'event'->>'catches')::int <> 1 then raise exception 'event in its window %', r; end if;
+  if jsonb_array_length(public.economy_state()->'ledger') <> 3 then raise exception 'the catches are not in the ledger'; end if;
+end$$;
+
+-- Claiming: a finished quest pays once, an unfinished or claimed one is EC410, the day's cap holds.
+reset role;
+select set_config('t.day', economy_private.game_day()::text, false);
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1', true);
+do $$declare q jsonb; r jsonb; begin
+  q := public.economy_quests();
+  if jsonb_array_length(q->'quests') <> 3 or (q->>'capLeft')::int <> 120 or (q->>'day')::date <> current_setting('t.day')::date then raise exception 'quests %', q; end if;
+  if (q->>'resetsAt')::bigint <= (extract(epoch from now()) * 1000)::bigint
+     or (q->>'resetsAt')::bigint - (extract(epoch from now()) * 1000)::bigint > 86400000 then raise exception 'resetsAt %', q->>'resetsAt'; end if;
+  begin perform public.economy_quest_claim(0::smallint); raise exception 'claimed an unfinished quest';
+  exception when sqlstate 'EC410' then null; end;
+  begin perform public.economy_quest_claim(7::smallint); raise exception 'bad slot accepted';
+  exception when sqlstate '22023' then null; end;
+end$$;
+reset role;
+update economy_private.daily_quests set progress = goal, reward = 60
+ where user_id = '00000000-0000-0000-0000-0000000000e1' and day = current_setting('t.day')::date;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1', true);
+do $$declare r jsonb; begin
+  r := public.economy_quest_claim(0::smallint);
+  if (r->>'earned')::int <> 60 or (r->>'coins')::bigint <> 60 then raise exception 'claim 1 %', r; end if;
+  begin perform public.economy_quest_claim(0::smallint); raise exception 'claimed twice';
+  exception when sqlstate 'EC410' then null; end;
+  r := public.economy_quest_claim(1::smallint);
+  if (r->>'earned')::int <> 60 or (r->>'coins')::bigint <> 120 then raise exception 'claim 2 %', r; end if;
+  r := public.economy_quest_claim(2::smallint);      -- the cap of 120 is reached: nothing more, and it is marked claimed
+  if (r->>'earned')::int <> 0 or (r->>'coins')::bigint <> 120 then raise exception 'claim over the cap %', r; end if;
+  if (public.economy_quests()->>'capLeft')::int <> 0 then raise exception 'capLeft'; end if;
+  if (select bool_and((q->>'claimed')::boolean) from jsonb_array_elements(public.economy_quests()->'quests') q) is not true then raise exception 'claimed flags'; end if;
+end$$;
+
+-- The boards.
+reset role;
+delete from economy_private.weekly_stats where week = economy_private.game_week();
+insert into economy_private.weekly_stats (user_id, week, caught, heaviest, heaviest_species) values
+  ('00000000-0000-0000-0000-0000000000e1', economy_private.game_week(), 7, 3.5, 'sua'),
+  ('00000000-0000-0000-0000-0000000000e2', economy_private.game_week(), 7, 90, 'ca-heo'),
+  ('00000000-0000-0000-0000-0000000000e3', economy_private.game_week(), 2, 0, null),
+  ('00000000-0000-0000-0000-0000000000e4', economy_private.game_week() - 7, 99, 300, 'ca-map');
+select set_config('t.week', economy_private.game_week()::text, false);
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e3', true);
+do $$declare b jsonb; begin
+  b := public.economy_weekly_board();
+  if (b->>'week')::date <> current_setting('t.week')::date then raise exception 'week %', b->>'week'; end if;
+  if (b->>'endsAt')::bigint <= (extract(epoch from now()) * 1000)::bigint
+     or (b->>'endsAt')::bigint - (extract(epoch from now()) * 1000)::bigint > 7 * 86400000 then raise exception 'endsAt'; end if;
+  -- Last week's 99 does not count; equal numbers share a rank; the caller's place is reported.
+  if (b->'caught'->>'players')::int <> 3 or (b->'caught'->'top'->0->>'rank')::int <> 1 or (b->'caught'->'top'->1->>'rank')::int <> 1
+     or (b->'caught'->'top'->2->>'rank')::int <> 3 or (b->'caught'->'me'->>'rank')::int <> 3 then raise exception 'caught board %', b->'caught'; end if;
+  if (b->'heaviest'->>'players')::int <> 2 or (b->'heaviest'->'top'->0->>'name') <> 'Bob' or (b->'heaviest'->'top'->0->>'species') <> 'ca-heo'
+     or b->'heaviest'->'me' is distinct from null and (b->'heaviest'->'me') <> 'null'::jsonb then raise exception 'heaviest board %', b->'heaviest'; end if;
+  if (b->'caught'->'top'->2->>'you')::boolean is not true then raise exception 'you flag'; end if;
+end$$;
+
+reset role;
+select set_config('t.cur', economy_private.event_slot()::text, false);
+delete from economy_private.event_results where slot = current_setting('t.cur')::bigint;
+insert into economy_private.event_results (slot, user_id, score, species, kg, catches) values
+  (current_setting('t.cur')::bigint, '00000000-0000-0000-0000-0000000000e1', 500, 'ca-heo', 150, 1),
+  (current_setting('t.cur')::bigint, '00000000-0000-0000-0000-0000000000e2', 900, 'ca-map', 300, 2),
+  (current_setting('t.cur')::bigint, '00000000-0000-0000-0000-0000000000e3', 500, 'ca-heo', 140, 3);
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e3', true);
+do $$declare b jsonb; cur bigint := current_setting('t.cur')::bigint; begin
+  b := public.economy_event_board();
+  if (b->>'slot')::bigint <> cur or (b->>'startsAt')::bigint <> cur * 3600000 or (b->>'endsAt')::bigint <> cur * 3600000 + 1200000 then raise exception 'slot times %', b; end if;
+  if (b->>'active')::boolean is distinct from (floor(extract(epoch from now()))::bigint % 3600 < 1200) then raise exception 'active flag'; end if;
+  if (b->'top'->0->>'name') <> 'Bob' or (b->'top'->1->>'name') <> 'Alice' or (b->'me'->>'rank')::int <> 3 or (b->'me'->>'score')::int <> 500 then
+    raise exception 'event ranking (score, then weight): %', b;
+  end if;
+  if public.economy_event_board(cur) <> b then raise exception 'explicit slot differs'; end if;
+  begin perform public.economy_event_board(cur + 1); raise exception 'a future event accepted';
+  exception when sqlstate '22023' then null; end;
+  begin perform public.economy_event_board(cur - 73); raise exception 'an old event accepted';
+  exception when sqlstate '22023' then null; end;
+  if public.economy_event_board(cur - 1)->'top' <> '[]'::jsonb then raise exception 'an empty hour should have no rows'; end if;
+end$$;
+
+-- Anonymous callers and direct table reads are refused; one function per name; privileges.
+reset role;
+do $$declare fn text; begin
+  begin
+    set local role anon;
+    perform public.economy_quests(); raise exception 'anonymous quests accepted';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  if (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+       where n.nspname = 'public' and p.proname = 'economy_record_catch') <> 1 then raise exception 'two economy_record_catch'; end if;
+  foreach fn in array array['public.economy_record_catch(text,numeric,bigint)', 'public.economy_quests()', 'public.economy_quest_claim(smallint)',
+      'public.economy_weekly_board()', 'public.economy_event_board(bigint)'] loop
+    if not has_function_privilege('authenticated', fn, 'execute') or has_function_privilege('anon', fn, 'execute') then raise exception 'privileges of %', fn; end if;
+  end loop;
+  foreach fn in array array['economy_private.on_catch(uuid,text,numeric,bigint,timestamptz)', 'economy_private.ensure_quests(uuid,date)',
+      'economy_private.event_slot(timestamptz)', 'economy_private.record_catch(text,numeric,bigint)', 'economy_private.quests()',
+      'economy_private.quest_claim(smallint)', 'economy_private.weekly_board()', 'economy_private.event_board(bigint)'] loop
+    if has_function_privilege('authenticated', fn, 'execute') or has_function_privilege('anon', fn, 'execute') then raise exception '% is executable by a client role', fn; end if;
+  end loop;
+  foreach fn in array array['quest_defs', 'daily_quests', 'weekly_stats', 'event_results'] loop
+    if has_table_privilege('authenticated', 'economy_private.' || fn, 'select') then raise exception '% readable', fn; end if;
+  end loop;
+end$$;
 rollback;
 select 'economy ok' as result;
