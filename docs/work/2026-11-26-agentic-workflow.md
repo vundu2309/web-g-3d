@@ -97,7 +97,7 @@ A second session took up the remaining tasks of step 1 (tasks 1 to 4 below) on t
 `chore/agentic-workflow-step1`, from `494eeb0`. This entry was written before the first edit of that
 branch. Steps 2 to 5 stay unapproved and are not part of it.
 
-Results so far (nothing committed; the branch was moved to `f66e9b3`, which holds the P4 gameplay work, and
+Results (committed as `f4fee4e`; the branch was moved to `f66e9b3`, which holds the P4 gameplay work, and
 rows for `ocean-quests` were added to the table):
 
 - Task 1: a real fault, not a stale test. A touch on the gear opened Settings and the browser's own click then
@@ -247,7 +247,8 @@ they cannot show (a sample this size cannot show a trend).
 ## Follow-ups
 
 State on 2026-11-26 after the second session: items 1 to 4 below are done on
-`chore/agentic-workflow-step1` (item 1 published), not yet committed; done-when 1 is still unchecked.
+`main` (item 1 `f66e9b3`, items 2 to 4 `f4fee4e`, pushed at the user's "Commit và push"; the CI run of
+`f4fee4e` passed lint, format, typecheck and unit tests). Done-when 1 is still unchecked.
 
 Added 2026-11-26: `tests/pwa-browser.mjs` has three `waitForFunction` calls with `async` predicates that
 check nothing; fix them and run a negative control (needs a build).
