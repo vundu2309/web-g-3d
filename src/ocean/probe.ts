@@ -32,6 +32,12 @@ export const PROBES = [
     label: "Thủy phi cơ kéo băng rôn (NPC)",
     feature: true,
   },
+  {
+    name: "event",
+    off: "0",
+    label: "Vòng sáng sự kiện hằng giờ",
+    feature: true,
+  },
   { name: "yards", off: "0", label: "Xưởng tàu (ba bến)", feature: true },
   { name: "scale", off: "1", label: "Ép độ phân giải 1x", feature: false },
 ] as const;

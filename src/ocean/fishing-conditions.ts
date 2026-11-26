@@ -1,6 +1,7 @@
 import { atmosphereAt, type WeatherKind } from "./atmosphere.ts";
 import { SPECIES, type Conditions, type Zone } from "./fishing.ts";
 import { HOT_BOOST, HOT_WAIT, hotSpotAt } from "./hot-spots.ts";
+import { eventAt, giantWeights, inRing } from "./world-event.ts";
 
 /**
  * What the time of day and the weather give a lure (decision 0020), as plain numbers: which fish
@@ -130,8 +131,22 @@ export function conditionsAt(
   worldMs: number,
   x: number,
   z: number,
+  /** How many giants this player may still land in the event (they are kept on the device); all of them when not given. */
+  giantsLeft = Infinity,
 ): Conditions {
   const sea = seaAt(worldMs);
+  // The ring of the hourly event: while it is on, a lure inside fishes for giants.
+  const event = eventAt(worldMs);
+  if (event.active && inRing(event, x, z)) {
+    if (giantsLeft <= 0) return { ...conditionsOfSea(sea), tag: "event-spent" };
+    return {
+      weights: giantWeights(),
+      biteChance: Math.max(sea.biteChance, 0.9),
+      waitScale: 0.9,
+      giant: true,
+      tag: "event",
+    };
+  }
   const spot = hotSpotAt(worldMs, x, z);
   if (!spot) return conditionsOfSea(sea);
   return {
@@ -141,6 +156,8 @@ export function conditionsAt(
     },
     biteChance: sea.biteChance,
     waitScale: clamp(sea.waitScale * HOT_WAIT, WAIT_RANGE),
+    tag: "hot",
+    label: spot.species,
   };
 }
 

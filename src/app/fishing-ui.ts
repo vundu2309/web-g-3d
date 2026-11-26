@@ -6,6 +6,7 @@ import {
   Angler,
   CHARGE_MS,
   MAX_LINE,
+  SPECIES,
   SWEET_POWER,
   addCatch,
   canKeep,
@@ -22,6 +23,7 @@ import {
 } from "../ocean/fishing";
 import { FIZZLE_MS, castLook, pressAction } from "../ocean/cast-rules";
 import { conditionsAt } from "../ocean/fishing-conditions";
+import { eventAt } from "../ocean/world-event";
 import { DEFAULT_LOADOUT, slotsOf, type Loadout } from "../ocean/upgrades";
 import type { Pose } from "../ocean/model";
 import type { OceanScene } from "../ocean/babylon-scene";
@@ -70,6 +72,12 @@ export interface FishingUiOptions {
    * it nothing is added.
    */
   worldMs?: () => number;
+  /** How many giants of the hourly event the player may still land in slot `slot` (kept on the device). */
+  giantsLeft?: (slot: number) => number;
+  /** A giant of the event was landed (the device counts it, the book shows it). */
+  onGiant?: (fish: Catch, slot: number) => void;
+  /** Where the lure landed matters: in a hot spot or the event ring ("Chỗ cá mập!"); a short line for the status. */
+  onLuck?: (text: string) => void;
   /** A fish of a species the player has never kept is landed (the book gains it). */
   onDiscover?: (speciesName: string) => void;
   /** Test only: runs the tug of war faster (1 is real time). */
@@ -210,7 +218,15 @@ export function createFishingUi(options: FishingUiOptions) {
     options.fightSpeed ?? 1,
     options.loadout ?? (() => DEFAULT_LOADOUT),
     options.worldMs
-      ? (x, z) => conditionsAt(options.worldMs!(), x, z)
+      ? (x, z) => {
+          const now = options.worldMs!();
+          return conditionsAt(
+            now,
+            x,
+            z,
+            options.giantsLeft?.(eventAt(now).slot),
+          );
+        }
       : undefined,
   );
 
@@ -229,10 +245,21 @@ export function createFishingUi(options: FishingUiOptions) {
         vibrate([30, 40, 30]);
         sound("blocked");
         break;
-      case "splash":
+      case "splash": {
         scene?.gearRipple();
         sound("splash");
+        // Where the lure landed matters: tell the player once per cast.
+        const luck = angler.luck;
+        if (luck?.tag === "event")
+          options.onLuck?.("Vòng sáng sự kiện: cá khổng lồ có thể cắn!");
+        else if (luck?.tag === "event-spent")
+          options.onLuck?.("Bạn đã câu đủ cá khổng lồ trong sự kiện này.");
+        else if (luck?.tag === "hot") {
+          const name = SPECIES.find((s) => s.id === luck.label)?.name;
+          if (name) options.onLuck?.(`Chỗ ${name}!`);
+        }
         break;
+      }
       case "nibble":
         scene?.gearRipple();
         vibrate(18);
@@ -275,6 +302,8 @@ export function createFishingUi(options: FishingUiOptions) {
         haptics.stop();
         vibrate(30);
         sound("catch");
+        if (event.fish.giant && options.worldMs)
+          options.onGiant?.(event.fish, eventAt(options.worldMs()).slot);
         holdFish(event.fish);
         break;
     }

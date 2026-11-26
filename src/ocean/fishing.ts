@@ -177,6 +177,8 @@ export interface Catch {
   species: string;
   kg: number;
   cm: number;
+  /** A giant of the hourly event (rolled from the top of the species' range). */
+  giant?: true;
 }
 
 /**
@@ -194,6 +196,10 @@ export interface Conditions {
   waitScale?: number;
   /** A giant: the weight is rolled from the top of the species' range. */
   giant?: boolean;
+  /** Where the lure landed: in a hot spot, or in the ring of the hourly event (what the player is told). */
+  tag?: "hot" | "event" | "event-spent";
+  /** The words for the tag: the species of the hot spot. */
+  label?: string;
 }
 
 /** The chance that a fish which nibbles then bites. */
@@ -251,6 +257,7 @@ export function rollFish(
     species: species.id,
     kg,
     cm: Math.round(species.lengthCm * Math.cbrt(Math.max(kg, 0.01))),
+    ...(conditions?.giant ? { giant: true as const } : {}),
   };
 }
 
@@ -440,6 +447,11 @@ export class Angler {
     this.rng = rng;
     this.speed = speed;
     this.loadout = loadout;
+  }
+
+  /** What the sea gave the lure where it last landed (a hot spot, the event ring, or just what the sea gives everywhere). */
+  get luck(): Conditions | undefined {
+    return this.conditions;
   }
 
   get busy() {

@@ -89,6 +89,8 @@ import { ScaleGovernor } from "./render-scale.ts";
 import { loadRowerAssets } from "./cat-boat.ts";
 import { CatFleet } from "./cat-fleet.ts";
 import { PlaneFleet } from "./plane-fleet.ts";
+import { EventRing } from "./event-ring.ts";
+import { eventAt } from "./world-event.ts";
 import { createSeaReflection } from "./reflection.ts";
 import { createClearWater, type ClearWater } from "./clear-water-pass.ts";
 import { ClearWaterGovernor } from "./clear-water.ts";
@@ -193,6 +195,8 @@ export class OceanScene {
   private cats: CatFleet | undefined;
   /** The NPC seaplanes towing banners (plane-fleet.ts); `?planes=0` leaves them out. */
   private planes: PlaneFleet | undefined;
+  /** The ring of the hourly event (event-ring.ts, decision 0020); `?event=0` leaves it out. */
+  private eventRing: EventRing | undefined;
   private sharedClock: () => number = () => Date.now() / 1000;
   private viewHeading = 0;
   private viewReady = false;
@@ -341,6 +345,7 @@ export class OceanScene {
         })
         .catch((error) => console.warn("No rowing cats.", error));
     this.boatLoad = this.ensureBoatModels(0);
+    if (probe("event") !== "0") this.eventRing = new EventRing(this.scene);
     // The NPC seaplanes towing a banner for the game, on the shared clock like the cats. `?planes=0` leaves them out.
     if (probe("planes") !== "0")
       this.planes = new PlaneFleet(this.scene, {
@@ -653,6 +658,11 @@ export class OceanScene {
   /** The clock the NPC rowing cats follow (seconds): the server's, so every player sees them at the same places. */
   setSharedClock(seconds: () => number) {
     this.sharedClock = seconds;
+  }
+
+  /** The ring of the hourly event, when there is one (`?event=0` has none). */
+  eventRingOf(): EventRing | undefined {
+    return this.eventRing;
   }
 
   /** The NPC seaplanes, when there are any (`?planes=0` has none). */
@@ -1064,6 +1074,12 @@ export class OceanScene {
       (x, z) => waveHeight(x, z, this.clock) + this.sim.sample(x, z).height,
     );
     this.planes?.update(this.sharedClock(), this.clock, this.camera.position);
+    this.eventRing?.update(
+      eventAt(this.sharedClock() * 1000),
+      this.camera.position,
+      this.clock,
+      (x, z) => waveHeight(x, z, this.clock),
+    );
     this.schools.update(this.clock, this.camera.position, [
       ...(this.self ? [this.self.physics.state()] : []),
       ...this.fleet.values(),
@@ -1392,6 +1408,7 @@ export class OceanScene {
     for (const craft of this.fleet.values()) craft.label.remove();
     this.gear?.dispose();
     this.planes?.dispose();
+    this.eventRing?.dispose();
     this.clearWater?.dispose();
     this.seaProps.dispose();
     this.seabed.dispose();

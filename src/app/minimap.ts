@@ -37,6 +37,8 @@ export interface MapMark {
   z: number;
   /** The real radius (m); the ring is never drawn smaller than a few pixels. */
   radius: number;
+  /** The ring of the hourly event: solid and brighter than a hot spot. */
+  event?: boolean;
 }
 let marks: readonly MapMark[] = [];
 export const setMapMarks = (next: readonly MapMark[]) => {
@@ -309,7 +311,12 @@ export function createMinimap(
         context.fillStyle = `rgba(255,211,90,${0.16 + 0.1 * pulse})`;
         for (const mark of marks) {
           const at = toMap(mark.x, mark.z, size);
-          const r = Math.max(unit * 2.6, mark.radius * mapScale(size));
+          const r = Math.max(
+            unit * (mark.event ? 3.4 : 2.6),
+            mark.radius * mapScale(size),
+          );
+          context.setLineDash(mark.event ? [] : [unit * 1.4, unit * 1.1]);
+          context.lineWidth = Math.max(1.2, unit * (mark.event ? 1 : 0.6));
           context.beginPath();
           context.arc(at.x, at.y, r, 0, Math.PI * 2);
           context.fill();

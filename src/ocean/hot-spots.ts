@@ -100,18 +100,23 @@ const COMPASS = [
   "tây bắc",
 ] as const;
 
-/** How a player reads the place: a market's name, or the island's direction from the harbour (north is -Z, as on the map). */
-export function labelOfIsland(index: number): string {
-  const market = MARKETS.find((m) => m.island === index);
-  if (market) return `quanh ${market.name.replace(/^Chợ /, "")}`;
-  const island = islands[index]!;
-  const bearing = Math.atan2(island.x - HARBOR.x, -(island.z - HARBOR.z));
+/** The compass word for a direction (dx east, dz south; north is -Z, as on the map): "bắc", "đông nam"... */
+export function compassWord(dx: number, dz: number): string {
+  const bearing = Math.atan2(dx, -dz);
   const eighth =
     Math.round(
       (((bearing % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) /
         (Math.PI / 4),
     ) % 8;
-  return `đảo phía ${COMPASS[eighth]}`;
+  return COMPASS[eighth]!;
+}
+
+/** How a player reads the place: a market's name, or the island's direction from the harbour. */
+export function labelOfIsland(index: number): string {
+  const market = MARKETS.find((m) => m.island === index);
+  if (market) return `quanh ${market.name.replace(/^Chợ /, "")}`;
+  const island = islands[index]!;
+  return `đảo phía ${compassWord(island.x - HARBOR.x, island.z - HARBOR.z)}`;
 }
 
 function placeSpot(

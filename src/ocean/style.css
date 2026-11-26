@@ -2398,6 +2398,51 @@ dialog.ocean-map::backdrop {
   text-align: center;
 }
 
+/* The Sự kiện page of the Sổ: the hourly event's ring and what to do. */
+.book-event {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  margin: 2px;
+  padding: 9px 12px;
+  border: 2px solid #153b8030;
+  border-radius: 14px;
+  background: #fff;
+}
+.book-event-ring {
+  width: 68px;
+  height: 68px;
+  box-sizing: border-box;
+  border: 3px solid #c9d6e8;
+  border-radius: 50%;
+  background: #eef5ff;
+}
+.book-event-ring.is-on {
+  border-color: #ffd35a;
+  background: radial-gradient(circle, #fff6d6, #bfe3ff);
+  box-shadow:
+    0 0 0 4px #ffd35a55,
+    inset 0 0 14px #ffd35a88;
+}
+.book-event-words h3 {
+  margin: 0;
+  color: #153b80;
+  font:
+    800 16px/1.15 "Baloo 2",
+    sans-serif;
+}
+.book-event-words p {
+  margin: 3px 0 0;
+  color: #385b8d;
+  font:
+    700 12px/1.3 "Be Vietnam Pro",
+    sans-serif;
+}
+.book-event-best {
+  color: #153b80 !important;
+}
+
 /* Settings: two panels side by side (day and weather test, version) and the way back at the foot. */
 .crew-head h3 {
   flex: 1;

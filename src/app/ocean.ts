@@ -24,6 +24,13 @@ import { createMarketUi } from "./market-ui";
 import { createRankUi } from "./rank-ui";
 import { createBookUi } from "./book-ui";
 import { hotSpotsAt } from "../ocean/hot-spots";
+import {
+  EVENT_RADIUS,
+  GIANT_QUOTA,
+  eventAt,
+  giantsLeft,
+  quotaKey,
+} from "../ocean/world-event";
 import { createWeatherTestSection } from "./settings-weather";
 import { createSeaAudio } from "./audio";
 import { createAudioSection } from "./settings-audio";
@@ -220,6 +227,34 @@ export function startOcean(
   let lastPublish = 0;
   let lastPose = "";
   let clockOffset = 0;
+  /** A value kept on this device (the event's giant count); a blocked storage counts as nothing kept. */
+  const readDevice = (key: string): string | null => {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  };
+  const writeDevice = (key: string, value: string) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      /* the count then lives only until the page reloads */
+    }
+  };
+  const bestKey = (slot: number) => `${quotaKey(slot)}.best`;
+  const readBest = (
+    slot: number,
+  ): { species: string; kg: number } | undefined => {
+    try {
+      const raw = JSON.parse(readDevice(bestKey(slot)) ?? "null");
+      return raw && typeof raw.species === "string" && Number.isFinite(raw.kg)
+        ? { species: raw.species, kg: raw.kg }
+        : undefined;
+    } catch {
+      return undefined;
+    }
+  };
   /** The shared server clock in milliseconds: the same for every player (the sea's day and weather, the bites, the hot spots). */
   const worldMs = () => Date.now() + clockOffset;
   let caught = 0;
@@ -392,6 +427,23 @@ export function startOcean(
     dialog,
     fightSpeed: options.fightSpeed,
     worldMs,
+    giantsLeft: (slot) => giantsLeft(readDevice(quotaKey(slot))),
+    onGiant: (fish, slot) => {
+      const used = GIANT_QUOTA - giantsLeft(readDevice(quotaKey(slot))) + 1;
+      writeDevice(quotaKey(slot), String(used));
+      // The best giant of this event (the Sự kiện page shows it).
+      const best = readBest(slot);
+      if (!best || fish.kg > best.kg)
+        writeDevice(
+          bestKey(slot),
+          JSON.stringify({ species: fish.species, kg: fish.kg }),
+        );
+      notify(
+        `Cá khổng lồ! Còn ${Math.max(0, GIANT_QUOTA - used)} lượt trong sự kiện này.`,
+        true,
+      );
+    },
+    onLuck: (text) => notify(text, true),
     onDiscover: (name) => notify(`Loài mới: ${name}!`, true),
     scene: () => scene,
     boat: () => pose,
@@ -474,6 +526,11 @@ export function startOcean(
     inventory: () => fishStock,
     hubs: hubNav,
     worldMs,
+    from: () => pose,
+    event: {
+      left: (slot) => giantsLeft(readDevice(quotaKey(slot))),
+      best: readBest,
+    },
     beforeOpen: () => {
       keys.clear();
       releaseStick();
@@ -819,7 +876,14 @@ export function startOcean(
         // Only players are on the map: not the patrol ships, not the rowing cats.
         const mapOthers = playersOnMap(shown, connection?.uid);
         // The hot spots (decision 0020) ring the places where one kind of fish bites more.
-        setMapMarks(hotSpotsAt(worldMs()));
+        const marksNow = worldMs();
+        const ring = eventAt(marksNow);
+        setMapMarks([
+          ...hotSpotsAt(marksNow),
+          ...(ring.active
+            ? [{ x: ring.x, z: ring.z, radius: EVENT_RADIUS, event: true }]
+            : []),
+        ]);
         minimap.update(mapSelf, mapOthers, now / 1000);
         // The big map follows the same boats while it is open (it does nothing otherwise).
         bigMap.update(mapSelf, mapOthers, now / 1000, pose);

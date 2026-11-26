@@ -21,6 +21,7 @@ const GROUPS = {
     "ocean-server-store",
     "ocean-rank",
     "ocean-book",
+    "ocean-event",
     "ocean-planes",
     "ocean-edge",
     "ocean-fade",
