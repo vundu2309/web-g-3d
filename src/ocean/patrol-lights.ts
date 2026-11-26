@@ -10,10 +10,15 @@ import { PAL } from "./art/colors.ts";
 import { beaconLevel } from "./atmosphere.ts";
 import { lightMaterial } from "./beacon.ts";
 import type { BoatModels } from "./boat-model.ts";
+import { distanceAmount } from "./distance-fade.ts";
 import {
+  HALO_BAND,
+  HALO_RANGE,
   LIGHT_RANGE,
   PATROL_LIGHTS,
+  WEDGE_BAND,
   flash,
+  haloScale,
   lensGlow,
   searchAngle,
   searchWedge,
@@ -24,8 +29,7 @@ import { SEA } from "./sea-atmosphere.ts";
  * The patrol ships' lights (the plan and the numbers are in patrol-light-plan.ts): the light bar's
  * lenses flash one after the other with a halo round each, the mast lantern has a warm halo and the
  * searchlights lay a wedge of light on the sea ahead that swings from side to side. All of it is
- * drawn additively (it only adds light, never hides anything), from dusk to dawn, only for a ship
- * near the camera, and cheap: per ship two lens instances, three halos and one wedge, none of them
+ * drawn additively (it only adds light, never hides anything), from dusk to dawn, and cheap: per ship two lens instances, three halos and one wedge, none of them
  * drawn by day. With reduced motion the lenses are a steady glow and the wedge stays ahead.
  */
 const BLUE = new Color3(
@@ -133,22 +137,36 @@ export function createPatrolLights(
   wedge.isVisible = false;
 
   const world = new Vector3();
-  const place = (h: ReturnType<typeof halo>, level: number) => {
+  // `size` is the halo's own size (m): the scale it is given grows with the distance so a far light stays a few pixels.
+  const sizes = new Map<ReturnType<typeof halo>, number>([
+    [blue, 2.4],
+    [red, 2.4],
+    [mast, 2.6],
+  ]);
+  const place = (
+    h: ReturnType<typeof halo>,
+    level: number,
+    distance: number,
+  ) => {
     h.mesh.isVisible = level > 0.01;
     if (!h.mesh.isVisible) return;
     Vector3.TransformCoordinatesToRef(h.local, parent.getWorldMatrix(), world);
     h.mesh.position.copyFrom(world);
-    h.mesh.scaling.setAll(parent.absoluteScaling.x);
+    h.mesh.scaling.setAll(
+      haloScale(sizes.get(h)!, distance, parent.absoluteScaling.x),
+    );
     h.mat.setFloat("level", level);
   };
   return {
     update(time, camera, reduced) {
-      const near =
-        Vector3.DistanceSquared(parent.getAbsolutePosition(), camera) <
-        LIGHT_RANGE * LIGHT_RANGE;
-      const night = near
-        ? Math.max(beaconLevel(SEA.grade.y, SEA.weather.y, SEA.weather.z), 0)
-        : 0;
+      const distance = Vector3.Distance(parent.getAbsolutePosition(), camera);
+      // Neither is cut in one frame: the halos thin out toward `HALO_RANGE`, the wedge toward `LIGHT_RANGE`.
+      const haloFade = distanceAmount(distance, HALO_RANGE, HALO_BAND);
+      const wedgeFade = distanceAmount(distance, LIGHT_RANGE, WEDGE_BAND);
+      const night =
+        haloFade > 0
+          ? Math.max(beaconLevel(SEA.grade.y, SEA.weather.y, SEA.weather.z), 0)
+          : 0;
       if (night <= 0.01) {
         for (const h of [blue, red, mast]) h.mesh.isVisible = false;
         wedge.isVisible = false;
@@ -156,16 +174,18 @@ export function createPatrolLights(
       }
       parent.computeWorldMatrix(true);
       const f = reduced ? { blue: 0.6, red: 0.6 } : flash(time);
-      place(blue, 0.9 * night * f.blue);
-      place(red, 0.9 * night * f.red);
+      place(blue, 0.9 * night * f.blue * haloFade, distance);
+      place(red, 0.9 * night * f.red * haloFade, distance);
       const waver =
         1 +
         0.04 * Math.sin(time * 5.3 + phase * 7) +
         0.03 * Math.sin(time * 2.1);
-      place(mast, 0.7 * night * waver);
-      swing.rotation.y = reduced ? 0 : searchAngle(time, phase);
-      wedge.isVisible = true;
-      wedgeMaterial.setFloat("level", 2.2 * night);
+      place(mast, 0.7 * night * waver * haloFade, distance);
+      wedge.isVisible = wedgeFade > 0;
+      if (wedge.isVisible) {
+        swing.rotation.y = reduced ? 0 : searchAngle(time, phase);
+        wedgeMaterial.setFloat("level", 2.2 * night * wedgeFade);
+      }
     },
     dispose() {
       for (const h of [blue, red, mast]) {

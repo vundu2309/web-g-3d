@@ -29,8 +29,10 @@ islands, and for a new boat modelled in Blender for them (not a recoloured playe
   edge of the screen (parked boats lose their arrows too). It takes the hull numbers of tier 3 (10.8 m
   against its 10.4 m: waterline, foam collar, wake, shadow) through `PATROL_HULL_TIER`, and its model through
   the model key `PATROL_MODEL` (4), which no player's tier can be (`boatTierIndex` still refuses it).
-- **Lights** (user's request, 2026-11-25): from dusk to dawn (`beaconLevel`, dimmer in rain), only for a ship within
-  380 m: the light bar's blue and red lenses flash one after the other, twice each per 0.9 s round (the loader finds the
+- **Lights** (user's request, 2026-11-25): from dusk to dawn (`beaconLevel`, dimmer in rain), the halos for a ship within
+  1,100 m (they thin out over the last 300 m and are made larger with the distance, 2026-11-26: they were cut
+  at 380 m, and a ship went dark as the player sailed away) and the searchlight wedge within 380 m (it thins out
+  over the last 120 m): the light bar's blue and red lenses flash one after the other, twice each per 0.9 s round (the loader finds the
   lenses by their own colours, `paint.beacon` and `paint.beaconRed`), each with a halo; the mast lantern has a warm halo;
   the searchlights lay a wedge of light on the sea 70 m ahead that swings slowly (`patrol-light-plan.ts`,
   `patrol-lights.ts`). By day the lenses are a steady glass. With reduced motion they stay a steady glow and the
