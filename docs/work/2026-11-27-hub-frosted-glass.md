@@ -1,6 +1,6 @@
 ---
 title: Coastal Frosted Glass style for Harbor Hub and in-game Hub Shell
-state: user-approved
+state: published
 opened: 2026-11-27
 owner: lead
 agents: research (read-only reviewer)
@@ -92,9 +92,11 @@ Software-rendered browser screenshots of the live Harbor Hub (844×390, 667×375
 
 ## Approval and publication
 
-- User approval: concept Style 1 approved 2026-11-27; implementation screenshots and refined content approved by user on 2026-11-27 ("oke rồi").
-- Commits: pending commit SHA
-- Deploys checked: not pushed yet (awaiting user say to push to `main`)
+- User approval: concept Style 1 approved 2026-11-27; implementation screenshots and refined content approved by user on 2026-11-27 ("oke rồi"); deployment explicitly requested ("deploy đi").
+- Commits: `7ee93d2` — `feat(hub): Coastal Frosted Glass style, icon-first live sea pill and Hub Shell badges`
+- Deploys checked:
+  - GitHub Actions (`7ee93d2`): `Work record check` PASS (13s), `Deploy` PASS (1m22s).
+  - Vercel (`7ee93d2`): `success` (`DtQaEHkK5JcqksbCGfzjMUpyDY42`), live verified at `https://web-g-3d.vercel.app` (`theme-color: #82c4ff`, entry `assets/index-CHLp2W7W.js`).
 
 ## Follow-ups
 
