@@ -119,6 +119,7 @@ const ROWS = [
   [
     /^tests\/support\/fast-sea\.mjs$/,
     [
+      "ocean-arrow",
       "ocean-book",
       "ocean-map",
       "ocean-presence",

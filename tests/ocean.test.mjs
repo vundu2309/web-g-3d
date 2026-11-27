@@ -353,6 +353,138 @@ test("an off-screen player gets an arrow pointing toward them, on a ring inside 
   assert.ok(Number.isFinite(here.x) && Number.isFinite(here.y));
 });
 
+// The minimap in the top right corner, as src/ocean/style.css lays it out at each view size (the
+// scene itself measures it on the page; tests/ocean-arrow-browser.mjs checks that). The last two
+// are phones with a safe-area inset of 47 px at the right and at the top.
+const MAP_CASES = [
+  [844, 390, 136, 0, 0],
+  [932, 430, 156, 0, 0],
+  [667, 375, 136, 0, 0],
+  [390, 844, 140, 0, 0],
+  [844, 390, 136, 0, 47],
+  [390, 844, 140, 47, 0],
+].map(([width, height, side, safeTop, safeRight]) => {
+  const right = width - safeRight - 16;
+  const top = safeTop + 12;
+  return {
+    view: { width, height },
+    map: { left: right - side, right, top, bottom: top + side },
+  };
+});
+// A short name, and the widest a label can be (max-width 150 px and its border).
+const EDGE_LABELS = [
+  { w: 104, h: 28 },
+  { w: 154, h: 28 },
+];
+const MAP_GAP = 6;
+const boxOf = (mark, label, view) => ({
+  left: mark.x * view.width - label.w / 2,
+  right: mark.x * view.width + label.w / 2,
+  top: mark.y * view.height - label.h,
+  bottom: mark.y * view.height,
+});
+const intersects = (a, b, gap = 0) =>
+  a.left < b.right + gap - 1e-6 &&
+  a.right > b.left - gap + 1e-6 &&
+  a.top < b.bottom + gap - 1e-6 &&
+  a.bottom > b.top - gap + 1e-6;
+const insideView = (box, view) =>
+  box.left >= -1e-6 &&
+  box.top >= -1e-6 &&
+  box.right <= view.width + 1e-6 &&
+  box.bottom <= view.height + 1e-6;
+
+/** Every view, label size and direction, with the raw place on the ring and the final one. */
+async function sweepEdgeLabels(steps, visit) {
+  const indicator = await import("../src/ocean/indicator.ts");
+  // Without a function that moves it, the raw place on the ring is what is judged.
+  const clearOf = indicator.clearOf ?? ((mark) => mark);
+  for (const { view, map } of MAP_CASES)
+    for (const label of EDGE_LABELS)
+      for (let k = 0; k < steps; k++) {
+        const angle = (k / steps) * Math.PI * 2;
+        const raw = indicator.edgeIndicator(
+          Math.sin(angle) * 300,
+          -Math.cos(angle) * 300,
+          0,
+        );
+        const before = { ...raw };
+        const placed = clearOf(raw, label, view, map);
+        const where = `${view.width}x${view.height} (map at ${map.left},${map.top}), label ${label.w} wide, ${((angle * 180) / Math.PI).toFixed(2)} deg`;
+        visit({ raw: before, placed, label, view, map, where, k });
+      }
+}
+
+test("an edge label never covers the minimap and stays inside the view, in every direction", async () => {
+  const covered = [];
+  const outside = [];
+  let count = 0;
+  await sweepEdgeLabels(1440, ({ placed, label, view, map, where }) => {
+    count++;
+    const box = boxOf(placed, label, view);
+    if (intersects(box, map)) covered.push(where);
+    if (!insideView(box, view)) outside.push(where);
+  });
+  assert.equal(count, MAP_CASES.length * EDGE_LABELS.length * 1440);
+  assert.equal(
+    covered.length,
+    0,
+    `${covered.length} of ${count} placements cover the minimap, first: ${covered[0]}`,
+  );
+  assert.equal(
+    outside.length,
+    0,
+    `${outside.length} of ${count} placements leave the view, first: ${outside[0]}`,
+  );
+});
+
+test("keeping clear of the minimap leaves the arrow's direction and every other label alone", async () => {
+  let untouched = 0;
+  await sweepEdgeLabels(1440, ({ raw, placed, label, view, map, where }) => {
+    assert.equal(placed.turn, raw.turn, `turn at ${where}`);
+    assert.equal(placed.distance, raw.distance, `distance at ${where}`);
+    const box = boxOf(raw, label, view);
+    // "Touching" includes the breathing space round the map.
+    if (intersects(box, map, MAP_GAP) || !insideView(box, view)) return;
+    untouched++;
+    assert.equal(placed.x, raw.x, `x moved at ${where}`);
+    assert.equal(placed.y, raw.y, `y moved at ${where}`);
+  });
+  assert.ok(untouched > 10000, `only ${untouched} labels were clear already`);
+});
+
+test("a moved edge label stays within the straight ways out and does not snap as the boat turns", async () => {
+  const indicator = await import("../src/ocean/indicator.ts");
+  assert.equal(typeof indicator.clearOf, "function");
+  let moved = 0;
+  let last;
+  await sweepEdgeLabels(7200, ({ raw, placed, label, view, map, where, k }) => {
+    const at = { x: placed.x * view.width, y: placed.y * view.height };
+    if (k > 0) {
+      const step = Math.hypot(at.x - last.x, at.y - last.y);
+      assert.ok(step < 3, `jumped ${step.toFixed(1)} px at ${where}`);
+    }
+    last = at;
+    const box = boxOf(raw, label, view);
+    if (!intersects(box, map, MAP_GAP) || !insideView(box, view)) return;
+    moved++;
+    // How far straight left, or straight down, would clear the map.
+    const left = box.right - (map.left - MAP_GAP);
+    const down = map.bottom + MAP_GAP - box.top;
+    const dx = raw.x * view.width - at.x;
+    const dy = at.y - raw.y * view.height;
+    assert.ok(
+      dx >= -1e-6 && dx <= left + 1e-6 && dy >= -1e-6 && dy <= down + 1e-6,
+      `moved ${dx.toFixed(1)}, ${dy.toFixed(1)} px where ${left.toFixed(1)} left or ${down.toFixed(1)} down clears it, at ${where}`,
+    );
+    assert.ok(
+      Math.abs(dx - left) < 1e-6 || Math.abs(dy - down) < 1e-6,
+      `stopped short of the map's edge or went past it at ${where}`,
+    );
+  });
+  assert.ok(moved > 1000, `only ${moved} labels had to move`);
+});
+
 test("the position saved last wins on entry: the device's, or the server's when it is newer", async () => {
   const { encodeSave, decodeSave, newerPose } = await import(
     "../src/ocean/save.ts"

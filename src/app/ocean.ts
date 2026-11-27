@@ -1234,6 +1234,10 @@ export function startOcean(
         throw new HubError("Đã rời biển.");
       }
       scene = created;
+      // The arrow to an off-screen player is never drawn under the minimap.
+      created.keepLabelsClearOf(
+        root.querySelector<HTMLElement>(".ocean-minimap")!,
+      );
       // The NPC rowing cats follow the server's clock, so every player sees them at the same places.
       created.setSharedClock(() => worldMs() / 1000);
       options.onScene?.(created);

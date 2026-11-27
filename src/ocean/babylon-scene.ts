@@ -84,7 +84,12 @@ import { stepAtmosphere } from "./sea-atmosphere.ts";
 import { createRain, type Rain } from "./rain.ts";
 import { createBeacon, type Beacon } from "./beacon.ts";
 import { createSeaLights } from "./art/lighting.ts";
-import { edgeIndicator, separateLabels } from "./indicator.ts";
+import {
+  clearOf,
+  edgeIndicator,
+  separateLabels,
+  type Rect,
+} from "./indicator.ts";
 import { ScaleGovernor } from "./render-scale.ts";
 import { loadRowerAssets } from "./cat-boat.ts";
 import { CatFleet } from "./cat-fleet.ts";
@@ -186,6 +191,14 @@ export class OceanScene {
   private readonly remoteRodTiers = new Map<string, number>();
   private readonly fleet = new Map<string, Craft>();
   private readonly observer: ResizeObserver;
+  /** What the edge arrows stay clear of, and where it is, measured when the layout changes. */
+  private keepOff?: HTMLElement;
+  private edgeRoom?: { width: number; height: number; avoid?: Rect };
+  /** The size of each edge label, measured again only when its words get longer or shorter. */
+  private edgeSizes = new WeakMap<
+    HTMLElement,
+    { key: string; w: number; h: number }
+  >();
   private self:
     | {
         physics: BoatPhysics;
@@ -365,7 +378,10 @@ export class OceanScene {
     if (probe("fish") === "0") this.schools.hide();
     this.wildlife = new Wildlife(this.scene);
     this.propFade = new PropBatches();
-    this.observer = new ResizeObserver(() => this.engine.resize());
+    this.observer = new ResizeObserver(() => {
+      this.engine.resize();
+      this.measureEdgeRoom();
+    });
     this.observer.observe(host);
     this.engine.resize();
   }
@@ -1305,6 +1321,51 @@ export class OceanScene {
     this.camera.setTarget(look);
   }
 
+  /**
+   * Keeps the arrows to off-screen players clear of an element drawn over the sea (the
+   * minimap). Its parent is watched too: a change of the safe-area insets moves it
+   * without changing its size.
+   */
+  keepLabelsClearOf(element: HTMLElement) {
+    this.keepOff = element;
+    this.observer.observe(element);
+    if (element.parentElement) this.observer.observe(element.parentElement);
+  }
+
+  private measureEdgeRoom() {
+    const host = this.host.getBoundingClientRect();
+    const box = this.keepOff?.getBoundingClientRect();
+    this.edgeSizes = new WeakMap();
+    if (!host.width || !host.height) {
+      this.edgeRoom = undefined;
+      return;
+    }
+    this.edgeRoom = {
+      width: host.width,
+      height: host.height,
+      ...(box?.width
+        ? {
+            avoid: {
+              left: box.left - host.left,
+              top: box.top - host.top,
+              right: box.right - host.left,
+              bottom: box.bottom - host.top,
+            },
+          }
+        : {}),
+    };
+  }
+
+  private edgeSize(label: HTMLElement) {
+    const key = `${label.textContent}|${label.dataset.distance?.length}`;
+    const known = this.edgeSizes.get(label);
+    if (known?.key === key) return known;
+    const size = { key, w: label.offsetWidth, h: label.offsetHeight };
+    if (!size.w) return undefined;
+    this.edgeSizes.set(label, size);
+    return size;
+  }
+
   private placeLabels() {
     const transform = this.scene.getTransformMatrix();
     const camera = this.camera.position;
@@ -1350,8 +1411,11 @@ export class OceanScene {
       label.dataset.edge = "true";
       label.dataset.distance = `${Math.round(mark.distance)} m`;
       label.style.setProperty("--turn", `${mark.turn}rad`);
-      label.style.left = `${mark.x * 100}%`;
-      label.style.top = `${mark.y * 100}%`;
+      const room = this.edgeRoom;
+      const size = room && this.edgeSize(label);
+      const at = size ? clearOf(mark, size, room, room.avoid) : mark;
+      label.style.left = `${at.x * 100}%`;
+      label.style.top = `${at.y * 100}%`;
     };
     if (this.self) {
       const s = this.self.physics.state();

@@ -32,6 +32,7 @@ const GROUPS = {
     "ocean-quests",
     "ocean-planes",
     "ocean-edge",
+    "ocean-arrow",
     "ocean-fade",
     "ocean-input",
     "ocean-steer",

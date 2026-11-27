@@ -195,12 +195,12 @@ Tests: `tests/ocean.test.mjs` pins the retry policy; `tests/ocean-loading-browse
 Players used to start up to 40 m apart facing random directions, so the other boat was usually behind or beside the camera and nothing said where it was: two real accounts started 27.6 m apart with one 86 degrees off the other's bow, and the data was fine ("2 thuyền") while neither could see the other.
 
 - **One harbor.** `spawn()` (`src/ocean/model.ts`) puts everyone in a small area at `HARBOR` (8 slots plus jitter), all heading 0 toward the open sea, so any two players start within about 25 m and in front of each other. The client uses it for its own start pose and announces it about 0.5 s after entering, so others see the real spot. The Render API still assigns its own join pose until it is redeployed from this code; the client's pose wins as soon as it publishes.
-- **Arrows.** `src/ocean/indicator.ts` places, for any remote boat that is outside the view, an arrow on a ring inside the screen pointing toward it with their name and distance (`.ocean-boat-label[data-edge]`). Boats in view keep a plain name label, hidden beyond 75 m.
+- **Arrows.** `src/ocean/indicator.ts` places, for any remote boat that is outside the view, an arrow on a ring inside the screen pointing toward it with their name and distance (`.ocean-boat-label[data-edge]`); the label is kept inside the view and off the minimap (`clearOf`, the map measured when it or the HUD changes size). Boats in view keep a plain name label, hidden beyond 75 m.
 - **Expired sessions.** The server reports why a socket was refused; `AUTH_REQUIRED` now becomes "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại." (not retried) and the failure card offers **Đăng nhập lại** (sign out, back to the home screen). Before this, a revoked session was retried every 5 s for 100 s.
 - **One boat per account.** A second window of the same account takes over and the first is told so; to test with two players on one device use a private window (separate storage), or two accounts on two devices.
 - A server "too fast" reply to a pose update no longer ends the session.
 
-Tests: `tests/ocean.test.mjs` (harbor and arrow maths) and `tests/ocean-multiplayer-browser.mjs` (two real clients through the real server, an arrow with distance when out of view, a revoked session, same-account takeover; only Supabase Auth is faked). Replacing the new start with the old random one, or dropping the expired-session handling, makes that test fail.
+Tests: `tests/ocean.test.mjs` (harbor and arrow maths), `tests/ocean-arrow-browser.mjs` (the label clear of the minimap) and `tests/ocean-multiplayer-browser.mjs` (two real clients through the real server, an arrow with distance when out of view, a revoked session, same-account takeover; only Supabase Auth is faked). Replacing the new start with the old random one, or dropping the expired-session handling, makes that test fail.
 
 ### Line seen end-on
 
