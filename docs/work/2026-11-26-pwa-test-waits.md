@@ -1,6 +1,6 @@
 ---
 title: The PWA test's cache waits check something
-state: user-approved
+state: published
 opened: 2026-11-26
 owner: session "Kéo main mới và làm tiếp task cải thiện workflow"
 agents: reviewer
@@ -121,6 +121,7 @@ polls was shown to fail; the guard test misses a predicate passed by name. The f
 
 - User approval: to build ("Sửa test PWA"); to commit and push ("Commit và push", 2026-11-27). Checks rerun
   before the commit: format, `tsc`, lint clean, 703 unit tests pass.
+- Published: `735d3a7` on `main`; GitHub Actions run 45927081352 passed (lint, format, typecheck, unit tests).
 
 ## Follow-ups
 

@@ -136,7 +136,7 @@ The user approved it: "Làm bước 2". Written before the first edit, on the br
 The trial change, chosen by the user ("Sửa test PWA"), is `2026-11-26-pwa-test-waits.md`: two criteria seen to
 fail before and to succeed after, one guard. The `reviewer` agent says all three are checkable, with limits
 written there; it also found that the template had no place for a guard, which was added. Done-when "on
-`main`" waits for the user's say to commit and push.
+`main`": met on 2026-11-27, commit `735d3a7`, pushed on the user's say ("Commit và push"); CI passed.
 
 ## Steps in detail (added 2026-11-26)
 

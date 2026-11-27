@@ -1,6 +1,6 @@
 # 0023. Move the workflow toward agentic engineering
 
-Date: 2026-11-26. Status: accepted by the user for step 1; step 2 approved on 2026-11-26, steps 3 to 5 planned, not started. Progress is
+Date: 2026-11-26. Status: accepted by the user for step 1; step 2 approved on 2026-11-26 and on `main` since 2026-11-27; steps 3 to 5 planned, not started. Progress is
 kept in [the work record](../work/2026-11-26-agentic-workflow.md).
 
 ## Context
