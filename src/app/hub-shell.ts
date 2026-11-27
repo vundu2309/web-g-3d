@@ -13,11 +13,22 @@ export type HubId =
   | "crew"
   | "settings";
 
+export interface HubBadge {
+  /** Short compact label such as "12/20" or "4". */
+  text?: string;
+  /** Small attention dot (e.g. active hourly event). */
+  dot?: boolean;
+  /** Highlight badge in coral (e.g. fish store is full). */
+  alert?: boolean;
+}
+
 export interface HubNav {
   /** Whether the tab shows: the market only near a pier, the shipyard only near a yard, the ranking anywhere (all with a server economy). */
   available(id: HubId): boolean;
   /** Opens another hub in the same dialog. */
   go(id: HubId): void;
+  /** Optional compact status badge or dot shown on a tab. */
+  badge?(id: HubId): HubBadge | undefined;
 }
 
 const ICONS: Record<HubId | "close", string> = {
@@ -100,6 +111,18 @@ export function createHubShell(
     tab.className = "hub-tab";
     tab.dataset.hub = id;
     tab.innerHTML = `${icon(id)}<span>${label}</span>`;
+    const badge = nav.badge?.(id);
+    if (badge?.text) {
+      const chip = document.createElement("span");
+      chip.className = badge.alert ? "hub-tab-badge is-alert" : "hub-tab-badge";
+      chip.textContent = badge.text;
+      tab.append(chip);
+    } else if (badge?.dot) {
+      const dot = document.createElement("span");
+      dot.className = "hub-tab-dot";
+      dot.setAttribute("aria-hidden", "true");
+      tab.append(dot);
+    }
     if (id === active) {
       tab.setAttribute("aria-current", "page");
       // The dialog puts focus here when it opens, not on whichever tab comes first.

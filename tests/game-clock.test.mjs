@@ -4,6 +4,7 @@ import {
   DAY_MS_REAL,
   HOUR_MS,
   VN_OFFSET_MS,
+  countdownText,
   msToVnMidnight,
   msToVnWeekEnd,
   slotOf,
@@ -90,4 +91,13 @@ test("a time left is worded in Vietnamese, rounded up to the minute", () => {
   assert.equal(timeLeftText(3 * HOUR_MS + 5 * 60_000), "còn 3 giờ 5 phút");
   assert.equal(timeLeftText(2 * DAY_MS_REAL + 4 * HOUR_MS), "còn 2 ngày 4 giờ");
   assert.equal(timeLeftText(-5), "còn 0 phút");
+});
+
+test("countdownText formats compact MM:SS and H:MM:SS timers", () => {
+  assert.equal(countdownText(0), "00:00");
+  assert.equal(countdownText(-500), "00:00");
+  assert.equal(countdownText(1000), "00:01");
+  assert.equal(countdownText(14 * 60_000 + 5_000), "14:05");
+  assert.equal(countdownText(59 * 60_000 + 59_000), "59:59");
+  assert.equal(countdownText(HOUR_MS + 2 * 60_000 + 3_000), "1:02:03");
 });

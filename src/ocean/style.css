@@ -665,7 +665,9 @@
   flex-direction: column;
   border: 0;
   border-radius: 0;
-  background: #153b80b3;
+  background: rgba(21, 59, 128, 0.34);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   padding: max(8px, var(--safe-top, env(safe-area-inset-top, 0px)))
     max(8px, var(--safe-right, env(safe-area-inset-right, 0px)))
     max(8px, var(--safe-bottom, env(safe-area-inset-bottom, 0px)))
@@ -675,7 +677,7 @@
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
+  grid-template-columns: 78px minmax(0, 1fr);
   gap: 8px;
 }
 .hub-rail {
@@ -683,12 +685,19 @@
   flex-direction: column;
   gap: 6px;
   padding: 6px;
-  border-radius: 18px;
-  background: #153b80;
+  border-radius: 20px;
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  background: rgba(21, 59, 128, 0.78);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 10px 28px rgba(10, 32, 74, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
   overflow-y: auto;
 }
 .hub-tab {
   /* 56px when there is room, down to the 44px touch size on a short screen. */
+  position: relative;
   flex: 0 1 56px;
   display: flex;
   flex-direction: column;
@@ -697,30 +706,84 @@
   gap: 2px;
   min-height: 44px;
   padding: 4px 2px;
-  border: 0;
-  border-radius: 13px;
+  border: 1px solid transparent;
+  border-radius: 14px;
   background: transparent;
-  color: #cfe1ff;
+  color: #e4f0ff;
   font:
     700 12px/1.1 "Be Vietnam Pro",
     sans-serif;
   cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    transform 120ms ease,
+    box-shadow 140ms ease;
+}
+.hub-tab-badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.hub-tab[aria-current="page"] .hub-tab-badge {
+  background: rgba(21, 59, 128, 0.16);
+  color: #153b80;
+}
+.hub-tab-badge.is-alert,
+.hub-tab[aria-current="page"] .hub-tab-badge.is-alert {
+  background: #e97760;
+  color: #fff;
+}
+.hub-tab-dot {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffd35a;
+  box-shadow: 0 0 0 2px rgba(21, 59, 128, 0.72);
+  pointer-events: none;
+}
+.hub-tab[aria-current="page"] .hub-tab-dot {
+  background: #e97760;
+  box-shadow: 0 0 0 2px #ffd35a;
 }
 .hub-tab svg {
   width: 24px;
   height: 24px;
 }
 .hub-tab[aria-current="page"] {
-  background: #ffd35a;
+  background: linear-gradient(180deg, #ffe07d 0%, #ffd35a 100%);
   color: #153b80;
+  border-color: rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 4px 12px rgba(10, 32, 74, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
   cursor: default;
 }
+.hub-tab:not([aria-current="page"]):hover {
+  background: rgba(255, 255, 255, 0.18);
+}
 .hub-tab:not([aria-current="page"]):active {
-  background: #ffffff26;
+  background: rgba(255, 255, 255, 0.26);
+  transform: scale(0.97);
 }
 .hub-tab.is-close {
   margin-top: auto;
-  background: #ffffff1f;
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.hub-tab.is-close:hover {
+  background: rgba(255, 255, 255, 0.22);
 }
 .ocean-dialog .hub-tab:focus-visible {
   outline: 3px solid #fff;
@@ -734,10 +797,28 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  padding: 8px 10px;
-  border: 3px solid #153b80;
-  border-radius: 18px;
-  background: #f6fbff;
+  padding: 10px 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  background: rgba(246, 251, 255, 0.88);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 12px 32px rgba(21, 59, 128, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .ocean-dialog.is-stock[open] {
+    background: rgba(21, 59, 128, 0.65);
+  }
+  .hub-rail {
+    background: #153b80f0;
+  }
+  .hub-page {
+    background: #f6fbfff7;
+  }
 }
 /* Portrait phones: the rail lies along the top and the tabs shrink to their icons and words. */
 @media (max-aspect-ratio: 1/1) {
@@ -1468,45 +1549,100 @@
   padding: max(16px, var(--safe-top)) max(22px, var(--safe-right))
     max(20px, var(--safe-bottom)) max(22px, var(--safe-left));
 }
-.hub-logo {
+.hub-head {
   position: absolute;
   left: max(24px, var(--safe-left));
   top: max(14px, var(--safe-top));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.hub-logo {
   margin: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   line-height: 0.92;
+}
+.hub-sea {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.86);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.68);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 4px 14px rgba(21, 59, 128, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+.hub-sea-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.hub-sea-icons svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+.hub-event {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 8px;
+  border-left: 1.5px solid rgba(21, 59, 128, 0.18);
+  color: #153b80;
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.hub-event svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.hub-rotate {
+  display: none;
 }
 .hub-logo span {
   display: block;
   font:
-    800 54px/0.95 "Baloo 2",
+    800 52px/0.95 "Baloo 2",
     system-ui,
     sans-serif;
   color: #fff;
-  -webkit-text-stroke: 9px #153b80;
+  -webkit-text-stroke: 7px #153b80;
   paint-order: stroke fill;
-  letter-spacing: 0.5px;
-  text-shadow: 0 5px 0 #153b80;
+  letter-spacing: 0.4px;
+  text-shadow:
+    0 4px 12px rgba(21, 59, 128, 0.22),
+    0 3px 0 #153b80;
 }
 .hub-logo small {
   display: inline-block;
-  margin: 8px 0 0 6px;
-  padding: 2px 16px;
-  border: 3px solid #153b80;
+  padding: 4px 16px;
+  border: 1.5px solid rgba(255, 255, 255, 0.72);
   border-radius: 999px;
-  background: #ffd35a;
-  box-shadow: 0 3px 0 #153b80;
+  background: linear-gradient(180deg, #ffe07d 0%, #ffd35a 100%);
+  box-shadow: 0 4px 12px rgba(21, 59, 128, 0.16);
   font:
-    800 17px "Baloo 2",
+    800 17px/1.2 "Baloo 2",
     system-ui,
     sans-serif;
-  transform: rotate(-2deg);
+  color: #153b80;
 }
 .hub-tools {
   position: absolute;
   right: max(22px, var(--safe-right));
   top: max(14px, var(--safe-top));
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 .hub-round {
   width: 50px;
@@ -1515,11 +1651,19 @@
   padding: 0;
   display: grid;
   place-items: center;
-  border: 3px solid #153b80;
+  border: 1.5px solid rgba(255, 255, 255, 0.88);
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 4px 0 #153b80;
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 6px 18px rgba(21, 59, 128, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
   cursor: pointer;
+  transition:
+    transform 120ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
 }
 /* display on the round button would otherwise win over the hidden attribute. */
 .hub-round[hidden] {
@@ -1529,160 +1673,213 @@
   width: 24px;
   height: 24px;
 }
+.hub-round:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.86);
+}
 .hub-round:active,
 .hub-cta:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #153b80;
+  transform: translateY(2px) scale(0.98);
 }
 .hub-card {
   position: absolute;
   left: max(22px, var(--safe-left));
   bottom: max(20px, var(--safe-bottom));
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  max-width: calc(100% - 300px);
-  padding: 10px 16px 10px 12px;
-  border: 3px solid #153b80;
-  border-radius: 22px;
-  background: #fff;
-  box-shadow: 0 5px 0 #153b80;
+  gap: 10px;
+  max-width: calc(
+    100% - max(22px, var(--safe-left)) - max(22px, var(--safe-right)) - 260px
+  );
+  padding: 7px 16px 7px 8px;
+  border: 1.5px solid rgba(255, 255, 255, 0.88);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.74);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 8px 24px rgba(21, 59, 128, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
 }
 .hub-avatar {
   flex: none;
-  width: 54px;
-  height: 54px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
-  border: 3px solid #153b80;
+  border: 1.5px solid rgba(21, 59, 128, 0.18);
   border-radius: 50%;
-  background: linear-gradient(#bfe3ff, #7cc4ee);
+  background: linear-gradient(180deg, #e7f4ff, #c5e6ff);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
-.hub-who {
-  display: grid;
-  gap: 2px;
+.hub-name {
   min-width: 0;
-}
-.hub-who strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font:
-    800 18px/1.15 "Baloo 2",
+    800 17px/1.15 "Baloo 2",
     system-ui,
     sans-serif;
-}
-.hub-who span {
-  font-size: 13px;
-  font-weight: 700;
-  color: #385b8d;
-}
-.hub-out {
-  margin-left: 6px;
-  min-height: 44px;
-  padding: 0 12px;
-  border: 0;
-  background: none;
-  color: #385b8d;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  text-decoration: underline;
-  cursor: pointer;
 }
 .hub-cta {
   position: absolute;
   right: max(22px, var(--safe-right));
   bottom: max(20px, var(--safe-bottom));
-  min-width: 230px;
-  min-height: 78px;
-  padding: 10px 28px;
+  min-width: 224px;
+  min-height: 74px;
+  padding: 10px 26px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  border: 3px solid #153b80;
-  border-radius: 26px;
-  background: #ffd35a;
+  border: 1.5px solid rgba(255, 255, 255, 0.68);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffe07d 0%, #ffd35a 100%);
   color: #153b80;
-  box-shadow: 0 7px 0 #153b80;
+  box-shadow:
+    0 10px 24px rgba(21, 59, 128, 0.22),
+    0 3px 0 rgba(21, 59, 128, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
   cursor: pointer;
   text-align: left;
+  transition:
+    transform 120ms ease,
+    filter 140ms ease,
+    box-shadow 140ms ease;
+}
+.hub-cta:hover:not(:disabled) {
+  filter: brightness(1.03);
 }
 .hub-cta:disabled {
   opacity: 0.75;
 }
 .hub-anchor {
-  font-size: 34px;
-  line-height: 1;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.hub-anchor svg {
+  width: 30px;
+  height: 30px;
 }
 .hub-cta-text {
   display: grid;
 }
 .hub-cta-text strong {
   font:
-    800 30px/1.05 "Baloo 2",
+    800 28px/1.05 "Baloo 2",
     system-ui,
     sans-serif;
 }
 .hub-cta-text small {
   font-size: 12px;
   font-weight: 700;
-  color: #385b8d;
+  color: #2b4c7e;
 }
 .hub-error {
   position: absolute;
   left: 50%;
-  bottom: 118px;
+  bottom: 114px;
   transform: translateX(-50%);
   max-width: min(480px, calc(100% - 40px));
   margin: 0;
-  padding: 8px 14px;
-  border: 3px solid #153b80;
+  padding: 10px 16px;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  border-left: 4px solid #e97760;
   border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 4px 0 #153b80;
+  background: rgba(255, 255, 255, 0.88);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 22px rgba(21, 59, 128, 0.16);
   text-align: center;
+}
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .hub-round,
+  .hub-card,
+  .hub-sea,
+  .hub-rotate,
+  .hub-error {
+    background: rgba(255, 255, 255, 0.94);
+  }
 }
 @media (max-height: 430px) {
   .hub-logo span {
-    font-size: 44px;
+    font-size: 42px;
   }
   .hub-logo small {
     font-size: 15px;
   }
   .hub-cta {
-    min-width: 190px;
-    min-height: 70px;
+    min-width: 184px;
+    min-height: 66px;
   }
   .hub-cta-text strong {
-    font-size: 26px;
+    font-size: 24px;
   }
   .hub-card {
-    max-width: calc(100% - 250px);
+    max-width: calc(
+      100% - max(22px, var(--safe-left)) - max(22px, var(--safe-right)) - 220px
+    );
   }
-  .hub-who strong {
-    font-size: 16px;
+  .hub-name {
+    font-size: 15px;
+  }
+  .hub-page {
+    padding: 8px 10px;
   }
 }
 @media (orientation: portrait) {
   .hub {
     background-position: 50% 82%;
   }
+  .hub-logo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
   .hub-logo span {
-    font-size: 56px;
+    font-size: 52px;
   }
   .hub-card {
-    left: 20px;
-    right: 20px;
-    bottom: 124px;
-    max-width: none;
+    left: max(20px, var(--safe-left));
+    bottom: calc(max(20px, var(--safe-bottom)) + 92px);
+    max-width: calc(100% - 40px);
+  }
+  .hub-rotate {
+    position: absolute;
+    left: 50%;
+    bottom: calc(max(20px, var(--safe-bottom)) + 162px);
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border: 1.5px solid rgba(255, 255, 255, 0.72);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.74);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 6px 18px rgba(10, 32, 74, 0.2);
+    color: #153b80;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .hub-rotate svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
   }
   .hub-cta {
-    left: 20px;
-    right: 20px;
-    bottom: 20px;
+    left: max(20px, var(--safe-left));
+    right: max(20px, var(--safe-right));
+    bottom: max(20px, var(--safe-bottom));
     min-width: 0;
   }
   .hub-error {
-    bottom: 230px;
+    bottom: calc(max(20px, var(--safe-bottom)) + 210px);
   }
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -1701,7 +1898,7 @@ body:has(.hub) .paper-card {
  * app's own style. It is deliberately not the 3D map; the map shows only once it is loaded.
  */
 :root {
-  --flat-sea: linear-gradient(#4b3a8f, #e0597a 45%, #ffb35a 78%, #ffe29a);
+  --flat-sea: linear-gradient(#82c4ff, #c8e8ff 52%, #fff4cf 80%, #5ec8e8);
 }
 .hub-art {
   position: absolute;

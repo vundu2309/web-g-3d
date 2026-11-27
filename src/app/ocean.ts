@@ -431,6 +431,24 @@ export function startOcean(
       else if (id === "crew") showCrew();
       else showSettings();
     },
+    badge(id) {
+      if (id === "stock") {
+        const used = stockTotal(fishStock);
+        if (economy) {
+          const cap = slotsOf(loadout.boat);
+          return { text: `${used}/${cap}`, alert: used >= cap };
+        }
+        return used > 0 ? { text: String(used) } : undefined;
+      }
+      if (id === "book") {
+        return eventAt(worldMs()).active ? { dot: true } : undefined;
+      }
+      if (id === "crew") {
+        const online = visibleBoats().filter((boat) => !boat.offline).length;
+        return online > 0 ? { text: String(online) } : undefined;
+      }
+      return undefined;
+    },
   };
   /** The hour of the event a giant was landed in: the server is told with the catch (decision 0021). */
   const eventSlots = new WeakMap<object, number>();
