@@ -138,7 +138,7 @@ const RELEVANT =
 const PWA =
   /^(public\/|scripts\/(service-worker\.js|pwa-build\.mjs)$|tests\/pwa-browser\.mjs$|src\/(app\/pwa|platform\/(pwa|update-check))\.ts$)/;
 const PWA_NOTE =
-  "the PWA test is not run here: npm run build, then node tests/pwa-browser.mjs";
+  "the PWA test is not run here: npm run build with the VITE_ account settings empty (docs/workflow.md), then node tests/pwa-browser.mjs";
 
 /**
  * The tests for `files` (repository paths). A relevant file with no row adds the `fallback` group,

@@ -44,7 +44,7 @@ Update authored docs when contracts change. Finish source edits before refreshin
 
 ## PWA checks
 
-`npm run build` generates a versioned static-shell worker. The browser suite additionally runs `tests/pwa-browser.mjs` on a dedicated local server under the Pages subpath, testing offline reload, install handler/guide, API cache exclusion and waiting-worker updates. See [PWA](pwa.md). Native OS install is not covered by synthetic browser events.
+`npm run build` generates a versioned static-shell worker. `tests/pwa-browser.mjs` passes only on a build with no account settings (a `.env.local` makes `?view=ocean` open the sign-in dialog): build with `VITE_SUPABASE_URL= VITE_SUPABASE_PUBLISHABLE_KEY= VITE_API_URL= VITE_AUTH_REDIRECT_URL= VITE_ECONOMY= npm run build` first. The browser suite additionally runs `tests/pwa-browser.mjs` on a dedicated local server under the Pages subpath, testing offline reload, install handler/guide, API cache exclusion and waiting-worker updates. See [PWA](pwa.md). Native OS install is not covered by synthetic browser events.
 
 ## Safe-area and PWA updates
 

@@ -102,6 +102,30 @@ const context = await browser.newContext({
 let page = await context.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
+/**
+ * Waits until the shell cache names satisfy `done`. Not waitForFunction: it takes the promise of an
+ * async predicate as true at once. A read that fails while the page reloads is tried again.
+ */
+async function cachesBecome(what, done, ms = 30000) {
+  const until = Date.now() + ms;
+  let names;
+  for (;;) {
+    try {
+      names = await page.evaluate(async () =>
+        (await caches.keys()).filter((n) => n.startsWith("photyphu-shell:")),
+      );
+      if (done(names)) return;
+    } catch (error) {
+      if (Date.now() > until)
+        assert.fail(`${what}: the caches could not be read: ${error.message}`);
+    }
+    if (Date.now() > until)
+      assert.fail(
+        `${what}: after ${ms} ms the caches are ${names?.join(", ")}`,
+      );
+    await page.waitForTimeout(100);
+  }
+}
 try {
   await mkdir("test-results/pwa", { recursive: true });
   await page.goto(base);
@@ -216,12 +240,10 @@ try {
     await r.update();
   });
   await page.waitForFunction(() => !window.pwaSentinel);
-  await page.waitForFunction(async () => {
-    const names = (await caches.keys()).filter((n) =>
-      n.startsWith("photyphu-shell:"),
-    );
-    return names.length === 1 && names[0].endsWith(":pwa-update-test-2");
-  });
+  await cachesBecome(
+    "only the shell of update 2 is left",
+    (names) => names.length === 1 && names[0].endsWith(":pwa-update-test-2"),
+  );
   assert.equal(await page.locator(".pwa-update").isVisible(), false);
   // An active game view is never reloaded underneath the player.
   await page.goto(`${base}?view=ocean`);
@@ -234,17 +256,17 @@ try {
     const r = await navigator.serviceWorker.getRegistration();
     await r.update();
   });
-  await page.waitForFunction(async () =>
-    (await caches.keys()).some((n) => n.endsWith(":pwa-update-test-3")),
+  await cachesBecome("the shell of update 3 is cached", (names) =>
+    names.some((n) => n.endsWith(":pwa-update-test-3")),
   );
   assert.equal(await page.evaluate(() => window.pwaSentinel), "in-game");
   // The next navigation already runs the newest shell; stale caches are cleaned.
   await page.goto(base);
   await page.locator("[data-pwa-install]").waitFor();
-  await page.waitForFunction(async () =>
-    (await caches.keys())
-      .filter((n) => n.startsWith("photyphu-shell:"))
-      .every((n) => n.endsWith(":pwa-update-test-3")),
+  await cachesBecome(
+    "no shell older than update 3 is left",
+    (names) =>
+      names.length > 0 && names.every((n) => n.endsWith(":pwa-update-test-3")),
   );
   await page.evaluate(() => dispatchEvent(new Event("appinstalled")));
   assert.equal(await page.locator("[data-pwa-install]").isVisible(), false);

@@ -48,6 +48,14 @@ node scripts/wt.mjs remove clear-water   # refuses while it has uncommitted chan
 
 Edits in the worktree show in its preview at once (Vite serves that folder; checked), while `main` stays as it was, so the user can look at the result before it is merged. `node_modules` is a symlink to the main checkout's, so no second install; each worktree has its own Vite cache (`VITE_CACHE_DIR`). The agent commits on its branch (the builder still never pushes); after the user approves, `release-manager` merges or cherry-picks the branch to main and pushes. Do not run `npm ci` or change dependencies inside a worktree (they share `node_modules`); a change to `package.json` dependencies is done in the main checkout.
 
+## A builder's brief is the spec
+
+The "Brief" section of the work record (from [`_template.md`](work/_template.md): acceptance criteria, what to
+build, what not to touch, owners, how the user judges it) is the brief of a builder. Paste it, add the paths and
+the "Standard start" below, and add nothing that contradicts it; when the brief changes, change the record first. The user's words ("Feedback and goal") go with it, and an agent's own list below (images, report form) still applies.
+The builder is told to see each criterion's check fail before the change and pass after, and to report both
+outputs.
+
 ## A brief for `sea-visual-builder`
 
 The agent file holds the standing rules, so a brief only needs:
@@ -72,4 +80,4 @@ Tips that cost time before: tell each parallel agent its own dev-server port and
 
 ## Checks every change must pass
 
-`npm run format:check`, `npx tsc --noEmit`, `npm run lint`, `npm run test:unit`, plus the browser tests for what changed (`tests/ocean-babylon-browser.mjs`, `ocean-market-browser.mjs`, `ocean-fishing-browser.mjs`; `tests/pwa-browser.mjs` after `npm run build`). All of it runs under software WebGL on the developer's Mac; nothing has been verified on a real phone.
+`npm run format:check`, `npx tsc --noEmit`, `npm run lint`, `npm run test:unit`, plus the browser tests for what changed (`tests/ocean-babylon-browser.mjs`, `ocean-market-browser.mjs`, `ocean-fishing-browser.mjs`; `tests/pwa-browser.mjs` after a build with no account settings, see [workflow](workflow.md)). All of it runs under software WebGL on the developer's Mac; nothing has been verified on a real phone.

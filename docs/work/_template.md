@@ -15,7 +15,34 @@ The user's words, then the numbers that explain them.
 
 ## Brief
 
-What to build (numbered, with targets in numbers), the limits that must hold, what not to touch, who owns which files. Paste or link the brief given to each agent.
+The spec, written before the first edit. Keep it to one page; a very small change may need one criterion.
+A builder's brief is this section plus the paths. The goal is the user's words under "Feedback and goal".
+
+### Acceptance criteria
+
+Each one is something that must be true, with a check that can fail: a test (file and test name or assertion).
+Run it before the build and see it fail, then after and see it pass; quote both under "Evidence". A criterion
+no test can check (a look, the feel on a phone) says so in the Check column and names who judges it and how.
+A **guard** (something that must stay true: a refactor, "nothing else breaks") is marked "guard": it passes
+before and after, and names how it was seen to be able to fail (a deliberate break, quoted).
+
+| #   | Must be true | Check (test file: name) | Before | After |
+| --- | ------------ | ----------------------- | ------ | ----- |
+| 1   |              |                         |        |       |
+
+### What to build
+
+Numbered, with targets in numbers.
+
+### Not to touch, and limits that must hold
+
+### Owners
+
+Which agent or person owns which files (or the table under "Plan and owners").
+
+### How the user will judge it
+
+What they will be shown or asked to try.
 
 ## Plan and owners
 

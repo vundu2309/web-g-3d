@@ -127,6 +127,17 @@ rows for `ocean-quests` were added to the table):
   `ocean-babylon` fail, `ocean-fishing` fail, `ocean-cast` flaky (killed at 600 s, then passed),
   `ocean-market` pass; machine load about 6 to 11. The two failures are not classified.
 
+## Step 2 (started 2026-11-26)
+
+The user approved it: "Làm bước 2". Written before the first edit, on the branch
+`chore/agentic-workflow-step2` from `6b727ad`. Step 1's done-when 1 is still unchecked. Files: `docs/work/_template.md`,
+`docs/agent-briefs.md`, `docs/agent-workflow.md`, `AGENTS.md`, this record.
+
+The trial change, chosen by the user ("Sửa test PWA"), is `2026-11-26-pwa-test-waits.md`: two criteria seen to
+fail before and to succeed after, one guard. The `reviewer` agent says all three are checkable, with limits
+written there; it also found that the template had no place for a guard, which was added. Done-when "on
+`main`" waits for the user's say to commit and push.
+
 ## Steps in detail (added 2026-11-26)
 
 Each step lists the tasks, what makes it done (something a person or a test can check) and what is not yet
@@ -251,7 +262,8 @@ State on 2026-11-26 after the second session: items 1 to 4 below are done on
 `f4fee4e` passed lint, format, typecheck and unit tests). Done-when 1 is still unchecked.
 
 Added 2026-11-26: `tests/pwa-browser.mjs` has three `waitForFunction` calls with `async` predicates that
-check nothing; fix them and run a negative control (needs a build).
+check nothing; fix them and run a negative control (needs a build). Done in
+`2026-11-26-pwa-test-waits.md`, the trial of step 2.
 
 In the user's order:
 
