@@ -308,7 +308,7 @@ end$$;
 -- A new account owns only the defaults; economy_state carries them next to the old fields.
 do $$declare s jsonb; begin
   s := public.economy_state();
-  if s->'loadout' is distinct from '{"rod":0,"bait":0,"baitUsed":0,"boat":0}'::jsonb then raise exception 'new loadout %', s->'loadout'; end if;
+  if s->'loadout' is distinct from '{"rod":0,"bait":0,"baitUsed":0,"boat":0,"paint":null,"paints":[]}'::jsonb then raise exception 'new loadout %', s->'loadout'; end if;
   if (s->>'coins')::bigint <> 700 or jsonb_array_length(s->'ledger') <> 1 then raise exception 'state fields changed: %', s; end if;
 end$$;
 
@@ -372,7 +372,7 @@ do $$declare r jsonb; begin
   r := public.economy_buy('bait', 2);   -- 600 coins: 1300 - 600 = 700
   if (r->>'coins')::bigint <> 700 or (r->'loadout'->>'bait')::int <> 2 or (r->'loadout'->>'baitUsed')::int <> 2 then raise exception 'bait 2 result %', r; end if;
   r := public.economy_set_bait(1);
-  if r is distinct from '{"rod":1,"bait":2,"baitUsed":1,"boat":1}'::jsonb then raise exception 'bait 1 chosen: %', r; end if;
+  if r is distinct from '{"rod":1,"bait":2,"baitUsed":1,"boat":1,"paint":null,"paints":[]}'::jsonb then raise exception 'bait 1 chosen: %', r; end if;
   r := public.economy_set_bait(0);
   if (r->>'baitUsed')::int <> 0 or (r->>'bait')::int <> 2 then raise exception 'default bait chosen: %', r; end if;
   begin perform public.economy_set_bait(3); raise exception 'bait not owned accepted';
@@ -400,22 +400,22 @@ end$$;
 -- One player's upgrades are not another's.
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a6', true);
 do $$begin
-  if public.economy_loadout() is distinct from '{"rod":0,"bait":0,"baitUsed":0,"boat":0}'::jsonb then raise exception 'loadout leaked between accounts'; end if;
+  if public.economy_loadout() is distinct from '{"rod":0,"bait":0,"baitUsed":0,"boat":0,"paint":null,"paints":[]}'::jsonb then raise exception 'loadout leaked between accounts'; end if;
   begin perform public.economy_set_bait(1); raise exception 'someone else''s bait could be chosen';
   exception when sqlstate 'EC422' then null; end;
   begin perform public.economy_buy('rod', 1); raise exception 'buying with an empty wallet accepted';
   exception when sqlstate 'EC402' then null; end;
 end$$;
 
--- economy_loadout is a LIGHT read: only the four tiers, never the coins or the ledger.
+-- economy_loadout is a LIGHT read: only the loadout fields, never the coins or the ledger.
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a5', true);
 do $$declare l jsonb; begin
   l := public.economy_loadout();
-  if (select array_agg(k order by k) from jsonb_object_keys(l) k) <> array['bait', 'baitUsed', 'boat', 'rod'] then
+  if (select array_agg(k order by k) from jsonb_object_keys(l) k) <> array['bait', 'baitUsed', 'boat', 'paint', 'paints', 'rod'] then
     raise exception 'loadout keys: %', l;
   end if;
   if l ? 'coins' or l ? 'ledger' then raise exception 'loadout leaks the wallet'; end if;
-  if l is distinct from '{"rod":1,"bait":2,"baitUsed":0,"boat":1}'::jsonb then raise exception 'loadout %', l; end if;
+  if l is distinct from '{"rod":1,"bait":2,"baitUsed":0,"boat":1,"paint":null,"paints":[]}'::jsonb then raise exception 'loadout %', l; end if;
 end$$;
 
 -- A read does not create rows: a never-seen account reading its loadout leaves nothing behind.
@@ -1006,6 +1006,89 @@ do $$declare fn text; begin
   foreach fn in array array['quest_defs', 'daily_quests', 'weekly_stats', 'event_results'] loop
     if has_table_privilege('authenticated', 'economy_private.' || fn, 'select') then raise exception '% readable', fn; end if;
   end loop;
+end$$;
+
+-- ---------------------------------------------------------------------------------------------
+-- Boat paint shop (supabase/migrations/20261129120000_boat_paint.sql, decision 0024).
+reset role;
+insert into auth.users(id, raw_user_meta_data) values
+  ('11111111-1111-1111-1111-111111111111', '{"display_name": "Sơn"}'),
+  ('22222222-2222-2222-2222-222222222222', '{"display_name": "Bạn"}');
+insert into economy_private.wallets(user_id, coins) values ('11111111-1111-1111-1111-111111111111', 1000);
+insert into economy_private.profiles(user_id, x, z, heading, pose_at) values
+  ('11111111-1111-1111-1111-111111111111', 10, 20, 0.5, clock_timestamp());
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '11111111-1111-1111-1111-111111111111', true);
+do $$declare
+  def smallint;
+  res jsonb;
+  l jsonb;
+begin
+  -- Before buying, paint is null and paints is empty.
+  l := public.economy_loadout();
+  if l->'paint' <> 'null'::jsonb or l->'paints' <> '[]'::jsonb then
+    raise exception 'initial paint loadout: %', l;
+  end if;
+  -- Invalid paint is refused (22023).
+  begin perform public.economy_buy_paint(8); raise exception 'invalid paint bought';
+  exception when sqlstate '22023' then null; end;
+  -- Setting unowned paint is refused (EC422).
+  begin perform public.economy_set_paint(6); raise exception 'unowned paint set';
+  exception when sqlstate 'EC422' then null; end;
+  -- Too poor for paint 7 (2000 xu > 1000 xu) is refused (EC402).
+  begin perform public.economy_buy_paint(7); raise exception 'too poor paint bought';
+  exception when sqlstate 'EC402' then null; end;
+  -- Buying paint 6 (800 xu) succeeds, deducts coins and equips immediately.
+  res := public.economy_buy_paint(6);
+  if (res->>'coins')::bigint <> 200 or (res->'loadout'->>'paint')::int <> 6 then
+    raise exception 'buy paint 6 failed: %', res;
+  end if;
+  -- Buying paint 6 again is refused (EC409) without charging.
+  begin perform public.economy_buy_paint(6); raise exception 'duplicate paint bought';
+  exception when sqlstate 'EC409' then null; end;
+  -- Buying own free UID default is refused (EC409); switching to it works.
+  def := (select (
+    with recursive c(i, h) as (
+      select 0, 0::bigint
+      union all
+      select i + 1, (h * 31 + ascii(substr('11111111-1111-1111-1111-111111111111', i + 1, 1))) & 4294967295
+      from c where i < 36
+    ) select (h % 4)::smallint from c where i = 36
+  ));
+  begin perform public.economy_buy_paint(def); raise exception 'default paint bought';
+  exception when sqlstate 'EC409' then null; end;
+  l := public.economy_set_paint(def);
+  if (l->>'paint')::int <> def then raise exception 'set default paint: %', l; end if;
+  l := public.economy_set_paint(6);
+  if (l->>'paint')::int <> 6 then raise exception 'set back to 6: %', l; end if;
+end$$;
+
+-- Parked boats expose the chosen paint to other players.
+select set_config('request.jwt.claim.sub', '22222222-2222-2222-2222-222222222222', true);
+do $$declare r jsonb; begin
+  r := public.economy_parked_boats();
+  if (select (elem->>'paint')::int from jsonb_array_elements(r) elem where elem->>'uid' = '11111111-1111-1111-1111-111111111111') <> 6 then
+    raise exception 'parked boat missing paint 6: %', r;
+  end if;
+end$$;
+
+-- Privileges for paint RPCs and private functions/table.
+reset role;
+do $$declare fn text; begin
+  foreach fn in array array['public.economy_buy_paint(integer)', 'public.economy_set_paint(integer)'] loop
+    if not has_function_privilege('authenticated', fn, 'execute') or has_function_privilege('anon', fn, 'execute') then
+      raise exception 'privileges of %', fn;
+    end if;
+  end loop;
+  foreach fn in array array['economy_private.default_paint(uuid)', 'economy_private.buy_paint(integer)', 'economy_private.set_paint(integer)'] loop
+    if has_function_privilege('authenticated', fn, 'execute') or has_function_privilege('anon', fn, 'execute') then
+      raise exception '% executable by client', fn;
+    end if;
+  end loop;
+  if has_table_privilege('authenticated', 'economy_private.paint_prices', 'select') then
+    raise exception 'paint_prices readable';
+  end if;
 end$$;
 rollback;
 select 'economy ok' as result;

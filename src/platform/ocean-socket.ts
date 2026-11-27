@@ -130,17 +130,33 @@ export async function connectOcean(
     value <= 3
       ? value
       : 0;
+  const paintOf = (value: unknown) =>
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= 7
+      ? value
+      : undefined;
   socket.on(
     "ocean:refit",
-    (value: { uid?: unknown; tier?: unknown; rod?: unknown }) => {
+    (value: {
+      uid?: unknown;
+      tier?: unknown;
+      rod?: unknown;
+      paint?: unknown;
+    }) => {
       if (disposed || typeof value?.uid !== "string") return;
       const known = fleet.get(value.uid);
       if (!known) return;
-      fleet.set(known.uid, {
+      const paint = paintOf(value.paint);
+      const next: Boat = {
         ...known,
         tier: tierOf(value.tier),
         rod: tierOf(value.rod),
-      });
+      };
+      if (paint !== undefined) next.paint = paint;
+      else delete next.paint;
+      fleet.set(known.uid, next);
       publishBoats(lastServerTime);
     },
   );

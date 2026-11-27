@@ -610,3 +610,10 @@ A market pays 85 % to 125 % of the ordinary price, different for each of the fiv
 - **Not yet**: the event board and the server's count of giants (phase P4); until then the limit is only the device's, which a modified client can ignore, so the reward is the fish's ordinary price (decisions 0010, 0017).
 - **Cost** (not measured on a phone): while an event is on and near, two additive meshes (about two draws, two 256 px / 32x128 canvas textures built once) and a few multiplications a frame; the event place is hashed once per hour and cached; no cost otherwise.
 - Tests: `tests/world-event.test.mjs` (the window, 10,000 hours of valid places, the fallbacks, the giants and their weights through `rollFish`, the quota, the words), `tests/ocean-event-browser.mjs` (the ring and beam on and off by the clock, `?event=0`, the Sự kiện page).
+
+### Boat paint shop (decision 0024, phase P5)
+
+Each shipyard now has two pages: "Thuyền" and "Sơn tàu" (`src/app/market-ui.ts`, view model `src/ocean/paint.ts`, palette catalogue `src/ocean/palette.ts`). Eight hull+trim palettes exist (`0..3` the four classic palettes at 150 xu each, `4..7` four new palettes at 400 / 400 / 800 / 2,000 xu). Every account owns its UID-hash default (`0..3`) for free; paints can be bought in any order and switched freely once owned. Each paint card renders the player's actual boat GLB (`boat.glb`..`boat-4.glb`) painted via `paintBoat` (`item-thumb.ts`, `boat-picture.ts`). Ownership, prices and active paint live on the server (`supabase/migrations/20261129120000_boat_paint.sql`, `economy_buy_paint`, `economy_set_paint`, `economy_loadout`, `economy_parked_boats`); `server/ocean.mjs` reads `paint` with the player's own token and relays it on `ocean:state`, `ocean:delta` and `ocean:refit` (updating 3D hulls, rods, minimap arrows and crew avatars).
+
+- **Cost** (not measured on a phone): 4 extra hidden vertex-coloured source mesh copies per loaded boat tier (`boat-model.ts`), vertex-colour buffer memory only and 0 extra draw calls per frame.
+

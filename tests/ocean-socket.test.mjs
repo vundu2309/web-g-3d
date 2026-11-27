@@ -710,3 +710,91 @@ test("shared sea: a boat whose player leaves stays where it was, for the protoco
     server.close();
   }
 });
+
+test("shared sea: boat paint is read from account loadout and parked boats, synced on refit, never trusted from client", async () => {
+  const server = createServer();
+  let clock = 1000;
+  const ids = { ta: "ann", tb: "bao" };
+  const authenticate = async (token) =>
+    ids[token]
+      ? { id: ids[token], user_metadata: { display_name: ids[token] } }
+      : null;
+  const owned = {
+    ta: { boat: 1, rod: 0, paint: 4 },
+    tb: { boat: 0, rod: 0, paint: null },
+  };
+  const parkedDb = [
+    {
+      uid: "dai",
+      name: "Đài",
+      x: 15,
+      z: 25,
+      heading: 0.2,
+      tier: 2,
+      rod: 1,
+      paint: 7,
+      age: 30,
+    },
+  ];
+  const io = attachSockets(server, {
+    origins: ["https://web-g-3d.vercel.app"],
+    authenticate,
+  });
+  attachOcean(io, {
+    authenticate,
+    now: () => clock,
+    tickMs: 40,
+    minRefitMs: 50,
+    loadoutOf: async (token) => owned[token],
+    parkedOf: async () => parkedDb,
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const { port } = server.address();
+  const sockets = [];
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const join = (s) =>
+    s.timeout(3000).emitWithAck("ocean:command", { action: "join", proto: 2 });
+  const next = async (token) => {
+    const s = connect(`http://127.0.0.1:${port}`, {
+      transports: ["websocket"],
+      reconnection: false,
+      auth: { token },
+      extraHeaders: { origin: "https://web-g-3d.vercel.app" },
+    });
+    sockets.push(s);
+    await once(s, "connect");
+    return s;
+  };
+  try {
+    const a = await next("ta");
+    const aState = once(a, "ocean:state");
+    await join(a);
+    const snapA = (await aState)[0];
+    assert.equal(snapA.boats.find((b) => b.uid === "ann")?.paint, 4);
+    assert.equal(snapA.boats.find((b) => b.uid === "dai")?.paint, 7);
+
+    const b = await next("tb");
+    const bState = once(b, "ocean:state");
+    await join(b);
+    const snapB = (await bState)[0];
+    assert.equal(snapB.boats.find((b) => b.uid === "ann")?.paint, 4);
+    assert.equal(
+      "paint" in (snapB.boats.find((b) => b.uid === "bao") ?? {}),
+      false,
+      "null paint is omitted for default UID palette",
+    );
+
+    // Client-sent paint payload is ignored; server reads updated account loadout on refit.
+    const refits = [];
+    b.on("ocean:refit", (ev) => refits.push(ev));
+    owned.ta = { boat: 1, rod: 0, paint: 6 };
+    clock += 100;
+    a.emit("ocean:refit", { paint: 7 });
+    await wait(120);
+    assert.equal(refits.length, 1);
+    assert.deepEqual(refits[0], { uid: "ann", tier: 1, rod: 0, paint: 6 });
+  } finally {
+    for (const socket of sockets) socket.disconnect();
+    server.close();
+  }
+});

@@ -25,6 +25,7 @@ export interface MapBoat {
   z: number;
   heading: number;
   fishing: boolean;
+  paint?: number;
 }
 
 /**
@@ -338,7 +339,7 @@ export function createMinimap(
           at,
           boat.heading,
           unit * 3.4,
-          hullCss(boat.uid),
+          hullCss(boat.uid, boat.paint),
           outline,
         );
       }

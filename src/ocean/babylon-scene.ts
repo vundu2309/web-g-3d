@@ -75,7 +75,7 @@ import { WakeTrail } from "./wake-trail.ts";
 import { islands, lighthouseIslands, type Boat, type Pose } from "./model.ts";
 import { FishSchools } from "./fish-schools.ts";
 import { FishingGear, type GearInput } from "./fishing-gear.ts";
-import { paletteIndex } from "./palette.ts";
+import { paintPalette } from "./palette.ts";
 import { baitTierIndex } from "./bait-view.ts";
 import { rodPlan, rodTierIndex } from "./rod-plan.ts";
 import { RodVisual } from "./rod-visual.ts";
@@ -180,6 +180,9 @@ export class OceanScene {
   private rodTier = 0;
   /** The bait on the line (upgrades.ts tier 0 to 3), for a gear that is made after it was chosen. */
   private bait = 0;
+  /** The chosen boat paint (0..7) for self and for remote players (decision 0024). */
+  private paint: number | undefined;
+  private readonly remotePaints = new Map<string, number | undefined>();
   private readonly remoteRodTiers = new Map<string, number>();
   private readonly fleet = new Map<string, Craft>();
   private readonly observer: ResizeObserver;
@@ -577,6 +580,35 @@ export class OceanScene {
       this.refit(craft, wanted);
   }
 
+  /**
+   * Paints the player's boat (and matching rod bands) with a shipyard paint (0..7), or restores
+   * the account-id default when `undefined`.
+   */
+  setBoatPaint(paint: number | undefined) {
+    this.paint = paint;
+    const self = this.self;
+    if (!self || this.scene.isDisposed) return;
+    const next = paintPalette(self.uid, paint);
+    if (self.craft.palette !== next) {
+      self.craft.palette = next;
+      this.dress(self.craft);
+      this.newRod(self.craft);
+    }
+  }
+
+  /** Paints another player's boat (and rod) with their chosen shipyard paint (0..7). */
+  setRemoteBoatPaint(uid: string, paint: number | undefined) {
+    this.remotePaints.set(uid, paint);
+    const craft = this.fleet.get(uid);
+    if (!craft || craft.npc || this.scene.isDisposed) return;
+    const next = paintPalette(uid, paint);
+    if (craft.palette !== next) {
+      craft.palette = next;
+      this.dress(craft);
+      this.newRod(craft);
+    }
+  }
+
   private codeBoat(craft: Craft) {
     const hull = this.templates[craft.palette]!.createInstance(
       `${craft.mesh.name}-hull`,
@@ -593,9 +625,10 @@ export class OceanScene {
     tier = 0,
     rodTier = 0,
     npc = false,
+    paint?: number,
   ): Craft {
     const mesh = new TransformNode(`boat-${uid}`, this.scene);
-    const palette = paletteIndex(uid);
+    const palette = paintPalette(uid, paint);
     const label = document.createElement("span");
     label.className = "ocean-boat-label";
     label.textContent = isSelf ? "Bạn" : name;
@@ -641,7 +674,15 @@ export class OceanScene {
       start: { x: pose.x, z: pose.z, heading: pose.heading },
       tier: this.tier,
     });
-    const craft = this.craft(uid, name, true, this.tier, this.rodTier);
+    const craft = this.craft(
+      uid,
+      name,
+      true,
+      this.tier,
+      this.rodTier,
+      false,
+      this.paint,
+    );
     // A boat of a bigger tier is drawn with the first boat's model until its own has loaded.
     if (this.tier > 0) void this.ensureBoatModels(this.tier);
     craft.mesh.parent = physics.view;
@@ -936,6 +977,8 @@ export class OceanScene {
         void this.setRemoteBoatTier(boat.uid, boat.tier);
       if (!boat.npc && this.remoteRodTiers.get(boat.uid) !== boat.rod)
         this.setRemoteRodTier(boat.uid, boat.rod);
+      if (!boat.npc && this.remotePaints.get(boat.uid) !== boat.paint)
+        this.setRemoteBoatPaint(boat.uid, boat.paint);
       let craft = this.fleet.get(boat.uid);
       if (!craft) {
         craft = this.craft(
@@ -945,6 +988,7 @@ export class OceanScene {
           boat.npc ? boat.tier : (this.remoteTiers.get(boat.uid) ?? 0),
           boat.npc ? 0 : (this.remoteRodTiers.get(boat.uid) ?? 0),
           boat.npc === true,
+          boat.npc ? undefined : this.remotePaints.get(boat.uid),
         );
         // A bigger boat shows the first boat's model until its own has loaded.
         if (this.modelKey(craft) > 0)
@@ -1021,6 +1065,7 @@ export class OceanScene {
         this.forgetTrail(id);
         this.remoteTiers.delete(id);
         this.remoteRodTiers.delete(id);
+        this.remotePaints.delete(id);
         craft.lights?.dispose();
         craft.label.remove();
         craft.line?.dispose();

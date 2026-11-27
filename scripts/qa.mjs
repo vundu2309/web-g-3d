@@ -24,6 +24,7 @@ const GROUPS = {
     "ocean-fishing",
     "ocean-cast",
     "ocean-market",
+    "ocean-paint",
     "ocean-server-store",
     "ocean-rank",
     "ocean-book",

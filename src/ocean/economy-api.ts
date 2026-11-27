@@ -36,6 +36,7 @@ import {
   vnWeekStartDay,
 } from "./game-clock.ts";
 import { marketPct, marketPcts, priceAt } from "./market-prices.ts";
+import { isPaint, paintOwned, paintPrice } from "./paint.ts";
 
 /** The most fish the one-time import moves (the server says the same), and the count it accepts. */
 export const IMPORT_MAX_FISH = 100;
@@ -152,6 +153,10 @@ export interface EconomyApi {
   buy(kind: UpgradeKind, tier: number): Promise<BuyResult>;
   /** Chooses the bait in use among the owned ones. */
   setBait(tier: number): Promise<Loadout>;
+  /** Buys a boat paint (0..7) and equips it immediately (decision 0024). */
+  buyPaint(paint: number): Promise<BuyResult>;
+  /** Equips an owned boat paint (0..7, or the free UID default). */
+  setPaint(paint: number): Promise<Loadout>;
   /** The fishing leaderboard: fish caught and the heaviest fish (decision 0017). */
   leaderboard(): Promise<Leaderboard>;
   /** Today's three quests and their progress (decision 0021). */
@@ -178,9 +183,15 @@ const board = (own: false | { value: number; species?: string }) =>
 
 /** The same rules as the database, in memory (tests and development). */
 export function memoryEconomy(
-  options: { now?: () => number; coins?: number; loadout?: Loadout } = {},
+  options: {
+    now?: () => number;
+    coins?: number;
+    loadout?: Loadout;
+    uid?: string;
+  } = {},
 ): EconomyApi {
   const now = options.now ?? (() => Date.now());
+  const uid = options.uid ?? "me";
   let coins = options.coins ?? 0;
   let lastCatch: number | undefined;
   let nextId = 1;
@@ -501,6 +512,24 @@ export function memoryEconomy(
       if (!isTier(tier)) throw new EconomyError("invalid");
       if (tier > loadout.bait) throw new EconomyError("order");
       loadout = { ...loadout, baitUsed: tier };
+      return { ...loadout };
+    },
+    async buyPaint(paint) {
+      if (!isPaint(paint)) throw new EconomyError("invalid");
+      if (paintOwned(uid, loadout, paint)) throw new EconomyError("owned");
+      const cost = paintPrice(paint);
+      if (coins < cost) throw new EconomyError("poor");
+      coins -= cost;
+      const paints = [...new Set([...(loadout.paints ?? []), paint])].sort(
+        (a, b) => a - b,
+      );
+      loadout = { ...loadout, paint, paints };
+      return { coins, loadout: { ...loadout } };
+    },
+    async setPaint(paint) {
+      if (!isPaint(paint)) throw new EconomyError("invalid");
+      if (!paintOwned(uid, loadout, paint)) throw new EconomyError("order");
+      loadout = { ...loadout, paint };
       return { ...loadout };
     },
     // Nobody else is in memory: the player alone, ranked when they have caught something.

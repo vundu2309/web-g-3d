@@ -1,4 +1,5 @@
 import { SEA_BOUND, spawn } from "../src/ocean/model.ts";
+import { clampPaint } from "../src/ocean/paint.ts";
 import { clampTier } from "../src/ocean/upgrades.ts";
 
 /**
@@ -91,6 +92,7 @@ export function attachOcean(
     fishing: false,
     tier: boat.tier,
     rod: boat.rod,
+    ...(boat.paint !== undefined ? { paint: boat.paint } : {}),
     updatedAt: boat.updatedAt,
     off: 1,
   });
@@ -123,6 +125,7 @@ export function attachOcean(
             fishing: boat.fishing,
             tier: boat.tier,
             rod: boat.rod,
+            ...(boat.paint !== undefined ? { paint: boat.paint } : {}),
             updatedAt: boat.updatedAt,
           });
         else
@@ -191,7 +194,7 @@ export function attachOcean(
         x,
         z,
         heading,
-        ...fitOf({ boat: raw.tier, rod: raw.rod }),
+        ...fitOf({ boat: raw.tier, rod: raw.rod, paint: raw.paint }),
         updatedAt: at - age * 1000,
         source: "db",
       };
@@ -201,7 +204,8 @@ export function attachOcean(
         known.z === z &&
         known.heading === heading &&
         known.tier === next.tier &&
-        known.rod === next.rod
+        known.rod === next.rod &&
+        known.paint === next.paint
       )
         continue;
       parked.set(raw.uid, next);
@@ -238,11 +242,15 @@ export function attachOcean(
       clearTimeout(timer);
     }
   }
-  /** The tiers of a loadout answer, each 0 to 3 (anything else is 0). */
-  const fitOf = (loadout) => ({
-    tier: clampTier(loadout?.boat),
-    rod: clampTier(loadout?.rod),
-  });
+  /** The tiers and optional paint of a loadout answer. */
+  const fitOf = (loadout) => {
+    const paint = clampPaint(loadout?.paint);
+    return {
+      tier: clampTier(loadout?.boat),
+      rod: clampTier(loadout?.rod),
+      ...(paint !== undefined ? { paint } : {}),
+    };
+  };
   /**
    * What the player's boat and rod are, or `undefined` when that cannot be told within `fitWaitMs`
    * (the economy failed or was slow). The caller decides what unknown means: entering takes the
@@ -438,15 +446,25 @@ export function attachOcean(
     // the others. Quiet when not joined or nothing changed; one asked too soon after the last is not
     // dropped (a second purchase within the gap must still reach the others) but done once the gap
     // is over. A read that fails leaves the boat as it is.
+    let refitSeq = 0;
     async function refit() {
+      const seq = ++refitSeq;
       lastRefit = now();
       const uid = socket.data.uid;
       const fit = await readFit(socket.data.token);
-      if (!fit) return;
+      if (!fit || seq !== refitSeq) return;
       const boat = boats.get(uid);
       if (!boat || boat.session !== socket.id) return;
-      if (boat.tier === fit.tier && boat.rod === fit.rod) return;
-      Object.assign(boat, fit);
+      if (
+        boat.tier === fit.tier &&
+        boat.rod === fit.rod &&
+        boat.paint === fit.paint
+      )
+        return;
+      boat.tier = fit.tier;
+      boat.rod = fit.rod;
+      if (fit.paint !== undefined) boat.paint = fit.paint;
+      else delete boat.paint;
       io.to(modernRoom).emit("ocean:refit", { uid, ...fit });
       // Older clients get it with the next full snapshot.
       dirty.add(uid);

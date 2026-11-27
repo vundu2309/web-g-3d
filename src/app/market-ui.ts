@@ -13,8 +13,9 @@ import {
   type SoldFish,
 } from "../platform/economy";
 import { showFishThumb } from "./fish-thumb";
-import { showItemThumb } from "./item-thumb";
+import { showItemThumb, showPaintThumb } from "./item-thumb";
 import { createHubShell, type HubId, type HubNav } from "./hub-shell";
+import { paintView, type PaintCardView } from "../ocean/paint";
 import {
   upgradeView,
   type Bar,
@@ -34,8 +35,8 @@ import type { Cue } from "../ocean/audio-cues";
  * economy (no server economy configured) nothing appears at all.
  *
  * The same hub serves the shipyards (ocean/shipyard.ts): near a yard the button says Tàu and the
- * page is the one row of boats (the best boat owned is the one the player sails); rods and baits
- * are sold at the markets only.
+ * hub has two pages: boats (the best boat owned is the one the player sails) and boat paint
+ * (decision 0024); rods and baits are sold at the markets only.
  */
 export interface MarketUiOptions {
   button: HTMLButtonElement;
@@ -48,6 +49,8 @@ export interface MarketUiOptions {
   beforeOpen: () => void;
   /** The tabs of the hub shell: the way to the fish store, crew and settings pages. */
   hubs: HubNav;
+  /** Account id of the signed-in player, used to know their free default boat paint. */
+  uid?: () => string;
   /**
    * The server refused a kept fish for good (the ledger is full, or the fish is not valid): the
    * store must not show it. Not called for a network failure (retried) or "too fast" (retried).
@@ -198,8 +201,8 @@ export function createMarketUi(options: MarketUiOptions) {
     }
   }
 
-  /** The page being shown: selling fish, the rod and bait, or (at a yard) the boats. A market opens on selling, a yard on the boats. */
-  let page: "sell" | "upgrade" | "boat" = "sell";
+  /** The page being shown: selling fish, the rod and bait, or (at a yard) the boats or boat paint. */
+  let page: "sell" | "upgrade" | "boat" | "paint" = "sell";
   /** What the server last said: the wallet, the ledger and what the player owns. */
   let current: EconomyState | undefined;
   /** The parts of the hub on screen now (replaced whenever the shell is redrawn). */
@@ -214,7 +217,7 @@ export function createMarketUi(options: MarketUiOptions) {
   /** Counts fresh openings of the market: an answer that comes back to an older one is dropped. */
   let session = 0;
   /** The card that was just bought: it pops once. */
-  let fresh: { kind: ShopKind; tier: number } | undefined;
+  let fresh: { kind: ShopKind | "paint"; tier: number } | undefined;
 
   function shell(spot: Spot) {
     const hub = createHubShell(dialog, options.hubs, hubOf(spot));
@@ -225,10 +228,16 @@ export function createMarketUi(options: MarketUiOptions) {
     tabs.setAttribute("role", "group");
     tabs.setAttribute("aria-label", "Chọn mục");
     tabs.hidden = true;
-    for (const [id, label] of [
-      ["sell", "Bán cá"],
-      ["upgrade", "Cần & mồi"],
-    ] as const) {
+    const choices = spot.yard
+      ? ([
+          ["boat", "Thuyền"],
+          ["paint", "Sơn tàu"],
+        ] as const)
+      : ([
+          ["sell", "Bán cá"],
+          ["upgrade", "Cần & mồi"],
+        ] as const);
+    for (const [id, label] of choices) {
       const tab = el("button", "market-tab", label);
       tab.type = "button";
       tab.dataset.page = id;
@@ -330,8 +339,8 @@ export function createMarketUi(options: MarketUiOptions) {
     draw(flash, problem);
   }
 
-  /** Switches between selling and the rod and bait without asking the server again. */
-  function show(next: "sell" | "upgrade" | "boat") {
+  /** Switches between pages without asking the server again. */
+  function show(next: "sell" | "upgrade" | "boat" | "paint") {
     if (next === page || !current || busy) return;
     page = next;
     draw();
@@ -344,8 +353,8 @@ export function createMarketUi(options: MarketUiOptions) {
       return;
     const { wallet, body, foot, tabs } = view;
     showWallet(wallet);
-    // A yard has the one page; the tabs are for choosing between the market's two.
-    tabs.hidden = open.yard;
+    // Both markets (Bán cá / Cần & mồi) and shipyards (Thuyền / Sơn tàu) have two pages.
+    tabs.hidden = false;
     for (const tab of tabs.querySelectorAll<HTMLElement>(".market-tab"))
       tab.setAttribute("aria-pressed", String(tab.dataset.page === page));
     body.replaceChildren();
@@ -361,6 +370,7 @@ export function createMarketUi(options: MarketUiOptions) {
       body.append(note);
     }
     if (page === "boat") drawBoats(body, current);
+    else if (page === "paint") drawPaints(body, current);
     else if (page === "upgrade") drawUpgrades(body, current);
     else drawSell(body, foot, current);
   }
@@ -464,7 +474,7 @@ export function createMarketUi(options: MarketUiOptions) {
   }
 
   /** Keeps the keyboard on a card after a redraw: its button, or the card itself when it has none. */
-  function focusCard(kind: ShopKind, tier: number) {
+  function focusCard(kind: ShopKind | "paint", tier: number) {
     const card = view?.body.querySelector<HTMLElement>(
       `[data-kind="${kind}"] [data-tier="${tier}"]`,
     );
@@ -473,7 +483,7 @@ export function createMarketUi(options: MarketUiOptions) {
     });
   }
 
-  /** Buys the next tier of a rod or a bait. A second tap while the call runs does nothing. */
+  /** Buys the next tier of a rod, bait or boat. A second tap while the call runs does nothing. */
   async function buy(kind: ShopKind, tier: number) {
     if (busy || !economy || !current) return;
     busy = true;
@@ -538,6 +548,70 @@ export function createMarketUi(options: MarketUiOptions) {
     focusCard("bait", tier);
   }
 
+  /** Buys a boat paint (any order) and equips it immediately. */
+  async function buyPaint(paintId: number) {
+    if (busy || !economy || !current) return;
+    busy = true;
+    const at = session;
+    const before = current;
+    lockUpgrades();
+    let flash: string | undefined;
+    let problem: string | undefined;
+    try {
+      const result = await economy.buyPaint(paintId);
+      options.onLoadout?.(result.loadout);
+      if (session === at) {
+        takeState({
+          ...before,
+          coins: result.coins,
+          loadout: result.loadout,
+        });
+        fresh = { kind: "paint", tier: paintId };
+        flash = "Đã sơn tàu!";
+        options.sound?.("buy");
+      }
+    } catch (error) {
+      problem = failureText(error);
+      if (
+        error instanceof EconomyError &&
+        ["poor", "owned", "order"].includes(error.failure)
+      )
+        await resync(at);
+    } finally {
+      busy = false;
+    }
+    if (session !== at) return;
+    draw(flash, problem);
+    focusCard("paint", paintId);
+  }
+
+  /** Equips an owned boat paint. */
+  async function usePaint(paintId: number) {
+    if (busy || !economy || !current) return;
+    busy = true;
+    const at = session;
+    const before = current;
+    lockUpgrades();
+    let problem: string | undefined;
+    try {
+      const loadout = await economy.setPaint(paintId);
+      options.onLoadout?.(loadout);
+      if (session === at) takeState({ ...before, loadout });
+    } catch (error) {
+      if (error instanceof EconomyError && error.failure === "order") {
+        problem = "Bạn chưa mua màu sơn này.";
+        await resync(at);
+      } else {
+        problem = failureText(error);
+      }
+    } finally {
+      busy = false;
+    }
+    if (session !== at) return;
+    draw(undefined, problem);
+    focusCard("paint", paintId);
+  }
+
   /** While a call runs every button of the page is off, so nothing is asked twice. */
   function lockUpgrades() {
     for (const control of view?.body.querySelectorAll<HTMLButtonElement>(
@@ -559,6 +633,91 @@ export function createMarketUi(options: MarketUiOptions) {
     const rows = el("div", "upgrade-page");
     rows.append(upgradeRow(model.boat));
     body.append(rows);
+  }
+
+  function drawPaints(body: HTMLElement, state: EconomyState) {
+    const model = paintView(
+      options.uid?.() ?? "me",
+      state.loadout,
+      state.coins,
+    );
+    const grid = el("div", "paint-grid");
+    grid.dataset.kind = "paint";
+    for (const card of model.cards)
+      grid.append(paintCard(card, state.loadout.boat));
+    body.append(grid);
+  }
+
+  function paintCard(card: PaintCardView, boatTier: number) {
+    const cssState = card.state === "buy" ? "next" : card.state;
+    const article = el(
+      "article",
+      `upgrade-card paint-card is-${cssState}${card.inUse ? " is-using" : ""}`,
+    );
+    article.dataset.tier = String(card.id);
+    article.tabIndex = -1;
+    if (fresh && fresh.kind === "paint" && fresh.tier === card.id) {
+      article.classList.add("is-fresh");
+      fresh = undefined;
+    }
+    const top = el("div", "upgrade-top paint-top");
+    const icon = el("span", "upgrade-icon paint-icon");
+    icon.innerHTML = ICONS.boat;
+    // The player's actual boat GLB, painted in this palette.
+    showPaintThumb(icon, boatTier, card.id, 92);
+    const mark = el("span", "upgrade-mark");
+    mark.innerHTML = card.state === "owned" ? CHECK : MARKS[cssState];
+    top.append(icon, mark);
+
+    const meta = el("div", "paint-meta");
+    const swatches = el("span", "paint-swatches");
+    swatches.setAttribute("aria-hidden", "true");
+    const hullDot = el("i", "paint-dot");
+    hullDot.style.background = card.hull;
+    const trimDot = el("i", "paint-dot");
+    trimDot.style.background = card.trim;
+    swatches.append(hullDot, trimDot);
+    meta.append(swatches, el("span", "paint-name", card.name));
+
+    let action: HTMLElement;
+    if (card.state === "owned") {
+      const pick = el("button", "upgrade-use");
+      pick.type = "button";
+      pick.setAttribute("aria-pressed", String(card.inUse));
+      pick.setAttribute(
+        "aria-label",
+        card.inUse ? `${card.name}, đang dùng` : `Dùng màu ${card.name}`,
+      );
+      pick.innerHTML = card.inUse
+        ? `${CHECK}<span>Đang dùng</span>`
+        : "<span>Dùng</span>";
+      if (card.inUse) pick.setAttribute("aria-disabled", "true");
+      else pick.addEventListener("click", () => void usePaint(card.id));
+      action = pick;
+    } else {
+      const buyBtn = el("button", "upgrade-buy");
+      buyBtn.type = "button";
+      buyBtn.innerHTML = `${COIN}<span>${coins(card.price)}</span>`;
+      buyBtn.setAttribute(
+        "aria-label",
+        `Mua màu ${card.name}, ${coins(card.price)} xu${card.state === "poor" ? `, còn thiếu ${coins(card.missing)} xu` : ""}`,
+      );
+      if (card.state === "buy") {
+        buyBtn.addEventListener("click", () => void buyPaint(card.id));
+      } else {
+        buyBtn.setAttribute("aria-disabled", "true");
+        buyBtn.style.setProperty("--have", String(card.progress));
+        buyBtn.addEventListener("click", () => {
+          if (busy) return;
+          draw(undefined, FAILURES.poor);
+          focusCard("paint", card.id);
+        });
+      }
+      action = buyBtn;
+    }
+
+    article.append(top, meta, action);
+    return article;
   }
 
   function upgradeRow(row: RowView) {
@@ -729,7 +888,7 @@ export function createMarketUi(options: MarketUiOptions) {
         page = open.yard ? "boat" : "sell";
         current = undefined;
         session++;
-      } else if (open.yard !== (page === "boat")) {
+      } else if (open.yard !== (page === "boat" || page === "paint")) {
         // Arrived from another hub with the other kind of place's page left over.
         page = open.yard ? "boat" : "sell";
       }

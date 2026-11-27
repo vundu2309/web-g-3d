@@ -15,6 +15,8 @@ export interface Boat extends Pose {
   /** Which boat it is (boat-tier.ts, 0 to 3) and which rod it holds (rod-plan.ts, 0 to 3). */
   tier: number;
   rod: number;
+  /** Chosen hull paint index (0 to 7), absent when using the account-id default. */
+  paint?: number;
   /** The player is not online: the boat is parked where it was left (the server's `off: 1`). */
   offline?: boolean;
   /** A boat nobody owns, sailed by the clock (the patrol ships, patrol-routes.ts): no rod, no line, no name arrow. */
@@ -29,6 +31,13 @@ const fitTier = (value: unknown): number =>
   value <= 3
     ? value
     : 0;
+const fitPaint = (value: unknown): number | undefined =>
+  typeof value === "number" &&
+  Number.isInteger(value) &&
+  value >= 0 &&
+  value <= 7
+    ? value
+    : undefined;
 export { islands, lighthouseIslands, type Island } from "./islands.ts";
 import { islands } from "./islands.ts";
 /**
@@ -133,6 +142,9 @@ export function readBoat(
     updatedAt: stamp.toMillis(),
     tier: fitTier(value.tier),
     rod: fitTier(value.rod),
+    ...(fitPaint(value.paint) !== undefined
+      ? { paint: fitPaint(value.paint) }
+      : {}),
     // The server marks a parked boat `off: 1`; what the client keeps is `offline`.
     ...(value.off === 1 || value.offline === true ? { offline: true } : {}),
   };

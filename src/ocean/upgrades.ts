@@ -133,13 +133,17 @@ export function canBuy(
   );
 }
 
-/** What a player owns: the highest tier of each kind, and the bait tier in use. */
+/** What a player owns: the highest tier of each kind, the bait tier in use, and optional boat paints. */
 export interface Loadout {
   rod: number;
   bait: number;
   /** The bait tier chosen to fish with; every bought bait is kept, one is in use. */
   baitUsed: number;
   boat: number;
+  /** Chosen boat paint index (0..7), absent when using the account-id default. */
+  paint?: number;
+  /** Purchased boat paint indices (0..7); the account-id default (0..3) is always owned for free. */
+  paints?: readonly number[];
 }
 
 export const DEFAULT_LOADOUT: Readonly<Loadout> = Object.freeze({
@@ -149,6 +153,14 @@ export const DEFAULT_LOADOUT: Readonly<Loadout> = Object.freeze({
   boat: 0,
 });
 
+const validPaint = (value: unknown): number | undefined =>
+  typeof value === "number" &&
+  Number.isInteger(value) &&
+  value >= 0 &&
+  value <= 7
+    ? value
+    : undefined;
+
 /** A loadout from anything (a server answer, a saved value): invalid parts become tier 0 and baitUsed never exceeds bait. */
 export function loadoutOf(raw: unknown): Loadout {
   const value = (raw && typeof raw === "object" ? raw : {}) as Record<
@@ -156,10 +168,23 @@ export function loadoutOf(raw: unknown): Loadout {
     unknown
   >;
   const bait = clampTier(value.bait);
+  const paint = validPaint(value.paint);
+  const paints = Array.isArray(value.paints)
+    ? [
+        ...new Set(
+          value.paints.flatMap((p) => {
+            const id = validPaint(p);
+            return id === undefined ? [] : [id];
+          }),
+        ),
+      ].sort((a, b) => a - b)
+    : undefined;
   return {
     rod: clampTier(value.rod),
     bait,
     baitUsed: Math.min(bait, clampTier(value.baitUsed)),
     boat: clampTier(value.boat),
+    ...(paint !== undefined ? { paint } : {}),
+    ...(paints !== undefined ? { paints } : {}),
   };
 }

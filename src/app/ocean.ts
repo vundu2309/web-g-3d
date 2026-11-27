@@ -396,11 +396,11 @@ export function startOcean(
   /** The market already told us (a purchase or a choice): a slower first answer must not undo it. */
   let loadoutKnown = false;
   /** Shows what the player owns on the sea: the boat (its model and body), the rod in the hand and the bait on the line. */
-  /** The boat and rod the server was last asked to tell the others about. */
-  let announced = "0,0";
+  /** The boat, rod and paint the server was last asked to tell the others about. */
+  let announced = "0,0,";
   function showLoadout() {
-    // A boat or a rod bought: the server reads the account again and tells the other players.
-    const fit = `${loadout.boat},${loadout.rod}`;
+    // A boat, rod or paint bought/chosen: the server reads the account again and tells the other players.
+    const fit = `${loadout.boat},${loadout.rod},${loadout.paint ?? ""}`;
     if (fit !== announced) {
       announced = fit;
       connection?.refit?.();
@@ -408,6 +408,7 @@ export function startOcean(
     if (!scene) return;
     scene.setRodTier(loadout.rod);
     scene.setBait(loadout.baitUsed);
+    scene.setBoatPaint(loadout.paint);
     void scene.setBoatTier(loadout.boat);
   }
   // The rail of the hub shell: one tap goes from the fish store to the market, crew or settings.
@@ -551,6 +552,7 @@ export function startOcean(
       releaseStick();
       fishingUi.cancel();
     },
+    uid: () => selfUid,
     hubs: hubNav,
   });
   // The fishing leaderboard: a tab of the hub rail (server economy only).
@@ -749,7 +751,10 @@ export function startOcean(
       li.className = `crew-row${you ? " is-you" : ""}`;
       const avatar = document.createElement("span");
       avatar.className = "crew-avatar";
-      avatar.style.background = hullCss(boat.uid);
+      avatar.style.background = hullCss(
+        boat.uid,
+        you ? loadout.paint : boat.paint,
+      );
       avatar.innerHTML =
         '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="#fff"><path d="M3 14h18l-3 5H6zM11 4h2v8h-2zM7 9l4-3v6H7z"/></svg>';
       const info = document.createElement("span");

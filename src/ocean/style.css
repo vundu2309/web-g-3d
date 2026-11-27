@@ -1378,6 +1378,51 @@
     animation: none;
   }
 }
+/* Boat paint grid at the shipyard (decision 0024): 4x2 on landscape phones, 2x4 on portrait. */
+.paint-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.paint-card {
+  gap: 5px;
+}
+.paint-top {
+  min-height: 54px;
+}
+.paint-icon img {
+  max-height: 56px;
+}
+.paint-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 22px;
+}
+.paint-swatches {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: none;
+}
+.paint-dot {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1.5px solid #153b80;
+}
+.paint-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #153b80;
+  font:
+    700 12px/1.15 "Be Vietnam Pro",
+    sans-serif;
+}
 /* Portrait phones: the tabs take a line of their own, a row's title lies above its cards, two cards a line. */
 @media (max-aspect-ratio: 1/1) {
   .market-tabs {
@@ -1391,6 +1436,9 @@
   .upgrade-row {
     grid-template-columns: minmax(0, 1fr);
     gap: 6px;
+  }
+  .paint-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .upgrade-row-head {
     flex-direction: row;

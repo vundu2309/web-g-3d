@@ -153,6 +153,15 @@ export function supabaseEconomy(): EconomyApi {
     async setBait(tier) {
       return loadoutOf(await call("economy_set_bait", { p_tier: tier }));
     },
+    async buyPaint(paint) {
+      const raw = await call<BuyResult>("economy_buy_paint", {
+        p_paint: paint,
+      });
+      return { coins: raw.coins, loadout: loadoutOf(raw.loadout) };
+    },
+    async setPaint(paint) {
+      return loadoutOf(await call("economy_set_paint", { p_paint: paint }));
+    },
     async leaderboard() {
       return readLeaderboard(await call("economy_leaderboard"));
     },

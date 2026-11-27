@@ -97,16 +97,20 @@ export function baitThumb(tier: number, size = 120): string {
   return url;
 }
 
-/** The picture of a boat tier (0 to 3) once its model has loaded; "" before that. */
-export function boatThumb(tier: number, size = 120): string {
+/** The picture of a boat tier (0 to 3), optionally painted with a palette (0..7), once its model has loaded; "" before that. */
+export function boatThumb(tier: number, size = 120, paint?: number): string {
   const { file } = boatTier(tier);
   const model = cachedMeshModel(file);
   if (!model) return "";
-  const key = `boat:${tier}:${size}`;
+  const palette =
+    paint !== undefined && paint >= 0 && paint < boatPalettes.length
+      ? boatPalettes[paint]
+      : undefined;
+  const key = `boat:${tier}:${palette ? paint : "base"}:${size}`;
   const known = cache.get(key);
   if (known !== undefined) return known;
   const url = paintCreature(
-    boatCreature(model.main, model.size),
+    boatCreature(model.main, model.size, palette),
     size,
     -0.5,
     0.25,
@@ -144,4 +148,36 @@ export function showItemThumb(
   } else if (cachedFishModel(baitFile(tier))) put(baitThumb(tier, size));
   else
     void loadFishModel(baitFile(tier)).then(() => put(baitThumb(tier, size)));
+}
+
+/** Puts the player's current boat model painted in `paint` (0..7) into `holder`. */
+export function showPaintThumb(
+  holder: HTMLElement,
+  tier: number,
+  paint: number,
+  size = 86,
+) {
+  const put = (url: string) => {
+    if (!url || !holder.isConnected) return;
+    const picture = document.createElement("img");
+    picture.alt = "";
+    picture.draggable = false;
+    picture.width = size;
+    picture.height = Math.round(size * THUMB_RATIO);
+    picture.src = url;
+    holder.replaceChildren(picture);
+  };
+  const key = `boat:${tier}:${paint}:${size}`;
+  const known = cache.get(key);
+  if (known !== undefined) {
+    put(known);
+    return;
+  }
+  const renderLater = () =>
+    window.setTimeout(() => {
+      if (holder.isConnected) put(boatThumb(tier, size, paint));
+    }, 0);
+  const { file } = boatTier(tier);
+  if (cachedMeshModel(file)) renderLater();
+  else void loadMeshModel(file).then(renderLater);
 }

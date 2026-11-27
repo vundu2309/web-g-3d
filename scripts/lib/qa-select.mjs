@@ -42,8 +42,9 @@ const ROWS = [
   ],
   [
     /^src\/(app\/market-ui|ocean\/market-prices)\.ts$/,
-    ["ocean-market", "ocean-quests"],
+    ["ocean-market", "ocean-paint", "ocean-quests"],
   ],
+  [/^src\/ocean\/paint\.ts$/, ["ocean-paint", "ocean-market"]],
   [/^src\/ocean\/market\.ts$/, [GROUP, "ocean-map"]],
   [
     /^src\/(app\/(audio|settings-audio)|ocean\/audio-[a-z-]+)\.ts$/,
@@ -107,6 +108,7 @@ const ROWS = [
       "ocean-fishing",
       "ocean-map",
       "ocean-market",
+      "ocean-paint",
       "ocean-presence",
       "ocean-quests",
       "ocean-rank",
