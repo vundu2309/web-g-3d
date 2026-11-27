@@ -26,7 +26,7 @@ every session is done by a mechanism, not by prose.
 | 3   | The GitHub workflow runs the check on pushes to `main` and on pull requests                                                                                                        | `tests/work-record-check.test.mjs`: the workflow step                | fail            | pass            |
 | 4   | The committed `.claude/settings.json` formats an edited file of the formatted scope and refuses a force push                                                                       | `tests/claude-settings.test.mjs`                                     | fail (7 of 7)   | pass            |
 | 5   | A new Claude Code session in a clean checkout has the hooks loaded                                                                                                                 | a session edits a mis-formatted file; the record says what it saw    | not run         | **not checked** |
-| 6   | The CI run shows the check red for a violating branch and green for the fixed one                                                                                                  | GitHub Actions on a draft pull request; needs the user's say to push | not run         | **not run**     |
+| 6   | The CI run shows the check red for a violating branch and green for the fixed one                                                                                                  | GitHub Actions on a draft pull request; needs the user's say to push | not run         | red, then green |
 
 ### What to build
 
@@ -111,5 +111,10 @@ points in the records are fixed.
 
 ## Follow-ups
 
-Open: criterion 5 (a new session loading the hooks) and the red half of criterion 6 (a CI run of a violating
-range, which needs a draft pull request). The step's done-when is not complete until both are seen.
+Criterion 6, seen on 2026-11-27 with draft pull request 39 (closed, not merged; its branch deleted):
+
+- `2cde7e4`, a file under `tests/` and no record: "Work record" run 45934143173 failed, "no work record in
+  HEAD^1..HEAD^2", naming the commit and `tests/throwaway-ci-check.txt`.
+- `2519de9`, a record added: run 45934344804 passed, "2 commit(s) checked".
+
+Open: criterion 5 (a new session loading the hooks). The step's done-when is not complete until it is seen.

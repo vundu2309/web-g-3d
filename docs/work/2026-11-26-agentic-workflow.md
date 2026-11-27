@@ -146,8 +146,8 @@ the check is a workflow of its own, so that a failing step or a cancelled run ca
 push is refused by a hook as well as by permission rules. The workflow runs only on `main` and on pull
 requests, so the red and green CI runs need a draft pull request, not just a branch.
 
-On `main` since 2026-11-27 (`1ee2322`); the first "Work record" run was green. Not yet seen: a red run on
-GitHub, and a new session loading the hooks.
+On `main` since 2026-11-27 (`1ee2322`); the first "Work record" run was green. A red run and then a green
+one were seen on draft pull request 39 (closed, not merged). Not yet seen: a new session loading the hooks.
 
 ## Steps in detail (added 2026-11-26)
 
