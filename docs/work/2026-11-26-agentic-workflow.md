@@ -33,7 +33,7 @@ the player.
 | 0b   | lead                               | `AGENTS.md` (the workflow is mandatory), `docs/agent-workflow.md`, `docs/decisions/0023-*.md`, this record | in progress (this record was updated before `AGENTS.md` was edited) |
 | 1    | lead (trial: `qa-runner`)          | `tests/support/fast-sea.mjs`, `tests/ocean-map-browser.mjs`, `scripts/lib/dev.mjs`, `docs/workflow.md`     | in progress: `ocean-map` and `ocean-market` done; the rest below    |
 | 2    | lead                               | a spec template next to `docs/work/_template.md`                                                           | not started                                                         |
-| 3    | lead                               | `.claude/settings.json` (hooks, permissions), a CI check for a work record                                 | not started; to follow step 2                                       |
+| 3    | lead                               | `.claude/settings.json` (hooks, permissions), a CI check for a work record                                 | in review, see "Step 3"                                             |
 | 4    | `sea-visual-builder`, reviewer, QA | the work records of the changes that use them                                                              | not started (one trial of reviewer and QA only)                     |
 | 5    | lead                               | a table in this record                                                                                     | not started                                                         |
 
@@ -137,6 +137,14 @@ The trial change, chosen by the user ("Sửa test PWA"), is `2026-11-26-pwa-test
 fail before and to succeed after, one guard. The `reviewer` agent says all three are checkable, with limits
 written there; it also found that the template had no place for a guard, which was added. Done-when "on
 `main`": met on 2026-11-27, commit `735d3a7`, pushed on the user's say ("Commit và push"); CI passed.
+
+## Step 3 (started 2026-11-27)
+
+The user approved it: "Làm bước 3". Brief, evidence and review in
+[2026-11-27-work-record-check.md](2026-11-27-work-record-check.md). Two choices differ from the tasks below:
+the check is a workflow of its own, so that a failing step or a cancelled run cannot skip it; and a force
+push is refused by a hook as well as by permission rules. The workflow runs only on `main` and on pull
+requests, so the red and green CI runs need a draft pull request, not just a branch.
 
 ## Steps in detail (added 2026-11-26)
 

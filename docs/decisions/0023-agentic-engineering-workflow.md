@@ -1,6 +1,6 @@
 # 0023. Move the workflow toward agentic engineering
 
-Date: 2026-11-26. Status: accepted by the user for step 1; step 2 approved on 2026-11-26 and on `main` since 2026-11-27; steps 3 to 5 planned, not started. Progress is
+Date: 2026-11-26. Status: accepted by the user for step 1; step 2 approved on 2026-11-26 and on `main` since 2026-11-27; step 3 approved on 2026-11-27 (record [2026-11-27](../work/2026-11-27-work-record-check.md)), steps 4 and 5 planned, not started. Progress is
 kept in [the work record](../work/2026-11-26-agentic-workflow.md).
 
 ## Context
@@ -52,4 +52,4 @@ Vercel need the user's say. An agent's report is not approval.
   is stale or the screen has a real fault is not known.
 - `scripts/qa.mjs` keeps only the last 1,500 characters of a test's log.
 - There is no command that runs only the browser tests that fit the changed files.
-- No `.claude/settings.json` is committed, so no hook or permission is shared yet.
+- No `.claude/settings.json` is committed, so no hook or permission is shared yet. (Addressed by step 3.)

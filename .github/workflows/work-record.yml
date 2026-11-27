@@ -1,0 +1,36 @@
+name: Work record
+
+# Code that changes needs a work record in the same push or pull request (decision 0023, step 3;
+# docs/workflow.md, "Enforced checks"). A workflow of its own: a failing lint or test step cannot skip it,
+# and no concurrency group cancels the run of a push when the next one arrives.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      # A pull request is checked out as a merge: HEAD^1 is the base branch, HEAD^2 the pull request.
+      - name: Work record
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          if [ "$EVENT_NAME" = pull_request ]; then
+            node scripts/check-work-record.mjs "HEAD^1" "HEAD^2"
+          else
+            node scripts/check-work-record.mjs "$BEFORE_SHA" "$GITHUB_SHA"
+          fi
