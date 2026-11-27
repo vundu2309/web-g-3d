@@ -34,11 +34,11 @@ test("a shared file runs the group and the tests outside it", () => {
   assert.deepEqual(unmatched, []);
 });
 
-test("the PWA test is named, never picked: it needs a build", () => {
+test("the PWA test is named, never picked: it runs on its own", () => {
   for (const file of ["tests/pwa-browser.mjs", "scripts/service-worker.js"]) {
     const { tests, notes } = testsFor([file], group);
     assert.ok(!tests.includes("pwa"), file);
-    assert.match(notes.join(), /npm run build/, file);
+    assert.match(notes.join(), /node scripts\/qa\.mjs pwa/, file);
   }
 });
 

@@ -1,11 +1,23 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
+import { build } from "vite";
 import { readFile, readdir } from "node:fs/promises";
 import { resolve, extname } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { launchBrowser } from "./browser.mjs";
-const directory = resolve("dist"),
+// Its own build with no account settings, whatever the machine's .env.local says: offline, `?view=ocean`
+// must reach the "Ra khơi" screen, not the sign-in dialog. Vite lets an empty variable here override a file.
+for (const name of [
+  "VITE_SUPABASE_URL",
+  "VITE_SUPABASE_PUBLISHABLE_KEY",
+  "VITE_API_URL",
+  "VITE_AUTH_REDIRECT_URL",
+  "VITE_ECONOMY",
+])
+  process.env[name] = "";
+const directory = resolve("test-results/pwa/dist"),
   prefix = "/web-g-3d/";
+await build({ build: { outDir: directory }, logLevel: "warn" });
 let revision = 1;
 const worker = await readFile(resolve(directory, "sw.js"), "utf8");
 // Build invariants for the sea engine. Babylon + Havok are large and online-only:
@@ -250,16 +262,35 @@ try {
   await page.getByRole("button", { name: "Ra khơi" }).waitFor();
   await page.evaluate(() => {
     window.pwaSentinel = "in-game";
+    // Registered after the app's own listener, so the app has decided about a reload when this runs.
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      window.pwaTakenOver = true;
+    });
   });
   revision = 3;
   await page.evaluate(async () => {
     const r = await navigator.serviceWorker.getRegistration();
     await r.update();
   });
+  // Only once the new worker has taken the page over could the app reload it. A reload loses both marks,
+  // so the wait also ends when the sentinel is gone.
+  await page.waitForFunction(
+    () => window.pwaTakenOver || window.pwaSentinel !== "in-game",
+  );
+  await page.waitForTimeout(2000); // time for a reload that was asked for to replace the page
+  assert.equal(
+    await page.evaluate(() => window.pwaSentinel),
+    "in-game",
+    "a game view was reloaded by an update",
+  );
   await cachesBecome("the shell of update 3 is cached", (names) =>
     names.some((n) => n.endsWith(":pwa-update-test-3")),
   );
-  assert.equal(await page.evaluate(() => window.pwaSentinel), "in-game");
+  assert.equal(
+    await page.evaluate(() => window.pwaSentinel),
+    "in-game",
+    "a game view was reloaded by an update",
+  );
   // The next navigation already runs the newest shell; stale caches are cleaned.
   await page.goto(base);
   await page.locator("[data-pwa-install]").waitFor();

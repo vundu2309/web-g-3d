@@ -29,4 +29,4 @@ The directory to test (the main checkout or a worktree `../web-g-3d-wt/<name>`),
 
 ## Report (plain text, concise)
 
-One line per check with the real result (pass, fail, flaky) and the numbers, the browser tests with first run and rerun outcomes and seconds, the classification of each failure with the evidence, and what you could not run (real phone, frame rate, the full `npm test`, `pwa-browser` after a build). Be plain about uncertainty; never report a pass you did not see.
+One line per check with the real result (pass, fail, flaky) and the numbers, the browser tests with first run and rerun outcomes and seconds, the classification of each failure with the evidence, and what you could not run (real phone, frame rate, the full `npm test`, any browser test you did not run). Be plain about uncertainty; never report a pass you did not see.

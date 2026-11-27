@@ -80,4 +80,4 @@ Tips that cost time before: tell each parallel agent its own dev-server port and
 
 ## Checks every change must pass
 
-`npm run format:check`, `npx tsc --noEmit`, `npm run lint`, `npm run test:unit`, plus the browser tests for what changed (`tests/ocean-babylon-browser.mjs`, `ocean-market-browser.mjs`, `ocean-fishing-browser.mjs`; `tests/pwa-browser.mjs` after a build with no account settings, see [workflow](workflow.md)). All of it runs under software WebGL on the developer's Mac; nothing has been verified on a real phone.
+`npm run format:check`, `npx tsc --noEmit`, `npm run lint`, `npm run test:unit`, plus the browser tests for what changed (`tests/ocean-babylon-browser.mjs`, `ocean-market-browser.mjs`, `ocean-fishing-browser.mjs`; `tests/pwa-browser.mjs`, which makes its own build, see [workflow](workflow.md)). All of it runs under software WebGL on the developer's Mac; nothing has been verified on a real phone.

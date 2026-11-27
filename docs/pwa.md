@@ -32,7 +32,7 @@ Nếu precache lỗi, không activate bộ cache chưa đầy đủ. Đăng ký 
 
 ## Kiểm chứng
 
-`tests/pwa-browser.mjs` phục vụ build thật dưới `/web-g-3d/` bằng server do test sở hữu. Test kiểm tra manifest scope/start URL, kích thước PNG, install dialog và synthetic beforeinstallprompt gesture, offline home + màn biển (lazy) chưa từng mở + reload, API không vào cache, update waiting không ép reload, cleanup cache sau đóng client, hủy xác nhận cập nhật, chặn khi có tab khác và áp dụng sau xác nhận chỉ còn một cửa sổ.
+`tests/pwa-browser.mjs` tự build (không cấu hình tài khoản, vào `test-results/pwa/dist`) và phục vụ build đó dưới `/web-g-3d/` bằng server do test sở hữu. Test kiểm tra manifest scope/start URL, kích thước PNG, install dialog và synthetic beforeinstallprompt gesture, offline home + màn biển (lazy) chưa từng mở + reload, API không vào cache, update waiting không ép reload, cleanup cache sau đóng client, hủy xác nhận cập nhật, chặn khi có tab khác và áp dụng sau xác nhận chỉ còn một cửa sổ.
 
 Test chạy sau browser dev/production trong `npm run test:browser`, và thuộc `npm run check`. Synthetic install event chỉ kiểm tra handler, không chứng minh thao tác cài ở cấp hệ điều hành. Cần người dùng thử cài thực tế trên Android/iOS; browser emulation không thay thế kiểm chứng đó.
 

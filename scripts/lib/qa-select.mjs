@@ -134,11 +134,11 @@ const ROWS = [
 const RELEVANT =
   /^(src|server|public)\/|^tests\/(support\/|browser\.mjs$)|^scripts\/(qa\.mjs$|lib\/|service-worker\.js$|pwa-build\.mjs$)|^(index\.html|vite\.config\.ts|tsconfig\.json|package(-lock)?\.json)$/;
 
-/** tests/pwa-browser.mjs reads the production build, which qa.mjs does not make. */
+/** tests/pwa-browser.mjs builds and serves the app itself: it is named here, never picked. */
 const PWA =
   /^(public\/|scripts\/(service-worker\.js|pwa-build\.mjs)$|tests\/pwa-browser\.mjs$|src\/(app\/pwa|platform\/(pwa|update-check))\.ts$)/;
 const PWA_NOTE =
-  "the PWA test is not run here: npm run build with the VITE_ account settings empty (docs/workflow.md), then node tests/pwa-browser.mjs";
+  "the PWA test is not picked here: run node scripts/qa.mjs pwa (it makes its own build)";
 
 /**
  * The tests for `files` (repository paths). A relevant file with no row adds the `fallback` group,
