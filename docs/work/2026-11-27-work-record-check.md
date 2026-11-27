@@ -1,6 +1,6 @@
 ---
 title: A mechanism asks for the work record and refuses a force push
-state: user-approved
+state: published
 opened: 2026-11-27
 owner: session "Kéo main mới và làm tiếp task cải thiện workflow"
 agents: claude-code-guide (documentation), reviewer
@@ -106,5 +106,10 @@ points in the records are fixed.
 
 - User approval: to build ("Làm bước 3"); to push to `main` ("Push bước 3 lên đi", 2026-11-27). Checks before
   the commit: format, `tsc`, lint clean, 730 unit tests pass.
+- Published: `1ee2322` on `main`. GitHub Actions: "Work record" run 45931071148 passed ("1 commit(s)
+  checked"); the Pages run 45931071069 passed lint, format, typecheck and unit tests.
 
 ## Follow-ups
+
+Open: criterion 5 (a new session loading the hooks) and the red half of criterion 6 (a CI run of a violating
+range, which needs a draft pull request). The step's done-when is not complete until both are seen.

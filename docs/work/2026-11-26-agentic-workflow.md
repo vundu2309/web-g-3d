@@ -33,7 +33,7 @@ the player.
 | 0b   | lead                               | `AGENTS.md` (the workflow is mandatory), `docs/agent-workflow.md`, `docs/decisions/0023-*.md`, this record | in progress (this record was updated before `AGENTS.md` was edited) |
 | 1    | lead (trial: `qa-runner`)          | `tests/support/fast-sea.mjs`, `tests/ocean-map-browser.mjs`, `scripts/lib/dev.mjs`, `docs/workflow.md`     | in progress: `ocean-map` and `ocean-market` done; the rest below    |
 | 2    | lead                               | a spec template next to `docs/work/_template.md`                                                           | not started                                                         |
-| 3    | lead                               | `.claude/settings.json` (hooks, permissions), a CI check for a work record                                 | in review, see "Step 3"                                             |
+| 3    | lead                               | `.claude/settings.json` (hooks, permissions), a CI check for a work record                                 | on `main`, two checks open, see "Step 3"                            |
 | 4    | `sea-visual-builder`, reviewer, QA | the work records of the changes that use them                                                              | not started (one trial of reviewer and QA only)                     |
 | 5    | lead                               | a table in this record                                                                                     | not started                                                         |
 
@@ -145,6 +145,9 @@ The user approved it: "Làm bước 3". Brief, evidence and review in
 the check is a workflow of its own, so that a failing step or a cancelled run cannot skip it; and a force
 push is refused by a hook as well as by permission rules. The workflow runs only on `main` and on pull
 requests, so the red and green CI runs need a draft pull request, not just a branch.
+
+On `main` since 2026-11-27 (`1ee2322`); the first "Work record" run was green. Not yet seen: a red run on
+GitHub, and a new session loading the hooks.
 
 ## Steps in detail (added 2026-11-26)
 
