@@ -1,6 +1,6 @@
 # 0024: Boat paint shop (shipyard)
 
-Status: built and checked (2026-11-27), awaiting user screenshot approval before push/deploy; migration `20261129120000_boat_paint.sql` is applied only when pushed to `main`.
+Status: published on `main` (`1376983`, 2026-11-27); Vercel production deployment verified.
 
 ## Decision
 

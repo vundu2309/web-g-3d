@@ -1,6 +1,6 @@
 ---
 title: Boat paint shop and multiplayer paint sync (P5)
-state: user-approved
+state: published
 opened: 2026-11-27
 owner: main session
 agents: research (independent read-only code reviewer)
@@ -94,8 +94,11 @@ Independent read-only review (`research` subagent) found no high-severity/blocki
 
 - Concept approval: user approved `Sơn tàu` UI + 8 palettes on 2026-11-27 ("oke, làm đi rồi chụp tôi xem kết quả").
 - Final screenshot approval: user approved real browser screenshots (`boat_paint_preview.md`) on 2026-11-27 ("oke") to commit and push/deploy.
-- Commits: added in follow-up commit after push.
-- Deploys checked: pending approval.
+- Commits: `13769834a15848d7a0094e3eab047fe8d4fcc5ce` (`feat(ocean): shipyard boat paint shop and multiplayer paint sync (P5)`).
+- Deploys checked:
+  - GitHub Actions `Work record` (#45964204641) and `Deploy game to GitHub Pages` CI checks (#45964204940): **success**.
+  - Vercel production (`https://web-g-3d.vercel.app`, build `9Mu99wzuXq9hfhofz7ppbhLjoyda`): **success**; live HTML serves `assets/index-OGgx4JJm.css` (exact match with tested `dist/index.html`) and `assets/index-DiWGNvwk.js` (with production `VITE_*` env vars).
+  - Render API & live Supabase migration: not directly inspectable from this VM's dashboard/CLI.
 
 ## Follow-ups
 
