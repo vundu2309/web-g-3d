@@ -1,6 +1,6 @@
 ---
 title: The off-screen player arrow stays clear of the minimap
-state: user-approved
+state: published
 opened: 2026-11-27
 owner: session "Kéo main mới và làm tiếp task cải thiện workflow"
 agents: sea-visual-builder, sea-visual-reviewer, qa-runner
@@ -94,6 +94,10 @@ These last edits were not reviewed again.
 ## Approval and publication
 
 - User approval: to make this change, then to push to `main` ("Đưa lên main", 2026-11-27) after the before/after images were sent.
+
+- Commit: `bac0d19` on `main`. GitHub Actions runs 45969116403 (Work record) and 45969116396 (Pages) passed.
+- Vercel `dpl_J8WdtAUUMUsgw9xtFcNJkvL7dyTC` ready, alias `web-g-3d.vercel.app`; the live entry's ocean chunk
+  contains `keepLabelsClearOf`. The changed screen was not looked at on the live site (it needs a sign-in).
 
 ## Follow-ups
 

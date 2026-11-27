@@ -149,6 +149,42 @@ requests, so the red and green CI runs need a draft pull request, not just a bra
 On `main` since 2026-11-27 (`1ee2322`); the first "Work record" run was green. A red run and then a green
 one were seen on draft pull request 39 (closed, not merged). Not yet seen: a new session loading the hooks.
 
+## Step 4 (started 2026-11-27)
+
+The user approved it ("Làm bước 4") and chose the two trial changes: the off-screen arrow covered by the
+minimap (record `2026-11-27-edge-arrow-minimap.md`, `sea-visual-builder`, `sea-visual-reviewer`,
+`qa-runner`) and the order of loadout answers in `server/ocean.mjs`
+(record `2026-11-27-refit-read-order.md`, `builder`, `reviewer`, `qa-runner`). One deviation from the task
+below: `builder` and `reviewer` (user-level agents) take the server change. Each change has its own worktree
+and record.
+
+Publication (2026-11-27): the arrow change is on `main` (`bac0d19`). The server change is **not**: before the
+push another session had fixed its main case in `1376983` (only the latest started read applies). That rule
+drops a valid earlier answer when the later read fails; this change's second test fails on `d023650`
+(`after a failed later read`, actual `[]`) and its first passes. Its commit `283dda2` stays on
+`wt/refit-order`, waiting for the user's choice. The step's "two changes on `main`" is not yet met.
+
+Results (2026-11-27). Times are the agents' own reports; tokens rounded.
+
+| Change       | Builder          | Reviewer                            | `qa-runner`                                 |
+| ------------ | ---------------- | ----------------------------------- | ------------------------------------------- |
+| Server order | 138 s, 121,000   | 145 s, 62,000: approve, 1 doc line  | 827 s, 63,000: found an old failing test    |
+| Edge arrow   | 1,347 s, 209,000 | 137 s, 83,000: small changes needed | 95 s, 22,000: pass (scope limited by brief) |
+
+- Found by the agents: the builder, that the socket tests run only under `test:api` (the lead's brief named
+  the wrong command; CI does not run `test:api`); the reviewers, a missing contract line, a test name that
+  claimed too much, a stale-measurement edge case (recorded, not fixed), and that a claim about an old
+  failure was not yet shown (the lead then showed it); QA, that `ocean-multiplayer` fails on `main`.
+  `ocean-babylon` also fails there. No defect in either change's logic was found; nothing was pushed yet.
+- Fix rounds after review: none in code behaviour, one small round of docs and a test name.
+- Cost: the user said twice that it was too slow for tasks this small. Causes: browser tests of 25 to 230 s
+  under software rendering, two of them broken; the lead ran two changes' browser tests at the same time
+  (a shared port, load up to about 22).
+- Compared with changes the lead built alone, this session: the force-push check took three review rounds
+  with real defects each; these two took at most one small round. The sample is two, and the tasks differ.
+- Lead's proposal, for the user to decide: keep the independent reviewer; give `qa-runner` a named, short
+  list of tests; run browser tests one at a time; build one-file changes directly.
+
 ## Steps in detail (added 2026-11-26)
 
 Each step lists the tasks, what makes it done (something a person or a test can check) and what is not yet
