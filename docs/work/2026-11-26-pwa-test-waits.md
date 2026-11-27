@@ -132,3 +132,5 @@ cache poll may also return just before the home page reloads (a possible flake).
 
 `npm run check` builds with the developer's `.env.local`, so on a machine with one the PWA test fails at the
 offline `?view=ocean` step. Not changed here: either the test or the script should set the empty settings.
+
+Both were taken up on 2026-11-27 in [2026-11-27-pwa-test-build-and-reload.md](2026-11-27-pwa-test-build-and-reload.md).

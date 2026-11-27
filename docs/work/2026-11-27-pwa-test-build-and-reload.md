@@ -1,6 +1,6 @@
 ---
 title: The PWA test sees a reload during a game, and runs on any machine
-state: user-approved
+state: published
 opened: 2026-11-27
 owner: session "Kéo main mới và làm tiếp task cải thiện workflow"
 agents: reviewer
@@ -83,5 +83,6 @@ fixes were not reviewed again.
 ## Approval and publication
 
 - User approval: to continue the work; then to push to `main` ("Đưa lên main", 2026-11-27).
+- Published: `f8b19de` on `main`; both GitHub Actions workflows passed (runs 45932791285, 45932791328).
 
 ## Follow-ups
