@@ -473,6 +473,169 @@ test("shared sea: every boat carries its boat and rod tier, read from the accoun
   }
 });
 
+/**
+ * A sea in which the test decides when, and how, each of bao's refit reads answers. The reads of a
+ * join answer at once with the first boat and rod. `clock` is only moved by the test, so a second
+ * refit read can start while the first is still waiting.
+ */
+async function heldReads({ fitWaitMs }) {
+  const server = createServer();
+  let clock = 1000;
+  const ids = { ta: "ann", tb: "bao", tc: "cam" };
+  const authenticate = async (token) =>
+    ids[token]
+      ? { id: ids[token], user_metadata: { display_name: ids[token] } }
+      : null;
+  let holding = false;
+  let started = () => {};
+  const loadoutOf = (token) => {
+    if (!holding || token !== "tb") return Promise.resolve({ boat: 0, rod: 0 });
+    return new Promise((resolve, reject) => started({ resolve, reject }));
+  };
+  const io = attachSockets(server, {
+    origins: ["https://sea.test"],
+    authenticate,
+  });
+  attachOcean(io, {
+    authenticate,
+    now: () => clock,
+    tickMs: 30,
+    loadoutOf,
+    fitWaitMs,
+    minRefitMs: 2000,
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const sockets = [];
+  const enter = async (token) => {
+    const socket = connect(base, {
+      transports: ["websocket"],
+      reconnection: false,
+      autoConnect: false,
+      auth: { token },
+    });
+    sockets.push(socket);
+    const connected = once(socket, "connect");
+    socket.connect();
+    await connected;
+    const state = once(socket, "ocean:state");
+    await socket
+      .timeout(3000)
+      .emitWithAck("ocean:command", { action: "join", proto: 2 });
+    return { socket, boats: (await state)[0].boats };
+  };
+  const ann = (await enter("ta")).socket;
+  const bao = (await enter("tb")).socket;
+  const refits = [];
+  ann.on("ocean:refit", (value) => refits.push(value));
+  holding = true;
+  return {
+    refits,
+    /** bao asks for a refit, after the gap; resolves with the read the server then starts. */
+    async ask() {
+      clock += 2000;
+      const read = new Promise((resolve, reject) => {
+        const late = setTimeout(
+          () => reject(new Error("no refit read was started")),
+          3000,
+        );
+        started = (held) => {
+          clearTimeout(late);
+          resolve(held);
+        };
+      });
+      bao.emit("ocean:refit");
+      return read;
+    },
+    /**
+     * Resolves once ann has everything the server sent her up to now: the answer to this (invalid,
+     * so without effect) command follows it on the same connection.
+     */
+    settled: () => ann.timeout(3000).emitWithAck("ocean:command", {}),
+    /** bao's boat and rod as a player entering now is told them. */
+    async shown() {
+      const { socket, boats } = await enter("tc");
+      socket.disconnect();
+      const boat = boats.find((b) => b.uid === "bao");
+      return [boat.tier, boat.rod];
+    },
+    async close() {
+      for (const socket of sockets) socket.close();
+      await new Promise((resolve) => server.close(resolve));
+      io.close();
+    },
+  };
+}
+
+test("shared sea: a slow, older refit read does not replace what a later-started read has applied", async () => {
+  const sea = await heldReads({ fitWaitMs: 10_000 });
+  try {
+    const older = await sea.ask();
+    const newer = await sea.ask();
+    newer.resolve({ boat: 3, rod: 2 });
+    await sea.settled();
+    assert.deepEqual(sea.refits, [{ uid: "bao", tier: 3, rod: 2 }]);
+    older.resolve({ boat: 1, rod: 1 });
+    await sea.settled();
+    assert.deepEqual(
+      sea.refits,
+      [{ uid: "bao", tier: 3, rod: 2 }],
+      "the older answer sends nothing",
+    );
+    assert.deepEqual(
+      await sea.shown(),
+      [3, 2],
+      "the boat keeps the newer tiers",
+    );
+
+    // The same when the later answer changed nothing: it is still the newer word on the account.
+    const stale = await sea.ask();
+    const same = await sea.ask();
+    same.resolve({ boat: 3, rod: 2 });
+    await sea.settled();
+    stale.resolve({ boat: 2, rod: 0 });
+    await sea.settled();
+    assert.equal(sea.refits.length, 1, "nothing is sent");
+    assert.deepEqual(await sea.shown(), [3, 2]);
+  } finally {
+    await sea.close();
+  }
+});
+
+test("shared sea: when a later refit read fails or times out, the earlier read's answer is still applied", async () => {
+  const sea = await heldReads({ fitWaitMs: 1000 });
+  try {
+    // the later read fails before the earlier one answers
+    const first = await sea.ask();
+    const failing = await sea.ask();
+    failing.reject(new Error("economy unreachable"));
+    await sea.settled();
+    first.resolve({ boat: 1, rod: 1 });
+    await sea.settled();
+    assert.deepEqual(
+      sea.refits,
+      [{ uid: "bao", tier: 1, rod: 1 }],
+      "after a failed later read",
+    );
+    // the later read is never answered: the earlier answer counts, also after the later is given up
+    const second = await sea.ask();
+    await sea.ask();
+    second.resolve({ boat: 2, rod: 3 });
+    await sea.settled();
+    assert.deepEqual(
+      sea.refits.at(-1),
+      { uid: "bao", tier: 2, rod: 3 },
+      "while a later read is still waiting",
+    );
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+    await sea.settled();
+    assert.equal(sea.refits.length, 2);
+    assert.deepEqual(await sea.shown(), [2, 3]);
+  } finally {
+    await sea.close();
+  }
+});
+
 test("shared sea: an older client gets the full snapshot with the extra fields it ignores, and never the refit event", async () => {
   const server = createServer();
   const authenticate = async (token) =>

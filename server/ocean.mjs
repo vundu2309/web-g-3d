@@ -290,6 +290,12 @@ export function attachOcean(
     let last = -Infinity;
     let lastToken = -Infinity;
     let lastRefit = -Infinity;
+    /**
+     * Refit reads are numbered as they start. Two can wait at once (the gap is shorter than the
+     * longest read), so an answer older than one already applied is left out.
+     */
+    let refitStarted = 0;
+    let refitApplied = 0;
     /** A refit asked within the gap after the last one, waiting for the gap to end. */
     let refitLater;
     let checking = false;
@@ -445,16 +451,17 @@ export function attachOcean(
     // The client bought a boat or a rod: read what it owns again (never trust what it says) and tell
     // the others. Quiet when not joined or nothing changed; one asked too soon after the last is not
     // dropped (a second purchase within the gap must still reach the others) but done once the gap
-    // is over. A read that fails leaves the boat as it is.
-    let refitSeq = 0;
+    // is over. A read that fails leaves the boat as it is, and so does one answered after a later one.
     async function refit() {
-      const seq = ++refitSeq;
       lastRefit = now();
+      const read = ++refitStarted;
       const uid = socket.data.uid;
       const fit = await readFit(socket.data.token);
-      if (!fit || seq !== refitSeq) return;
+      if (!fit || read < refitApplied) return;
       const boat = boats.get(uid);
       if (!boat || boat.session !== socket.id) return;
+      // Also when nothing changed: that answer is still newer than the ones started before it.
+      refitApplied = read;
       if (
         boat.tier === fit.tier &&
         boat.rod === fit.rod &&

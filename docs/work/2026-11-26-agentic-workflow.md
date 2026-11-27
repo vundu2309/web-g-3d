@@ -161,8 +161,8 @@ and record.
 Publication (2026-11-27): the arrow change is on `main` (`bac0d19`). The server change is **not**: before the
 push another session had fixed its main case in `1376983` (only the latest started read applies). That rule
 drops a valid earlier answer when the later read fails; this change's second test fails on `d023650`
-(`after a failed later read`, actual `[]`) and its first passes. Its commit `283dda2` stays on
-`wt/refit-order`, waiting for the user's choice. The step's "two changes on `main`" is not yet met.
+(`after a failed later read`, actual `[]`) and its first passes. The user then chose to merge its rule
+into the new code ("Ghép và đưa lên").
 
 Results (2026-11-27). Times are the agents' own reports; tokens rounded.
 
